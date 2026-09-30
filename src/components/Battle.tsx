@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
 import { ITEMS } from '../data/items'
 import { useKeys } from '../game/keys'
@@ -8,6 +9,9 @@ import { makeGrid, evaluate, normalizeInput, parseAddr, colName, formatValue, us
 import { maxHp } from '../game/progress'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
+import { useInputMode } from '../game/inputMode'
+import { battlePad, dropLast, learnedFuncs, type ChipGroup } from '../game/formulaTokens'
+import { FormulaPad } from './FormulaPad'
 
 interface Props {
   bossId: string
@@ -83,6 +87,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [q, setQ] = useState<Question | null>(null)
   const [choices, setChoices] = useState<string[]>([])
   const [formula, setFormula] = useState('=')
+  const touch = useInputMode() === 'touch'
+  /** スマホ：この問題で 選べる 数式ボタン */
+  const [pad, setPad] = useState<ChipGroup[]>([])
   /** attack：こちらの攻撃の問題 ／ defense：ボスの攻撃の問題（正解でダメージ減） */
   const [mode, setMode] = useState<'attack' | 'defense'>('attack')
   const guardHinted = useRef(false)
@@ -127,7 +134,13 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         cs = cs.filter((c) => !wrong.includes(c))
       }
       setChoices(cs)
-    } else setFormula('=')
+    } else {
+      setFormula('=')
+      const t = parseAddr(nq.target)
+      const rows = Math.max(nq.table.length, t.r + 1)
+      const cols = Math.max(...nq.table.map((r) => r.length), t.c + 1)
+      setPad(battlePad(nq.hint, rows, cols, nq.target, learnedFuncs(gs.skills)))
+    }
     setCursor(0)
     const limit = (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
     startedAt.current = Date.now()
@@ -388,6 +401,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const tableCols = q?.type === 'formula' ? Math.max(...q.table.map((r) => r.length), target!.c + 1, ...copyCells.map((p) => p.c + 1)) : 0
   const tableRows = q?.type === 'formula' ? Math.max(q.table.length, target!.r + 1, ...copyCells.map((p) => p.r + 1)) : 0
 
+  // スマホの 数式ボタンは 画面の下いっぱいに 出す（ゲーム画面の中だと 小さすぎる）
+  const touchFormula = touch && q?.type === 'formula'
+  const portal = (el: ReactElement) => (touchFormula ? createPortal(el, document.body) : el)
+
   return (
     <div className={`battle bg-${scene} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
       <div className="win status-win">
@@ -413,8 +430,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         {bossHp > 0 ? <BossSprite key={hit} id={boss.sprite} hit={hit} /> : <div className="boss-gone">✨</div>}
       </div>
 
-      {phase === 'question' && q && (
-        <div className={`win question-win ${mode}`}>
+      {phase === 'question' && q && portal(
+        <div className={`win question-win ${mode} ${touchFormula ? 'touch-q' : ''}`}>
           {boss.boss && (
             <div className="q-mode">{mode === 'defense' ? `🛡 ${boss.name}の 攻撃！ 正解で ダメージを へらせ！` : '⚔ こちらの 攻撃！'}</div>
           )}
@@ -466,36 +483,54 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
                   submitFormula()
                 }}
               >
-                <label>
-                  {q.target} ＝{' '}
-                  <input
-                    autoFocus
-                    value={formula}
-                    onChange={(e) => setFormula(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'F4') return
-                      // F4 で カーソル位置の参照に「$」を付け外し
-                      e.preventDefault()
-                      const el = e.currentTarget
-                      const t = toggleAbsAt(el.value, el.selectionStart ?? el.value.length)
-                      if (t) {
-                        el.value = t.text
-                        el.setSelectionRange(t.caret, t.caret)
-                        setFormula(t.text)
-                        requestAnimationFrame(() => el.setSelectionRange(t.caret, t.caret))
-                      }
-                    }}
-                    spellCheck={false}
-                    autoComplete="off"
-                  />
-                </label>
+                {touch ? (
+                  <>
+                    <div className="fpad-formula">
+                      <span className="fpad-target">{q.target}</span>
+                      <span className="fpad-text">{formula}</span>
+                    </div>
+                    <FormulaPad
+                      groups={pad}
+                      onChip={(t) => setFormula((f) => f + t)}
+                      actions={[
+                        { label: 'F4 ($)', onClick: () => setFormula((f) => toggleAbsAt(f, f.length)?.text ?? f) },
+                        { label: '⌫', onClick: () => setFormula((f) => (f.length > 1 ? dropLast(f) : f)) },
+                        { label: 'クリア', onClick: () => setFormula('=') },
+                      ]}
+                    />
+                  </>
+                ) : (
+                  <label>
+                    {q.target} ＝{' '}
+                    <input
+                      autoFocus
+                      value={formula}
+                      onChange={(e) => setFormula(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'F4') return
+                        // F4 で カーソル位置の参照に「$」を付け外し
+                        e.preventDefault()
+                        const el = e.currentTarget
+                        const t = toggleAbsAt(el.value, el.selectionStart ?? el.value.length)
+                        if (t) {
+                          el.value = t.text
+                          el.setSelectionRange(t.caret, t.caret)
+                          setFormula(t.text)
+                          requestAnimationFrame(() => el.setSelectionRange(t.caret, t.caret))
+                        }
+                      }}
+                      spellCheck={false}
+                      autoComplete="off"
+                    />
+                  </label>
+                )}
                 <button className="btn primary">{mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}</button>
                 {q.copies && <div className="copy-note">⇩ の セルにも この数式を コピーして 確かめるぞ！（F4 で $ 切替）</div>}
                 {buff.scroll && <div className="hint">📜 ヒント：{q.hint.replace(/\(.*\)/, '(…)')}</div>}
               </form>
             </div>
           )}
-        </div>
+        </div>,
       )}
 
       {(phase === 'command' || phase === 'items') && (

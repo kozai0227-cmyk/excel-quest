@@ -15,6 +15,9 @@ import {
   type Grid,
   type Value,
 } from '../game/formula'
+import { useInputMode } from '../game/inputMode'
+import { dropLast, type ChipGroup } from '../game/formulaTokens'
+import { FormulaPad, type PadAction } from './FormulaPad'
 
 const ROW_H = 26
 const HEAD_W = 40
@@ -49,12 +52,14 @@ interface Props {
   initial: Grid
   initialHistory?: Grid[]
   colWidths?: number[]
+  /** スマホ用の 数式ボタン（入力方式が touch のときだけ 表示） */
+  pad?: ChipGroup[]
   onChange?(grid: Grid, values: Value[][], actions: Set<string>): void
 }
 
 const ARROWS: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }
 
-export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Props) {
+export function MiniExcel({ initial, initialHistory, colWidths, pad, onChange }: Props) {
   const rows = initial.length
   const cols = initial[0].length
   const widths = Array.from({ length: cols }, (_, c) => colWidths?.[c] ?? DEFAULT_W)
@@ -71,6 +76,9 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
   const tabStart = useRef<number | null>(null)
   const actions = useRef(new Set<string>())
   const inputRef = useRef<HTMLInputElement>(null)
+  const touch = useInputMode() === 'touch' && !!pad
+  /** スマホで 文字を打つときだけ、ふつうの キーボードを出す */
+  const [kbd, setKbd] = useState(false)
   const drag = useRef<null | { kind: 'select' } | { kind: 'fill' } | { kind: 'ref' }>(null)
 
   const values = useMemo(() => evaluate(grid), [grid])
@@ -488,6 +496,46 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
     }
   })
 
+  // ---------------------------------------------------------------- スマホの 数式ボタン
+  const insertChip = (t: string) => {
+    setPoint(null)
+    if (edit) setEdit({ ...edit, value: edit.value + t })
+    else startEdit(t, 'enter')
+  }
+  const padActions: PadAction[] = edit
+    ? [
+        {
+          label: 'F4 ($)',
+          onClick: () => {
+            const t = toggleAbsAt(edit.value, edit.value.length)
+            if (!t) return
+            setPoint(null)
+            setEdit({ ...edit, value: t.text })
+            actions.current.add('f4')
+          },
+        },
+        { label: '⌫', onClick: () => (setPoint(null), setEdit({ ...edit, value: dropLast(edit.value) })) },
+        { label: 'やめる', onClick: () => (setEdit(null), setPoint(null)) },
+        ...(multi ? [{ label: '範囲に確定', onClick: () => commit(null, true) }] : []),
+        { label: '確定 →', onClick: () => commit([0, 1]), kind: 'main' as const },
+        { label: '確定 ↓', onClick: () => commit([1, 0]), kind: 'main' as const },
+      ]
+    : [
+        { label: '編集', onClick: () => startEdit() },
+        { label: '消す', onClick: clearRange },
+        { label: '下へコピー', onClick: () => fillCopy(true) },
+        { label: '右へコピー', onClick: () => fillCopy(false) },
+      ]
+  padActions.push({
+    label: kbd ? '⌨ ボタンに戻す' : '⌨ 文字を打つ',
+    kind: 'sub',
+    onClick: () => {
+      setKbd(!kbd)
+      if (!kbd) requestAnimationFrame(focus)
+      else inputRef.current?.blur()
+    },
+  })
+
   // ---------------------------------------------------------------- 描画
   const box = (r: Range) => ({
     left: lefts[r.c1],
@@ -536,7 +584,7 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
   )
 
   return (
-    <div className="xl">
+    <div className={`xl ${touch ? 'touch' : ''}`}>
       <div className="xl-toolbar">
         {btn('太字 (Ctrl+B)', toggleBold, <b>B</b>, false, !!active.bold)}
         {btn('元に戻す (Ctrl+Z)', undo, '↶', !past.length)}
@@ -637,9 +685,12 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
             autoComplete="off"
             autoCapitalize="off"
             spellCheck={false}
+            readOnly={touch && !kbd}
+            inputMode={touch && !kbd ? 'none' : undefined}
           />
         </div>
       </div>
+      {touch && <FormulaPad groups={pad!} onChip={insertChip} actions={padActions} />}
     </div>
   )
 }

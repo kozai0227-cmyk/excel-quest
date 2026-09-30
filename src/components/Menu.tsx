@@ -7,8 +7,9 @@ import { PLAYER_SPEC } from '../data/maps'
 import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, SLOT_NAME, effectText, gearStats, type Slot } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
+import { setInputMode, useInputMode } from '../game/inputMode'
 
-const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'セーブ', 'とじる'] as const
+const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', 'セーブ', 'とじる'] as const
 
 interface Props {
   gs: GameState
@@ -26,6 +27,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
   const [eqSlot, setEqSlot] = useState<Slot | null>(null)
   const [ecur, setEcur] = useState(0)
   const gear = gearStats(gs)
+  const inputMode = useInputMode()
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
   const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
 
@@ -54,6 +56,12 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
     const c = CMDS[i]
     setNote('')
     if (c === 'とじる') return onClose()
+    if (c === 'にゅうりょく') {
+      const m = inputMode === 'touch' ? 'keyboard' : 'touch'
+      setInputMode(m)
+      setNote(m === 'touch' ? '数式を ボタンで 組み立てる（スマホ向け）に した。' : '数式を キーボードで 打つ（PC向け）に した。')
+      return
+    }
     if (c === 'セーブ') {
       onSave()
       setNote('ぼうけんの きろくを かきこんだ。')
@@ -103,6 +111,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
         {CMDS.map((c, i) => (
           <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onClick={() => { setCursor(i); select(i) }}>
             {c}
+            {c === 'にゅうりょく' && <small>：{inputMode === 'touch' ? 'ボタン' : 'キーボード'}</small>}
           </div>
         ))}
       </div>

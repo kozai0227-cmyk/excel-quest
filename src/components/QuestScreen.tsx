@@ -4,6 +4,8 @@ import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
 import { ITEMS } from '../data/items'
 import type { Grid, Value } from '../game/formula'
+import { questPad } from '../game/formulaTokens'
+import { useInputMode } from '../game/inputMode'
 
 interface Props {
   quest: QuestDef
@@ -17,6 +19,8 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
   const [hints, setHints] = useState(0)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [cleared, setCleared] = useState(false)
+  const touch = useInputMode() === 'touch'
+  const pad = useMemo(() => questPad(quest.town), [quest])
   const last = useRef<{ grid: Grid; values: Value[][]; actions: Set<string> } | null>(null)
 
   // 入力のたびには判定しない。「これでどうだ！」を押したときだけ判定する
@@ -85,8 +89,15 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
             {feedback && <div className="feedback">{feedback}</div>}
           </aside>
           <main className="quest-main">
-            <MiniExcel initial={initial} initialHistory={history} colWidths={quest.colWidths} onChange={onChange} />
-            {!puzzle && (
+            <MiniExcel initial={initial} initialHistory={history} colWidths={quest.colWidths} pad={pad} onChange={onChange} />
+            {!puzzle && touch && (
+            <div className="cheats">
+              <span>数式の途中で セルをタップ → 番地が入る</span>
+              <span>ドラッグ → 範囲（A1:A6）</span>
+              <span>F4 → $ の付け外し</span>
+            </div>
+            )}
+            {!puzzle && !touch && (
             <div className="cheats">
               <span><kbd>Enter</kbd> 確定</span>
               <span><kbd>F2</kbd> 編集</span>
