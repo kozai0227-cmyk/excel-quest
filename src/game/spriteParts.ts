@@ -1,0 +1,848 @@
+/**
+ * キャラクタードット絵のパーツ（16x20）。
+ * 文字はパレットのキー（'.' は透明）。y は描き始めの行。
+ *  o:輪郭 s/S:肌 e:目 w:白 p:ほお n:口
+ *  h/H/j:髪(通常/明/暗) c/C:服(通常/暗) i/I:シャツ a/A:アクセント(ネクタイ・ベルト等)
+ *  l/L:ズボン f:靴 t/T/y:帽子(通常/暗/明) q:帽子の飾り b/B:ヒゲ g:金 m/M:金属 x:レンズ
+ */
+export interface Part {
+  y: number
+  rows: string[]
+}
+export type Kind = 'down' | 'up' | 'side'
+export type Frame = 0 | 1 | 2
+
+export const BASE: Record<Kind, Part> = {
+  down: {
+    y: 3,
+    rows: [
+      '.....oooooo.....',
+      '....osssssso....',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...oSssssssSo...',
+      '....oSssssSo....',
+      '....occcccco....',
+      '...ocCccccCco...',
+      '...ocCccccCco...',
+      '...scCccccCcs...',
+      '....ollllllo....',
+    ],
+  },
+  up: {
+    y: 3,
+    rows: [
+      '.....oooooo.....',
+      '....osssssso....',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...oSssssssSo...',
+      '....oSssssSo....',
+      '....occcccco....',
+      '...ocCccccCco...',
+      '...ocCccccCco...',
+      '...scCccccCcs...',
+      '....ollllllo....',
+    ],
+  },
+  side: {
+    y: 3,
+    rows: [
+      '.....oooooo.....',
+      '....osssssso....',
+      '...osssssssso...',
+      '...osssssssso...',
+      '...osssssssso...',
+      '..ossssssssso...',
+      '...osssssssso...',
+      '...osssssssSo...',
+      '....osssssSo....',
+      '.....occcco.....',
+      '....occcccco....',
+      '....ocCcccco....',
+      '....oscCccco....',
+      '.....ollllo.....',
+    ],
+  },
+}
+
+type LegSet = Record<'front' | 'side', Record<Frame, Part>>
+
+export const LEGS: LegSet = {
+  front: {
+    0: { y: 17, rows: ['....oll..llo....', '....off..ffo....'] },
+    1: { y: 17, rows: ['....oll..ffo....', '....off.........'] },
+    2: { y: 17, rows: ['....off..llo....', '.........ffo....'] },
+  },
+  side: {
+    0: { y: 17, rows: ['.....ollllo.....', '....ffo.ffo.....'] },
+    1: { y: 17, rows: ['....oll..llo....', '...ffo...ffo....'] },
+    2: { y: 17, rows: ['.....ollllo.....', '.....ffffo......'] },
+  },
+}
+
+/** スカート・ローブ用（足は靴だけ見える） */
+export const SKIRT_LEGS: LegSet = {
+  front: {
+    0: { y: 18, rows: ['....off..ffo....'] },
+    1: { y: 18, rows: ['....off.........'] },
+    2: { y: 18, rows: ['.........ffo....'] },
+  },
+  side: {
+    0: { y: 18, rows: ['....ffo.ffo.....'] },
+    1: { y: 18, rows: ['...ffo...ffo....'] },
+    2: { y: 18, rows: ['.....ffffo......'] },
+  },
+}
+
+export interface OutfitDef {
+  down: string[]
+  side: string[]
+  up?: string[]
+  /** 後ろ姿で見えない部分の置き換え */
+  upMap?: Record<string, string>
+  skirt?: boolean
+}
+
+export const OUTFITS: Record<string, OutfitDef> = {
+  suit: {
+    down: ['....ociaaico....', '...ocCiaaiCco...', '...ocCcaacCco...', '...scCcAAcCcs...', '....ollllllo....'],
+    side: ['.....oiacco.....', '....oiacCcco....', '....ocaCccco....', '....oscCccco....', '.....ollllo.....'],
+    upMap: { i: 'c', a: 'c', A: 'C' },
+  },
+  robe: {
+    down: ['....occaacco....', '...ocCcaacCco...', '...ocCcaacCco...', '...scCcaacCcs...', '...occcaaccco...', '...oCCcaacCCo...'],
+    side: ['.....oaccco.....', '....oacccCco....', '....oacCccco....', '....oscCccco....', '....oaccccCo....', '...oacccccCo....'],
+    upMap: { a: 'c' },
+    skirt: true,
+  },
+  tunic: {
+    down: ['....occcccco....', '...ocCccccCco...', '...ocCccccCco...', '...scaaggaacs...', '....oCccccCo....'],
+    side: ['.....occcco.....', '....occcccco....', '....ocCcccco....', '....osaagaao....', '.....oCccCo.....'],
+    upMap: { g: 'a' },
+  },
+  apron: {
+    down: ['....occcccco....', '...ocCiiiiCco...', '...ocCiiiiCco...', '...scIiiiiIcs...', '...ocIiiiiIco...', '...oCCiiiiCCo...'],
+    side: ['.....occcco.....', '....oiicccco....', '....oiiCccco....', '....osiCccco....', '....oiicccCo....', '...oiiicccCo....'],
+    upMap: { i: 'c', I: 'C' },
+    skirt: true,
+  },
+  dress: {
+    down: ['....ociiiico....', '...ocCccccCco...', '...ocCccccCco...', '...scCccccCcs...', '...oCccccccCo...', '...oCCCCCCCCo...'],
+    side: ['.....oiicco.....', '....occcccco....', '....ocCcccco....', '....oscCccco....', '....occccCCo....', '...occcccCCo....'],
+    upMap: { i: 'c' },
+    skirt: true,
+  },
+  armor: {
+    down: ['...ommmmmmmmo...', '...omMccccMmo...', '...omMcggcMmo...', '...smMccccMms...', '....oMccccMo....'],
+    side: ['....ommmmmo.....', '....omcccMmo....', '....omcgcMmo....', '....omsccMmo....', '.....oMccMo.....'],
+    upMap: { g: 'c' },
+  },
+  overalls: {
+    down: ['....oiiiiiio....', '...oiicccciio...', '...oicgccgcio...', '...siccccccis...', '....occcccco....'],
+    side: ['.....oiiiio.....', '....oiccccio....', '....oigccCio....', '....osccCcio....', '.....occcco.....'],
+    upMap: { g: 'c' },
+  },
+  leather: {
+    down: ['....occcccco....', '...ocCaaaaCco...', '...ocCaaaaCco...', '...scAaaaaAcs...', '....oAaaaaAo....'],
+    side: ['.....occcco.....', '....oaacccco....', '....oaaCccco....', '....osaCccco....', '.....oaaaAo.....'],
+    upMap: { a: 'c', A: 'C' },
+  },
+  vest: {
+    down: ['....oicaacio....', '...oicciiccio...', '...oicCiiCcio...', '...siccggccis...', '....ollllllo....'],
+    side: ['.....oaicco.....', '....oicccIio....', '....oicCcIio....', '....osccCIio....', '.....ollllo.....'],
+    up: ['....oiccccio....', '...oicCccCcio...', '...oicCccCcio...', '...siccccccis...', '....ollllllo....'],
+  },
+  coat: {
+    down: ['....ocaiiaco....', '...ocCaiiaCco...', '...ocCaiiaCco...', '...scCaiiaCcs...', '...occaiiacco...', '...oCcaLLacCo...'],
+    side: ['.....oaicco.....', '....oaicCcco....', '....oacCccco....', '....oscCccco....', '....oacccCco....', '...oaccccCCo....'],
+    upMap: { a: 'c', i: 'c', L: 'C' },
+    skirt: true,
+  },
+}
+
+export const HAIR: Record<string, Record<Kind, Part>> = {
+  neat: {
+    down: { y: 2, rows: ['.....oooooo.....', '....ohhhhHho....', '...ohhjhhhHho...', '...ohjhhhhhho...', '...ohh...hhho...', '...oh......ho...'] },
+    up: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ojhhhhhhjo...', '...oojjjjjjoo...'],
+    },
+    side: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhHhhhho...', '...ohhhhhhhho...', '...ohh..hhhho...', '...o.....hhho...', '...o.....hhho...', '...o......jho...'],
+    },
+  },
+  spiky: {
+    down: {
+      y: 1,
+      rows: ['....o..o..o.....', '...ohoohoohoo...', '...ohhhhhhhho...', '..ohhhhhHhhhho..', '..ohhhhhhhhhho..', '...oh.hh.hh.ho..', '...oh......ho...'],
+    },
+    up: {
+      y: 1,
+      rows: [
+        '....o..o..o.....',
+        '...ohoohoohoo...',
+        '...ohhhhhhhho...',
+        '..ohhhhhHhhhho..',
+        '..ohhhhhhhhhho..',
+        '...ohhhhhhhho...',
+        '...ohhhhhhhho...',
+        '...ojhhhhhhjo...',
+        '...oojjjjjjoo...',
+      ],
+    },
+    side: {
+      y: 1,
+      rows: ['........o.o.....', '....ooooohohoo..', '...ohhhhhhhhhho.', '...ohhhhHhhhhho.', '...ohhhhhhhhho..', '...ohh.h.hhhho..', '...o.....hhho...', '...o.....hhho...', '...o......jho...'],
+    },
+  },
+  long: {
+    down: {
+      y: 2,
+      rows: [
+        '.....oooooo.....',
+        '....ohhhhHho....',
+        '...ohhhhhhHho...',
+        '...ohhhhhhhho...',
+        '...ohh....hho...',
+        '..ohh......hho..',
+        '..ohh......hho..',
+        '..ohh......hho..',
+        '..ohh......hho..',
+        '..ohh......hho..',
+        '..ohhh....hhho..',
+        '...ohh....hho...',
+        '....oo....oo....',
+      ],
+    },
+    up: {
+      y: 2,
+      rows: [
+        '.....oooooo.....',
+        '....ohhhhhho....',
+        '...ohhhhHhhho...',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '..ohhhhhhhhhho..',
+        '...ohhhhhhhho...',
+        '....ojjjjjjo....',
+      ],
+    },
+    side: {
+      y: 2,
+      rows: [
+        '.....oooooo.....',
+        '....ohhhhhho....',
+        '...ohhhhHhhho...',
+        '...ohhhhhhhho...',
+        '...ohh..hhhhho..',
+        '...o....hhhhho..',
+        '...o....hhhhho..',
+        '...o....hhhhho..',
+        '...o....hhhhho..',
+        '...o....hhhhho..',
+        '....o...hhhhho..',
+        '........ohhhho..',
+        '.........oooo...',
+      ],
+    },
+  },
+  bob: {
+    down: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhHho....', '...ohhhhhhHho...', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '..ohh......hho..', '..ohh......hho..', '..ohh......hho..', '..ohhh....hhho..', '...ooo....ooo...'],
+    },
+    up: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '..ojhhhhhhhhjo..', '...oooooooooo...'],
+    },
+    side: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '..ohhhhhhhhhho..', '..ohhhhhhhhhho..', '...o....hhhhho..', '...o....hhhhho..', '...o....hhhhho..', '...o...ohhhhho..', '........oooooo..'],
+    },
+  },
+  bun: {
+    down: { y: 0, rows: ['......oooo......', '.....ohHhho.....', '.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '...ohhh..hhho...', '...oh......ho...'] },
+    up: {
+      y: 0,
+      rows: [
+        '......oooo......',
+        '.....ohHhho.....',
+        '.....ohhhho.....',
+        '....ohhhhhho....',
+        '...ohhhhHhhho...',
+        '...ohhhhhhhho...',
+        '...ohhhhhhhho...',
+        '...ohhhhhhhho...',
+        '...ohhhhhhhho...',
+        '...ojhhhhhhjo...',
+        '...oojjjjjjoo...',
+      ],
+    },
+    side: {
+      y: 0,
+      rows: ['.........oooo...', '........ohHhho..', '.....ooooohhho..', '....ohhhhhhhho..', '...ohhhhHhhhho..', '...ohh..hhhhho..', '...o.....hhhho..', '...o......hhho..', '...o.......ho...'],
+    },
+  },
+  bald: {
+    down: { y: 4, rows: ['......ww........', '................', '...oh......ho...', '...oh......ho...', '...ohh....hho...'] },
+    up: { y: 4, rows: ['......ww........', '................', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...oojjjjjjoo...'] },
+    side: { y: 4, rows: ['.....ww.........', '................', '...o......hho...', '...o.....hhho...', '...o.....hhho...', '...o......jho...'] },
+  },
+  twin: {
+    down: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhHho....', '...ohhhhhhHho...', '...ohhhhhhhho...', '..oohhh..hhhoo..', '.ohoh......hoho.', '.oho........oho.', '.oho........oho.', '.ohho......ohho.', '..oo........oo..'],
+    },
+    up: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '...ohhhhhhhho...', '..oohhhhhhhhoo..', '.ohohhhhhhhhoho.', '.ohoohhhhhhooho.', '.oho.oojjoo.oho.', '.ohho......ohho.', '..oo........oo..'],
+    },
+    side: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohhhhhho....', '...ohhhhHhhho...', '...ohhhhhhhho...', '...ohh..hhhhoo..', '...o.....hhhoo..', '...o......hohho.', '...o.......ohho.', '...........ohho.', '............oo..'],
+    },
+  },
+  slick: {
+    down: { y: 2, rows: ['.....oooooo.....', '....ohHhHhho....', '...ohhHhhHhho...', '...ohhhhhhhho...', '...oh......ho...'] },
+    up: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohHhHhho....', '...ohhHhhHhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ohhhhhhhho...', '...ojhhhhhhjo...', '...oojjjjjjoo...'],
+    },
+    side: {
+      y: 2,
+      rows: ['.....oooooo.....', '....ohHhHhho....', '...ohhHhhHhho...', '...ohhhhhhhho...', '...o...hhhhho...', '...o.....hhho...', '...o.....hhho...', '...o......jho...'],
+    },
+  },
+  messy: {
+    down: { y: 1, rows: ['......o..o......', '....ohho.ohho...', '...ohhhhhhhhho..', '..ohhhhhhHhhhho.', '...ohhhhhhhhho..', '...ohh.h.hh.ho..', '...oh......ho...'] },
+    up: {
+      y: 1,
+      rows: [
+        '......o..o......',
+        '....ohho.ohho...',
+        '...ohhhhhhhhho..',
+        '..ohhhhhhHhhhho.',
+        '...ohhhhhhhhho..',
+        '...ohhhhhhhho...',
+        '...ohhhhhhhho...',
+        '...ojhhhhhhjo...',
+        '...oojjjjjjoo...',
+      ],
+    },
+    side: {
+      y: 1,
+      rows: ['........o.o.....', '.....oohohoo....', '....ohhhhhhhho..', '...ohhhhhHhhhho.', '...ohhhhhhhhho..', '...oh.h.hhhhho..', '...o.....hhho...', '...o.....hhho...', '...o......jho...'],
+    },
+  },
+  buzz: {
+    down: { y: 2, rows: ['.....oooooo.....', '....ojjjjjjo....', '...ojjjjjjjjo...', '...oj......jo...'] },
+    up: { y: 2, rows: ['.....oooooo.....', '....ojjjjjjo....', '...ojjjjjjjjo...', '...ojjjjjjjjo...', '...ojjjjjjjjo...', '...ojjjjjjjjo...', '...ojjjjjjjjo...', '...ojjjjjjjjo...'] },
+    side: { y: 2, rows: ['.....oooooo.....', '....ojjjjjjo....', '...ojjjjjjjjo...', '...o....jjjjo...', '...o.....jjjo...', '...o.....jjjo...', '...o......jjo...'] },
+  },
+}
+
+const same = (p: Part): Record<Kind, Part> => ({ down: p, up: p, side: p })
+
+export const HATS: Record<string, Record<Kind, Part>> = {
+  helmet: {
+    down: { y: 0, rows: ['.......qq.......', '......oqqo......', '....ommmmmmo....', '...ommmMmmmmo...', '..ommmmmmmmmmo..', '..oMMMMMMMMMMo..', '...oM......Mo...', '...oM......Mo...'] },
+    up: { y: 0, rows: ['.......qq.......', '......oqqo......', '....ommmmmmo....', '...ommmmMmmmo...', '..ommmmmmmmmmo..', '..oMMMMMMMMMMo..', '...ommmmmmmmo...', '...ommmmmmmmo...', '...oMMMMMMMMo...'] },
+    side: { y: 0, rows: ['.........qq.....', '........oqqo....', '....ommmmmmo....', '...ommmMmmmmo...', '..ommmmmmmmmmo..', '..oMMMMMMMMMMo..', '...o.....mMMo...', '...o.....mMMo...'] },
+  },
+  chef: same({ y: 0, rows: ['....oooooooo....', '...otttytttto...', '...otttttttto...', '...otttttttto...', '...oTTTTTTTTo...', '...oTTTTTTTTo...'] }),
+  straw: same({ y: 1, rows: ['.....oooooo.....', '....otttytto....', '....oqqqqqqo....', '.oottttttttttoo.', '..oooooooooooo..'] }),
+  miter: {
+    down: { y: 0, rows: ['......oooo......', '.....ottgto.....', '....ottgggto....', '....otttgtto....', '....otttgtto....', '...oqqqqqqqqo...'] },
+    up: { y: 0, rows: ['......oooo......', '.....otttto.....', '....otttttto....', '....otttttto....', '....otttttto....', '...oqqqqqqqqo...'] },
+    side: { y: 0, rows: ['......oooo......', '.....ottgto.....', '....ottgggto....', '....otttgtto....', '....otttgtto....', '...oqqqqqqqqo...'] },
+  },
+  bandana: {
+    down: { y: 3, rows: ['....otttttto....', '...otttttttto...', '...oTTTTTTTTotq.', '............oq..'] },
+    up: { y: 3, rows: ['....otttttto....', '...otttttttto...', '...oTTTTTTTTo...', '......otto......', '.....ot..to.....'] },
+    side: { y: 3, rows: ['....otttttto....', '...otttttttto...', '...oTTTTTTTTot..', '.............ot.'] },
+  },
+  tophat: same({ y: 0, rows: ['.....oooooo.....', '.....ottyto.....', '.....ottyto.....', '.....oqqqqo.....', '...oTTTTTTTTo...', '...oooooooooo...'] }),
+  beret: {
+    down: { y: 2, rows: ['....oooooooo....', '...otttttttto...', '..otttttytttto..', '..oTTTTTTTTTTo..'] },
+    up: { y: 2, rows: ['....oooooooo....', '...otttttttto...', '..otttttytttto..', '..oTTTTTTTTTTo..'] },
+    side: { y: 2, rows: ['.....ooooooo....', '....otttttttoo..', '...ottttyttttto.', '...oTTTTTTTTTo..'] },
+  },
+  hood: {
+    down: {
+      y: 2,
+      rows: ['.....oooooo.....', '....otttttto....', '...otttttttto...', '..otttttttttto..', '..ottT....Ttto..', '..otT......Tto..', '..otT......Tto..', '..ottT....Ttto..', '..otttT..Tttto..', '...otttttttto...'],
+    },
+    up: {
+      y: 2,
+      rows: ['.....oooooo.....', '....otttttto....', '...otttttttto...', '..otttttttttto..', '..otttttttttto..', '..otttttttttto..', '..otttttttttto..', '..otttttttttto..', '..otttttttttto..', '...oTTTTTTTTo...'],
+    },
+    side: {
+      y: 2,
+      rows: ['.....oooooo.....', '....otttttto....', '...otttttttto...', '...ottttttttto..', '...oT....tttto..', '...o.....Tttto..', '...o.....Tttto..', '...oT....Tttto..', '...otT...Tttto..', '....ottttttto...'],
+    },
+  },
+  knit: same({ y: 1, rows: ['.......oo.......', '......oyyo......', '....otttttto....', '...otttttttto...', '...oTtTtTtTto...', '...oTTTTTTTTo...'] }),
+}
+
+export const BEARDS: Record<string, Partial<Record<Kind, Part>>> = {
+  long: {
+    down: { y: 8, rows: ['...ob......bo...', '...obb.bb.bbo...', '...obbbbbbbbo...', '...obbbbbbbbo...', '....obbbbbbo....', '.....obbbbo.....', '......obbo......', '.......oo.......'] },
+    side: { y: 8, rows: ['...ob...........', '..obbb..........', '..obbbbo........', '...obbbo........', '...obbbo........', '....obo.........', '.....o..........'] },
+  },
+  mustache: {
+    down: { y: 9, rows: ['.....bbbbbb.....', '.....B....B.....'] },
+    side: { y: 9, rows: ['..bbb...........', '..B.............'] },
+  },
+  stubble: {
+    down: { y: 9, rows: ['....S.S..S.S....', '.....SSSSSS.....'] },
+    side: { y: 9, rows: ['...S.S..........', '....SSS.........'] },
+  },
+}
+
+export const GLASSES: Partial<Record<Kind, Part>> = {
+  down: { y: 6, rows: ['.....oo..oo.....', '.....o.oo.o.....', '.....oxooxo.....'] },
+  side: { y: 6, rows: ['...ooo..........', '...o.oooo.......', '...oxo..........'] },
+}
+
+export const FACES: Record<'down' | 'side', Record<string, Part>> = {
+  down: {
+    normal: { y: 7, rows: ['......e..e......', '......e..e......'] },
+    big: { y: 6, rows: ['......e..e......', '......e..e......', '......e..e......'] },
+    closed: { y: 8, rows: ['.....ee..ee.....'] },
+    tired: { y: 7, rows: ['......e..e......', '.....SS..SS.....'] },
+    narrow: { y: 7, rows: ['.....ee..ee.....'] },
+    blush: { y: 9, rows: ['....p......p....'] },
+    mouth: { y: 10, rows: ['.......nn.......'] },
+  },
+  side: {
+    normal: { y: 7, rows: ['....e...........', '....e...........'] },
+    big: { y: 6, rows: ['....e...........', '....e...........', '....e...........'] },
+    closed: { y: 8, rows: ['....ee..........'] },
+    tired: { y: 7, rows: ['....e...........', '....S...........'] },
+    narrow: { y: 7, rows: ['....ee..........'] },
+    blush: { y: 9, rows: ['.....p..........'] },
+    mouth: { y: 10, rows: ['....n...........'] },
+  },
+}
+
+/** 走っているときに なびくネクタイ（スーツのみ）。frame 1/2 で交互に揺れる */
+export const TIE_FLUTTER: Record<Kind, Record<1 | 2, Part>> = {
+  down: {
+    1: { y: 14, rows: ['......aac.......', '.....AAcc.......'] },
+    2: { y: 14, rows: ['.......caa......', '.......ccAA.....'] },
+  },
+  up: {
+    1: { y: 11, rows: ['............a...', '...........aA...'] },
+    2: { y: 11, rows: ['............aA..', '...........a....'] },
+  },
+  side: {
+    1: { y: 12, rows: ['.......aaaaa....', '......c.....aA..', '......c.........'] },
+    2: { y: 11, rows: ['...........aA...', '.......aaaa.....', '......c.........', '......c.........'] },
+  },
+}
+
+/** 動物・モンスター（16x16、左向き or 正面） */
+export const CREATURES: Record<string, { rows: string[]; pal: Record<string, string>; faces?: 'side' }> = {
+  slime: {
+    rows: [
+      '................',
+      '................',
+      '.......oo.......',
+      '......oggo......',
+      '.....ogGggo.....',
+      '....ogGggggo....',
+      '...ogGggggggo...',
+      '..oggggggggggo..',
+      '..ogwwggggwwgo..',
+      '.oggweggggewggo.',
+      '.oggggggggggggo.',
+      '.ogggmmmmmmgggo.',
+      '.oggggmmmmggggo.',
+      '..oggggggggggo..',
+      '...oooooooooo...',
+      '................',
+    ],
+    pal: { o: '#1a2a60', g: '#3a78e8', G: '#bfe0ff', w: '#ffffff', e: '#101010', m: '#b02838' },
+  },
+  golem: {
+    rows: [
+      '................',
+      '....oooooooo....',
+      '...oggggggggo...',
+      '...ogrggggrgo...',
+      '...oggggggggo...',
+      '...ogGGGGGGgo...',
+      '.oooggggggggooo.',
+      'oggoggGggGggoggo',
+      'oggoggggggggoggo',
+      'oGGoggGggGggoGGo',
+      '.oo.oggggggo.oo.',
+      '....oggooggo....',
+      '....oggooggo....',
+      '...oGGGooGGGo...',
+      '...oooo..oooo...',
+      '................',
+    ],
+    pal: { o: '#2a2420', g: '#a8987c', G: '#6c6050', r: '#ff3020' },
+  },
+  celime: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '.......oo.......',
+      '......oggo......',
+      '.....ogGggo.....',
+      '....ogGggggo....',
+      '...oggggggggo...',
+      '..ogwwggggwwgo..',
+      '.oggweggggewggo.',
+      '.oggggggggggggo.',
+      '.ogggggmmgggggo.',
+      '.oggggggggggggo.',
+      '..oggggggggggo..',
+      '...oooooooooo...',
+      '................',
+    ],
+    pal: { o: '#1a5220', g: '#5ccf5a', G: '#d6ffd0', w: '#ffffff', e: '#101010', m: '#b02838' },
+  },
+  frog: {
+    rows: [
+      '................',
+      '................',
+      '...oo......oo...',
+      '..owwo....owwo..',
+      '..oweo....oweo..',
+      '..ogggoooogggo..',
+      '.oggggggggggggo.',
+      '.oggmmmmmmmmggo.',
+      '.oggggggggggggo.',
+      '.oGGggyyyyggGGo.',
+      '..oGgyyyyyygGo..',
+      '.ogGoyyyyyyoGgo.',
+      'oggGooooooooGggo',
+      'ooooo......ooooo',
+      '................',
+      '................',
+    ],
+    pal: { o: '#1e3a1a', g: '#5cc04a', G: '#3a8a30', w: '#ffffff', e: '#101010', m: '#8a2030', y: '#e8f0a0' },
+  },
+  bat: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      'o.....o..o.....o',
+      'oo....obbo....oo',
+      'obo..obbbbo..obo',
+      'obboobwbbwboobbo',
+      'obbbbbebbebbbbbo',
+      '.obbbbbbbbbbbbo.',
+      '..obobbffbbobo..',
+      '...o.obbbbo.o...',
+      '......oooo......',
+      '................',
+      '................',
+      '................',
+      '................',
+    ],
+    pal: { o: '#1a1030', b: '#6a4aa0', w: '#ffe040', e: '#101010', f: '#ffffff' },
+  },
+  ghost: {
+    rows: [
+      '................',
+      '.....oooooo.....',
+      '...oowwwwwwoo...',
+      '..owwwwwwwwwwo..',
+      '.owwwwwwwwwwwwo.',
+      '.owweewwwweewwo.',
+      '.owweewwwweewwo.',
+      '.owwwwwwwwwwwwo.',
+      '.owwwwwmmwwwwwo.',
+      '.owwwwwwwwwwwwo.',
+      'owwwwwwwwwwwwwwo',
+      'owwwwwwwwwwwwwwo',
+      'owwowwowwowwowwo',
+      'oo.oo.oo.oo.oo.o',
+      '................',
+      '................',
+    ],
+    pal: { o: '#3a3a5a', w: '#e8ecff', e: '#202040', m: '#6a2a4a' },
+  },
+  kagamin: {
+    rows: [
+      '................',
+      '................',
+      '.......oo.......',
+      '......oggo......',
+      '.....ogGggo.....',
+      '....ogGggggo....',
+      '...ogGggggggo...',
+      '..oggggggggggo..',
+      '..ogwwggggwwgo..',
+      '.oggweggggewggo.',
+      '.oggggggggggggo.',
+      '.ogggmmmmmmgggo.',
+      '.oggggmmmmggggo.',
+      '..oggggggggggo..',
+      '...oooooooooo...',
+      '................',
+    ],
+    pal: { o: '#3a3a4a', g: '#c8ccd8', G: '#ffffff', w: '#ffffff', e: '#101010', m: '#b02838' },
+  },
+  zuredori: {
+    rows: [
+      '................',
+      '................',
+      '......oooo......',
+      '.....obbbbo.....',
+      '....obbbbbbo....',
+      '....obwebweo....',
+      '....obbyybbo....',
+      '..oobbbyybbboo..',
+      '.obbbbbbbbbbbbo.',
+      'obbbwbbbbbbwbbbo',
+      'obbwwbbbbbbwwbbo',
+      '.oo.obbbbbbo.oo.',
+      '.....obbbbo.....',
+      '......oyyo......',
+      '.....oy..yo.....',
+      '................',
+    ],
+    pal: { o: '#1a2a3a', b: '#8ab0d8', w: '#ffffff', e: '#101010', y: '#f0b030' },
+  },
+  mirage: {
+    rows: [
+      '.....oooooo.....',
+      '....oggggggo....',
+      '...ogsssssssgo..',
+      '..ogsswsssssgo..',
+      '..ogswssssssgo..',
+      '..ogseesseesgo..',
+      '..ogseesseesgo..',
+      '..ogssssssssgo..',
+      '..ogsssmmmssgo..',
+      '..ogssssssssgo..',
+      '...ogssssssgo...',
+      '....oggggggo....',
+      '.....oggggo.....',
+      '......oggo......',
+      '....oggggggo....',
+      '....oooooooo....',
+    ],
+    pal: { o: '#1a1a2a', g: '#e0b040', s: '#b8d4e8', w: '#ffffff', e: '#7a2a9a', m: '#7a2a9a' },
+  },
+  jelly: {
+    rows: [
+      '................',
+      '.....oooooo.....',
+      '...oopppppWoo...',
+      '..opppppppWWpo..',
+      '..oppppppppWpo..',
+      '.oppwepppwepppo.',
+      '.oppeepppeepppo.',
+      '.oppppmmmmppppo.',
+      '..oooooooooooo..',
+      '...t..t..t..t...',
+      '....t..t..t..t..',
+      '...t..t..t..t...',
+      '..t.t.t..t.t.t..',
+      '.t...t....t...t.',
+      '................',
+      '................',
+    ],
+    pal: { o: '#5a2a6a', p: '#f0a0d8', W: '#ffffff', w: '#ffffff', e: '#201020', m: '#b03070', t: '#c080e0' },
+  },
+  crab: {
+    rows: [
+      '................',
+      '.oo..........oo.',
+      'orro........orro',
+      'or.ro......or.ro',
+      '.orro......orro.',
+      '..oro.w..w.oro..',
+      '...oroe..eoro...',
+      '...orrrrrrrrro..',
+      '..orrRrrrrrRrro.',
+      '..orrrrmmrrrrro.',
+      '...orrrrrrrrro..',
+      '..o.oooooooo.o..',
+      '.o..o.o..o.o..o.',
+      '................',
+      '................',
+      '................',
+    ],
+    pal: { o: '#4a1010', r: '#e04a30', R: '#ff8a60', w: '#ffffff', e: '#101010', m: '#801818' },
+  },
+  captain: {
+    rows: [
+      '....oooooooo....',
+      '..oohhhhhhhhoo..',
+      '.ohhhhhqqhhhhho.',
+      'ohhhhhhqhhhhhhho',
+      '.oooooooooooooo.',
+      '..osssssssssso..',
+      '..osEEssssEEso..',
+      '..osEgssssgEso..',
+      '..ossssnnssssso.',
+      '...osTsTsTsTso..',
+      '....osssssssoo..',
+      '...ocoooooooco..',
+      '..occcbbbbccco..',
+      '..occcccccccco..',
+      '...ccc....ccc...',
+      '....c......c....',
+    ],
+    pal: { o: '#101018', h: '#2a2440', q: '#f0c040', s: '#e8e8dc', E: '#1a2a1a', g: '#60ff90', n: '#403830', T: '#c8c8b8', c: '#3a5a8a', b: '#f0c040' },
+  },
+  chest: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '...oooooooooo...',
+      '..obbbbbbbbbbo..',
+      '..obbbbbbbbbbo..',
+      '..oggggggggggo..',
+      '..obbbbggbbbbo..',
+      '..oBBBBgkgBBBo..',
+      '..obbbbbbbbbbo..',
+      '..obbbbbbbbbbo..',
+      '..oBBBBBBBBBBo..',
+      '..oooooooooooo..',
+      '................',
+      '................',
+      '................',
+    ],
+    pal: { o: '#2a1a0e', b: '#b0702c', B: '#7a4a1a', g: '#f2c440', k: '#2a1a0e' },
+  },
+  chestOpen: {
+    rows: [
+      '................',
+      '................',
+      '...oooooooooo...',
+      '..obbbbbbbbbbo..',
+      '..oBBBBBBBBBBo..',
+      '..oggggggggggo..',
+      '..oddddddddddo..',
+      '..oddddddddddo..',
+      '..oggggggggggo..',
+      '..obbbbbbbbbbo..',
+      '..obbbbbbbbbbo..',
+      '..oBBBBBBBBBBo..',
+      '..oooooooooooo..',
+      '................',
+      '................',
+      '................',
+    ],
+    pal: { o: '#2a1a0e', b: '#b0702c', B: '#7a4a1a', g: '#f2c440', d: '#1a0e08' },
+  },
+  spring: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '......oCCo......',
+      '.....oCcCCo.....',
+      '.....oCccCo.....',
+      '....oCcccCCo....',
+      '....oCccccCo....',
+      '...ooCccccCoo...',
+      '..owwoCccCowwo..',
+      '.owwwwoooowwwwo.',
+      '.owwWwwwwwwWwwo.',
+      '..owwwwwwwwwwo..',
+      '...oooooooooo...',
+      '................',
+    ],
+    pal: { o: '#1a2a4a', C: '#8fe8ff', c: '#e8fdff', w: '#3a9ae0', W: '#bff0ff' },
+  },
+  sheep: {
+    faces: 'side',
+    rows: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '......oooooo....',
+      '....oowwwwwwoo..',
+      '...owwwwwwwwwwo.',
+      '.ooowwwwwWwwwwo.',
+      'oSSowwwwwwwwwwwo',
+      'oeSowwwWwwwwwwwo',
+      'oSSSowwwwwwwwwo.',
+      '.ooowwwwwwwwwwo.',
+      '....oowwwwwwoo..',
+      '.....oSo..oSo...',
+      '.....oSo..oSo...',
+      '.....ooo..ooo...',
+    ],
+    pal: { o: '#3a3a40', w: '#f6f4ea', W: '#dcd8c8', S: '#5a5660', e: '#101010' },
+  },
+  cat: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '....o......o....',
+      '...oko....oko...',
+      '...okkooookko...',
+      '...okkkkkkkko...',
+      '...okekkkkeko...',
+      '...okkkpkkkko...',
+      '....okkkkkko....',
+      '...okKkkkkKko...',
+      '...okkkkkkkkoo..',
+      '...okkokkokkoko.',
+      '....oo.oo.oo.o..',
+    ],
+    pal: { o: '#3a2418', k: '#f0a040', K: '#c87820', e: '#203010', p: '#f07080' },
+  },
+  dog: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '...oo......oo...',
+      '..oDDo....oDDo..',
+      '..oDkooooookDo..',
+      '..oDkkkkkkkkDo..',
+      '...okekkkkeko...',
+      '...okkkwwkkko...',
+      '...okkknnkkko...',
+      '....okkkkkko....',
+      '...okkkkkkkko...',
+      '...okkokkokko...',
+      '...ooo.oo.ooo...',
+    ],
+    pal: { o: '#2a1a10', k: '#e8d8b8', D: '#8a5a30', e: '#101010', w: '#ffffff', n: '#101010' },
+  },
+}
+
+/** 吹き出しアイコン（5x5） */
+export const EMOTES: Record<string, { rows: string[]; color: string }> = {
+  note: { rows: ['..oo.', '..o.o', '..o..', '.oo..', 'oo...'], color: '#3050c0' },
+  heart: { rows: ['.o.o.', 'ooooo', 'ooooo', '.ooo.', '..o..'], color: '#e03050' },
+  sweat: { rows: ['..o..', '.oo..', 'oooo.', 'oooo.', '.oo..'], color: '#3a90e0' },
+  dots: { rows: ['.....', '.....', 'o.o.o', '.....', '.....'], color: '#303030' },
+  question: { rows: ['.ooo.', '...o.', '..o..', '.....', '..o..'], color: '#303030' },
+  bang: { rows: ['..o..', '..o..', '..o..', '.....', '..o..'], color: '#d02020' },
+}
