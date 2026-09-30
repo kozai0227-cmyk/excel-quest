@@ -29,4 +29,10 @@ export const SKILLS: Record<string, SkillDef> = {
   nestif: { name: '入れ子のIF', town: 'イフポート', desc: 'IF の中に IF を入れて 3段階以上に 分ける。=IF(B2>=80,"A",IF(B2>=60,"B","C"))' },
   andor: { name: 'AND / OR', town: 'イフポート', desc: 'AND(条件1, 条件2) は 両方、OR は どちらか 一方を 満たすと TRUE。IF と 組み合わせる。' },
   countif: { name: 'COUNTIF・SUMIF', town: 'イフポート', desc: '=COUNTIF(範囲, "魚") で 条件に合う 数、=SUMIF(範囲, "魚", 合計範囲) で 条件に合う 合計。' },
+  vlookup: { name: 'VLOOKUP', town: 'ルックアップ', desc: '=VLOOKUP(探す値, 範囲, 列番号, FALSE)。範囲の 左端で 探して、同じ行の 右の 列を 取り出す。FALSE は 完全一致。' },
+  colindex: { name: '列番号と 範囲の固定', town: 'ルックアップ', desc: '列番号を 変えれば 同じ表から 別の 情報が 取れる。コピーするなら 範囲は $F$2:$H$6 のように 固定。' },
+  approx: { name: '近似一致（TRUE）', town: 'ルックアップ', desc: '4つ目を TRUE に すると「探す値 以下で いちばん 近い 行」を 探す。区切りの 表は 小さい順に 並べる。' },
+  iferror: { name: 'IFERROR', town: 'ルックアップ', desc: '=IFERROR(計算, エラーの ときの 値)。見つからない #N/A を「未登録」などに 置きかえる。' },
+  xlookup: { name: 'XLOOKUP', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列)。探す列より 左の 列も 取り出せる。' },
+  notfound: { name: 'XLOOKUP の 見つからないとき', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")。4つ目に 見つからない ときの 値を 書ける。' },
 }

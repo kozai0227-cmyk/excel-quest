@@ -22,7 +22,7 @@ type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'end
 interface BattleReq {
   id: string
   tutorial?: boolean
-  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship'
+  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library'
 }
 
 const INN_PRICE = 10
@@ -304,6 +304,18 @@ export default function App() {
           await talk(undefined, [`${g.name}は たからばこを あけた！`, ...got])
           break
         }
+        case 'ferry': {
+          const f = npc.ferry!
+          await say(npc.lines ?? [])
+          const i = await say([`${f.place}へ 渡るかい？`], ['乗る', 'やめる'])
+          if (i !== 0) break
+          setFade(true)
+          await sleep(600)
+          onWarp({ x: npc.x, y: npc.y, to: f.to, tx: f.x, ty: f.y, dir: f.dir })
+          await sleep(700)
+          setFade(false)
+          break
+        }
         case 'heal': {
           setGs((s2) => ({ ...s2, hp: maxHp(s2.level) }))
           await talk(undefined, ['ふしぎな 泉が、青白く 光っている。', '泉の光が からだを つつみこんだ……。', 'HPが まんたんに なった！'])
@@ -325,7 +337,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.boss ? 'boss' : 'forest',
+              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.boss ? 'boss' : 'forest',
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -459,6 +471,53 @@ export default function App() {
         await talk(undefined, ['（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）'])
         save()
       })
+    if (ex.to === 'library1')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['天井まで 届く 書架が、迷路のように 並んでいる。', '床には「#N/A」と 書かれた 紙切れが、枯れ葉のように 散らばっている……。'])
+        await me(['（扉の 謎を 解きながら、書庫の 奥を 目指そう）'])
+      })
+    if (ex.to === 'library2')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['鎖で 閉ざされた 禁書の間。', '部屋の 奥で、巨大な 本が ゆっくりと 目を 開いた……。'])
+      })
+    if (ex.to === 'lookup')
+      run(async () => {
+        await sleep(1100)
+        const f = fieldRef.current
+        await talk(undefined, ['ここは 検索の城下町 ルックアップ。', '丘の 上の 城には、国じゅうの 記録を 集めた「大書庫」が あるという。'])
+        await talk(undefined, ['しかし 町の人々は、分厚い 帳簿を 1行ずつ 指で たどりながら「ない……ない……」と つぶやいている。'])
+        f?.emote('player', 'bang', 1200)
+        await talk('大臣サガス', ['おお……！ そこの お方、お待ちくだされ！'])
+        if (f) {
+          // 大臣が 館から 走ってくる
+          f.spawn({ id: 'sagasu_event', x: 4, y: 11, name: '大臣サガス', look: SPEAKER_LOOKS['大臣サガス'], kind: 'talk', dir: 'down' })
+          await f.walkTo('sagasu_event', ex.tx - 1, ex.ty, 120)
+          f.face('sagasu_event', 'right')
+          f.face('player', 'left')
+          f.emote('sagasu_event', 'sweat', 2600)
+        }
+        await talk('大臣サガス', [
+          'ふう、ふう……。わたくし、この 国の 大臣を 務めております、サガスと 申します。',
+          'イフポートの 幽霊船を 鎮めた 旅の方……あなたの ことですな？ 港の 船乗りから 聞いております。',
+          '実は この 城の 大書庫に「ミツカラーヌ」という 魔物が 巣くって しまいましてな。',
+          'それ以来、帳簿や 目録から 何を 探しても 見つからず、「#N/A」という 不吉な 文字ばかり……。',
+          '皆、1行ずつ 目で 探しては 見落とし、探しては 見落とし……。一日じゅう 探しものに 追われて おるのです。',
+        ])
+        await me(['（1行ずつ 目で 探す……会社でも、取引先コードから 名前を 探すのに 何十分も かかってたっけ）', '（……VLOOKUP だ。番号を 渡せば、表の 中から 探し出してくれる 魔法！）'])
+        await talk('大臣サガス', [
+          'どうか 城下の 者たちの 悩みを 聞いてやって くだされ。',
+          'すべて 解決すれば、城門の 結界も とけるはず……。',
+          'わたくしは 館に おります。晩餐会の 在庫の 件で、あとで ご相談させて くだされ。',
+        ])
+        if (f) {
+          void f.walkTo('sagasu_event', 4, 11, 200).then(() => f.remove('sagasu_event'))
+          await sleep(1400)
+        }
+        await talk(undefined, ['（VLOOKUP の 最後に 書く FALSE は「ぴったり 同じ 値を 探す」という 意味だ。定期船で いつでも イフポートに 戻れるぞ）'])
+        save()
+      })
     if (ex.to === 'temple1')
       run(async () => {
         await sleep(900)
@@ -589,7 +648,9 @@ export default function App() {
               ? '（北の塔に 入れるように なった。最上階に 手計算ゴーレムが いるらしい）'
               : q.town === 'sansho'
                 ? '（北の 鏡の神殿に 入れるように なった。最奥に ズレズレ・ミラージュが いるらしい）'
-                : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
+                : q.town === 'lookup'
+                  ? '（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）'
+                  : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
         ])
       save()
     })
@@ -628,7 +689,7 @@ export default function App() {
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
-        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : '洞窟'
+        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
         setFade(true)
         await sleep(600)
@@ -644,7 +705,16 @@ export default function App() {
       if (b.id === 'mirage')
         await talk(undefined, ['大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', '（サンショウの 南の 峠を 越えて、港町 イフポートへ 行けるように なった）'])
       if (b.id === 'captain')
-        await talk(undefined, ['幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。', '港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！'])
+        await talk(undefined, [
+          '幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。',
+          '港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！',
+          '（止まっていた 南の 海の 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）',
+        ])
+      if (b.id === 'mitsukaranu')
+        await talk(undefined, [
+          '大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。',
+          '城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！',
+        ])
       save()
       if (b.id === 'golem') {
         setChapter(1)
@@ -656,6 +726,10 @@ export default function App() {
       }
       if (b.id === 'captain') {
         setChapter(3)
+        setScene('ending')
+      }
+      if (b.id === 'mitsukaranu') {
+        setChapter(4)
         setScene('ending')
       }
     })
@@ -740,7 +814,7 @@ export default function App() {
               onEncounter={(id) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.kind === 'dungeon' ? 'cave' : 'field',
                 })
               }
               onGate={onGate}

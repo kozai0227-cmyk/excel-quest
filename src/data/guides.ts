@@ -711,4 +711,193 @@ export const GUIDES: Record<string, GuideStep[]> = {
       explain: '金貨が じゃらじゃらと 鳴った。',
     },
   ],
+
+  // ---------------------------------------------------------------- ルックアップ（検索）
+  lookup_vlookup: [
+    {
+      kind: 'choice',
+      q: 'VLOOKUP の 4つの 引数の 正しい 順番は？',
+      answer: '=VLOOKUP(探す値, 範囲, 列番号, FALSE)',
+      wrong: ['=VLOOKUP(範囲, 探す値, 列番号, FALSE)', '=VLOOKUP(探す値, 列番号, 範囲, FALSE)', '=VLOOKUP(列番号, 探す値, 範囲, FALSE)'],
+      explain: '「何を」「どの表の 左端で 探して」「左から 何列目を」取り出すか。最後の FALSE は「ぴったり 同じ 値だけ（完全一致）」の 意味。',
+    },
+    {
+      kind: 'choice',
+      q: '範囲 A2:C8 の 中で「名前」は 左から 何列目？',
+      focus: 'A1:C1',
+      answer: '2',
+      wrong: ['1', '3', 'B'],
+      explain: '列番号は 範囲の 左端を 1 として 数える。番号(A)が 1、名前(B)が 2、住所(C)が 3。「B」のような 列の 文字では ない。',
+    },
+    {
+      kind: 'formula',
+      q: 'F2 に、E2 の 番号（105）の 人の 名前を 出そう',
+      target: 'F2',
+      answer: '=VLOOKUP(E2,A2:C8,2,FALSE)',
+      extra: ['1', '3', 'TRUE'],
+      explain: '番号を 書きかえれば、名前も 自動で 変わる。目で 探す 必要は もう ない。',
+      hint: '=VLOOKUP(E2,A2:C8,2,FALSE)',
+    },
+  ],
+
+  lookup_col: [
+    {
+      kind: 'choice',
+      q: '商品表 F2:H6 で「単価」は 何列目？',
+      focus: 'F1:H1',
+      answer: '3',
+      wrong: ['1', '2', '8'],
+      explain: '範囲の 左端（品番）が 1列目。品名が 2、単価が 3。シート全体で 何列目か（H は 8列目）では なく、範囲の 中で 数える。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 品名を 取り出そう。B5 まで コピーするので、商品表の 範囲は F4 で 固定',
+      target: 'B2',
+      fill: 'B2:B5',
+      answer: '=VLOOKUP(A2,$F$2:$H$6,2,FALSE)',
+      extra: ['3', 'TRUE'],
+      explain: '範囲を 固定しないと、下へ コピーした とき 商品表も 1行ずつ ずれて、上の 品が 見つからなく なる。',
+      hint: '範囲は F2 と H6 の それぞれの 直後に F4。',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に 単価を 取り出そう。C5 まで コピーするぞ',
+      target: 'C2',
+      fill: 'C2:C5',
+      answer: '=VLOOKUP(A2,$F$2:$H$6,3,FALSE)',
+      extra: ['2', 'TRUE'],
+      explain: '列番号を 2 → 3 に 変えただけ。同じ 表から 別の 情報を 取り出せる。',
+    },
+  ],
+
+  lookup_approx: [
+    {
+      kind: 'choice',
+      q: 'VLOOKUP の 4つ目を TRUE（近似一致）に すると、72 は どの 行に 当たる？（階級表：0・60・80・95）',
+      focus: 'E2:F5',
+      answer: '60 の 行（72 以下で いちばん 大きい 値）',
+      wrong: ['80 の 行（いちばん 近い 値）', '見つからず #N/A', '95 の 行（いちばん 大きい 値）'],
+      explain: '近似一致は「探す値 以下で いちばん 大きい 値」の 行を 選ぶ。だから 区切りの 表は 小さい順に 並べておく。点数や 金額の ランク分けに 便利。',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に 階級を 出そう。C6 まで コピーするので 階級表は 固定',
+      target: 'C2',
+      fill: 'C2:C6',
+      answer: '=VLOOKUP(B2,$E$2:$F$5,2,TRUE)',
+      extra: ['FALSE'],
+      explain: 'IF を 何個も 重ねなくても、区切りの 表 1つで 何段階にも 分けられる。',
+      hint: '4つ目は TRUE。範囲は $E$2:$F$5。',
+    },
+  ],
+
+  lookup_iferror: [
+    {
+      kind: 'choice',
+      q: 'VLOOKUP で、探す 値が 表に ないと 出る エラーは？',
+      answer: '#N/A',
+      wrong: ['#DIV/0!', '#NAME?', '#REF!'],
+      explain: '#N/A は「見つからない（Not Available）」。#DIV/0! は 0で割った、#NAME? は 関数名の まちがい、#REF! は 参照が 消えた ときの エラー。',
+    },
+    {
+      kind: 'choice',
+      q: '=IFERROR(A, B) は どういう 意味？',
+      answer: 'A が エラーなら B を、エラーで なければ A を 出す',
+      wrong: ['A と B の うち 大きい ほうを 出す', 'A が B と 等しければ TRUE', 'エラーの 数を 数える'],
+      explain: 'IFERROR は「エラーの ときだけ 別の 答え」。VLOOKUP を まるごと 包んで 使う。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 書名を 出そう。目録に なければ「未登録」。B6 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B6',
+      answer: '=IFERROR(VLOOKUP(A2,$D$2:$E$6,2,FALSE),"未登録")',
+      extra: ['未登録'],
+      explain: '208番と 210番は 目録に ないので「未登録」。エラーが 出たときの 答えを 先に 決めておける。',
+      hint: '=IFERROR( VLOOKUP(…) , "未登録" )',
+    },
+  ],
+
+  lookup_xlookup: [
+    {
+      kind: 'choice',
+      q: 'VLOOKUP では できない ことは？',
+      answer: '探す列より 左の 列を 取り出す',
+      wrong: ['探す列より 右の 列を 取り出す', '完全一致で 探す', '数値を 探す'],
+      explain: 'VLOOKUP は 範囲の 左端で 探して 右を 取り出す 関数。番号が 右に ある 名簿から 左の 名前は 取れない。XLOOKUP なら できる。',
+    },
+    {
+      kind: 'formula',
+      q: 'F2 に、騎士番号 5（E2）の 騎士の 名前を 出そう（=XLOOKUP(探す値, 探す列, 取り出す列)）',
+      target: 'F2',
+      answer: '=XLOOKUP(E2,C2:C7,A2:A7)',
+      explain: '探す列（C）と 取り出す列（A）を 別々に 指定するので、左の 列も 取り出せる。列番号を 数える 必要も ない。',
+      hint: '探す列は 騎士番号の C2:C7、取り出す列は 名前の A2:A7。',
+    },
+    {
+      kind: 'formula',
+      q: 'F3 に、騎士番号 12（E3）の 騎士の 部隊を 出そう',
+      target: 'F3',
+      answer: '=XLOOKUP(E3,C2:C7,B2:B7)',
+      explain: '取り出す列を B2:B7 に 変えるだけ。',
+    },
+  ],
+
+  lookup_minister: [
+    {
+      kind: 'choice',
+      q: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし") の 4つ目は 何？',
+      answer: '見つからない ときに 出す 値',
+      wrong: ['探す 行の 数', '完全一致か どうか', '取り出す 列の 番号'],
+      explain: 'XLOOKUP は 4つ目に「見つからない ときの 値」を 書ける。IFERROR で 包まなくても #N/A を 防げる。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 在庫数を 出そう。台帳に なければ「なし」。B6 まで コピーするので 台帳は 固定',
+      target: 'B2',
+      fill: 'B2:B6',
+      answer: '=XLOOKUP(A2,$F$2:$F$6,$G$2:$G$6,"なし")',
+      extra: ['なし'],
+      explain: 'ミルクと サカナは 台帳に ないので「なし」。',
+      hint: '探す列 $F$2:$F$6、取り出す列 $G$2:$G$6、見つからないとき "なし"。',
+    },
+    {
+      kind: 'formula',
+      q: 'B8 に「なし」の 品の 数を 出そう（イフポートで 覚えた 関数）',
+      target: 'B8',
+      answer: '=COUNTIF(B2:B6,"なし")',
+      explain: '探す 関数と 数える 関数を 組み合わせれば、台帳の 確認が 一瞬で 終わる。',
+    },
+  ],
+
+  // ---------------------------------------------------------------- 城の大書庫の扉（謎解き）
+  lib_shelf: [
+    {
+      kind: 'formula',
+      q: '304番の 書が 眠る 棚を、目録から 引き 示せ（F2 に 刻む）',
+      target: 'F2',
+      answer: '=VLOOKUP(E2,A2:C6,3,FALSE)',
+      extra: ['2', 'TRUE'],
+      explain: '書架が 開いた。',
+    },
+  ],
+  lib_left: [
+    {
+      kind: 'formula',
+      q: 'ライが 著した 書の 番号を 示せ（F2 に 刻む）',
+      target: 'F2',
+      answer: '=XLOOKUP(E2,C2:C6,A2:A6)',
+      explain: '錠が はずれた。',
+    },
+  ],
+  lib_missing: [
+    {
+      kind: 'formula',
+      q: '求める 書の 名を 記せ。目録に なき 書には「なし」（B2 に 刻み、B5 まで 映す）',
+      target: 'B2',
+      fill: 'B2:B5',
+      answer: '=IFERROR(VLOOKUP(A2,$E$2:$F$5,2,FALSE),"なし")',
+      explain: '封印が ほどけた。',
+    },
+  ],
 }

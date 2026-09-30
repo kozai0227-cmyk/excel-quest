@@ -198,7 +198,8 @@ export const answerChips = (answer: string) => tokenize(answer.replace(/\$/g, ''
  */
 export function guideChips(step: FormulaStep, rows: number, cols: number, town: string): ChipGroup[] {
   const toks = answerChips(step.answer)
-  const funcs = new Set(toks.filter((t) => /^[A-Z]{2,}$/.test(t) && !isRef(t)))
+  const isBool = (t: string) => t === 'TRUE' || t === 'FALSE'
+  const funcs = new Set(toks.filter((t) => /^[A-Z]{2,}$/.test(t) && !isRef(t) && !isBool(t)))
   const known = funcsFor(town).filter((f) => !funcs.has(f))
   for (const f of pickN(known, Math.max(1, 4 - funcs.size))) funcs.add(f)
 
@@ -214,7 +215,7 @@ export function guideChips(step: FormulaStep, rows: number, cols: number, town: 
 
   // 値は 答えの 順番が わからないよう 並べかえる（数は 小さい順、文字は " の あるなしを 並べて）
   const bare = (t: string) => t.replace(/"/g, '')
-  const values = [...new Set([...toks.filter((t) => /^\d/.test(t) || t.startsWith('"')), ...(step.extra ?? []).filter((t) => t !== '×' && t !== '÷')])].sort(
+  const values = [...new Set([...toks.filter((t) => /^\d/.test(t) || t.startsWith('"') || isBool(t)), ...(step.extra ?? []).filter((t) => t !== '×' && t !== '÷')])].sort(
     (a, b) => {
       const na = /^\d/.test(a)
       const nb = /^\d/.test(b)

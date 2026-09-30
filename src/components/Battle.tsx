@@ -18,7 +18,7 @@ interface Props {
   /** 最初の戦闘（操作説明つき・逃げられない） */
   tutorial?: boolean
   /** 背景（森・草原・ボス） */
-  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship'
+  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
   onWin(): void

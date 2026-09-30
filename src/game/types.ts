@@ -37,7 +37,9 @@ export interface NpcDef {
   /** 時々出る吹き出し（note / heart / sweat / dots / question / bang） */
   emote?: string
   dir?: Dir
-  kind: 'talk' | 'quest' | 'inn' | 'shop' | 'church' | 'boss' | 'guard' | 'gear' | 'chest' | 'heal'
+  kind: 'talk' | 'quest' | 'inn' | 'shop' | 'church' | 'boss' | 'guard' | 'gear' | 'chest' | 'heal' | 'ferry'
+  /** 船乗り：乗ると 別の 港へ 渡る */
+  ferry?: { to: string; x: number; y: number; dir: Dir; place: string }
   /** 宝箱の中身 */
   loot?: { item?: ItemId; gold?: number; equip?: string }
   /** 武器屋・防具屋の品ぞろえ（装備ID） */

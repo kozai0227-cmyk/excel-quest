@@ -1285,4 +1285,320 @@ Object.assign(QUESTS, {
   },
 } satisfies Record<string, QuestDef>)
 
+// ---------------------------------------------------------------- 第4章 ルックアップ（検索）
+/** 関数を 使っているかだけを 確かめる（値の 判定は 別に 行う） */
+const needFn = (c: CheckCtx, cells: string[], fn: string, vague = false) => {
+  const a = cells.find((x) => !usesFn(c.raw(x), fn))
+  if (!a) return null
+  return vague ? `${a} の 答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。` : `${a} は 合っている！ でも ${fn} を 使って 探してみよう。`
+}
+
+const ADDRESS: [number, string, string][] = [
+  [101, 'サガス', '城 1番'],
+  [102, 'ヒキダス', '城下 2番'],
+  [103, 'シラベ', '港 3番'],
+  [104, 'ミツケ', '森 4番'],
+  [105, 'サーチ', '丘 5番'],
+  [106, 'ケンサ', '川 6番'],
+  [107, 'クエリ', '谷 7番'],
+]
+const PRICE_LIST: [number, string, number][] = [
+  [11, 'やくそう', 8],
+  [12, 'どくけしそう', 10],
+  [13, 'キメラのつばさ', 25],
+  [14, 'せいすい', 20],
+  [15, 'まほうのせいすい', 300],
+]
+const ORDER_CODES = [14, 11, 15, 12]
+const RANKS: [number, string][] = [
+  [0, '見習い'],
+  [60, '兵士'],
+  [80, '騎士'],
+  [95, '近衛'],
+]
+const SOLDIERS: [string, number][] = [
+  ['ヤリ', 72],
+  ['タテ', 95],
+  ['ユミ', 58],
+  ['オノ', 80],
+  ['ツエ', 88],
+]
+const rankOf = (n: number) => [...RANKS].reverse().find(([t]) => n >= t)![1]
+const CATALOG: [number, string][] = [
+  [201, '表計算の書'],
+  [202, '関数大全'],
+  [203, '参照の秘術'],
+  [204, '条件の海図'],
+  [205, '検索の地図'],
+]
+const CARDS = [203, 208, 201, 205, 210]
+const KNIGHTS: [string, string, number][] = [
+  ['アーサ', '剣', 7],
+  ['ベディ', '槍', 3],
+  ['ガウェ', '弓', 12],
+  ['ラン', '盾', 5],
+  ['パーシ', '剣', 9],
+  ['トリス', '弓', 1],
+]
+const STOCK: [string, number][] = [
+  ['パン', 40],
+  ['ワイン', 12],
+  ['チーズ', 25],
+  ['リンゴ', 60],
+  ['ハチミツ', 8],
+]
+const WANTS = ['チーズ', 'ミルク', 'パン', 'ハチミツ', 'サカナ']
+const stockOf = (k: string) => STOCK.find(([n]) => n === k)?.[1] ?? 'なし'
+
+Object.assign(QUESTS, {
+  lookup_vlookup: {
+    id: 'lookup_vlookup',
+    town: 'lookup',
+    npc: '郵便屋ポスト',
+    title: '宛名さがし',
+    intro: [
+      'あっ、旅の方！ 郵便屋の ポストです！',
+      'この 手紙、宛先が「105番」としか 書いてなくて……住所録の 中から、105番の 人を 探さなきゃ いけないんです。',
+      'いつもは 上から 1行ずつ 指で たどるんですけど、呪いのせいか、何回 探しても 見つからないんです……！',
+    ],
+    task: ['F2 に、E2 の 番号（105）の 人の 名前を 出そう', '=VLOOKUP(探す値, 範囲, 何列目, FALSE) を 使う'],
+    grid: () => makeGrid(10, 6, [['番号', '名前', '住所', '', '探す番号', '名前'], [...ADDRESS[0], '', 105], ...ADDRESS.slice(1)], ['A1', 'B1', 'C1', 'E1', 'F1']),
+    colWidths: [60, 80, 80, 24, 80, 80],
+    hints: [
+      'VLOOKUP は「表の 左端の 列で 探して、同じ行の 右の 列を 取り出す」関数です。',
+      '範囲は 表 ぜんたい A2:C8。名前は 範囲の 左から 2列目。',
+      'F2 に =VLOOKUP(E2,A2:C8,2,FALSE)。最後の FALSE は「ぴったり 同じ 値を 探す」という 意味です。',
+    ],
+    check: (c) => expectVal(c, 'F2', 'サーチ', 'VLOOKUP'),
+    reward: { exp: 120, gold: 130, skill: 'vlookup' },
+    thanks: [
+      'サーチさん！ 丘の 5番地ですね！',
+      '番号を 入れるだけで 名前が 出てくる……。これなら 何百人 いても 一瞬です！',
+      'さっそく 届けてきます。ありがとうございました！',
+    ],
+  },
+
+  lookup_col: {
+    id: 'lookup_col',
+    town: 'lookup',
+    npc: '道具屋のカタログ',
+    title: '注文書の転記',
+    intro: [
+      'いらっしゃい。道具屋の カタログよ。',
+      'お城から 注文書が 届いたの。品番しか 書いてないから、右の 商品表を 見て 品名と 単価を 書き写すんだけど……',
+      '1行ずつ 目で 探して 写していると、行を まちがえて しまうのよ。何か いい 方法は ないかしら？',
+    ],
+    task: ['B2:B5 に 品名、C2:C5 に 単価を、商品表（F2:H6）から 取り出そう', '1つ 作って 下へ コピー。商品表の 範囲は $ で 固定'],
+    grid: () => makeGrid(8, 8, [['品番', '品名', '単価', '', '', '品番', '品名', '単価'], [ORDER_CODES[0], '', '', '', '', ...PRICE_LIST[0]], ...PRICE_LIST.slice(1).map((p, i) => [ORDER_CODES[i + 1] ?? '', '', '', '', '', ...p])], ['A1', 'B1', 'C1', 'F1', 'G1', 'H1']),
+    colWidths: [50, 110, 60, 20, 20, 50, 110, 60],
+    hints: [
+      '品名は 商品表（F2:H6）の 2列目、単価は 3列目。',
+      '下へ コピーしても 商品表が ずれないように、$F$2:$H$6 と 固定するのが コツよ。',
+      'B2 に =VLOOKUP(A2,$F$2:$H$6,2,FALSE)、C2 に =VLOOKUP(A2,$F$2:$H$6,3,FALSE)。どちらも 5行目まで オートフィル。',
+    ],
+    check: (c) =>
+      first(
+        ...ORDER_CODES.map((code, i) => expectVal(c, `B${i + 2}`, PRICE_LIST.find(([k]) => k === code)![1], 'VLOOKUP')),
+        ...ORDER_CODES.map((code, i) => expectNum(c, `C${i + 2}`, PRICE_LIST.find(([k]) => k === code)![2], 'VLOOKUP')),
+      ),
+    reward: { exp: 130, gold: 140, skill: 'colindex' },
+    thanks: [
+      'まあ、品名も 単価も ぴったり！',
+      '列番号を 変えるだけで、同じ 表から 別の 情報が 取り出せるのね。',
+      '商品表を 固定するのも 忘れずに……サンショウの 人たちが 言ってた「$」って これのことね。',
+    ],
+  },
+
+  lookup_approx: {
+    id: 'lookup_approx',
+    town: 'lookup',
+    npc: '兵士長ハンテイ',
+    title: '兵士の階級',
+    intro: [
+      '本官は 兵士長の ハンテイである！',
+      '試験の 点数で 階級を 決める。0点から 見習い、60点から 兵士、80点から 騎士、95点から 近衛だ。',
+      'だが「72点は……60以上で 80未満だから……」と 1人ずつ 考えていては 日が 暮れる！',
+    ],
+    task: ['C2:C6 に、点数に 応じた 階級を 出そう（階級表は E2:F5）', 'VLOOKUP の 4つ目を TRUE に すると「以下で いちばん 近い 値」を 探せる'],
+    grid: () => makeGrid(8, 6, [['兵士', '点数', '階級', '', '点数', '階級'], ...SOLDIERS.map(([n, v], i) => [n, v, '', '', ...(RANKS[i] ?? [])])], ['A1', 'B1', 'C1', 'E1', 'F1']),
+    colWidths: [60, 60, 70, 24, 60, 70],
+    hints: [
+      '4つ目を TRUE（近似一致）に すると、ぴったりの 値が なくても「探す値 以下で いちばん 大きい 値」の 行が 見つかる。',
+      '72点なら 60の 行 → 兵士。階級表は 小さい順に 並べておくのが ルールだ。',
+      'C2 に =VLOOKUP(B2,$E$2:$F$5,2,TRUE) → C6 まで オートフィル。',
+    ],
+    check: (c) => eachVal(c, SOLDIERS.map(([, v], i) => [`C${i + 2}`, rankOf(v)]), 'VLOOKUP'),
+    reward: { exp: 140, gold: 150, skill: 'approx' },
+    thanks: [
+      '見事で ある！ 95点の タテは 近衛、58点の ユミは 見習いだ。',
+      '「以上・未満」の 区切りを 表に しておけば、IF を 何個も 重ねなくて よいのだな。',
+      '階級表を 書きかえれば 基準も すぐ 変えられる。敬礼！',
+    ],
+  },
+
+  lookup_iferror: {
+    id: 'lookup_iferror',
+    town: 'lookup',
+    npc: '司書ショコ',
+    title: '貸出カードの整理',
+    intro: [
+      'こんにちは……。図書館の 司書、ショコです。',
+      '貸出カードの 番号から 本の 名前を 出したいのですが、目録に ない 番号が まじっていて……',
+      'そこだけ「#N/A」という 不気味な 文字が 出るんです。……これも 城の 書庫の 呪いでしょうか。',
+    ],
+    task: ['B2:B6 に、番号の 本の 名前を 出そう（目録は D2:E6）', '目録に ない 番号は「未登録」と 出す'],
+    grid: () => makeGrid(8, 5, [['番号', '書名', '', '番号', '書名'], ...CARDS.map((n, i) => [n, '', '', ...(CATALOG[i] ?? [])])], ['A1', 'B1', 'D1', 'E1']),
+    colWidths: [60, 100, 24, 60, 110],
+    hints: [
+      'VLOOKUP で 見つからないと #N/A エラーに なる。',
+      'IFERROR(計算, エラーの ときの 値) で 包むと、エラーの ときだけ 別の 値を 出せる。',
+      'B2 に =IFERROR(VLOOKUP(A2,$D$2:$E$6,2,FALSE),"未登録") → B6 まで オートフィル。',
+    ],
+    check: (c) =>
+      first(
+        eachVal(c, CARDS.map((n, i) => [`B${i + 2}`, CATALOG.find(([k]) => k === n)?.[1] ?? '未登録']), 'IFERROR'),
+        needFn(c, CARDS.map((_, i) => `B${i + 2}`), 'VLOOKUP'),
+      ),
+    reward: { exp: 140, gold: 150, skill: 'iferror' },
+    thanks: [
+      '#N/A が 消えて「未登録」に……！ ほっとしました。',
+      'エラーを こわがらずに、出たときの 答えを 先に 決めておく……。IFERROR、覚えておきます。',
+      '目録に ない 本は、あとで 登録しておきますね。',
+    ],
+  },
+
+  lookup_xlookup: {
+    id: 'lookup_xlookup',
+    town: 'lookup',
+    npc: '騎士団の書記ロール',
+    title: '騎士番号の名簿',
+    intro: [
+      '騎士団の 書記、ロールだ。',
+      '名簿は 左から「名前・部隊・騎士番号」の 順。番号から 名前を 引きたいのだが……',
+      'VLOOKUP は 探す列より 左を 取り出せない、と 聞いた。名簿を 並べかえる わけにも いかん。困った。',
+    ],
+    task: ['F2 に、騎士番号 5 の 騎士の 名前を 出そう', 'F3 に、騎士番号 12 の 騎士の 部隊を 出そう', 'XLOOKUP(探す値, 探す列, 取り出す列) を 使う'],
+    grid: () => makeGrid(9, 6, [['名前', '部隊', '騎士番号', '', '騎士番号', '答え'], [...KNIGHTS[0], '', 5], [...KNIGHTS[1], '', 12], ...KNIGHTS.slice(2)], ['A1', 'B1', 'C1', 'E1', 'F1']),
+    colWidths: [70, 50, 70, 24, 70, 70],
+    hints: [
+      'XLOOKUP は「探す列」と「取り出す列」を 別々に 指定する。だから 左の 列も 取り出せる。',
+      '名前なら =XLOOKUP(E2,C2:C7,A2:A7)。探すのは C列、取り出すのは A列。',
+      '部隊なら 取り出す列を B2:B7 に。F3 に =XLOOKUP(E3,C2:C7,B2:B7)。',
+    ],
+    check: (c) => first(expectVal(c, 'F2', 'ラン', 'XLOOKUP'), expectVal(c, 'F3', '弓', 'XLOOKUP')),
+    reward: { exp: 150, gold: 160, skill: 'xlookup' },
+    thanks: [
+      '5番は ラン、12番は 弓部隊の ガウェ か。名簿を 並べかえずに 済んだ！',
+      '探す列と 取り出す列を 別に 決められる……XLOOKUP、なんと 自由な 関数だ。',
+      '騎士団の 記録も、これで 迷わず 引ける。感謝する。',
+    ],
+  },
+
+  lookup_minister: {
+    id: 'lookup_minister',
+    town: 'lookup',
+    npc: '大臣サガス',
+    title: '城の在庫台帳',
+    intro: [
+      '大臣の サガスで ございます。城下の 悩みを 次々と 解決して くださって いるそうで。',
+      '最後に お願いが。晩餐会の 注文表に、城の 在庫を 書き入れたいのです。',
+      'ただ、在庫台帳に ない 品も 頼まれておりまして……「なし」と 出したうえで、取り寄せが 必要な 品の 数も 知りたいのです。',
+    ],
+    task: ['B2:B6 に 在庫数を 出そう（在庫台帳は F2:G6）。台帳に ない 品は「なし」', 'B8 に「なし」の 品の 数を 出そう'],
+    grid: () => makeGrid(9, 7, [['品名', '在庫', '', '', '', '品名', '在庫'], ...WANTS.map((w, i) => [w, '', '', '', '', ...(STOCK[i] ?? [])]), [], ['取り寄せ']], ['A1', 'B1', 'F1', 'G1', 'A8']),
+    colWidths: [80, 60, 20, 20, 20, 80, 60],
+    hints: [
+      'XLOOKUP の 4つ目に「見つからない ときの 値」を 書ける。IFERROR で 包まなくて いい。',
+      'B2 に =XLOOKUP(A2,$F$2:$F$6,$G$2:$G$6,"なし") → B6 まで オートフィル。',
+      'B8 は COUNTIF で「なし」を 数える。=COUNTIF(B2:B6,"なし")',
+    ],
+    check: (c) =>
+      first(
+        eachVal(c, WANTS.map((w, i) => [`B${i + 2}`, stockOf(w)] as [string, string | boolean]), 'XLOOKUP'),
+        expectNum(c, 'B8', WANTS.filter((w) => stockOf(w) === 'なし').length, 'COUNTIF'),
+      ),
+    reward: { exp: 170, gold: 180, skill: 'notfound' },
+    thanks: [
+      'チーズ 25、パン 40、ハチミツ 8……。ミルクと サカナは 取り寄せ、ですな。',
+      '見つからない ときの 答えまで 決めておける。これなら 台帳が どれだけ 大きくても 困りません。',
+      '城下の 悩みは これで すべて……。どうか、城の 大書庫に 巣くう ミツカラーヌを 止めてください。',
+    ],
+  },
+} satisfies Record<string, QuestDef>)
+
+// ---------------------------------------------------------------- 城の大書庫の扉（謎解き）
+const SHELVES: [number, string, string][] = [
+  [301, '星の書', '北'],
+  [302, '風の書', '東'],
+  [303, '水の書', '南'],
+  [304, '火の書', '西'],
+  [305, '土の書', '中'],
+]
+const AUTHORS: [number, string, string][] = [
+  [401, '月の書', 'ルナ'],
+  [402, '陽の書', 'ソル'],
+  [403, '雲の書', 'クモ'],
+  [404, '雷の書', 'ライ'],
+  [405, '霧の書', 'キリ'],
+]
+const SEALED: [number, string][] = [
+  [501, '始まりの書'],
+  [502, '中の書'],
+  [503, '終わりの書'],
+  [504, '禁じられた書'],
+]
+const SEEK = [503, 509, 501, 504]
+
+Object.assign(QUESTS, {
+  lib_shelf: {
+    id: 'lib_shelf',
+    kind: 'puzzle',
+    town: 'library',
+    npc: '棚の扉',
+    title: '棚の扉',
+    intro: ['扉に 本の 目録が 刻まれている。', '「304番の 書は いずこの 棚に 眠る？ 目録から 引き 示せ」――と 読める。'],
+    task: ['F2 に、E2 の 番号の 本が ある 棚を 示せ', '※ 目で 探して 書いても、扉は 開かないようだ'],
+    grid: () => makeGrid(7, 6, [['番号', '書名', '棚', '', '番号', '棚'], [...SHELVES[0], '', 304], ...SHELVES.slice(1)]),
+    colWidths: [60, 70, 50, 24, 60, 50],
+    hints: [],
+    check: (c) => expectVal(c, 'F2', '西', 'VLOOKUP', true),
+    reward: { exp: 80, gold: 0 },
+    thanks: ['「西」の 文字が 浮かび、書架が 左右に 開いた！'],
+  },
+  lib_left: {
+    id: 'lib_left',
+    kind: 'puzzle',
+    town: 'library',
+    npc: '著者の扉',
+    title: '著者の扉',
+    intro: ['扉には 本の 番号・書名・著者が 並んでいる。', '「ライが 著した 書の 番号を 示せ」――と 読める。', '番号は 著者より 左に ある……。'],
+    task: ['F2 に、E2 の 著者が 書いた 本の 番号を 示せ'],
+    grid: () => makeGrid(7, 6, [['番号', '書名', '著者', '', '著者', '番号'], [...AUTHORS[0], '', 'ライ'], ...AUTHORS.slice(1)]),
+    colWidths: [60, 70, 60, 24, 60, 60],
+    hints: [],
+    check: (c) => expectNum(c, 'F2', 404, 'XLOOKUP', 'F2', true),
+    reward: { exp: 80, gold: 0 },
+    thanks: ['404 の 数字が 光り、扉の 錠が はずれた！'],
+  },
+  lib_missing: {
+    id: 'lib_missing',
+    kind: 'puzzle',
+    town: 'library',
+    npc: '封印の扉',
+    title: '封印の扉',
+    intro: ['書庫の 最奥へ 続く 扉。', '「求める 書の 名を 記せ。目録に なき 書には『なし』と 記せ」――と 読める。', '1つの 式を すべてに 映せ、とも 刻まれている。'],
+    task: ['B2:B5 に 本の 名前を 示せ（目録は E2:F5）', '目録に ない 番号には「なし」と 記せ'],
+    grid: () => makeGrid(7, 6, [['番号', '書名', '', '', '番号', '書名'], ...SEEK.map((n, i) => [n, '', '', '', ...SEALED[i]])]),
+    colWidths: [60, 100, 20, 20, 60, 100],
+    hints: [],
+    check: (c) =>
+      first(
+        eachVal(c, SEEK.map((n, i) => [`B${i + 2}`, SEALED.find(([k]) => k === n)?.[1] ?? 'なし']), 'IFERROR', true),
+        needFn(c, SEEK.map((_, i) => `B${i + 2}`), 'VLOOKUP', true),
+      ),
+    reward: { exp: 100, gold: 0 },
+    thanks: ['封印の 鎖が 1本ずつ ほどけ、最奥の 扉が 開いた……！'],
+  },
+} satisfies Record<string, QuestDef>)
+
 export const townQuests = (town: string) => Object.values(QUESTS).filter((q) => q.town === town)

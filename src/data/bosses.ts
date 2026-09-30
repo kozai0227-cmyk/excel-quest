@@ -20,7 +20,7 @@ export type Question =
 export interface BossDef {
   id: string
   name: string
-  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain'
+  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu'
   /** ボス（こちらの攻撃 → ボスの攻撃問題 の2段構えで戦う） */
   boss?: boolean
   /** 決まった回数の正解で倒れる（チュートリアル用） */
@@ -183,6 +183,46 @@ export const BOSSES: Record<string, BossDef> = {
   },
 }
 
+
+Object.assign(BOSSES, {
+  mitsukaranu: {
+    id: 'mitsukaranu',
+    name: '迷宮書庫の主 ミツカラーヌ',
+    sprite: 'mitsukaranu',
+    boss: true,
+    attackText: '「#N/A」の 紙吹雪を 巻き上げて 襲ってきた！',
+    defeatText: [
+      '「探せば……見つかる……。探し方さえ……知って いれば……。」',
+      '「ワタシは……ただ、誰かに 見つけて ほしかった だけ なのかも しれない……。」',
+      'ミツカラーヌの 表紙が 静かに 閉じ、光の 栞と なって 書架へ 戻っていった。',
+    ],
+    hp: 480,
+    attack: [26, 33],
+    exp: 520,
+    gold: 420,
+    intro: [
+      '（大書庫の 最奥。天井まで 積まれた 本の 山の 中で、巨大な 本が 目を 開いた……！）',
+      'ミツカラヌ……ミツカラヌ……。この 城の 記録は すべて ワタシが 呑みこんだ。',
+      '1行ずつ 目で 探し、見つからずに 途方に くれるが いい。キサマの 答えも「#N/A」に してやろう……！',
+    ],
+    questions: [
+      { type: 'choice', q: 'VLOOKUP の 4つ目を FALSE に すると？', choices: ['完全一致で 探す', '近似一致で 探す', '右から 探す', '見つからなければ 0'], answer: '完全一致で 探す', explain: 'FALSE は 完全一致。TRUE（または 省略）は 近似一致。番号や 名前を 探すときは FALSE。' },
+      { type: 'choice', q: 'VLOOKUP で 探す値が 見つからないと 出る エラーは？', choices: ['#N/A', '#VALUE!', '#DIV/0!', '#REF!'], answer: '#N/A', explain: '#N/A は Not Available（見つからない）。IFERROR か XLOOKUP の 4つ目で 別の 値に できる。' },
+      { type: 'choice', q: '探す列より 左の 列を 取り出せる 関数は？', choices: ['XLOOKUP', 'VLOOKUP', 'COUNTIF', 'ROUND'], answer: 'XLOOKUP', explain: 'XLOOKUP(探す値, 探す列, 取り出す列)。探す列と 取り出す列を 別々に 指定できる。' },
+      { type: 'choice', q: 'VLOOKUP の 範囲を 下へ コピーしても ずれないように するには？', choices: ['$A$2:$C$9 のように 固定', 'A2:C9 のまま', '列番号に $ を 付ける', 'FALSE を TRUE に する'], answer: '$A$2:$C$9 のように 固定', explain: '範囲が ずれると 上の 行が 探せなくなる。F4 で 固定しよう。' },
+      G.genVlookupPick,
+      G.genColIndex,
+      G.genApproxPick,
+      G.genFormulaVlookup,
+      G.genFormulaXlookup,
+      G.genFormulaIferror,
+      G.genFormulaIf,
+      G.genFormulaSumIf,
+      G.genFormulaTax,
+    ],
+  },
+} satisfies Record<string, BossDef>)
+
 // ================================================================ フィールドの敵
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
@@ -292,6 +332,27 @@ const BRANCHES: QuestionSrc[] = [
   G.genFormulaSumIf,
 ]
 
+const LOOKS: QuestionSrc[] = [
+  c('表の 左端の 列で 探して、同じ行の 右の 値を 取り出す 関数は？', ['VLOOKUP', 'COUNTIF', 'SUMIF', 'ROUND'], 'VLOOKUP', 'VLOOKUP（ブイ・ルックアップ）。V は Vertical（縦）の V。'),
+  c('VLOOKUP で 見つからないと 出る エラーは？', ['#N/A', '#DIV/0!', '#NAME?', '#REF!'], '#N/A', '#N/A は「見つからない」の 意味。'),
+  c('番号や 名前を ぴったり 探すとき、VLOOKUP の 4つ目は？', ['FALSE', 'TRUE', '0以上', '"完全"'], 'FALSE', 'FALSE で 完全一致。書き忘れると 近似一致に なって、思わぬ 値が 出ることも。'),
+  G.genVlookupPick,
+  G.genVlookupPick,
+  G.genColIndex,
+  G.genColIndex,
+  G.genFormulaVlookup,
+]
+const SEARCHES: QuestionSrc[] = [
+  c('=IFERROR(VLOOKUP(…),"なし") の 役割は？', ['見つからない ときだけ "なし" に する', 'いつも "なし" に する', 'エラーの 数を 数える', '"なし" を 探す'], '見つからない ときだけ "なし" に する', 'IFERROR は エラーの ときだけ 2つ目の 値を 出す。'),
+  c('XLOOKUP の 4つ目の 引数は？', ['見つからない ときの 値', '列番号', '完全一致か どうか', '探す 行数'], '見つからない ときの 値', '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")'),
+  c('近似一致（TRUE）で 使う 区切りの 表は どう 並べる？', ['小さい順', '大きい順', 'バラバラで よい', '五十音順'], '小さい順', '近似一致は「探す値 以下で いちばん 大きい 値」を 選ぶので、小さい順に 並べておく。'),
+  G.genApproxPick,
+  G.genApproxPick,
+  G.genFormulaXlookup,
+  G.genFormulaIferror,
+  G.genFormulaVlookup,
+]
+
 export const FIELD_ENEMIES: Record<string, BossDef> = {
   celime_tutorial: {
     id: 'celime_tutorial',
@@ -313,6 +374,8 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
   zuredori: { id: 'zuredori', name: 'ズレドリ', sprite: 'zuredori', hp: 64, attack: [13, 18], exp: 40, gold: 32, intro: [], questions: MIXES },
   jelly: { id: 'jelly', name: 'イフクラゲ', sprite: 'jelly', hp: 78, attack: [16, 21], exp: 52, gold: 40, intro: [], questions: CONDS },
   crab: { id: 'crab', name: 'ブンキガニ', sprite: 'crab', hp: 92, attack: [18, 24], exp: 64, gold: 50, intro: [], questions: BRANCHES },
+  nainai: { id: 'nainai', name: 'ナイナイ', sprite: 'nainai', hp: 104, attack: [21, 27], exp: 78, gold: 60, intro: [], questions: LOOKS },
+  shiori: { id: 'shiori', name: 'シオリムシ', sprite: 'shiori', hp: 118, attack: [23, 29], exp: 90, gold: 70, intro: [], questions: SEARCHES },
 }
 
 export const ENEMIES: Record<string, BossDef> = { ...BOSSES, ...FIELD_ENEMIES }

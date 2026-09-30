@@ -9,7 +9,7 @@ import { QUESTS, makeCtx } from '../src/data/quests'
 import { GUIDES } from '../src/data/guides'
 import { ENEMIES } from '../src/data/bosses'
 import { MAPS } from '../src/data/maps'
-import { WALKABLE } from '../src/game/tiles'
+import { COUNTER, WALKABLE } from '../src/game/tiles'
 import { evaluate, formatValue, makeGrid, normalizeInput, parseAddr, shiftFormula, usesFn } from '../src/game/formula'
 import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 
@@ -100,6 +100,30 @@ for (const m of Object.values(MAPS)) {
   }
   for (const npc of m.npcs) if (!inside(npc.x, npc.y)) bad(`${m.id}: ${npc.name} (${npc.x},${npc.y}) が マップの 外`)
   if (!WALKABLE.has(m.tiles[m.spawn.y]?.[m.spawn.x] ?? '#')) bad(`${m.id}: 出発地点が 歩けない`)
+
+  // 出発地点から 歩いて 行けるか（謎の扉と 結界は いずれ 開くので 通れる ものとする）
+  const open = (x: number, y: number) => inside(x, y) && (WALKABLE.has(m.tiles[y][x]) || m.tiles[y][x] === '(' || m.tiles[y][x] === 'Z')
+  const seen = new Set([`${m.spawn.x},${m.spawn.y}`])
+  const queue: [number, number][] = [[m.spawn.x, m.spawn.y]]
+  while (queue.length) {
+    const [x, y] = queue.shift()!
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const k = `${x + dx},${y + dy}`
+      if (seen.has(k) || !open(x + dx, y + dy)) continue
+      seen.add(k)
+      queue.push([x + dx, y + dy])
+    }
+  }
+  const reach = (x: number, y: number) => seen.has(`${x},${y}`)
+  for (const ex of m.exits) if (!reach(ex.x, ex.y)) bad(`${m.id}: 出口 (${ex.x},${ex.y}) → ${ex.to} に 歩いて 行けない`)
+  for (const npc of m.npcs) {
+    if (npc.id.endsWith('_open')) continue
+    const ok = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(
+      ([dx, dy]) => reach(npc.x + dx, npc.y + dy) || (COUNTER.has(m.tiles[npc.y + dy]?.[npc.x + dx] ?? '') && reach(npc.x + dx * 2, npc.y + dy * 2)),
+    )
+    if (!ok) bad(`${m.id}: ${npc.name} (${npc.x},${npc.y}) に 話しかけられない`)
+    if (npc.ferry && !WALKABLE.has(MAPS[npc.ferry.to]?.tiles[npc.ferry.y]?.[npc.ferry.x] ?? '#')) bad(`${m.id}: ${npc.name} の 行き先が 歩けない`)
+  }
 }
 console.log(`マップ：${Object.keys(MAPS).length} 枚`)
 

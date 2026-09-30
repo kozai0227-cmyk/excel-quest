@@ -1575,6 +1575,13 @@ kbd {
     linear-gradient(#0e0c22 0%, #2a2650 48%, #7c9cc4 48%, #4a6a94 100%);
 }
 
+.battle.bg-library {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(240, 200, 120, 0.2), transparent 55%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0 3px, transparent 3px 9%),
+    linear-gradient(#140c1c 0%, #2a1a30 48%, #5a3a28 48%, #3a2618 100%);
+}
+
 .battle.bg-ship {
   background:
     radial-gradient(ellipse at 50% 30%, rgba(120, 255, 170, 0.18), transparent 55%),

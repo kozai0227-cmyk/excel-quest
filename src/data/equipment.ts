@@ -33,6 +33,8 @@ export const EQUIP: Record<string, EquipDef> = {
   dollar_lance: { name: 'ドルマークの槍', slot: 'weapon', price: 1900, atk: 38, desc: '「$」の形の 穂先。狙った所から ずれない。' },
   anchor_axe: { name: 'いかりのオノ', slot: 'weapon', price: 2300, atk: 42, desc: '船の いかりを 打ち直した 重たい オノ。' },
   branch_trident: { name: '分岐のトライデント', slot: 'weapon', price: 2900, atk: 47, desc: '3つに 分かれた 穂先。どんな 条件にも 対応できる。' },
+  loupe_blade: { name: 'ルーペブレード', slot: 'weapon', price: 3600, atk: 53, desc: '刀身が レンズに なっている。探す 相手を 決して 見失わない。' },
+  index_spear: { name: '索引の槍', slot: 'weapon', price: 4400, atk: 59, desc: '目録の 1行を 正確に 貫く 槍。' },
   // よろい（ビジネスウェア）
   old_suit: { name: 'いつものスーツ', slot: 'armor', price: 0, def: 1, desc: '転生前から 着ている 紺のスーツ。' },
   coolbiz: { name: 'クールビズシャツ', slot: 'armor', price: 50, def: 3, desc: '汗をかいても へっちゃら。' },
@@ -41,17 +43,20 @@ export const EQUIP: Record<string, EquipDef> = {
   order_suit: { name: 'オーダーメイドスーツ', slot: 'armor', price: 620, def: 13, desc: '体に ぴったり。できる大人の 装い。' },
   silver_suit: { name: 'ぎんのスーツ', slot: 'armor', price: 1100, def: 18, desc: '銀糸を 織りこんだ 光沢のある スーツ。' },
   captain_coat: { name: '船長のコート', slot: 'armor', price: 1800, def: 23, desc: '潮風にも 嵐にも 負けない 厚手の コート。' },
+  librarian_robe: { name: '司書のローブ', slot: 'armor', price: 2600, def: 28, desc: '知識の 重みで 攻撃を 受け止める ローブ。' },
   // たて（書類ばさみ・PC）
   clipboard: { name: 'クリップボード', slot: 'shield', price: 45, def: 1, time: 2, desc: '書類を守る 板。落ち着いて 考えられる。' },
   iron_binder: { name: 'てつのバインダー', slot: 'shield', price: 200, def: 3, time: 4, desc: '分厚い バインダー。資料も 攻撃も 受け止める。' },
   laptop_shield: { name: 'ノートPCのたて', slot: 'shield', price: 480, def: 5, time: 6, desc: '開けば 盾、閉じれば 鈍器。' },
   mirror_shield: { name: 'ミラーシールド', slot: 'shield', price: 950, def: 8, time: 7, desc: '攻撃を 映して はね返す 鏡の盾。' },
   buoy_shield: { name: '浮き輪のたて', slot: 'shield', price: 1500, def: 11, time: 8, desc: '沈まない 安心感。ミスしても 浮かび上がれる。' },
+  catalog_shield: { name: '目録のたて', slot: 'shield', price: 2200, def: 14, time: 9, desc: '分厚い 目録の 表紙。調べものの 時間も 稼げる。' },
   // かぶと（集中グッズ）
   hachimaki: { name: 'ねじりハチマキ', slot: 'head', price: 20, def: 1, time: 1, desc: '気合いが 入る。' },
   bluelight: { name: 'ブルーライトメガネ', slot: 'head', price: 240, def: 2, crit: 0.05, desc: '画面が よく見える。「一発決裁」が 出やすくなる。' },
   headphones: { name: 'ノイキャンヘッドホン', slot: 'head', price: 420, def: 3, time: 3, desc: '雑音を 消して 集中できる。' },
   captain_hat: { name: 'キャプテンハット', slot: 'head', price: 1400, def: 7, time: 3, desc: '「もしも」の時も 冷静に 判断できる 船長の帽子。' },
+  bookmark_band: { name: 'しおりのハチマキ', slot: 'head', price: 1900, def: 9, time: 4, crit: 0.05, desc: '大事な ページを 見失わない。「一発決裁」が 出やすくなる。' },
   loupe: { name: 'ルーペめがね', slot: 'head', price: 880, def: 5, time: 2, crit: 0.05, desc: '細かい「$」も 見逃さない。「一発決裁」が 出やすくなる。' },
 }
 

@@ -9,11 +9,12 @@ export interface ChipGroup {
 }
 
 /** 町（ダンジョン）の順番。ここまでに 習った関数だけを ボタンに出す */
-const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship']
+const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library']
 const FUNCS_AT: Record<string, string[]> = {
   calculet: ['SUM', 'AVERAGE', 'MAX', 'MIN', 'COUNT'],
   sansho: ['ROUND'],
   ifport: ['IF', 'AND', 'OR', 'COUNTIF', 'SUMIF'],
+  lookup: ['VLOOKUP', 'IFERROR', 'XLOOKUP'],
 }
 export const ALL_FUNCS = Object.values(FUNCS_AT).flat()
 
@@ -27,6 +28,9 @@ const SKILL_FUNCS: Record<string, string[]> = {
   if: ['IF'],
   andor: ['AND', 'OR'],
   countif: ['COUNTIF', 'SUMIF'],
+  vlookup: ['VLOOKUP'],
+  iferror: ['IFERROR'],
+  xlookup: ['XLOOKUP'],
 }
 export const learnedFuncs = (skills: string[]) => skills.flatMap((s) => SKILL_FUNCS[s] ?? [])
 
@@ -81,7 +85,7 @@ export function battlePad(hint: string, rows: number, cols: number, target: stri
   }
   for (const a of pickN(near.filter((a) => !cells.has(a) && a !== target), 3)) cells.add(a)
 
-  const values = [...new Set(toks.filter((t) => /^\d/.test(t) || t.startsWith('"')))]
+  const values = [...new Set(toks.filter((t) => /^\d/.test(t) || t.startsWith('"') || t === 'TRUE' || t === 'FALSE'))]
   const hasCmp = toks.some((t) => COMPARE.includes(t) || t === '=')
 
   return [

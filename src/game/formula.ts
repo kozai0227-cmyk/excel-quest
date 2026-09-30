@@ -51,8 +51,12 @@ export function makeGrid(rows: number, cols: number, data: (string | number)[][]
 
 export const cloneGrid = (g: Grid): Grid => g.map((row) => row.map((c) => ({ ...c })))
 
+/** Excel では TRUE / FALSE を そのまま 書ける（=VLOOKUP(…,FALSE)）。数式エンジン用に TRUE() / FALSE() へ */
+const withBool = (raw: string) =>
+  raw.startsWith('=') ? mapOutsideQuotes(raw, (p) => p.replace(/(?<![A-Za-z0-9_.$])(TRUE|FALSE)(?![A-Za-z0-9_(])/gi, (m) => `${m.toUpperCase()}()`)) : raw
+
 export function evaluate(grid: Grid): Value[][] {
-  const data = grid.map((row) => row.map((c) => (c.raw === '' ? null : c.raw)))
+  const data = grid.map((row) => row.map((c) => (c.raw === '' ? null : withBool(c.raw))))
   const hf = HyperFormula.buildFromArray(data, { licenseKey: 'gpl-v3' })
   const out = hf.getSheetValues(0)
   hf.destroy()

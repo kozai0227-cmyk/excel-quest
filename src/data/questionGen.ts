@@ -736,3 +736,110 @@ export const genFormulaSumIf: QGen = () => {
     explain: `=SUMIF(A1:A${n},"${k}",B1:B${n})。条件の範囲 → 条件 → 合計する範囲 の 順。`,
   }
 }
+
+// ---------------------------------------------------------------- 第4章：検索（VLOOKUP・XLOOKUP）
+const BOOKS = ['表の書', '関数の書', '参照の書', '条件の書', '検索の書', '集計の書', '書式の書', '印刷の書']
+const COL_LETTERS = 'ABCDEFGH'
+
+/** 番号・名前・値段 の 4行の 表（番号は 飛び飛び） */
+function lookupTable() {
+  const start = ri(1, 5) * 100
+  // k * 3 + (0〜2) なので 番号は かならず ちがう
+  const ids = shuffled([1, 2, 3, 4, 5, 6].map((k) => start + k * 3 + ri(0, 2))).slice(0, 4)
+  const names = shuffled(BOOKS).slice(0, 4)
+  const prices = nums(4, 90, 10).map((p) => p * 10)
+  return ids.map((id, i) => [id, names[i], prices[i]] as [number, string, number])
+}
+
+export const genVlookupPick: QGen = () => {
+  const t = lookupTable()
+  const row = pick(t)
+  const col = pick([2, 3])
+  const ans = row[col - 1]
+  const other = t.find((r) => r !== row)!
+  return choice(
+    `A1:C4 に「番号・書名・値段」の 表（${t.map((r) => r.join('/')).join('、')}）。=VLOOKUP(${row[0]},A1:C4,${col},FALSE) は？`,
+    ans,
+    [row[col === 2 ? 2 : 1], other[col - 1], '#N/A'],
+    `左端の 番号 ${row[0]} の 行を 探して、左から ${col}列目（${col === 2 ? '書名' : '値段'}）を 取り出す → ${ans}。`,
+  )
+}
+
+export const genColIndex: QGen = () => {
+  const a = ri(0, 3)
+  const b = a + ri(2, 4)
+  const k = ri(a + 1, b)
+  const n = k - a + 1
+  return choice(
+    `=VLOOKUP(…, ${COL_LETTERS[a]}2:${COL_LETTERS[b]}9, 列番号, FALSE) で ${COL_LETTERS[k]}列を 取り出したい。列番号は？`,
+    n,
+    [k + 1, n - 1 || n + 2, n + 1],
+    `列番号は 範囲の 左端（${COL_LETTERS[a]}列）を 1 と 数える。${COL_LETTERS[k]}列は ${n}列目。シート全体の 何列目か では ない。`,
+  )
+}
+
+const GRADES: [number, string][] = [
+  [0, 'C'],
+  [50, 'B'],
+  [70, 'A'],
+  [90, 'S'],
+]
+export const genApproxPick: QGen = () => {
+  const v = pick([ri(1, 49), ri(50, 69), ri(70, 89), ri(90, 100), pick([50, 70, 90])])
+  const g = [...GRADES].reverse().find(([t]) => v >= t)![1]
+  return choice(
+    `D1:E4 に 区切りの 表（0→C、50→B、70→A、90→S）。=VLOOKUP(${v},D1:E4,2,TRUE) は？`,
+    g,
+    GRADES.map(([, x]) => x).filter((x) => x !== g),
+    `TRUE（近似一致）は「${v} 以下で いちばん 大きい 値」の 行を 選ぶ → ${g}。区切りの 表は 小さい順に 並べる。`,
+  )
+}
+
+export const genFormulaVlookup: QGen = () => {
+  const t = lookupTable()
+  const row = pick(t)
+  const col = pick([2, 3])
+  return {
+    type: 'formula',
+    q: `F1 に、E1 の 番号の ${col === 2 ? '書名' : '値段'}を 表（A1:C4）から 取り出せ！`,
+    table: t.map((r, i) => (i === 0 ? [...r, '', row[0]] : r)),
+    target: 'F1',
+    expect: row[col - 1],
+    mustUse: 'VLOOKUP',
+    hint: `=VLOOKUP(E1,A1:C4,${col},FALSE)`,
+    explain: `=VLOOKUP(E1,A1:C4,${col},FALSE)。${col === 2 ? '書名は 2列目' : '値段は 3列目'}。FALSE は 完全一致。`,
+  }
+}
+
+export const genFormulaXlookup: QGen = () => {
+  const t = lookupTable()
+  const row = pick(t)
+  // 名前 → 番号（番号は 左の 列）
+  return {
+    type: 'formula',
+    q: `F1 に、E1 の 書名の「番号」を 出せ！（番号は 書名より 左の A列）`,
+    table: t.map((r, i) => (i === 0 ? [...r, '', row[1]] : r)),
+    target: 'F1',
+    expect: row[0],
+    mustUse: 'XLOOKUP',
+    hint: '=XLOOKUP(E1,B1:B4,A1:A4)',
+    explain: '=XLOOKUP(E1,B1:B4,A1:A4)。探す列（B）と 取り出す列（A）を 別々に 指定するので、左の 列も 取り出せる。',
+  }
+}
+
+export const genFormulaIferror: QGen = () => {
+  const t = lookupTable()
+  const missing = Math.random() < 0.6
+  const id = missing ? t[0][0] + 1000 : pick(t)[0]
+  const hit = t.find((r) => r[0] === id)
+  return {
+    type: 'formula',
+    q: `F1 に、E1 の 番号の 書名を 出せ！ 表に なければ "なし" と 出すこと。`,
+    table: t.map((r, i) => (i === 0 ? [...r, '', id] : r)),
+    target: 'F1',
+    expect: hit ? hit[1] : 'なし',
+    mustUse: 'IFERROR',
+    hint: '=IFERROR(VLOOKUP(E1,A1:C4,2,FALSE),"なし")',
+    explain: '=IFERROR(VLOOKUP(E1,A1:C4,2,FALSE),"なし")。見つからない #N/A の ときだけ "なし" に なる。XLOOKUP の 4つ目に "なし" でも いい。',
+  }
+}

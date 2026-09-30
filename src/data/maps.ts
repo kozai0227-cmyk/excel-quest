@@ -166,6 +166,23 @@ Object.assign(C, {
   amiMother: { hair: 'bob', hairColor: '#5a3a2a', eyes: 'closed', blush: true, outfit: 'apron', color: '#c05a3a', inner: '#ffffff' },
 } satisfies Record<string, CharSpec>)
 
+// 第4章 ルックアップの人々
+Object.assign(C, {
+  sagasu: { hair: 'slick', hairColor: '#d8d8e0', glasses: true, beard: 'mustache', beardColor: '#e0e0e8', outfit: 'robe', color: '#2a4a8a', accent: '#e0b040', hat: 'tophat', hatColor: '#1a2a4a', hatAccent: '#e0b040' },
+  post: { hair: 'spiky', hairColor: '#6a3a1a', eyes: 'big', outfit: 'tunic', color: '#d84030', accent: '#f0c040', pants: '#2a3a6a', hat: 'beret', hatColor: '#d84030' },
+  catalog: { hair: 'bob', hairColor: '#2a2a3a', glasses: true, outfit: 'apron', color: '#4a7a5a', inner: '#ffffff' },
+  hantei: { hair: 'buzz', hairColor: '#5a4a3a', beard: 'mustache', beardColor: '#5a4a3a', eyes: 'narrow', outfit: 'armor', color: '#8a8a9a', hat: 'helmet', hatAccent: '#d03030', pants: '#4a4a58' },
+  shoko: { hair: 'long', hairColor: '#4a2a1a', glasses: true, eyes: 'closed', outfit: 'dress', color: '#6a4a8a', inner: '#f0e8f8' },
+  roll: { hair: 'neat', hairColor: '#c0a060', glasses: true, outfit: 'coat', color: '#3a3a6a', inner: '#f4f4f4', accent: '#e0b040', pants: '#2a2a3a' },
+  quill: { hair: 'messy', hairColor: '#8a8a8a', beard: 'long', beardColor: '#c0c0c0', outfit: 'leather', color: '#4a3a2a', accent: '#c09040' },
+  shelfa: { hair: 'bun', hairColor: '#e0c060', outfit: 'armor', color: '#5a6a8a', hat: 'helmet', hatAccent: '#e0b040', pants: '#3a3a4a' },
+  inn5: { hair: 'bob', hairColor: '#8a4a2a', eyes: 'closed', outfit: 'apron', color: '#8a5ab0', inner: '#ffffff' },
+  shop5: { hair: 'neat', hairColor: '#3a2a1a', beard: 'stubble', outfit: 'leather', color: '#e8e0cc', accent: '#8a3a3a', pants: '#3a3a44', hat: 'beret', hatColor: '#8a3a3a' },
+  reader: { hair: 'twin', hairColor: '#3a3a3a', glasses: true, eyes: 'big', outfit: 'tunic', color: '#e0a040', accent: '#5a3a1a', pants: '#3a3a44' },
+  kid5: { hair: 'spiky', hairColor: '#e0a040', eyes: 'big', blush: true, outfit: 'overalls', color: '#3a8a5a', inner: '#f0e8d8' },
+  ferryman: { hair: 'buzz', hairColor: '#2a1a1a', skin: '#c8885a', beard: 'stubble', outfit: 'tunic', color: '#f0f0f0', accent: '#1a3a6a', pants: '#1a3a6a', hat: 'knit', hatColor: '#1a3a6a' },
+} satisfies Record<string, CharSpec>)
+
 const inn = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '宿屋', look, kind: 'inn' })
 const church = (id: string, x: number, y: number): NpcDef => ({ id, x, y, name: '神父', look: C.priest, kind: 'church' })
 const shop = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '道具屋', look, kind: 'shop' })
@@ -446,6 +463,83 @@ function ship2Tiles() {
 
 const shipEnemies = () => ['jelly', 'crab', 'jelly']
 const SHIP_RATE = 1 / 32
+
+// ================================================================ 検索の城下町 ルックアップ
+function lookupTiles() {
+  const m = blank(34, 30)
+  forest(m)
+  rect(m, 'M', 1, 1, 32, 5)
+  // 北の城（大書庫の 入口）
+  rect(m, 'X', 10, 1, 14, 1)
+  rect(m, 'V', 10, 2, 14, 3)
+  put(m, 'v', [[11, 2], [13, 2], [20, 2], [22, 2], [11, 3], [22, 3], [16, 2]])
+  m[4][16] = 'd'
+  rect(m, '.', 15, 5, 3, 1)
+  rect(m, 'Z', 15, 6, 3, 1)
+  // 大通りと 東西の 通り、岸壁
+  rect(m, 'T', 15, 7, 3, 17)
+  rect(m, 'T', 1, 11, 32, 2)
+  rect(m, 'T', 1, 19, 32, 2)
+  rect(m, 'T', 1, 22, 32, 2)
+  // 北の並び
+  building(m, 2, 7, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 9, 7, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
+  building(m, 20, 7, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
+  building(m, 26, 7, 6, { roof: 'E', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
+  // 南の並び
+  building(m, 2, 15, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 8, 15, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
+  building(m, 20, 15, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
+  building(m, 27, 15, 5, { roof: 'U', upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  // 港と 定期船
+  rect(m, '~', 0, 24, 34, 6)
+  rect(m, 'B', 16, 24, 2, 3)
+  rect(m, ')', 19, 25, 8, 4)
+  rect(m, ';', 20, 26, 6, 2)
+  m[26][22] = ']'
+  put(m, 'x', [[20, 26], [25, 27]])
+  // 市場と 飾り
+  put(m, 'A', [[9, 21], [10, 21], [23, 21], [24, 21]])
+  put(m, 'S', [[14, 7]])
+  put(m, 'L', [[14, 10], [18, 10], [14, 18], [18, 18], [14, 21], [18, 21], [7, 13], [26, 13]])
+  put(m, 'p', [[1, 10], [32, 10], [8, 14], [25, 14], [1, 18], [32, 18]])
+  put(m, 'b', [[19, 7], [19, 8], [25, 13], [8, 13], [1, 21], [32, 21]])
+  put(m, 'n', [[12, 13], [21, 13]])
+  sprinkle(m, 23, 7)
+  return done(m)
+}
+
+const LIBRARY1 = [
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[:::::[[:{:[[:::::[[[',
+  '[[:::::[[:::[[:::::[[[',
+  '[[[[:[[[[[([[[[[:[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L:::::::::::::L:[[[',
+  '[[:::[[[[:::[[[[:::[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[([[[[[[[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L:::::::::::::L:[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[-[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+]
+const LIBRARY2 = [
+  '[[[[[[[[[[[[[[[[[[',
+  '[::::::::::::::::[',
+  '[::L::::::::::L::[',
+  '[::::::::::::::::[',
+  '[::::::::::::::::[',
+  '[[[[[[[[([[[[[[[[[',
+  '[::::::::::::::::[',
+  '[::::::::::::::::[',
+  '[:::::::}::::::::[',
+  '[[[[[[[[[[[[[[[[[[',
+]
+const libraryEnemies = () => ['nainai', 'shiori', 'nainai']
+const LIBRARY_RATE = 1 / 32
 
 // ================================================================ はじまりの森
 function forestTiles() {
@@ -886,6 +980,12 @@ const ifport: MapDef = {
       lines: ['ねえねえ、「もしも」って 言葉、知ってる？', 'もしも 晴れたら 海で 遊ぶ！ もしも 雨なら おうちで あそぶ！ ……これも IF なんだって！'],
     },
     { id: 'dog2', x: 23, y: 8, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（海の においを かいで しっぽを ふっている）'] },
+    {
+      id: 'port_ferry', x: 21, y: 25, name: '定期船の船乗り', look: C.ferryman, kind: 'ferry', dir: 'up',
+      lines: ['幽霊船が 消えて、南の 海の 定期船が また 出せるように なった！', '行き先は 海の 向こうの「検索の城下町 ルックアップ」。お城の 大書庫で 有名な 町さ。'],
+      ferry: { to: 'lookup', x: 16, y: 23, dir: 'up', place: '検索の城下町 ルックアップ' },
+      hideIf: (s) => !s.bosses.includes('captain'),
+    },
   ],
 }
 
@@ -1028,6 +1128,91 @@ const temple2: MapDef = {
   // 大鏡の前では 敵は出ない
   encounter: (_x, y) => (y <= 4 ? null : templeEnemies()),
   encounterRate: TEMPLE_RATE,
+}
+
+// ---------------------------------------------------------------- 第4章
+const lookup: MapDef = {
+  id: 'lookup',
+  name: '検索の城下町 ルックアップ',
+  kind: 'town',
+  town: 'lookup',
+  bossId: 'mitsukaranu',
+  tiles: lookupTiles(),
+  spawn: { x: 16, y: 23, dir: 'up' },
+  respawn: { map: 'lookup_church', x: 5, y: 4 },
+  exits: [{ x: 16, y: 4, to: 'library1', tx: 10, ty: 12, dir: 'up' }],
+  signs: [
+    { x: 14, y: 7, lines: ['ルックアップ城 大書庫 ― 城と 町の すべての 記録が 眠る 場所。', 'いまは「迷宮書庫の主 ミツカラーヌ」が 巣くい、何を 探しても 見つからないという。', '城下の 悩みを すべて 解決すれば、城門の 結界は とけるだろう。'] },
+  ],
+  npcs: [
+    { id: 'post', x: 12, y: 21, name: '郵便屋ポスト', look: C.post, kind: 'quest', questId: 'lookup_vlookup', dir: 'down' },
+    { id: 'hantei', x: 18, y: 8, name: '兵士長ハンテイ', look: C.hantei, kind: 'quest', questId: 'lookup_approx', dir: 'left' },
+    {
+      id: 'lookup_ferry', x: 17, y: 24, name: '定期船の船乗り', look: C.ferryman, kind: 'ferry', dir: 'up',
+      lines: ['イフポート行きの 定期船だ。いつでも 乗せてやるぜ。'],
+      ferry: { to: 'ifport', x: 21, y: 23, dir: 'up', place: '条件の港町 イフポート' },
+    },
+    {
+      id: 'quill', x: 25, y: 21, name: '古本屋のクイル', look: C.quill, kind: 'talk', dir: 'down',
+      lines: ['この 町の 人間は、何でも 分厚い 帳簿に 書き残す。', 'だが 城の 大書庫が 呪われてから、書いた ものが 見つからねえ。', '1行ずつ 指で たどって「ない……ない……」って つぶやく 声が、町じゅうから 聞こえるのさ。'],
+      linesAfter: { when: (s) => s.solved.includes('lookup_vlookup'), lines: ['VLOOKUP って 魔法が はやってるらしいな。', '番号さえ わかれば、帳簿の どこに あっても 一発で 引ける……古本屋 泣かせだぜ。'] },
+    },
+    {
+      id: 'kid5', x: 8, y: 13, name: '城下の子ども', look: C.kid5, kind: 'talk', wander: true, emote: 'note',
+      lines: ['かくれんぼ しよう！ ……あ、でも いま 探しても 見つからない 呪いが かかってるんだっけ。', 'ずっと 見つけて もらえないのは さみしいよ〜。'],
+    },
+    {
+      id: 'shelfa', x: 14, y: 6, name: '城門の衛兵', look: C.shelfa, kind: 'guard', dir: 'down',
+      lines: ['この先は ルックアップ城の 大書庫だ。', 'ミツカラーヌの 結界が 張られていて、今は 誰も 入れん。', '城下の 者たちの 悩みを 晴らせば、結界も 弱まるはずだが……。'],
+      linesAfter: { when: (s) => s.bosses.includes('mitsukaranu'), lines: ['大書庫の 記録が、ふたたび 引けるように なった！', '城の 者 一同、感謝して おるぞ。'] },
+    },
+    { id: 'cat3', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ。', '（本の 山の 上で 丸くなるのが 好きらしい）'] },
+  ],
+}
+
+const library1: MapDef = {
+  id: 'library1',
+  name: 'ルックアップ城 大書庫',
+  kind: 'dungeon',
+  tiles: LIBRARY1,
+  spawn: { x: 10, y: 12, dir: 'up' },
+  exits: [
+    { x: 10, y: 13, to: 'lookup', tx: 16, ty: 5, dir: 'down' },
+    { x: 10, y: 2, to: 'library2', tx: 8, ty: 7, dir: 'up' },
+  ],
+  signs: [],
+  gates: [
+    { x: 10, y: 9, puzzle: 'lib_shelf' },
+    { x: 10, y: 4, puzzle: 'lib_left' },
+  ],
+  npcs: [
+    ...chest('lib_chest1', 3, 2, { item: 'herb' }),
+    ...chest('lib_chest2', 18, 2, { gold: 400 }),
+    ...chest('lib_chest3', 18, 12, { item: 'sandglass' }),
+  ],
+  encounter: libraryEnemies,
+  encounterRate: LIBRARY_RATE,
+}
+
+const library2: MapDef = {
+  id: 'library2',
+  name: 'ルックアップ城 禁書の間',
+  kind: 'dungeon',
+  light: true,
+  tiles: LIBRARY2,
+  spawn: { x: 8, y: 7, dir: 'up' },
+  exits: [{ x: 8, y: 8, to: 'library1', tx: 10, ty: 3, dir: 'down' }],
+  bossExit: { map: 'lookup', x: 16, y: 5, dir: 'down' },
+  signs: [],
+  gates: [{ x: 8, y: 5, puzzle: 'lib_missing' }],
+  npcs: [
+    ...chest('lib_chest4', 3, 7, { equip: 'catalog_shield' }),
+    { id: 'lib_spring', x: 14, y: 7, name: 'ふしぎな インク壺', creature: 'spring', kind: 'heal' },
+    { id: 'boss_mitsukaranu', x: 8, y: 2, name: '迷宮書庫の主 ミツカラーヌ', creature: 'mitsukaranu', kind: 'boss', bossId: 'mitsukaranu', hideIf: (s) => s.bosses.includes('mitsukaranu') },
+  ],
+  // ミツカラーヌの 前では 敵は出ない
+  encounter: (_x, y) => (y <= 4 ? null : libraryEnemies()),
+  encounterRate: LIBRARY_RATE,
 }
 
 const rooms: MapDef[] = [
@@ -1186,13 +1371,51 @@ const rooms: MapDef[] = [
   room('port_storage', '港の倉庫', 'ifport', 'cozy', [
     { id: 'storekeeper', x: 4, y: 4, name: '倉庫番', look: C.storekeeper, kind: 'talk', lines: ['積荷の 箱が 天井まで……。', '「重い箱は 右、軽い箱は 左」って 決めれば いいのに、1箱ずつ 「どっちかなぁ」と 悩んじまう。これも 幽霊船の 呪いかねぇ。'] },
   ]),
+  room('lookup_hall', '大臣の館', 'lookup', 'hall', [
+    { id: 'sagasu', x: 6, y: 2, name: '大臣サガス', look: C.sagasu, kind: 'quest', questId: 'lookup_minister' },
+    {
+      id: 'steward', x: 10, y: 5, name: '執事', look: C.official, kind: 'talk', wander: true, emote: 'sweat',
+      lines: ['晩餐会の 準備が 進みません……。', '在庫台帳から 1品ずつ 探しているのですが、見つからない 品が あると そこで 手が 止まってしまうのです。'],
+    },
+  ]),
+  room('lookup_weapon', 'ルーペ武器店', 'lookup', 'weapon', [
+    {
+      id: 'loupe_smith', x: 2, y: 2, name: '武器屋メガネ', look: C.roll, kind: 'gear',
+      stock: ['anchor_axe', 'branch_trident', 'loupe_blade', 'index_spear'],
+      lines: ['いらっしゃいませ。探しものに 強い 武器を そろえております。', '索引の槍は、目録の 1行を 正確に 貫きますよ。'],
+    },
+  ]),
+  room('lookup_armor', 'ショカ防具店', 'lookup', 'armor', [
+    {
+      id: 'shoka', x: 2, y: 2, name: '防具屋ショカ', look: C.shelfa, kind: 'gear',
+      stock: ['captain_coat', 'librarian_robe', 'buoy_shield', 'catalog_shield', 'bookmark_band'],
+      lines: ['いらっしゃい！ 書庫の 司書たちが 愛用する 防具よ。', 'しおりのハチマキは、大事な ページを 見失わない すぐれもの！'],
+    },
+  ]),
+  room('lookup_inn', 'ルックアップの宿屋', 'lookup', 'inn', [
+    inn('inn5', 8, 2, C.inn5),
+    { id: 'guest5', x: 5, y: 5, name: '調べものの 旅人', look: C.traveler, kind: 'talk', lines: ['大書庫に 古い 地図を 調べに 来たんだが、入れて もらえなくてね。', '城下の 人たちも、帳簿から 目当ての 行を 探すのに 一日 かかっているらしい。'] },
+  ]),
+  room('lookup_church', 'ルックアップの教会', 'lookup', 'church', [church('church5', 5, 2)]),
+  room('lookup_shop', 'カタログ道具店', 'lookup', 'shop', [
+    shop('shop5', 2, 2, C.shop5),
+    { id: 'catalog', x: 7, y: 4, name: '道具屋のカタログ', look: C.catalog, kind: 'quest', questId: 'lookup_col' },
+  ]),
+  room('lookup_library', '城下の図書館', 'lookup', 'school', [
+    { id: 'shoko', x: 7, y: 3, name: '司書ショコ', look: C.shoko, kind: 'quest', questId: 'lookup_iferror' },
+    { id: 'reader', x: 3, y: 5, name: '本の虫の 少女', look: C.reader, kind: 'talk', lines: ['「#N/A」って 書いてある カードを 引いちゃった……。', 'なんだか 怖いよ。本は ちゃんと あるはず なのに。'] },
+  ]),
+  room('lookup_knights', '騎士団の詰所', 'lookup', 'bank', [
+    { id: 'roll', x: 2, y: 2, name: '騎士団の書記ロール', look: C.roll, kind: 'quest', questId: 'lookup_xlookup' },
+    { id: 'knight', x: 7, y: 5, name: '見習い騎士', look: C.hantei, kind: 'talk', lines: ['騎士番号で 呼ばれても、自分の 名前が 名簿の どこに あるか わからないんです……。', '名簿の いちばん 右に 番号、いちばん 左に 名前。遠すぎますよね？'] },
+  ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
   ]),
 ]
 
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
-  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, ...rooms].map((m) => [m.id, m]),
+  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, ...rooms].map((m) => [m.id, m]),
 )
 
 // 町のドア → 室内
@@ -1236,5 +1459,13 @@ link(ifport, 29, 13, MAPS.port_express)
 link(ifport, 4, 20, MAPS.port_fisher)
 link(ifport, 10, 20, MAPS.port_weather)
 link(ifport, 29, 20, MAPS.port_storage)
+link(lookup, 4, 10, MAPS.lookup_hall)
+link(lookup, 11, 10, MAPS.lookup_weapon)
+link(lookup, 22, 10, MAPS.lookup_armor)
+link(lookup, 29, 10, MAPS.lookup_inn)
+link(lookup, 4, 18, MAPS.lookup_church)
+link(lookup, 10, 18, MAPS.lookup_shop)
+link(lookup, 22, 18, MAPS.lookup_library)
+link(lookup, 29, 18, MAPS.lookup_knights)
 
 for (const map of Object.values(MAPS)) for (const n of map.npcs) if (n.look && !SPEAKER_LOOKS[n.name]) SPEAKER_LOOKS[n.name] = n.look
