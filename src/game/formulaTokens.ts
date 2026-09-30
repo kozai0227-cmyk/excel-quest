@@ -39,19 +39,6 @@ export function funcsFor(town: string): string[] {
 const COMPARE = ['>=', '<=', '>', '<', '<>']
 const ARITH = ['+', '-', '*', '/']
 const PUNCT = ['(', ')', ':', ',']
-const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']
-
-/** 依頼（ミニExcel）用のボタン一式。セル番地は 表をタップして入れる */
-export function questPad(town: string): ChipGroup[] {
-  const funcs = funcsFor(town)
-  const hasIf = funcs.includes('IF')
-  return [
-    ...(funcs.length ? [{ label: '関数', chips: funcs }] : []),
-    { label: '記号', chips: ['=', ...PUNCT, ...ARITH, ...(hasIf ? [...COMPARE, '"'] : [])] },
-    { label: '数字', chips: DIGITS, keypad: true },
-  ]
-}
-
 const TOKEN = /"[^"]*"?|\$?[A-Z]{1,3}\$?\d+|[A-Z][A-Z0-9.]*|\d+(?:\.\d+)?|<>|>=|<=|[=+\-*/(),:<>&^]|./gu
 
 /** 数式を ボタン単位に 区切る */

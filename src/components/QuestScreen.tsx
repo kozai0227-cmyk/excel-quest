@@ -4,9 +4,10 @@ import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
 import { ITEMS } from '../data/items'
 import type { Grid, Value } from '../game/formula'
-import { questPad } from '../game/formulaTokens'
-import { useInputMode } from '../game/inputMode'
+import { getInputMode } from '../game/inputMode'
 import { isPhoneLayout } from '../game/layout'
+import { GUIDES } from '../data/guides'
+import { GuidedQuest } from './GuidedQuest'
 
 interface Props {
   quest: QuestDef
@@ -20,12 +21,12 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
   const [hints, setHints] = useState(0)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [cleared, setCleared] = useState(false)
-  const touch = useInputMode() === 'touch'
   // 依頼の 途中で 画面を 回しても 表が 消えないよう、レイアウトは 開いたときに 決める
   const [phone] = useState(isPhoneLayout)
+  // ボタン入力（スマホ）は、知識を 1つずつ 答える ステップ式に する
+  const [guided] = useState(() => getInputMode() === 'touch' && !!GUIDES[quest.id])
   /** スマホ：「やること」を 開いておくか（閉じると 表が 広く見える） */
   const [brief, setBrief] = useState(true)
-  const pad = useMemo(() => questPad(quest.town), [quest])
   const last = useRef<{ grid: Grid; values: Value[][]; actions: Set<string> } | null>(null)
 
   // 入力のたびには判定しない。「これでどうだ！」を押したときだけ判定する
@@ -44,7 +45,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
 
   const reward = quest.reward
   const puzzle = quest.kind === 'puzzle'
-  const excel = <MiniExcel initial={initial} initialHistory={history} colWidths={quest.colWidths} pad={pad} onChange={onChange} />
+  const excel = <MiniExcel initial={initial} initialHistory={history} colWidths={quest.colWidths} onChange={onChange} />
   const clearModal = cleared && (
     <div className="clear-modal">
       <div className="win clear-win">
@@ -62,6 +63,8 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
       </div>
     </div>
   )
+
+  if (guided) return <GuidedQuest quest={quest} steps={GUIDES[quest.id]} onClear={onClear} onClose={onClose} />
 
   // スマホの 縦画面：上に「やること」、まん中に 表、下に 判定ボタン。画面の 高さに ぴったり おさめる
   if (phone)
@@ -163,14 +166,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
           </aside>
           <main className="quest-main">
             {excel}
-            {!puzzle && touch && (
-            <div className="cheats">
-              <span>数式の途中で セルをタップ → 番地が入る</span>
-              <span>ドラッグ → 範囲（A1:A6）</span>
-              <span>F4 → $ の付け外し</span>
-            </div>
-            )}
-            {!puzzle && !touch && (
+            {!puzzle && (
             <div className="cheats">
               <span><kbd>Enter</kbd> 確定</span>
               <span><kbd>F2</kbd> 編集</span>

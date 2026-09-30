@@ -78,7 +78,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           '（まちがえたり 時間切れになると、敵の 反撃を うける）',
           '（本番の戦いでは、残り時間のバーが 緑のうちに 答えると「即答ボーナス」で ダメージアップ！）',
           '（連続正解でも 威力が上がる。ごくまれに「一発決裁」で 大ダメージも 出るぞ）',
-          '（セルイムは 5問 正解すれば 倒せる。数字キー 1〜4 でも 答えられるぞ）',
+          '（答えは タップ、または 数字キー 1〜4 でも 選べるぞ）',
         ]
       : []),
   ])
@@ -246,7 +246,6 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         },
       })
       setCombo(c)
-      if (boss.hits && hp > 0) lines.push(`（あと ${Math.ceil(hp / dmg)}問 正解で 倒せる！）`)
       if (hp <= 0) say([...lines, `${boss.name}を やっつけた！`], onWin)
       else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))

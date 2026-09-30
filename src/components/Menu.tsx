@@ -59,7 +59,11 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
     if (c === 'にゅうりょく') {
       const m = inputMode === 'touch' ? 'keyboard' : 'touch'
       setInputMode(m)
-      setNote(m === 'touch' ? '数式を ボタンで 組み立てる（スマホ向け）に した。' : '数式を キーボードで 打つ（PC向け）に した。')
+      setNote(
+        m === 'touch'
+          ? 'ボタンで 答える（スマホ向け）に した。依頼は、Excel の 知識を 1つずつ 選んで 答える 形に なる。'
+          : 'キーボードで 打つ（PC向け）に した。依頼は、Excel と 同じ 操作で 表を 直す 形に なる。',
+      )
       return
     }
     if (c === 'セーブ') {
