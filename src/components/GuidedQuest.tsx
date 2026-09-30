@@ -3,8 +3,9 @@ import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
 import { ITEMS } from '../data/items'
 import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value } from '../game/formula'
-import { guideChips, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
+import { guideChips, pickRef, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
 import { FormulaPad } from './FormulaPad'
+import { useCellPick } from './useCellPick'
 
 interface Props {
   quest: QuestDef
@@ -24,7 +25,7 @@ function diffCells(a: Grid, b: Grid): string[] {
 
 /**
  * スマホ用の 依頼画面（ステップ式）。
- * 表は 見るだけ（タップで 数式を のぞける）。答えは 選択肢か、数式ボタンで 組み立てる。
+ * 表は タップで 数式を のぞける。答えは 選択肢か、数式ボタン（または 表の タップ・ドラッグ）で 組み立てる。
  */
 export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
   const history = useMemo(() => quest.history?.() ?? [], [quest])
@@ -85,7 +86,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
 
   const submit = () => {
     if (step.kind !== 'formula' || !chips.length) return
-    const r = tryFormula(grid, step, chips.join(''), puzzle)
+    const r = tryFormula(grid, step, '=' + chips.join(''), puzzle)
     if (r.msg) {
       setTrial(r)
       setMsg(r.msg)
@@ -119,6 +120,13 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     setHintOpen(false)
     setInspect(focusOf(s))
     card.current?.scrollTo({ top: 0 })
+  }
+
+  // 数式の 入力中は、表を タップ・ドラッグして セル・範囲を 入れられる
+  const picking = step.kind === 'formula' && !solved
+  const pickFromSheet = (ref: string) => {
+    setInspect(ref.split(':')[0])
+    if (ref !== (step.kind === 'formula' ? step.target : '')) editChips(pickRef(chips, ref))
   }
 
   // 表の 目立たせる 場所
@@ -164,6 +172,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
           changed={changed}
           inspect={inspect}
           onInspect={setInspect}
+          onPick={picking ? pickFromSheet : null}
         />
 
         <div ref={card} className={`guide-card ${solved ? 'solved' : ''}`}>
@@ -204,7 +213,10 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
             <>
               <div className="fpad-formula">
                 <span className="fpad-target">{step.target}</span>
-                <span className={`fpad-text ${chips.length ? '' : 'empty'}`}>{chips.length ? chips.join('') : 'ボタンで 数式を 組み立てよう'}</span>
+                <span className="fpad-text">
+                  ={chips.join('')}
+                  {!chips.length && !solved && <span className="fpad-ph">ボタンか、表を タップ・ドラッグ</span>}
+                </span>
               </div>
               {!solved && (
                 <>
@@ -268,10 +280,13 @@ interface SheetProps {
   changed: { cells: string[]; key: number }
   inspect: string | null
   onInspect(a: string): void
+  /** 数式の 入力中：タップした セル・ドラッグした 範囲を 数式に 入れる */
+  onPick: ((ref: string) => void) | null
 }
 
-function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspect, onInspect }: SheetProps) {
+function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspect, onInspect, onPick }: SheetProps) {
   const scroller = useRef<HTMLDivElement>(null)
+  const { selecting, handlers } = useCellPick(onPick, scroller)
   const cols = grid[0].length
   const widths = Array.from({ length: cols }, (_, c) => Math.round((colWidths?.[c] ?? 80) * 0.9))
   const flash = new Set(changed.cells)
@@ -298,7 +313,7 @@ function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspe
         <span className="gs-raw">{bar}</span>
       </div>
       <div className="gs-scroll" ref={scroller}>
-        <table className="gs-table" style={{ width: 30 + widths.reduce((a, b) => a + b, 0) }}>
+        <table className={`gs-table ${onPick ? 'picking' : ''}`} style={{ width: 30 + widths.reduce((a, b) => a + b, 0) }} {...handlers}>
           <colgroup>
             <col style={{ width: 30 }} />
             {widths.map((w, c) => (
@@ -327,9 +342,10 @@ function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspe
                     focus.has(a) ? 'focus' : fillArea.has(a) ? 'area' : '',
                     wrong.has(a) ? 'wrong' : '',
                     a === inspect ? 'inspect' : '',
+                    selecting.has(a) ? 'selecting' : '',
                   ].join(' ')
                   return (
-                    <td key={flash.has(a) ? `${c}-${changed.key}` : c} data-a={a} className={`${cls} ${flash.has(a) ? 'gs-new' : ''}`} onClick={() => onInspect(a)}>
+                    <td key={flash.has(a) ? `${c}-${changed.key}` : c} data-a={a} className={`${cls} ${flash.has(a) ? 'gs-new' : ''}`} onClick={onPick ? undefined : () => onInspect(a)}>
                       {formatValue(v)}
                     </td>
                   )

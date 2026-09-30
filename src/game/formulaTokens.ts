@@ -1,4 +1,4 @@
-import { addr, parseAddr } from './formula'
+import { addr, parseAddr, toggleAbsAt } from './formula'
 
 /** スマホ用の「数式ボタン」の ひとまとまり */
 export interface ChipGroup {
@@ -50,14 +50,46 @@ export function tokenize(s: string): string[] {
   return s.match(TOKEN) ?? []
 }
 
-/** ⌫：最後の ボタン1つぶん（参照・関数名・数値・"文字"・記号）を消す */
-export function dropLast(s: string): string {
-  const t = tokenize(s)
-  return t.length ? s.slice(0, s.length - t[t.length - 1].length) : s
+/** 数式を ボタン単位に 区切る。関数名は 最初の カッコと ひとまとめ（SUM( ）。先頭の = は 最初から 入っているので はずす */
+export function formulaChips(s: string): string[] {
+  const t = tokenize(s.replace(/\$/g, ''))
+  const out: string[] = []
+  for (let i = 0; i < t.length; i++) {
+    if (/^[A-Z][A-Z0-9.]*$/.test(t[i]) && !isRef(t[i]) && t[i + 1] === '(') {
+      out.push(t[i] + '(')
+      i++
+    } else out.push(t[i])
+  }
+  return out[0] === '=' ? out.slice(1) : out
 }
 
-const isRef = (t: string) => /^\$?[A-Z]{1,3}\$?\d+$/.test(t)
-const isFunc = (t: string) => ALL_FUNCS.includes(t)
+const REF = /^\$?[A-Z]{1,3}\$?\d+$/
+const RANGE = /^\$?[A-Z]{1,3}\$?\d+:\$?[A-Z]{1,3}\$?\d+$/
+export const isRef = (t: string) => REF.test(t)
+/** セル参照か 範囲（表を タップ・ドラッグして 入れた もの） */
+export const isRefOrRange = (t: string) => REF.test(t) || RANGE.test(t)
+
+/** F4：いちばん 最後の セル参照（範囲なら 両はし）の $ を 切り替える（A1 → $A$1 → A$1 → $A1 → A1） */
+export function toggleLastRef(chips: string[]): string[] {
+  for (let i = chips.length - 1; i >= 0; i--) {
+    if (!isRefOrRange(chips[i])) continue
+    const next = [...chips]
+    next[i] = chips[i]
+      .split(':')
+      .map((a) => toggleAbsAt('=' + a, a.length + 1)?.text.slice(1) ?? a)
+      .join(':')
+    return next
+  }
+  return chips
+}
+
+/**
+ * 表を タップ（ドラッグ）して 参照を 入れる。
+ * 直前も 参照なら 置きかえる（Excel で 数式の 入力中に 別の セルを クリックしたときと 同じ）
+ */
+export function pickRef(chips: string[], ref: string): string[] {
+  return chips.length && isRefOrRange(chips[chips.length - 1]) ? [...chips.slice(0, -1), ref] : [...chips, ref]
+}
 const pickN = <T,>(a: T[], n: number) => [...a].sort(() => Math.random() - 0.5).slice(0, n)
 const byAddr = (a: string, b: string) => {
   const p = parseAddr(a)
@@ -70,10 +102,10 @@ const byAddr = (a: string, b: string) => {
  * $ は ボタンにせず、F4 で付ける（Excel と同じ 操作を 身につけるため）。
  */
 export function battlePad(hint: string, rows: number, cols: number, target: string, known: string[]): ChipGroup[] {
-  const toks = tokenize(hint.replace(/\$/g, '')).slice(1) // 先頭の = は 最初から 入っている
+  const toks = formulaChips(hint) // 先頭の = は 最初から 入っている
 
-  const funcs = new Set(toks.filter(isFunc))
-  for (const f of pickN(known.filter((f) => !funcs.has(f)), Math.max(2, 4 - funcs.size))) funcs.add(f)
+  const funcs = new Set(toks.filter((t) => t.endsWith('(') && t.length > 1))
+  for (const f of pickN(known.map((f) => f + '(').filter((f) => !funcs.has(f)), Math.max(2, 4 - funcs.size))) funcs.add(f)
 
   // セル：答えに使うもの ＋ そのとなり（ずれた参照の ひっかけ）
   const cells = new Set(toks.filter(isRef))

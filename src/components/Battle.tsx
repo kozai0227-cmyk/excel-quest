@@ -10,8 +10,9 @@ import { maxHp } from '../game/progress'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { useInputMode } from '../game/inputMode'
-import { battlePad, dropLast, learnedFuncs, type ChipGroup } from '../game/formulaTokens'
+import { battlePad, learnedFuncs, pickRef, toggleLastRef, type ChipGroup } from '../game/formulaTokens'
 import { FormulaPad } from './FormulaPad'
+import { useCellPick } from './useCellPick'
 
 interface Props {
   bossId: string
@@ -88,6 +89,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [choices, setChoices] = useState<string[]>([])
   const [formula, setFormula] = useState('=')
   const touch = useInputMode() === 'touch'
+  /** スマホ：押した ボタン（= は 最初から 入っている） */
+  const [chips, setChips] = useState<string[]>([])
   /** スマホ：この問題で 選べる 数式ボタン */
   const [pad, setPad] = useState<ChipGroup[]>([])
   /** attack：こちらの攻撃の問題 ／ defense：ボスの攻撃の問題（正解でダメージ減） */
@@ -136,6 +139,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       setChoices(cs)
     } else {
       setFormula('=')
+      setChips([])
       const t = parseAddr(nq.target)
       const rows = Math.max(nq.table.length, t.r + 1)
       const cols = Math.max(...nq.table.map((r) => r.length), t.c + 1)
@@ -275,7 +279,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
 
   const submitFormula = () => {
     if (!q || q.type !== 'formula') return
-    const raw = normalizeInput(formula)
+    const raw = normalizeInput(touch ? '=' + chips.join('') : formula)
     const t = parseAddr(q.target)
     const rows = Math.max(q.table.length, t.r + 1)
     const cols = Math.max(...q.table.map((r) => r.length), t.c + 1)
@@ -402,6 +406,17 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
 
   // スマホの 数式ボタンは 画面の下いっぱいに 出す（ゲーム画面の中だと 小さすぎる）
   const touchFormula = touch && q?.type === 'formula'
+
+  // 表を タップ・ドラッグして セル・範囲を 数式に 入れる（直前が 参照なら 置きかえ）
+  const cellPick = useCellPick(
+    q?.type === 'formula'
+      ? (ref) => {
+          if (ref === q.target) return
+          if (touch) setChips((c) => pickRef(c, ref))
+          else setFormula((f) => f.replace(/\$?[A-Z]{1,3}\$?\d+(:\$?[A-Z]{1,3}\$?\d+)?$/, '') + ref)
+        }
+      : null,
+  )
   const portal = (el: ReactElement) => (touchFormula ? createPortal(el, document.body) : el)
 
   return (
@@ -450,7 +465,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             </div>
           ) : (
             <div className="q-formula">
-              <table className="mini-table">
+              <table className="mini-table picking" {...cellPick.handlers}>
                 <thead>
                   <tr>
                     <th />
@@ -466,8 +481,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
                       {Array.from({ length: tableCols }, (_, c) => {
                         const isT = r === target!.r && c === target!.c
                         const isCopy = copyCells.some((p) => p.r === r && p.c === c)
+                        const a = `${colName(c)}${r + 1}`
                         return (
-                          <td key={c} className={isT ? 'target' : isCopy ? 'copy' : ''}>
+                          <td key={c} data-a={a} className={`${isT ? 'target' : isCopy ? 'copy' : ''} ${cellPick.selecting.has(a) ? 'selecting' : ''}`}>
                             {isT ? '？' : isCopy ? '⇩' : (q.table[r]?.[c] ?? '')}
                           </td>
                         )
@@ -486,15 +502,18 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
                   <>
                     <div className="fpad-formula">
                       <span className="fpad-target">{q.target}</span>
-                      <span className="fpad-text">{formula}</span>
+                      <span className="fpad-text">
+                        ={chips.join('')}
+                        {!chips.length && <span className="fpad-ph">ボタンか、表を タップ・ドラッグ</span>}
+                      </span>
                     </div>
                     <FormulaPad
                       groups={pad}
-                      onChip={(t) => setFormula((f) => f + t)}
+                      onChip={(t) => setChips((c) => [...c, t])}
                       actions={[
-                        { label: 'F4 ($)', onClick: () => setFormula((f) => toggleAbsAt(f, f.length)?.text ?? f) },
-                        { label: '⌫', onClick: () => setFormula((f) => (f.length > 1 ? dropLast(f) : f)) },
-                        { label: 'クリア', onClick: () => setFormula('=') },
+                        { label: 'F4 ($)', onClick: () => setChips(toggleLastRef) },
+                        { label: '⌫', onClick: () => setChips((c) => c.slice(0, -1)) },
+                        { label: 'クリア', onClick: () => setChips([]) },
                       ]}
                     />
                   </>

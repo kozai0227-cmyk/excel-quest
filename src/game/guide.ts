@@ -1,5 +1,6 @@
-import { addr, cloneGrid, evaluate, fillLine, formatValue, normalizeInput, parseAddr, shiftFormula, toggleAbsAt, usesFn, type Grid, type Value } from './formula'
-import { funcsFor, tokenize, type ChipGroup } from './formulaTokens'
+import { addr, cloneGrid, evaluate, fillLine, formatValue, normalizeInput, parseAddr, shiftFormula, usesFn, type Grid, type Value } from './formula'
+import { formulaChips, funcsFor, isRef, type ChipGroup } from './formulaTokens'
+export { toggleLastRef, pickRef } from './formulaTokens'
 
 /**
  * スマホ用の「ステップ式」の依頼。
@@ -180,7 +181,6 @@ export function tryFormula(g: Grid, step: FormulaStep, input: string, puzzle = f
 }
 
 // ---------------------------------------------------------------- 数式ボタン
-const isRef = (t: string) => /^\$?[A-Z]{1,3}\$?\d+$/.test(t)
 const COMPARE = ['>=', '<=', '>', '<', '<>']
 const pickN = <T,>(a: T[], n: number) => [...a].sort(() => Math.random() - 0.5).slice(0, n)
 const byAddr = (a: string, b: string) => {
@@ -189,18 +189,20 @@ const byAddr = (a: string, b: string) => {
   return p.c - q.c || p.r - q.r
 }
 
-/** 模範の 数式に 使う 部品（$ は はずす。F4 で 付ける） */
-export const answerChips = (answer: string) => tokenize(answer.replace(/\$/g, ''))
+/** 模範の 数式に 使う 部品（= は 最初から 入っている。$ は はずす。F4 で 付ける） */
+export const answerChips = (answer: string) => formulaChips(answer)
 
 /**
  * 数式ステップの ボタン。模範の 数式の 部品に、まぎらわしい 部品を まぜる。
- * = も ボタンに する（数式は = から 始める、を 身につけるため）。
+ * 関数は「SUM(」のように 最初の カッコまで 1つの ボタン。
  */
 export function guideChips(step: FormulaStep, rows: number, cols: number, town: string): ChipGroup[] {
   const toks = answerChips(step.answer)
-  const isBool = (t: string) => t === 'TRUE' || t === 'FALSE'
-  const funcs = new Set(toks.filter((t) => /^[A-Z]{2,}$/.test(t) && !isRef(t) && !isBool(t)))
-  const known = funcsFor(town).filter((f) => !funcs.has(f))
+  const isFn = (t: string) => t.length > 1 && t.endsWith('(')
+  const funcs = new Set(toks.filter(isFn))
+  const known = funcsFor(town)
+    .map((f) => f + '(')
+    .filter((f) => !funcs.has(f))
   for (const f of pickN(known, Math.max(1, 4 - funcs.size))) funcs.add(f)
 
   // セル：答えに 使うもの ＋ そのとなり（ずれた 参照の ひっかけ）
@@ -214,6 +216,7 @@ export function guideChips(step: FormulaStep, rows: number, cols: number, town: 
   for (const a of pickN([...new Set(near)].filter((a) => !cells.has(a) && a !== step.target), 3)) cells.add(a)
 
   // 値は 答えの 順番が わからないよう 並べかえる（数は 小さい順、文字は " の あるなしを 並べて）
+  const isBool = (t: string) => t === 'TRUE' || t === 'FALSE'
   const bare = (t: string) => t.replace(/"/g, '')
   const values = [...new Set([...toks.filter((t) => /^\d/.test(t) || t.startsWith('"') || isBool(t)), ...(step.extra ?? []).filter((t) => t !== '×' && t !== '÷')])].sort(
     (a, b) => {
@@ -224,25 +227,13 @@ export function guideChips(step: FormulaStep, rows: number, cols: number, town: 
       return bare(a).localeCompare(bare(b), 'ja') || (a.startsWith('"') ? -1 : 1)
     },
   )
-  const cmp = toks.some((t) => COMPARE.includes(t)) || toks.join('').includes('>') || town === 'ifport' || town === 'ship'
-  const symbols = ['=', '(', ')', ':', ',', '+', '-', '*', '/', ...(step.extra ?? []).filter((t) => t === '×' || t === '÷'), ...(cmp ? COMPARE : [])]
+  // 先頭の = は 入っているので、= の ボタンは 比較（等しい）に 使うときだけ
+  const cmp = toks.some((t) => COMPARE.includes(t) || t === '=') || town === 'ifport' || town === 'ship'
+  const symbols = ['(', ')', ':', ',', '+', '-', '*', '/', ...(step.extra ?? []).filter((t) => t === '×' || t === '÷'), ...(cmp ? [...COMPARE, '='] : [])]
   return [
     ...(funcs.size ? [{ label: '関数', chips: [...funcs].sort() }] : []),
     { label: 'セル', chips: [...cells].sort(byAddr) },
     { label: '記号', chips: symbols },
     ...(values.length ? [{ label: '値', chips: values }] : []),
   ]
-}
-
-/** F4：いちばん 最後の セル参照の $ を 切り替える（A1 → $A$1 → A$1 → $A1 → A1） */
-export function toggleLastRef(chips: string[]): string[] {
-  for (let i = chips.length - 1; i >= 0; i--) {
-    if (!isRef(chips[i])) continue
-    const t = toggleAbsAt('=' + chips[i], chips[i].length + 1)
-    if (!t) return chips
-    const next = [...chips]
-    next[i] = t.text.slice(1)
-    return next
-  }
-  return chips
 }

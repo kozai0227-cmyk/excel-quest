@@ -12,6 +12,7 @@ import { MAPS } from '../src/data/maps'
 import { COUNTER, WALKABLE } from '../src/game/tiles'
 import { evaluate, formatValue, makeGrid, normalizeInput, parseAddr, shiftFormula, usesFn } from '../src/game/formula'
 import { answerChips, guideChips, tryFormula } from '../src/game/guide'
+import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
 
 let errors = 0
 let passed = 0
@@ -43,7 +44,7 @@ for (const q of Object.values(QUESTS)) {
     }
     const chips = guideChips(s, g.length, g[0].length, q.town).flatMap((x) => x.chips)
     for (const t of answerChips(s.answer)) if (!chips.includes(t)) bad(`${at}: 部品「${t}」が ボタンに ない`)
-    if (answerChips(s.answer).join('') !== s.answer.replace(/\$/g, '')) bad(`${at}: ボタンの 部品で ${s.answer} を 組み立てられない`)
+    if ('=' + answerChips(s.answer).join('') !== s.answer.replace(/\$/g, '')) bad(`${at}: ボタンの 部品で ${s.answer} を 組み立てられない`)
     // $ が 必要な 問題は、$ なしでは 不正解に なること（コピーで ずれを 確かめられる）
     if (s.answer.includes('$') && !tryFormula(g, s, s.answer.replace(/\$/g, ''), puzzle).msg) bad(`${at}: $ が なくても 正解に なってしまう`)
     const r = tryFormula(g, s, s.answer, puzzle)
@@ -79,6 +80,9 @@ for (const boss of Object.values(ENEMIES))
       grid[t.r][t.c].raw = raw
       for (const cp of copies) grid[cp.p.r][cp.p.c].raw = shiftFormula(raw, cp.p.r - t.r, cp.p.c - t.c)
       const vals = evaluate(grid)
+      const pad = battlePad(q.hint, rows, cols, q.target, ALL_FUNCS).flatMap((x) => x.chips)
+      for (const c of formulaChips(q.hint)) if (!pad.includes(c)) bad(`${at}: 部品「${c}」が ボタンに ない（${q.hint}）`)
+      if ('=' + formulaChips(q.hint).join('') !== q.hint.replace(/\$/g, '')) bad(`${at}: ボタンの 部品で ${q.hint} を 組み立てられない`)
       const same = (v: unknown, e: number | string) => (typeof e === 'string' ? v === e : typeof v === 'number' && Math.abs(v - e) < 1e-9)
       if (!same(vals[t.r][t.c], q.expect)) bad(`${at}: 模範 ${q.hint} → ${formatValue(vals[t.r][t.c])}（期待 ${q.expect}）`)
       for (const cp of copies) if (!same(vals[cp.p.r][cp.p.c], cp.expect)) bad(`${at}: コピー先 ${cp.at} が ${formatValue(vals[cp.p.r][cp.p.c])}（期待 ${cp.expect}）`)

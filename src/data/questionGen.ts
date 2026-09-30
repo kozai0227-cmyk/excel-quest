@@ -141,29 +141,33 @@ export const genRelativeRef: QGen = () => {
 
 // ---------------------------------------------------------------- 計算
 export const genPrecedence: QGen = () => {
-  const a = ri(2, 20)
-  const b = ri(2, 9)
-  const c = ri(2, 9)
-  const v = pick(['plus', 'minus', 'paren'] as const)
+  // 暗算の 負担は 小さく（1けたの 数だけ）。知りたいのは「どこから 計算するか」
+  const a = ri(1, 9)
+  const b = ri(2, 5)
+  const c = ri(2, 5)
+  const v = pick(['plus', 'paren', 'which'] as const)
   if (v === 'plus')
     return choice(`=${a}+${b}*${c} の 結果は？`, a + b * c, [(a + b) * c, a * b + c, a + b + c], `掛け算が 先。${b}×${c}=${b * c}、${a}+${b * c}=${a + b * c}。`)
-  if (v === 'minus') {
-    const big = b * c + ri(5, 40)
-    return choice(`=${big}-${b}*${c} の 結果は？`, big - b * c, [(big - b) * c, big - b - c, big * b - c], `掛け算が 先。${b}×${c}=${b * c}、${big}−${b * c}=${big - b * c}。`)
-  }
-  return choice(`=(${a}+${b})*${c} の 結果は？`, (a + b) * c, [a + b * c, a * b * c, a + b + c], `カッコの中が 最優先。${a}+${b}=${a + b}、×${c}=${(a + b) * c}。`)
+  if (v === 'paren')
+    return choice(`=(${a}+${b})*${c} の 結果は？`, (a + b) * c, [a + b * c, a * b * c, a + b + c], `カッコの中が 最優先。${a}+${b}=${a + b}、×${c}=${(a + b) * c}。`)
+  return choice(
+    `=A1+B1*C1 で、最初に 計算されるのは？`,
+    'B1*C1',
+    ['A1+B1', 'A1*C1', '左から 順番に'],
+    '掛け算・割り算が 足し算・引き算より 先。先に 足したいときは =(A1+B1)*C1 と カッコで 囲む。',
+  )
 }
 
 export const genDivision: QGen = () => {
-  const a = ri(2, 15)
-  const b = ri(2, 9)
-  const c = ri(1, 20)
+  const a = ri(2, 9)
+  const b = pick([2, 5, 10])
+  const c = ri(1, 9)
   return choice(`=${a * b}/${b}+${c} の 結果は？`, a + c, [(a * b) / (b + c), a * b + c, a - c, a + c + b].map((x) => Math.round(x * 10) / 10), `割り算が 先。${a * b}÷${b}=${a}、${a}+${c}=${a + c}。`)
 }
 
 export const genSumValues: QGen = () => {
-  const n = ri(3, 5)
-  const vals = nums(n, 60)
+  const n = 3
+  const vals = nums(n, 9)
   const c = pick([...COLS.slice(0, 4)])
   const s = sum(vals)
   return choice(
@@ -175,10 +179,16 @@ export const genSumValues: QGen = () => {
 }
 
 export const genAverageValues: QGen = () => {
-  const n = ri(3, 5)
-  const { vals, avg } = avgNums(n)
-  const s = sum(vals)
-  return choice(`=AVERAGE(${vals.join(',')}) の 結果は？`, avg, [s, avg + ri(1, 6), Math.max(...vals), Math.min(...vals)], `合計 ${s} ÷ ${n}個 = ${avg}。`)
+  // 平均は 暗算させず「どう 計算しているか」を 問う
+  const n = ri(3, 6)
+  const c = pick([...COLS.slice(0, 4)])
+  const r = `${c}1:${c}${n}`
+  return choice(
+    `=AVERAGE(${r}) と 同じ 答えに なる 式は？（${r} は すべて 数値）`,
+    `=SUM(${r})/${n}`,
+    [`=SUM(${r})*${n}`, `=SUM(${r})/2`, `=MAX(${r})/${n}`],
+    `平均は「合計 ÷ 個数」。${r} は ${n}個 なので =SUM(${r})/${n} と 同じ。AVERAGE なら 個数を 数えなくて いい。`,
+  )
 }
 
 // ---------------------------------------------------------------- 関数
@@ -552,9 +562,9 @@ export const genIfNum: QGen = () => {
     return choice(`A1 に ${x}。=IF(A1>=3000,0,500) の 結果は？`, r, [r === 0 ? 500 : 0, x, x + 500], `${x} >= 3000 は ${TF(x >= 3000)} → ${r}（3000以上は 送料 無料）。`)
   }
   const t = pick([100, 200])
-  const x = around(t, 50)
-  const r = x >= t ? x * 2 : x
-  return choice(`A1 に ${x}。=IF(A1>=${t},A1*2,A1) の 結果は？`, r, [x >= t ? x : x * 2, t, t * 2], `${x} >= ${t} は ${TF(x >= t)} → ${x >= t ? 'A1*2' : 'A1'} で ${r}。`)
+  const x = around(t, 5)
+  const r = x >= t ? x + 100 : x
+  return choice(`A1 に ${x}。=IF(A1>=${t},A1+100,A1) の 結果は？`, r, [x >= t ? x : x + 100, t, t + 100], `${x} >= ${t} は ${TF(x >= t)} → ${x >= t ? 'A1+100' : 'A1'} で ${r}。`)
 }
 
 export const genNestedIf: QGen = () => {
