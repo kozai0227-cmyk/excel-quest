@@ -16,6 +16,7 @@ import { EQUIP, SLOT_NAME, effectText } from './data/equipment'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
 import type { Dir, Exit, GameState, NpcDef } from './game/types'
 import { WALKABLE } from './game/tiles'
+import { isTouchDevice, usePhoneLayout } from './game/layout'
 
 type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'ending'
 interface BattleReq {
@@ -26,7 +27,6 @@ interface BattleReq {
 
 const INN_PRICE = 10
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 export default function App() {
   const [scene, setScene] = useState<Scene>('title')
@@ -49,6 +49,7 @@ export default function App() {
   const [whiteIn, setWhiteIn] = useState(false)
   const [flash, setFlash] = useState(false)
   const [chapter, setChapter] = useState(1)
+  const phone = usePhoneLayout()
   const dialogId = useRef(0)
   const fieldRef = useRef<FieldHandle>(null)
 
@@ -705,7 +706,7 @@ export default function App() {
   if (location.search.includes('gallery')) return <Gallery />
 
   return (
-    <div className="app">
+    <div className={`app ${phone ? 'phone' : ''}`}>
       <div className="screen">
         {scene === 'title' && <Title hasSave={!!loadGame()} onNew={() => setScene('name')} onContinue={continueGame} />}
         {scene === 'name' && <NameEntry onDone={(name) => startGame(newGame(name), 'prologue')} />}
@@ -786,7 +787,8 @@ export default function App() {
         )}
         {dialog && scene !== 'prologue' && <DialogBox key={dialog.id} req={dialog} />}
       </div>
-      {isTouch && inWorld && scene !== 'quest' && <TouchPad />}
+      {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
+      {isTouchDevice && inWorld && scene !== 'quest' && !(phone && scene === 'battle') && <TouchPad />}
       {scene === 'quest' && questId && <QuestScreen quest={QUESTS[questId]} onClear={onQuestClear} onClose={onQuestClose} />}
     </div>
   )

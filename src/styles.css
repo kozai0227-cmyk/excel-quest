@@ -1779,3 +1779,580 @@ kbd {
   font-size: 0.75em;
   opacity: 0.7;
 }
+
+/* ================= スマホの 縦画面：画面いっぱいに 表示する ================= */
+.ab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #9aa3b5;
+}
+.title-ios {
+  font-size: 12px;
+  color: #9fdcb7;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.app.phone {
+  height: 100dvh;
+  min-height: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  gap: 0;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow: hidden;
+  background: #000;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.phone .screen {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 16px;
+}
+.phone .screen .win {
+  border-width: 2px;
+  outline-width: 1px;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+/* 操作ボタン（画面の下） */
+.phone .touchpad {
+  flex: none;
+  width: 100%;
+  padding: 10px 18px 12px;
+  background: linear-gradient(#16181f, #0b0c10);
+  border-top: 1px solid #2c303b;
+}
+.phone .tp {
+  width: 52px;
+  height: 52px;
+}
+.phone .dpad {
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+}
+.phone .ab {
+  gap: 14px;
+}
+.phone .ab .a {
+  width: 66px;
+  height: 66px;
+}
+
+/* フィールド */
+.phone .screen .hud,
+.phone .screen .hud-quest {
+  top: 8px;
+  font-size: 13px;
+  padding: 6px 10px;
+  line-height: 1.4;
+}
+.phone .screen .hud {
+  left: 8px;
+  min-width: 0;
+}
+.phone .screen .hud-quest {
+  right: 8px;
+}
+.phone .banner {
+  font-size: 20px;
+  padding: 6px 24px;
+  border-top-width: 2px;
+  border-bottom-width: 2px;
+}
+
+/* 会話 */
+.phone .screen .dialog-win {
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  min-height: 132px;
+  padding: 10px 14px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.phone .dialog-win.has-portrait {
+  gap: 10px;
+}
+.phone .portrait {
+  width: 58px;
+  height: 51px;
+  border-width: 2px;
+  border-radius: 5px;
+}
+.phone .screen .choice-win {
+  right: 8px;
+  bottom: 148px;
+  min-width: 42%;
+  font-size: 16px;
+}
+.phone .choice-win .opt,
+.phone .title-menu .opt,
+.phone .menu-cmds .opt {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+/* メニュー */
+.phone .menu-layer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+.phone .screen .menu-layer > .win {
+  position: relative;
+  inset: auto;
+  width: auto;
+  max-height: none;
+}
+.phone .screen .menu-cmds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 12px;
+  font-size: 16px;
+}
+.phone .screen .menu-panel {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: auto;
+  font-size: 15px;
+}
+.phone .portrait.big {
+  width: 72px;
+  height: 63px;
+}
+.phone .stats-wrap {
+  gap: 12px;
+}
+
+/* タイトル・名前・エンディング */
+.phone .title-screen {
+  gap: 22px;
+  padding: 16px;
+}
+.phone .logo-sub {
+  font-size: 13px;
+}
+.phone .logo-main {
+  font-size: 34px;
+  text-shadow:
+    0 3px 0 var(--xl-green),
+    0 6px 0 #0a3a1f;
+}
+.phone .logo-grid {
+  margin-top: 12px;
+  border-width: 2px;
+}
+.phone .logo-grid span {
+  width: 28px;
+  height: 34px;
+  font-size: 17px;
+  border-right-width: 1px;
+}
+.phone .sprite-view {
+  width: 72px;
+}
+.phone .title-cast {
+  gap: 18px;
+  margin-top: 0;
+}
+.phone .title-cast .sprite-view:last-child {
+  width: 56px;
+}
+.phone .screen .title-menu {
+  font-size: 20px;
+  min-width: 60%;
+}
+.phone .title-help {
+  font-size: 12px;
+  text-align: center;
+  padding: 0 12px;
+}
+.phone .screen .name-win {
+  gap: 14px;
+  margin: 0 12px;
+  font-size: 16px;
+  text-align: center;
+}
+.phone .name-win p {
+  margin: 0;
+}
+.phone .name-win input {
+  font-size: 22px;
+  max-width: 78vw;
+  border-width: 2px;
+  border-radius: 6px;
+}
+.phone .name-win .btn {
+  font-size: 17px;
+}
+.phone .ending {
+  padding: 20px 16px;
+  overflow: auto;
+  font-size: 15px;
+}
+.phone .ending h2 {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+.phone .next-chapter {
+  margin: 18px auto;
+  padding: 12px;
+  border-width: 2px;
+  border-radius: 8px;
+  max-width: none;
+}
+.phone .next-chapter strong {
+  font-size: 18px;
+}
+.phone .next-chapter p {
+  font-size: 13px;
+}
+.phone .ending .btn {
+  font-size: 17px;
+  padding: 10px 20px;
+}
+
+/* 戦闘 */
+.phone .screen .status-win {
+  top: 8px;
+  left: 8px;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.phone .screen .battle-cmds .combo-win {
+  top: 8px;
+  right: 8px;
+  padding: 0;
+  font-size: 15px;
+}
+.phone .boss-area {
+  top: 16%;
+}
+.phone .boss-hp {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.phone .boss-hp .bar {
+  width: 220px;
+  height: 8px;
+  border-width: 2px;
+  margin-top: 4px;
+}
+.phone .boss-sprite,
+.phone .boss-gone {
+  width: 60cqw;
+  height: 60cqw;
+}
+.phone .boss-gone {
+  font-size: 22cqw;
+}
+.phone .screen .battle-cmds .cmd-win {
+  left: 8px;
+  bottom: 8px;
+  width: 42%;
+  font-size: 19px;
+}
+.phone .screen .battle-cmds .item-win {
+  left: calc(42% + 16px);
+  right: 8px;
+  bottom: 8px;
+  font-size: 16px;
+}
+.phone .battle-cmds .opt {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.phone .screen .question-win {
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  max-height: 64%;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+.phone .q-mode {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+.phone .timer {
+  height: 6px;
+  margin: 10px 0 8px;
+  border-radius: 3px;
+}
+.phone .timer-mark {
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+}
+.phone .timer-label {
+  font-size: 11px;
+  top: -15px;
+}
+.phone .q-text {
+  margin-bottom: 10px;
+}
+.phone .q-choices {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.phone .q-choices .opt {
+  padding: 9px 10px 9px 2.2em;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  white-space: normal;
+}
+.phone .q-choices .opt.on::before {
+  left: 0.6em;
+}
+.phone .q-formula {
+  flex-direction: column;
+  gap: 10px;
+}
+.phone .q-formula input {
+  max-width: none;
+  font-size: 16px;
+  border-width: 2px;
+  border-radius: 6px;
+}
+.phone .mini-table {
+  font-size: 13px;
+}
+
+/* プロローグ（現代パート） */
+.phone .screen .vn-win.dialog-win {
+  left: 8px;
+  right: 8px;
+  bottom: 10px;
+  min-height: 124px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+.phone .skip {
+  top: 10px;
+  right: 10px;
+  font-size: 12px;
+}
+.phone .monitor-scene {
+  place-items: start center;
+}
+.phone .monitor {
+  width: 94%;
+  height: calc(100% - 250px);
+  margin-top: 64px;
+  padding: 6px;
+  border-radius: 8px;
+}
+.phone .xlm-title {
+  gap: 8px;
+  padding: 1cqw 2cqw;
+  font-size: 2.6cqw;
+}
+.phone .xlm-title span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.phone .xlm-tabs {
+  gap: 2cqw;
+  font-size: 2.3cqw;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.phone .xlm-ribbon {
+  height: 8cqw;
+}
+.phone .xlm-ribbon span {
+  width: 4.5cqw;
+  height: 5cqw;
+}
+.phone .xlm-fbar {
+  font-size: 2.5cqw;
+}
+.phone .xlm-fbar .nb {
+  width: 11cqw;
+}
+.phone .xlm-fbar .fx {
+  width: 5cqw;
+}
+.phone .xlm-grid {
+  grid-template-columns: 4cqw 3cqw 11cqw 11cqw 11cqw 11cqw 12cqw 11cqw 1fr;
+  font-size: 2.2cqw;
+}
+.phone .xlm-grid .h {
+  font-size: 1.9cqw;
+}
+.phone .xlm-sheets {
+  font-size: 2.1cqw;
+}
+
+/* 依頼（ミニExcel）：上に やること、まん中に 表、下に 判定 */
+.phone-quest.quest-overlay {
+  display: block;
+  padding: 0;
+}
+.phone-quest .quest {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.phone-quest .quest-head {
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom-width: 1px;
+}
+.phone-quest .quest-title {
+  min-width: 0;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.phone-quest .quest-title .tag {
+  font-size: 12px;
+}
+.phone-quest .quest-head .btn {
+  flex: none;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.quest-brief {
+  flex: none;
+  max-height: 32dvh;
+  overflow: auto;
+  padding: 4px 12px 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  background: #0b0c10;
+  border-bottom: 1px solid #333;
+}
+.brief-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: #ffe070;
+  font-size: 14px;
+  cursor: pointer;
+}
+.brief-toggle .muted {
+  color: #fff;
+  font-size: 12px;
+}
+.quest-brief ol {
+  margin: 2px 0 0;
+  padding-left: 1.3em;
+}
+.quest-brief li {
+  margin-bottom: 2px;
+}
+.quest-brief .hint {
+  margin: 6px 0 0;
+}
+.phone-quest .feedback {
+  flex: none;
+  margin: 6px 8px 0;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+.phone-quest .xl {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  border-radius: 0;
+}
+.phone-quest .xl .xl-scroll,
+.phone-quest .xl.touch .xl-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+}
+.phone-quest .xl.touch .fpad {
+  position: static;
+}
+.quest-actions {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: #111;
+  border-top: 1px solid #333;
+}
+.quest-actions .btn {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 16px;
+}
+.quest-actions .btn.primary {
+  flex: 1.4;
+}
+.quest-actions .btn:disabled {
+  opacity: 0.5;
+}
+
+/* 依頼のボタンは 1種類 1行に まとめ、はみ出す分は 横に スクロール（表を 広く 見せるため） */
+.phone-quest .fpad {
+  gap: 6px;
+}
+.phone-quest .fpad-group {
+  align-items: center;
+}
+.phone-quest .fpad-label {
+  width: 2.4em;
+  padding-top: 0;
+}
+.phone-quest .fpad-actions,
+.phone-quest .fpad-chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.phone-quest .fpad-actions::-webkit-scrollbar,
+.phone-quest .fpad-chips::-webkit-scrollbar {
+  display: none;
+}
+.phone-quest .fpad-chips {
+  padding-right: 24px;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+.phone-quest .chip {
+  flex: none;
+}
+.phone-quest .fpad-group.keypad .fpad-chips {
+  padding-right: 0;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.phone-quest .fpad-group.keypad .chip {
+  flex: 1;
+}
+.phone-quest .chip.act {
+  padding: 0 9px;
+  font-size: 14px;
+}

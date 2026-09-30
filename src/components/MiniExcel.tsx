@@ -515,10 +515,10 @@ export function MiniExcel({ initial, initialHistory, colWidths, pad, onChange }:
           },
         },
         { label: '⌫', onClick: () => (setPoint(null), setEdit({ ...edit, value: dropLast(edit.value) })) },
-        { label: 'やめる', onClick: () => (setEdit(null), setPoint(null)) },
+        { label: '取消', onClick: () => (setEdit(null), setPoint(null)) },
         ...(multi ? [{ label: '範囲に確定', onClick: () => commit(null, true) }] : []),
-        { label: '確定 →', onClick: () => commit([0, 1]), kind: 'main' as const },
-        { label: '確定 ↓', onClick: () => commit([1, 0]), kind: 'main' as const },
+        { label: '確定→', onClick: () => commit([0, 1]), kind: 'main' as const },
+        { label: '確定↓', onClick: () => commit([1, 0]), kind: 'main' as const },
       ]
     : [
         { label: '編集', onClick: () => startEdit() },
@@ -527,7 +527,7 @@ export function MiniExcel({ initial, initialHistory, colWidths, pad, onChange }:
         { label: '右へコピー', onClick: () => fillCopy(false) },
       ]
   padActions.push({
-    label: kbd ? '⌨ ボタンに戻す' : '⌨ 文字を打つ',
+    label: kbd ? '⌨ もどす' : '⌨ 文字',
     kind: 'sub',
     onClick: () => {
       setKbd(!kbd)

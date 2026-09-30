@@ -2,11 +2,18 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useKeys } from '../game/keys'
 import { SpriteView } from './SpriteView'
 import { PLAYER_SPEC } from '../data/maps'
+import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 
 export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(): void; onContinue(): void }) {
   const opts = hasSave ? ['つづきから', 'はじめから'] : ['はじめから']
   const [cursor, setCursor] = useState(0)
-  const pick = (i: number) => (opts[i] === 'つづきから' ? onContinue() : onNew())
+  const phone = usePhoneLayout()
+  const pick = (i: number) => {
+    // スマホは ここで 全画面に する（ボタンを 押したときにしか 切り替えられないため）
+    enterFullscreen()
+    if (opts[i] === 'つづきから') onContinue()
+    else onNew()
+  }
   useKeys((k) => {
     if (k === 'up' || k === 'down') setCursor((c) => (c + 1) % opts.length)
     else if (k === 'ok') pick(cursor)
@@ -33,7 +40,10 @@ export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(
           </div>
         ))}
       </div>
-      <div className="title-help">矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー</div>
+      <div className="title-help">
+        {isTouchDevice ? '十字ボタン：移動　A：話す・決定　B：メニュー・もどる' : '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'}
+      </div>
+      {phone && isIosBrowser() && <div className="title-ios">共有ボタン →「ホーム画面に追加」で、全画面で 遊べます</div>}
     </div>
   )
 }
@@ -155,8 +165,14 @@ export function TouchPad() {
         {btn('▼', 'ArrowDown', 'd')}
       </div>
       <div className="ab">
-        {btn('B', 'Escape', 'b')}
-        {btn('A', 'Enter', 'a')}
+        <div className="ab-btn">
+          {btn('B', 'Escape', 'b')}
+          <span>メニュー</span>
+        </div>
+        <div className="ab-btn">
+          {btn('A', 'Enter', 'a')}
+          <span>決定</span>
+        </div>
       </div>
     </div>
   )

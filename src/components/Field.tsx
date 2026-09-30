@@ -93,6 +93,8 @@ export function Field(props: FieldProps) {
   /** イベントで一時的に出しているキャラ */
   const extras = useRef<Actor[]>([])
   const input = useRef({ held: [] as Dir[], tap: null as Dir | null, ok: false, menu: false, dash: false })
+  /** 表示する範囲（ドット単位）。短い辺が 11マスで、長い辺は 画面の形に 合わせて のびる */
+  const view = useRef({ w: VW * TS, h: VH * TS })
   const safeSteps = useRef(4)
 
   const visible = props.map.npcs.filter((n) => !n.hideIf?.(props.gs))
@@ -231,6 +233,29 @@ export function Field(props: FieldProps) {
       window.removeEventListener('keyup', up)
       window.removeEventListener('blur', blur)
     }
+  }, [])
+
+  // 画面の形に 合わせて キャンバスの 大きさを 変える（スマホの 縦画面なら 縦長に なる）
+  useEffect(() => {
+    const cv = canvasRef.current!
+    const fit = () => {
+      const cw = cv.clientWidth
+      const ch = cv.clientHeight
+      if (!cw || !ch) return
+      const short = VH * TS
+      const w = cw >= ch ? Math.round((short * cw) / ch) : short
+      const h = cw >= ch ? short : Math.round((short * ch) / cw)
+      if (w === view.current.w && h === view.current.h) return
+      view.current = { w, h }
+      cv.width = w
+      cv.height = h
+      // 大きさを 変えると 設定が 戻るので、ドット絵が ぼやけないよう もう一度
+      cv.getContext('2d')!.imageSmoothingEnabled = false
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(cv)
+    return () => ro.disconnect()
   }, [])
 
   // ゲームループ
@@ -375,16 +400,17 @@ export function Field(props: FieldProps) {
       const W = map.tiles[0].length
       const H = map.tiles.length
       const [ppx, ppy] = pos(player.current)
+      const { w: vw, h: vh } = view.current
       // 画面より小さいマップ（室内）は中央に表示
-      const camX = W * TS <= VW * TS ? -Math.floor((VW * TS - W * TS) / 2) : Math.round(Math.max(0, Math.min(W * TS - VW * TS, ppx + TS / 2 - (VW * TS) / 2)))
-      const camY = H * TS <= VH * TS ? -Math.floor((VH * TS - H * TS) / 2) : Math.round(Math.max(0, Math.min(H * TS - VH * TS, ppy + TS / 2 - (VH * TS) / 2)))
+      const camX = W * TS <= vw ? -Math.floor((vw - W * TS) / 2) : Math.round(Math.max(0, Math.min(W * TS - vw, ppx + TS / 2 - vw / 2)))
+      const camY = H * TS <= vh ? -Math.floor((vh - H * TS) / 2) : Math.round(Math.max(0, Math.min(H * TS - vh, ppy + TS / 2 - vh / 2)))
       ctx.fillStyle = '#000'
-      ctx.fillRect(0, 0, VW * TS, VH * TS)
+      ctx.fillRect(0, 0, vw, vh)
       const frame = Math.floor(now / 450)
       const sx = Math.max(0, Math.floor(camX / TS))
       const sy = Math.max(0, Math.floor(camY / TS))
-      for (let y = sy; y <= sy + VH; y++)
-        for (let x = sx; x <= sx + VW; x++) {
+      for (let y = sy; y <= sy + Math.ceil(vh / TS); y++)
+        for (let x = sx; x <= sx + Math.ceil(vw / TS); x++) {
           if (y >= H || x >= W) continue
           drawTile(ctx, tileAt, x, y, frame, x * TS - camX, y * TS - camY)
         }
@@ -427,7 +453,7 @@ export function Field(props: FieldProps) {
         grad.addColorStop(0.55, 'rgba(8,6,12,0.35)')
         grad.addColorStop(1, 'rgba(8,6,12,0.82)')
         ctx.fillStyle = grad
-        ctx.fillRect(0, 0, VW * TS, VH * TS)
+        ctx.fillRect(0, 0, vw, vh)
       }
       // 中に困っている人がいる家は、ドアの上に「！」
       for (const ex of map.exits) {

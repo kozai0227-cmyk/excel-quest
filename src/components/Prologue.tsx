@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { DialogBox, type DialogReq } from './DialogBox'
+import { usePhoneLayout } from '../game/layout'
 
 type Scene = 'day' | 'night' | 'monitor'
 type Mood = 'nervous' | 'flat' | 'tired'
@@ -221,7 +222,14 @@ function Senior() {
   )
 }
 
-function OfficeScene({ night, senior, mood }: { night: boolean; senior: boolean; mood: Mood }) {
+/**
+ * スマホの 縦画面では、2人が 入る 幅（x 250〜910）だけを 切り出し、
+ * 天井と 床を 上下に のばして 縦長の 画面を うめる
+ */
+const VIEW_WIDE = '0 0 960 704'
+const VIEW_PHONE = '250 -270 660 1500'
+
+function OfficeScene({ night, senior, mood, phone }: { night: boolean; senior: boolean; mood: Mood; phone: boolean }) {
   const windows = useMemo(() => {
     const r = rng(7)
     return SKYLINE.flatMap(([x, w, h], bi) => {
@@ -233,7 +241,7 @@ function OfficeScene({ night, senior, mood }: { night: boolean; senior: boolean;
   }, [])
 
   return (
-    <svg viewBox="0 0 960 704" className="office-svg" preserveAspectRatio="xMidYMid slice" aria-hidden>
+    <svg viewBox={phone ? VIEW_PHONE : VIEW_WIDE} className="office-svg" preserveAspectRatio="xMidYMid slice" aria-hidden>
       <defs>
         <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={night ? '#18202f' : '#f2f4f7'} />
@@ -274,6 +282,7 @@ function OfficeScene({ night, senior, mood }: { night: boolean; senior: boolean;
       </defs>
 
       {/* 壁・天井 */}
+      {phone && <rect y="-400" width="960" height="402" fill={night ? '#121826' : '#f8f9fb'} />}
       <rect width="960" height="470" fill="url(#wall)" />
       <rect width="960" height="48" fill={night ? '#121826' : '#f8f9fb'} />
       <rect y="46" width="960" height="3" fill={night ? '#0a0e16' : '#cdd3da'} />
@@ -331,6 +340,7 @@ function OfficeScene({ night, senior, mood }: { night: boolean; senior: boolean;
 
       {/* 床 */}
       <rect y="470" width="960" height="234" fill="url(#floor)" />
+      {phone && <rect y="702" width="960" height="600" fill={night ? '#14181f' : '#949ca5'} />}
       {[510, 560, 626].map((y) => (
         <rect key={y} y={y} width="960" height="1.5" fill={night ? '#1d222b' : '#a4acb5'} />
       ))}
@@ -394,7 +404,7 @@ function OfficeScene({ night, senior, mood }: { night: boolean; senior: boolean;
       {night && (
         <g>
           <ellipse cx="300" cy="360" rx="190" ry="150" fill="#6f9fff" opacity="0.12" filter="url(#blur14)" />
-          <rect width="960" height="704" fill="url(#vignette)" />
+          {phone ? <rect y="-400" width="960" height="1700" fill="url(#vignette)" /> : <rect width="960" height="704" fill="url(#vignette)" />}
         </g>
       )}
     </svg>
@@ -556,6 +566,7 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
   const [i, setI] = useState(0)
   const [corrupt, setCorrupt] = useState(0)
   const doneRef = useRef(false)
+  const phone = usePhoneLayout()
   const step = STEPS[i]
   const scene = STEPS.slice(0, i + 1).reduce<Scene>((s, st) => st.scene ?? s, 'day')
   const mood = STEPS.slice(0, i + 1).reduce<Mood>((m, st) => st.mood ?? m, 'flat')
@@ -600,7 +611,7 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
       {scene === 'monitor' ? (
         <MonitorScene corrupt={corrupt} />
       ) : (
-        <OfficeScene night={scene === 'night'} senior={scene === 'day'} mood={mood} />
+        <OfficeScene night={scene === 'night'} senior={scene === 'day'} mood={mood} phone={phone} />
       )}
       {storm && <RefStorm />}
       {step.fx === 'white' && <div className="white-out" />}
