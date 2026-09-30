@@ -674,7 +674,7 @@ const cave: MapDef = {
     ...chest('cave_chest2', 25, 15, { gold: 60 }),
     ...chest('cave_chest3', 17, 4, { equip: 'clipboard' }),
     { id: 'cave_spring', x: 24, y: 5, name: 'ふしぎな泉', creature: 'spring', kind: 'heal' },
-    { id: 'boss_slime', x: 8, y: 3, name: '散らかりスライム', creature: 'slime', kind: 'boss', bossId: 'slime', hideIf: (s) => s.bosses.includes('slime') },
+    { id: 'boss_slime', x: 8, y: 3, name: '散らかりセルイム', creature: 'slime', kind: 'boss', bossId: 'slime', hideIf: (s) => s.bosses.includes('slime') },
   ],
   // ボスの部屋では 敵は出ない
   encounter: (x, y) => (y <= 9 && x <= 15 ? null : ['celime', 'celime', 'frog']),
@@ -827,7 +827,7 @@ const celuno: MapDef = {
     { x: 15, y: 1, to: 'cave', tx: 14, ty: 21, dir: 'up' },
   ],
   signs: [
-    { x: 14, y: 4, lines: ['北のどうくつ ― 散らかりスライムの すみか。', '奥へ進むには、石版の扉の 謎を 解かねば ならぬという。', '村の悩みを すべて解決すれば、入口の 呪いの結界は とけるだろう。'] },
+    { x: 14, y: 4, lines: ['北のどうくつ ― 散らかりセルイムの すみか。', '奥へ進むには、石版の扉の 謎を 解かねば ならぬという。', '村の悩みを すべて解決すれば、入口の 呪いの結界は とけるだろう。'] },
     { x: 21, y: 12, lines: ['「ボルド看板店」', '見出しは太く、看板は目立て！ ― 店主'] },
   ],
   npcs: [
@@ -922,7 +922,7 @@ const world: MapDef = {
   npcs: [
     {
       id: 'bridge_guard', x: 21, y: 14, name: '橋の見張り', look: C.gate1, kind: 'guard', dir: 'left',
-      lines: ['この橋の先は 計算の町 カルキュレだ。', 'だが今は 魔王の手下が うろついていて 危険でな。', 'セルノ村の北にいる 散らかりスライムを 何とかしてからにしな。'],
+      lines: ['この橋の先は 計算の町 カルキュレだ。', 'だが今は 魔王の手下が うろついていて 危険でな。', 'セルノ村の北にいる 散らかりセルイムを 何とかしてからにしな。'],
       hideIf: (s) => s.bosses.includes('slime'),
     },
     {
@@ -1220,7 +1220,7 @@ const rooms: MapDef[] = [
     {
       id: 'elder', x: 5, y: 4, name: '長老', look: C.elder, kind: 'talk',
       lines: ['村の皆の悩みを 聞いてやってくれ。頭の上に「！」が出ている者が 困っておる。', '家の中に いる者もおるぞ。ドアの上に「！」が出ておる家を 訪ねてみなされ。', '全員を助ければ、北の結界が とけるはずじゃ。'],
-      linesAfter: { when: (s) => s.bosses.includes('slime'), lines: ['スライムを 正気に戻してくれたか！', '東の橋を 渡った先の「計算の町 カルキュレ」も 呪いで 大変らしい。行ってやってくれんか。'] },
+      linesAfter: { when: (s) => s.bosses.includes('slime'), lines: ['セルイムを 正気に戻してくれたか！', '東の橋を 渡った先の「計算の町 カルキュレ」も 呪いで 大変らしい。行ってやってくれんか。'] },
     },
     { id: 'elder_wife', x: 8, y: 2, name: '長老の妻', look: C.elderWife, kind: 'talk', lines: ['あらあら、お客さんかい。', 'うちの人ったら、魔王の話になると 止まらなくてねぇ。お茶でも 飲んでいきなさいな。'] },
   ]),

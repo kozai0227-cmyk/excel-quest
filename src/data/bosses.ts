@@ -43,16 +43,16 @@ export type QuestionSrc = Question | (() => Question)
 export const BOSSES: Record<string, BossDef> = {
   slime: {
     id: 'slime',
-    name: '散らかりスライム',
+    name: '散らかりセルイム',
     sprite: 'slime',
     boss: true,
     attackText: '散らかったセルを 投げつけてきた！',
-    defeatText: ['「ぷるる……表は 整えたほうが 気持ちいいぷる……。」', '散らかりスライムは 反省して、どこかへ 去っていった。'],
+    defeatText: ['「ぷるる……表は 整えたほうが 気持ちいいぷる……。」', '散らかりセルイムは 反省して、どこかへ 去っていった。'],
     hp: 120,
     attack: [9, 14],
     exp: 60,
     gold: 50,
-    intro: ['（どうくつの奥で、ぐちゃぐちゃの表を まとった スライムが ぷるぷる ふるえている……）', 'ぷるる！ 表なんて 散らかってるほうが 落ちつくんだぷる！'],
+    intro: ['（どうくつの奥で、ぐちゃぐちゃの表を まとった 大きな セルイムが ぷるぷる ふるえている……）', 'ぷるる！ 表なんて 散らかってるほうが 落ちつくんだぷる！'],
     questions: [
       { type: 'choice', q: 'コピーの ショートカットは？', choices: ['Ctrl+C', 'Ctrl+V', 'Ctrl+X', 'Ctrl+Z'], answer: 'Ctrl+C', explain: 'C は Copy の C。Macは ⌘+C。' },
       { type: 'choice', q: '直前の操作を 取り消す ショートカットは？', choices: ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+B', 'Ctrl+S'], answer: 'Ctrl+Z', explain: 'Ctrl+Z で元に戻す、Ctrl+Y でやり直し。' },
