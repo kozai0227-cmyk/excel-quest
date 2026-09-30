@@ -98,7 +98,14 @@ src/
   outfit: 'apron', color: '#6aa84a', hat: 'straw', hatColor: '#e8c870' }
 ```
 
-## ライセンス上の注意
+## デプロイ
+
+GitHub の `main` ブランチに push すると、Vercel が自動でビルド・公開します（Vite のプリセット：ビルド `npm run build`、出力 `dist`）。
+`main` 以外のブランチや Pull Request には、確認用のプレビューURLが発行されます。
+
+## ライセンス
+
+このプロジェクトは [GNU General Public License v3.0](LICENSE)（GPL-3.0-or-later）で公開しています。
 
 数式エンジンに [HyperFormula](https://hyperformula.handsontable.com/) を `licenseKey: 'gpl-v3'` で使用しています。
 GPLv3 以外の形態（クローズドな商用配布など）で公開する場合は、Handsontable社の商用ライセンスが必要です。
