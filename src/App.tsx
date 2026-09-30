@@ -6,7 +6,7 @@ import { QuestScreen } from './components/QuestScreen'
 import { Battle } from './components/Battle'
 import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
 import { Prologue } from './components/Prologue'
-import { Gallery } from './components/Gallery'
+import { Gallery, SoundTest } from './components/Gallery'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
 import { QUESTS, townQuests } from './data/quests'
@@ -17,6 +17,8 @@ import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
 import type { Dir, Exit, GameState, NpcDef } from './game/types'
 import { WALKABLE } from './game/tiles'
 import { isTouchDevice, usePhoneLayout } from './game/layout'
+import { bgm, jingle, sfx, useBgm } from './game/sound'
+import type { SongName } from './data/music'
 
 type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'ending'
 interface BattleReq {
@@ -110,6 +112,8 @@ export default function App() {
   const setFlag = (k: string) => setGs((g) => ({ ...g, flags: { ...g.flags, [k]: true } }))
 
   const startBattle = (req: BattleReq) => {
+    sfx('encounter')
+    bgm(null)
     setFlash(true)
     setTimeout(() => {
       setFlash(false)
@@ -214,6 +218,7 @@ export default function App() {
             break
           }
           setGs((s) => ({ ...s, gold: s.gold - INN_PRICE, hp: maxHp(s.level) }))
+          jingle('inn')
           setFade(true)
           await sleep(1200)
           setFade(false)
@@ -309,6 +314,7 @@ export default function App() {
           await say(npc.lines ?? [])
           const i = await say([`${f.place}へ 渡るかい？`], ['乗る', 'やめる'])
           if (i !== 0) break
+          sfx('door')
           setFade(true)
           await sleep(600)
           onWarp({ x: npc.x, y: npc.y, to: f.to, tx: f.x, ty: f.y, dir: f.dir })
@@ -347,6 +353,9 @@ export default function App() {
 
   const onWarp = (ex: Exit) => {
     const firstVisit = !gsRef.current.flags[`visit_${ex.to}`]
+    // 建物・ダンジョンの 出入りは 扉の 音（町の 外へ 歩いて 出るときは 鳴らさない）
+    const inside = (id: string) => MAPS[id]?.kind === 'interior' || MAPS[id]?.kind === 'dungeon'
+    if (inside(ex.to) || inside(gsRef.current.mapId)) sfx('door')
     moveTo(ex.to, ex.tx, ex.ty, ex.dir)
     setFlag(`visit_${ex.to}`)
     const dest = MAPS[ex.to]
@@ -691,6 +700,7 @@ export default function App() {
         const id = gsRef.current.mapId
         const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
+        sfx('door')
         setFade(true)
         await sleep(600)
         moveTo(out.map, out.x, out.y, out.dir)
@@ -775,9 +785,27 @@ export default function App() {
 
   // ---------------------------------------------------------------- 描画
   const inWorld = scene === 'field' || scene === 'quest' || scene === 'battle'
+
+  // BGM（戦闘と プロローグは その画面の中で 切りかえる）
+  const music: SongName | null | undefined =
+    scene === 'title' || scene === 'name'
+      ? 'title'
+      : scene === 'ending'
+        ? 'ending'
+        : scene === 'quest'
+          ? 'quest'
+          : scene === 'battle' || scene === 'prologue'
+            ? undefined
+            : map.kind === 'town' || map.kind === 'interior'
+              ? 'town'
+              : map.kind === 'dungeon'
+                ? 'dungeon'
+                : 'field'
+  useBgm(/gallery|soundtest/.test(location.search) ? null : music)
   const paused = scene !== 'field' || !!dialog || menu || busy || flash
 
   if (location.search.includes('gallery')) return <Gallery />
+  if (location.search.includes('soundtest')) return <SoundTest />
 
   return (
     <div className={`app ${phone ? 'phone' : ''}`}>
@@ -810,7 +838,10 @@ export default function App() {
               onSign={(lines) => run(async () => void (await talk(undefined, lines)))}
               onWarp={onWarp}
               onMove={(x, y, dir) => (pos.current = { x, y, dir })}
-              onMenu={() => setMenu(true)}
+              onMenu={() => {
+                sfx('select')
+                setMenu(true)
+              }}
               onEncounter={(id) =>
                 startBattle({
                   id,

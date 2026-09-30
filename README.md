@@ -112,6 +112,7 @@ src/
 - `/?at=world,13,17` … 指定マップの指定座標から始める（例：`celuno_inn,6,7`、`sansho,1,13`、`temple1,11,14`、`ifport,16,1`、`ship1,10,12`、`lookup,16,23`、`library1,10,12`）
 - `/?ending=4` … 指定した章のエンディング画面を表示
 - `/?gallery` … 全キャラクターのドット絵を4方向で一覧表示
+- `/?soundtest` … BGM・ジングル・効果音を 1つずつ 鳴らして 確かめる（音は `src/data/music.ts` の 楽譜と `src/game/sound.ts` で その場で 合成）
 - `/?layout=phone` / `/?layout=wide` … スマホの縦画面レイアウト／横長レイアウトに固定する（ほかと組み合わせ可：`/?layout=phone&boss=golem`）
 - `/?input=touch` / `/?input=keyboard` … 数式の入力方式を ボタン／キーボードに固定する
 

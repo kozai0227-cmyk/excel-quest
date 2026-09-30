@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
 import { Portrait, type PortraitSrc } from './Portrait'
+import { cue, sfx } from '../game/sound'
 
 export interface DialogReq {
   id: number
@@ -24,6 +25,11 @@ export function DialogBox({ req }: { req: DialogReq }) {
   const choosing = last && !typing && !!req.choices
   const modern = req.variant === 'modern'
 
+  // メッセージに 合わせた 効果音（レベルアップ・アイテム など）
+  useEffect(() => {
+    cue(text)
+  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!typing) return
     const t = setTimeout(() => setShown((n) => n + 1), modern ? 28 : 22)
@@ -32,7 +38,11 @@ export function DialogBox({ req }: { req: DialogReq }) {
 
   const advance = () => {
     if (typing) return setShown(text.length)
-    if (choosing) return req.resolve(cursor)
+    if (choosing) {
+      sfx('select')
+      return req.resolve(cursor)
+    }
+    sfx('blip')
     if (!last) {
       setPage(page + 1)
       setShown(0)
@@ -43,12 +53,15 @@ export function DialogBox({ req }: { req: DialogReq }) {
 
   useKeys((k) => {
     if (choosing && (k === 'up' || k === 'down')) {
+      sfx('cursor')
       const n = req.choices!.length
       setCursor((c) => (c + (k === 'down' ? 1 : n - 1)) % n)
     } else if (k === 'ok') advance()
     else if (k === 'cancel') {
-      if (choosing) req.resolve(req.choices!.length - 1)
-      else advance()
+      if (choosing) {
+        sfx('cancel')
+        req.resolve(req.choices!.length - 1)
+      } else advance()
     }
   })
 

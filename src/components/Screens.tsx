@@ -3,11 +3,13 @@ import { useKeys } from '../game/keys'
 import { SpriteView } from './SpriteView'
 import { PLAYER_SPEC } from '../data/maps'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
+import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 
 export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(): void; onContinue(): void }) {
   const opts = hasSave ? ['つづきから', 'はじめから'] : ['はじめから']
   const [cursor, setCursor] = useState(0)
   const phone = usePhoneLayout()
+  const soundOn = useSoundOn()
   const pick = (i: number) => {
     // スマホは ここで 全画面に する（ボタンを 押したときにしか 切り替えられないため）
     enterFullscreen()
@@ -15,11 +17,19 @@ export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(
     else onNew()
   }
   useKeys((k) => {
-    if (k === 'up' || k === 'down') setCursor((c) => (c + 1) % opts.length)
-    else if (k === 'ok') pick(cursor)
+    if (k === 'up' || k === 'down') {
+      sfx('cursor')
+      setCursor((c) => (c + 1) % opts.length)
+    } else if (k === 'ok') {
+      sfx('select')
+      pick(cursor)
+    }
   })
   return (
     <div className="title-screen">
+      <button className="sound-toggle" onClick={() => setSoundOn(!soundOn)} aria-label="音の ON/OFF">
+        {soundOn ? '🔊 おと ON' : '🔇 おと OFF'}
+      </button>
       <div className="logo">
         <div className="logo-sub">〜 転生したら表計算が魔法だった件 〜</div>
         <div className="logo-main">エクセル・クエスト</div>

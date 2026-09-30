@@ -2556,3 +2556,43 @@ kbd {
   box-shadow: inset 0 0 0 2px #2f6ad8;
   color: #000;
 }
+
+/* タイトル：音の ON/OFF */
+.sound-toggle {
+  position: absolute;
+  top: 2.5%;
+  right: 2.5%;
+  z-index: 5;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.7cqw;
+  padding: 0.4em 1em;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  cursor: pointer;
+}
+.phone .sound-toggle {
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  right: 10px;
+  font-size: 13px;
+}
+
+/* 開発用：サウンドテスト */
+.soundtest {
+  display: block;
+  min-height: 100vh;
+  overflow: auto;
+  background: #10202a;
+  color: #fff;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.soundtest p {
+  margin: 16px 0 8px;
+  color: #9fd;
+}
+.st-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

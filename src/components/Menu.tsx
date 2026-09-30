@@ -8,8 +8,9 @@ import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, SLOT_NAME, effectText, gearStats, type Slot } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
+import { jingle, setSoundOn, sfx, useSoundOn } from '../game/sound'
 
-const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', 'セーブ', 'とじる'] as const
+const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', 'おと', 'セーブ', 'とじる'] as const
 
 interface Props {
   gs: GameState
@@ -28,6 +29,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
   const [ecur, setEcur] = useState(0)
   const gear = gearStats(gs)
   const inputMode = useInputMode()
+  const soundOn = useSoundOn()
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
   const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
 
@@ -66,8 +68,14 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
       )
       return
     }
+    if (c === 'おと') {
+      setSoundOn(!soundOn)
+      setNote(soundOn ? 'BGM と 効果音を 消した。' : 'BGM と 効果音を 鳴らす ように した。')
+      return
+    }
     if (c === 'セーブ') {
       onSave()
+      jingle('save')
       setNote('ぼうけんの きろくを かきこんだ。')
       return
     }
@@ -76,6 +84,9 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
   }
 
   useKeys((k) => {
+    if (k === 'up' || k === 'down') sfx('cursor')
+    else if (k === 'ok') sfx('select')
+    else if (k === 'cancel') sfx('cancel')
     if (open === 'そうび') {
       if (eqSlot) {
         const n = candidates.length
@@ -116,6 +127,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
           <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onClick={() => { setCursor(i); select(i) }}>
             {c}
             {c === 'にゅうりょく' && <small>：{inputMode === 'touch' ? 'ボタン' : 'キーボード'}</small>}
+            {c === 'おと' && <small>：{soundOn ? 'ON' : 'OFF'}</small>}
           </div>
         ))}
       </div>

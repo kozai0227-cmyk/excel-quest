@@ -4,6 +4,7 @@
  * 2. 数式ステップの ボタンに、模範の 数式の 部品が そろっている／$ が 必要な 問題は $ なしだと 不正解
  * 3. 戦闘の 自動生成問題の 選択肢と 模範解答が 正しい
  * 4. マップの 出口・NPC が 表の 中にあり、出口の 行き先が 歩ける
+ * 5. BGM の 楽譜：小節の 長さと、声部ごとの 長さが そろっている
  */
 import { QUESTS, makeCtx } from '../src/data/quests'
 import { GUIDES } from '../src/data/guides'
@@ -13,6 +14,8 @@ import { COUNTER, WALKABLE } from '../src/game/tiles'
 import { evaluate, formatValue, makeGrid, normalizeInput, parseAddr, shiftFormula, usesFn } from '../src/game/formula'
 import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
+import { SONGS } from '../src/data/music'
+import { parseVoice } from '../src/game/sound'
 
 let errors = 0
 let passed = 0
@@ -130,6 +133,22 @@ for (const m of Object.values(MAPS)) {
   }
 }
 console.log(`マップ：${Object.keys(MAPS).length} 枚`)
+
+// ---------------------------------------------------------------- 5. BGM
+for (const [name, song] of Object.entries(SONGS)) {
+  const totals = song.voices.map((v, i) => {
+    try {
+      const r = parseVoice(v.notes)
+      r.bars.forEach((b, k) => b !== song.bar && bad(`曲 ${name} 声部${i + 1} ${k + 1}小節目：長さ ${b}（${song.bar} のはず）`))
+      return r.total
+    } catch (e) {
+      bad(`曲 ${name} 声部${i + 1}：${(e as Error).message}`)
+      return 0
+    }
+  })
+  if (new Set(totals).size > 1) bad(`曲 ${name}：声部の 長さが ちがう（${totals.join(' / ')}）`)
+}
+console.log(`BGM：${Object.keys(SONGS).length} 曲`)
 
 if (errors) {
   console.error(`\n${errors} 件の 問題が あります`)

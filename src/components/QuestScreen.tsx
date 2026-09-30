@@ -8,6 +8,7 @@ import { getInputMode } from '../game/inputMode'
 import { isPhoneLayout } from '../game/layout'
 import { GUIDES } from '../data/guides'
 import { GuidedQuest } from './GuidedQuest'
+import { jingle, sfx } from '../game/sound'
 
 interface Props {
   quest: QuestDef
@@ -39,8 +40,13 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
     if (!last.current) return
     const { grid, values, actions } = last.current
     const res = quest.check(makeCtx(grid, values, actions))
-    if (res === null) setCleared(true)
-    else setFeedback(res)
+    if (res === null) {
+      jingle('clear')
+      setCleared(true)
+    } else {
+      sfx('wrong')
+      setFeedback(res)
+    }
   }
 
   const reward = quest.reward
@@ -106,7 +112,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
                 {hints < quest.hints.length ? `💡 ヒント ${hints + 1}/${quest.hints.length}` : 'ヒントは 全部'}
               </button>
             )}
-            <button className="btn primary" onClick={judge}>
+            <button className="btn primary" data-nosfx onClick={judge}>
               これで どうだ！
             </button>
           </div>
@@ -159,7 +165,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
               )}
             </div>
             )}
-            <button className="btn primary" onClick={judge}>
+            <button className="btn primary" data-nosfx onClick={judge}>
               これで どうだ！（判定）
             </button>
             {feedback && <div className="feedback">{feedback}</div>}

@@ -13,6 +13,7 @@ import { useInputMode } from '../game/inputMode'
 import { battlePad, learnedFuncs, pickRef, toggleLastRef, type ChipGroup } from '../game/formulaTokens'
 import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
+import { cue, sfx, useBgm } from '../game/sound'
 
 interface Props {
   bossId: string
@@ -30,7 +31,11 @@ interface Props {
 type Phase = 'msg' | 'command' | 'items' | 'question'
 /** 表示された瞬間に fx を実行するメッセージ（ダメージ反映など） */
 type Msg = string | { text: string; fx: () => void }
-const runFx = (m?: Msg) => typeof m === 'object' && m.fx()
+const runFx = (m?: Msg) => {
+  if (!m) return
+  cue(typeof m === 'string' ? m : m.text)
+  if (typeof m === 'object') m.fx()
+}
 
 const shuffle = <T,>(a: T[]) => {
   const b = [...a]
@@ -67,6 +72,7 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
 
 export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
   const boss = ENEMIES[bossId]
+  useBgm(boss.boss ? 'boss' : 'battle')
   const deck = useRef<QuestionSrc[]>([])
   const [bossHp, setBossHp] = useState(boss.hp)
   const [phase, setPhase] = useState<Phase>('msg')
@@ -191,6 +197,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         lines.push('ガード せいこう！ ダメージを おさえた！')
       }
     } else {
+      sfx('wrong')
       lines.push(note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`)
       if (buff.sand) {
         setBuff((b) => ({ ...b, sand: false }))
@@ -254,6 +261,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))
     } else {
+      sfx('wrong')
       setCombo(0)
       const lines: Msg[] = [note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`]
       // ボス戦：まちがえると 攻撃が 空振りし、そのまま ボスの攻撃へ
@@ -370,15 +378,22 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   useKeys(
     (k) => {
       if (phase === 'msg') {
-        if (k === 'ok' || k === 'cancel') nextMsg()
+        if (k === 'ok' || k === 'cancel') {
+          if (msgs.length > 1) sfx('blip')
+          nextMsg()
+        }
         return
       }
+      if (k === 'up' || k === 'down' || ((k === 'left' || k === 'right') && phase === 'question')) sfx('cursor')
       if (k === 'up') setCursor((c) => (c + listLen - 1) % listLen)
       else if (k === 'down') setCursor((c) => (c + 1) % listLen)
       else if (k === 'left' && phase === 'question') setCursor((c) => (c + listLen - 1) % listLen)
       else if (k === 'right' && phase === 'question') setCursor((c) => (c + 1) % listLen)
-      else if (k === 'ok') choose(cursor)
-      else if (k === 'cancel' && phase === 'items') {
+      else if (k === 'ok') {
+        if (phase !== 'question') sfx('select')
+        choose(cursor)
+      } else if (k === 'cancel' && phase === 'items') {
+        sfx('cancel')
         setCursor(1)
         setPhase('command')
       }
@@ -542,7 +557,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
                     />
                   </label>
                 )}
-                <button className="btn primary">{mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}</button>
+                <button className="btn primary" data-nosfx>{mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}</button>
                 {q.copies && <div className="copy-note">⇩ の セルにも この数式を コピーして 確かめるぞ！（F4 で $ 切替）</div>}
                 {buff.scroll && <div className="hint">📜 ヒント：{q.hint.replace(/\(.*\)/, '(…)')}</div>}
               </form>
@@ -578,7 +593,13 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       )}
 
       {phase === 'msg' && (
-        <div className="win dialog-win" onClick={nextMsg}>
+        <div
+          className="win dialog-win"
+          onClick={() => {
+            if (msgs.length > 1) sfx('blip')
+            nextMsg()
+          }}
+        >
           <div className="dialog-text">
             {typeof msgs[0] === 'object' ? msgs[0].text : msgs[0]}
             <span className="next">▼</span>

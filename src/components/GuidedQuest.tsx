@@ -6,6 +6,7 @@ import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value 
 import { guideChips, pickRef, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
 import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
+import { jingle, sfx } from '../game/sound'
 
 interface Props {
   quest: QuestDef
@@ -66,10 +67,12 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
   const choose = (c: string) => {
     if (step.kind !== 'choice' || solved || picked.includes(c)) return
     if (c !== step.answer) {
+      sfx('wrong')
       setPicked([...picked, c])
       setMsg(puzzle ? '……石版は 反応しない。' : 'ちがうようだ……。もう一度 考えてみよう。')
       return
     }
+    sfx('correct')
     const next = step.apply ? step.apply(grid, history) : grid
     markChanged(diffCells(grid, next))
     setGrid(next)
@@ -88,11 +91,13 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     if (step.kind !== 'formula' || !chips.length) return
     const r = tryFormula(grid, step, '=' + chips.join(''), puzzle)
     if (r.msg) {
+      sfx('wrong')
       setTrial(r)
       setMsg(r.msg)
       if (r.wrong[0]) setInspect(r.wrong[0])
       return
     }
+    sfx('correct')
     setGrid(r.grid)
     setTrial(null)
     markChanged(stepCells(step))
@@ -106,10 +111,16 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     if (last) {
       // 念のため 元の 依頼の 判定でも 確かめる
       const res = quest.check(makeCtx(grid, evaluate(grid), actions.current))
-      if (res === null) setCleared(true)
-      else setMsg(res)
+      if (res === null) {
+        jingle('clear')
+        setCleared(true)
+      } else {
+        sfx('wrong')
+        setMsg(res)
+      }
       return
     }
+    sfx('select')
     const s = steps[i + 1]
     setI(i + 1)
     setSolved(false)

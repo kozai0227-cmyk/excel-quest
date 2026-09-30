@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { DialogBox, type DialogReq } from './DialogBox'
 import { usePhoneLayout } from '../game/layout'
+import { sfx, useBgm } from '../game/sound'
 
 type Scene = 'day' | 'night' | 'monitor'
 type Mood = 'nervous' | 'flat' | 'tired'
@@ -572,6 +573,19 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
   const mood = STEPS.slice(0, i + 1).reduce<Mood>((m, st) => st.mood ?? m, 'flat')
   const corrupting = STEPS.slice(0, i + 1).some((s) => s.fx === 'corrupt')
   const storm = STEPS.slice(0, i + 1).some((s) => s.fx === 'storm')
+
+  // 昼の オフィス → 夜 → 画面が 壊れたら 音楽が 止まる
+  useBgm(scene === 'monitor' ? null : scene === 'night' ? 'night' : 'office')
+  useEffect(() => {
+    if (!corrupting || storm) return
+    sfx('glitch')
+    const t = setInterval(() => sfx('glitch'), 1400)
+    return () => clearInterval(t)
+  }, [corrupting, storm])
+  useEffect(() => {
+    if (step.fx === 'storm') sfx('storm')
+    if (step.fx === 'white') sfx('white')
+  }, [i]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const finish = () => {
     if (doneRef.current) return
