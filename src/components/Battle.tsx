@@ -13,6 +13,8 @@ import { useInputMode } from '../game/inputMode'
 import { battlePad, learnedFuncs, pickRef, toggleLastRef, type ChipGroup } from '../game/formulaTokens'
 import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
+import { BossVisual } from './BossVisual'
+import { hasBossArt } from '../game/bossArt'
 import { cue, sfx, useBgm } from '../game/sound'
 
 interface Props {
@@ -456,7 +458,13 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             <div style={{ width: `${(bossHp / boss.hp) * 100}%` }} />
           </div>
         </div>
-        {bossHp > 0 ? <BossSprite key={hit} id={boss.sprite} hit={hit} /> : <div className="boss-gone">✨</div>}
+        {bossHp <= 0 ? (
+          <div className="boss-gone">✨</div>
+        ) : boss.boss && hasBossArt(boss.sprite) ? (
+          <BossVisual key={hit} id={boss.sprite} hit={hit} />
+        ) : (
+          <BossSprite key={hit} id={boss.sprite} hit={hit} />
+        )}
       </div>
 
       {phase === 'question' && q && portal(

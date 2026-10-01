@@ -438,6 +438,9 @@ button {
   align-items: center;
 }
 .boss-hp {
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 0 4px #000, 0 0 2px #000;
   font-size: 2.2cqw;
   text-align: center;
   margin-bottom: 1cqw;
@@ -2662,4 +2665,59 @@ kbd {
 .vol-help {
   font-size: 0.8em;
   margin: 0.6em 0 0;
+}
+
+/* ボス戦：大きな ボスと オーラ */
+.boss-stage {
+  position: relative;
+  width: 30cqw;
+  height: 30cqw;
+  animation: bob 1.6s ease-in-out infinite;
+}
+.boss-stage.enter {
+  animation:
+    boss-enter 0.9s ease-out 1,
+    bob 1.6s ease-in-out 0.9s infinite;
+}
+.boss-stage.hit {
+  animation:
+    hit 0.5s steps(2) 1,
+    bob 1.6s ease-in-out 0.5s infinite;
+}
+.boss-hd,
+.boss-aura {
+  position: absolute;
+  image-rendering: pixelated;
+}
+.boss-hd {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* オーラは ボスより ひとまわり 大きい（ドットの 位置が ずれないよう 1.5倍ちょうど） */
+.boss-aura {
+  left: -25%;
+  top: -25%;
+  width: 150%;
+  height: 150%;
+}
+@keyframes boss-enter {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+    filter: brightness(4);
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+.phone .boss-stage {
+  width: 62cqw;
+  height: 62cqw;
 }
