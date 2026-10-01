@@ -9,12 +9,13 @@ export interface ChipGroup {
 }
 
 /** 町（ダンジョン）の順番。ここまでに 習った関数だけを ボタンに出す */
-const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library']
+const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury']
 const FUNCS_AT: Record<string, string[]> = {
   calculet: ['SUM', 'AVERAGE', 'MAX', 'MIN', 'COUNT'],
   sansho: ['ROUND'],
   ifport: ['IF', 'AND', 'OR', 'COUNTIF', 'SUMIF'],
   lookup: ['VLOOKUP', 'IFERROR', 'XLOOKUP'],
+  pivoria: ['SUMIFS', 'COUNTIFS', 'AVERAGEIF', 'MAXIFS', 'MINIFS'],
 }
 export const ALL_FUNCS = Object.values(FUNCS_AT).flat()
 
@@ -31,6 +32,9 @@ const SKILL_FUNCS: Record<string, string[]> = {
   vlookup: ['VLOOKUP'],
   iferror: ['IFERROR'],
   xlookup: ['XLOOKUP'],
+  countifs: ['COUNTIFS'],
+  sumifs: ['SUMIFS'],
+  averageif: ['AVERAGEIF', 'MAXIFS', 'MINIFS'],
 }
 export const learnedFuncs = (skills: string[]) => skills.flatMap((s) => SKILL_FUNCS[s] ?? [])
 

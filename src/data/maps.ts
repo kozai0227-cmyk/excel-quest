@@ -183,6 +183,22 @@ Object.assign(C, {
   ferryman: { hair: 'buzz', hairColor: '#2a1a1a', skin: '#c8885a', beard: 'stubble', outfit: 'tunic', color: '#f0f0f0', accent: '#1a3a6a', pants: '#1a3a6a', hat: 'knit', hatColor: '#1a3a6a' },
 } satisfies Record<string, CharSpec>)
 
+// 第5章 ピボリアの人々
+Object.assign(C, {
+  hyouma: { hair: 'slick', hairColor: '#3a3a4a', glasses: true, beard: 'mustache', beardColor: '#3a3a4a', outfit: 'robe', color: '#7a1a2a', accent: '#f0c040', hat: 'tophat', hatColor: '#3a0a14', hatAccent: '#f0c040' },
+  kazoe: { hair: 'buzz', hairColor: '#4a3020', beard: 'stubble', eyes: 'narrow', outfit: 'armor', color: '#a08a3a', hat: 'helmet', hatAccent: '#7a1a2a', pants: '#4a4a58' },
+  akina: { hair: 'bun', hairColor: '#c05a2a', eyes: 'big', blush: true, outfit: 'apron', color: '#e0903a', inner: '#fff4e0', hat: 'bandana', hatColor: '#7a1a2a' },
+  zeim: { hair: 'neat', hairColor: '#5a5a6a', glasses: true, eyes: 'tired', outfit: 'suit', color: '#3a3a4a', inner: '#f0f0f0', accent: '#7a1a2a' },
+  manabu: { hair: 'messy', hairColor: '#e8e8e8', glasses: true, beard: 'long', beardColor: '#f0f0f0', outfit: 'robe', color: '#2a5a3a', accent: '#f0c040', hat: 'hood', hatColor: '#1a3a2a' },
+  shoukei: { hair: 'bob', hairColor: '#2a1a1a', glasses: true, outfit: 'coat', color: '#5a3a6a', inner: '#f4f0f8', accent: '#f0c040', pants: '#2a2a3a' },
+  coachman: { hair: 'messy', hairColor: '#5a3a1a', beard: 'mustache', beardColor: '#5a3a1a', outfit: 'vest', color: '#5a3a1a', inner: '#e8e0cc', accent: '#c03030', hat: 'tophat', hatColor: '#2a2a2a', pants: '#3a3a44' },
+  inn6: { hair: 'long', hairColor: '#c08040', eyes: 'closed', outfit: 'apron', color: '#7a1a2a', inner: '#ffffff' },
+  shop6: { hair: 'neat', hairColor: '#2a2a2a', beard: 'stubble', outfit: 'leather', color: '#e8e0cc', accent: '#7a1a2a', pants: '#3a3a44', hat: 'beret', hatColor: '#7a1a2a' },
+  smith6: { hair: 'buzz', hairColor: '#1a1a1a', skin: '#d89a68', beard: 'long', beardColor: '#3a2a1a', outfit: 'leather', color: '#4a3a2a', accent: '#c09040', pants: '#2a2a30' },
+  noble: { hair: 'long', hairColor: '#f0d890', eyes: 'closed', blush: true, outfit: 'dress', color: '#c04a7a', inner: '#fff0f8', shoes: '#5a2a3a' },
+  kid6: { hair: 'twin', hairColor: '#5a3a1a', eyes: 'big', blush: true, outfit: 'dress', color: '#3a8ab0', inner: '#ffffff' },
+} satisfies Record<string, CharSpec>)
+
 const inn = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '宿屋', look, kind: 'inn' })
 const church = (id: string, x: number, y: number): NpcDef => ({ id, x, y, name: '神父', look: C.priest, kind: 'church' })
 const shop = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '道具屋', look, kind: 'shop' })
@@ -540,6 +556,80 @@ const LIBRARY2 = [
 ]
 const libraryEnemies = () => ['nainai', 'shiori', 'nainai']
 const LIBRARY_RATE = 1 / 32
+
+// ================================================================ 集計の王都 ピボリア
+function pivoriaTiles() {
+  const m = blank(34, 30)
+  forest(m)
+  rect(m, 'M', 1, 1, 32, 5)
+  // 北の 王宮（宝物庫の 入口）
+  rect(m, 'X', 9, 1, 16, 1)
+  rect(m, 'V', 9, 2, 16, 3)
+  put(m, 'v', [[10, 2], [12, 2], [14, 2], [19, 2], [21, 2], [23, 2], [10, 3], [12, 3], [21, 3], [23, 3], [16, 2], [17, 2]])
+  m[4][16] = 'd'
+  rect(m, '.', 15, 5, 3, 1)
+  rect(m, 'Z', 15, 6, 3, 1)
+  // 大通りと 東西の 通り
+  rect(m, 'T', 15, 7, 3, 21)
+  rect(m, 'T', 1, 11, 32, 2)
+  rect(m, 'T', 1, 19, 32, 2)
+  rect(m, 'T', 1, 22, 32, 2)
+  // 噴水広場
+  rect(m, 'T', 13, 13, 7, 6)
+  rect(m, 'u', 15, 14, 3, 3)
+  m[15][16] = 'f'
+  // 北の並び
+  building(m, 2, 7, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 9, 7, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
+  building(m, 19, 7, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
+  building(m, 26, 7, 6, { roof: 'E', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
+  // 南の並び
+  building(m, 2, 15, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 8, 15, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
+  building(m, 20, 15, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
+  building(m, 27, 15, 5, { roof: 'R', stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  // 市場と 飾り
+  put(m, 'A', [[9, 21], [10, 21], [11, 21], [22, 21], [23, 21], [24, 21]])
+  put(m, 'S', [[14, 7]])
+  put(m, 'L', [[14, 10], [18, 10], [12, 13], [20, 13], [14, 24], [18, 24], [7, 13], [26, 13]])
+  put(m, 'p', [[1, 10], [32, 10], [8, 14], [25, 14], [1, 18], [32, 18], [13, 21], [19, 21]])
+  put(m, 'b', [[18, 7], [25, 13], [8, 13], [1, 21], [32, 21], [12, 26], [20, 26]])
+  put(m, 'n', [[13, 17], [19, 17]])
+  sprinkle(m, 29, 7)
+  return done(m)
+}
+
+const TREASURY1 = [
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[::::[[[[{[[[[::::[[[',
+  '[[::::[[[:::[[[::::[[[',
+  '[[[:[[[[[[([[[[[[:[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L::[[[:::[[[::L:[[[',
+  '[[:::::::::::::::::[[[',
+  '[[::[[[[[:::[[[[[::[[[',
+  '[[[[[[[[[[([[[[[[[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L:::::::::::::L:[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[-[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+]
+const TREASURY2 = [
+  '[[[[[[[[[[[[[[[[[[',
+  '[::::::::::::::::[',
+  '[:L::::::::::::L:[',
+  '[::::::::::::::::[',
+  '[::L::::::::::L::[',
+  '[[[[[[[[([[[[[[[[[',
+  '[::::::::::::::::[',
+  '[::::::::::::::::[',
+  '[:::::::}::::::::[',
+  '[[[[[[[[[[[[[[[[[[',
+]
+const treasuryEnemies = () => ['dupli', 'chirakari', 'dupli']
+const TREASURY_RATE = 1 / 32
 
 // ================================================================ はじまりの森
 function forestTiles() {
@@ -1153,6 +1243,12 @@ const lookup: MapDef = {
       ferry: { to: 'ifport', x: 21, y: 23, dir: 'up', place: '条件の港町 イフポート' },
     },
     {
+      id: 'lookup_coach', x: 32, y: 11, name: '馬車の御者', look: C.coachman, kind: 'ferry', dir: 'left',
+      lines: ['書庫の 呪いが 解けて、王都への 街道も 通れるように なったぞ！', '行き先は「集計の王都 ピボリア」。国じゅうの 記録が 集まる 都さ。'],
+      ferry: { to: 'pivoria', x: 16, y: 26, dir: 'up', place: '集計の王都 ピボリア', verb: '向かう' },
+      hideIf: (s) => !s.bosses.includes('mitsukaranu'),
+    },
+    {
       id: 'quill', x: 25, y: 21, name: '古本屋のクイル', look: C.quill, kind: 'talk', dir: 'down',
       lines: ['この 町の 人間は、何でも 分厚い 帳簿に 書き残す。', 'だが 城の 大書庫が 呪われてから、書いた ものが 見つからねえ。', '1行ずつ 指で たどって「ない……ない……」って つぶやく 声が、町じゅうから 聞こえるのさ。'],
       linesAfter: { when: (s) => s.solved.includes('lookup_vlookup'), lines: ['VLOOKUP って 魔法が はやってるらしいな。', '番号さえ わかれば、帳簿の どこに あっても 一発で 引ける……古本屋 泣かせだぜ。'] },
@@ -1213,6 +1309,92 @@ const library2: MapDef = {
   // ミツカラーヌの 前では 敵は出ない
   encounter: (_x, y) => (y <= 4 ? null : libraryEnemies()),
   encounterRate: LIBRARY_RATE,
+}
+
+// ---------------------------------------------------------------- 第5章
+const pivoria: MapDef = {
+  id: 'pivoria',
+  name: '集計の王都 ピボリア',
+  kind: 'town',
+  town: 'pivoria',
+  bossId: 'barabaran',
+  tiles: pivoriaTiles(),
+  spawn: { x: 16, y: 26, dir: 'up' },
+  respawn: { map: 'pivo_church', x: 5, y: 4 },
+  exits: [{ x: 16, y: 4, to: 'treasury1', tx: 10, ty: 12, dir: 'up' }],
+  signs: [
+    { x: 14, y: 7, lines: ['ピボリア王宮 宝物庫 ― 王国の 財宝と、すべての 記録の 原本が 眠る 場所。', 'いまは「散乱帳簿の王 バラバラン」が 居座り、記録を バラバラに 散らかしているという。', '王都の 悩みを すべて 解決すれば、王宮の 結界は とけるだろう。'] },
+  ],
+  npcs: [
+    { id: 'kazoe', x: 18, y: 9, name: '衛兵長カゾエ', look: C.kazoe, kind: 'quest', questId: 'pivo_countifs', dir: 'left' },
+    { id: 'akina', x: 12, y: 21, name: '市場頭アキナ', look: C.akina, kind: 'quest', questId: 'pivo_sumifs', dir: 'down' },
+    {
+      id: 'pivo_coach', x: 17, y: 27, name: '馬車の御者', look: C.coachman, kind: 'ferry', dir: 'up',
+      lines: ['ルックアップ行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'lookup', x: 31, y: 11, dir: 'right', place: '検索の城下町 ルックアップ', verb: '向かう' },
+    },
+    {
+      id: 'noble', x: 21, y: 14, name: '王都の貴婦人', look: C.noble, kind: 'talk', wander: true, emote: 'sweat',
+      lines: ['ごきげんよう。……と 言いたいところですけれど、王宮の 舞踏会の 招待客名簿が バラバラで。', '「北の 貴族で、しかも 未返信の 方」を 数えるだけで 3日も かかって おりますの。'],
+      linesAfter: { when: (s) => s.solved.includes('pivo_countifs'), lines: ['COUNTIFS という 魔法で、条件を 2つ つけて 数えられるのですって？', '名簿の 整理が 楽しみに なって きましたわ。'] },
+    },
+    {
+      id: 'kid6', x: 23, y: 24, name: '王都の子ども', look: C.kid6, kind: 'talk', wander: true, emote: 'note',
+      lines: ['どんぐりを 集めたの！ 大きいの・小さいの、赤いの・茶色いの……', 'ねえ「大きくて 赤い」のは いくつ？ ……数えてたら わかんなく なっちゃった。'],
+    },
+    {
+      id: 'pivo_gate', x: 14, y: 6, name: '王宮の衛兵', look: C.kazoe, kind: 'guard', dir: 'down',
+      lines: ['この先は ピボリア王宮の 宝物庫だ。', 'バラバランの 結界が 張られていて、陛下でさえ 入れぬ。', '王都の 者たちの 悩みを 晴らせば、結界も 弱まるはずだ。'],
+      linesAfter: { when: (s) => s.bosses.includes('barabaran'), lines: ['宝物庫の 記録が、1冊の 帳簿に まとまった！', '王都の 者 一同、感謝して おるぞ。'] },
+    },
+    { id: 'cat4', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャー。', '（市場の 魚屋の 前から 動かない）'] },
+    { id: 'dog3', x: 6, y: 23, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（馬車の 車輪を じっと 見ている）'] },
+  ],
+}
+
+const treasury1: MapDef = {
+  id: 'treasury1',
+  name: 'ピボリア王宮 宝物庫',
+  kind: 'dungeon',
+  tiles: TREASURY1,
+  spawn: { x: 10, y: 12, dir: 'up' },
+  exits: [
+    { x: 10, y: 13, to: 'pivoria', tx: 16, ty: 5, dir: 'down' },
+    { x: 10, y: 2, to: 'treasury2', tx: 8, ty: 7, dir: 'up' },
+  ],
+  signs: [],
+  gates: [
+    { x: 10, y: 9, puzzle: 'trs_count' },
+    { x: 10, y: 4, puzzle: 'trs_sum' },
+  ],
+  npcs: [
+    ...chest('trs_chest1', 2, 2, { item: 'herb' }),
+    ...chest('trs_chest2', 18, 2, { gold: 600 }),
+    ...chest('trs_chest3', 18, 12, { item: 'scroll' }),
+  ],
+  encounter: treasuryEnemies,
+  encounterRate: TREASURY_RATE,
+}
+
+const treasury2: MapDef = {
+  id: 'treasury2',
+  name: 'ピボリア王宮 王の間',
+  kind: 'dungeon',
+  light: true,
+  tiles: TREASURY2,
+  spawn: { x: 8, y: 7, dir: 'up' },
+  exits: [{ x: 8, y: 8, to: 'treasury1', tx: 10, ty: 3, dir: 'down' }],
+  bossExit: { map: 'pivoria', x: 16, y: 5, dir: 'down' },
+  signs: [],
+  gates: [{ x: 8, y: 5, puzzle: 'trs_cross' }],
+  npcs: [
+    ...chest('trs_chest4', 3, 7, { equip: 'pivot_crown' }),
+    { id: 'trs_spring', x: 14, y: 7, name: 'ふしぎな 泉', creature: 'spring', kind: 'heal' },
+    { id: 'boss_barabaran', x: 8, y: 2, name: '散乱帳簿の王 バラバラン', creature: 'barabaran', kind: 'boss', bossId: 'barabaran', hideIf: (s) => s.bosses.includes('barabaran') },
+  ],
+  // バラバランの 前では 敵は出ない
+  encounter: (_x, y) => (y <= 4 ? null : treasuryEnemies()),
+  encounterRate: TREASURY_RATE,
 }
 
 const rooms: MapDef[] = [
@@ -1409,13 +1591,48 @@ const rooms: MapDef[] = [
     { id: 'roll', x: 2, y: 2, name: '騎士団の書記ロール', look: C.roll, kind: 'quest', questId: 'lookup_xlookup' },
     { id: 'knight', x: 7, y: 5, name: '見習い騎士', look: C.hantei, kind: 'talk', lines: ['騎士番号で 呼ばれても、自分の 名前が 名簿の どこに あるか わからないんです……。', '名簿の いちばん 右に 番号、いちばん 左に 名前。遠すぎますよね？'] },
   ]),
+  room('pivo_hall', '宰相の館', 'pivoria', 'hall', [
+    { id: 'hyouma', x: 6, y: 2, name: '宰相ヒョウマ', look: C.hyouma, kind: 'quest', questId: 'pivo_crosstab' },
+    { id: 'shoukei', x: 3, y: 5, name: '書記官ショウケイ', look: C.shoukei, kind: 'quest', questId: 'pivo_summary', dir: 'right' },
+  ]),
+  room('pivo_weapon', '王都の武器工房', 'pivoria', 'weapon', [
+    {
+      id: 'pivo_smith', x: 2, y: 2, name: '武器職人タバネ', look: C.smith6, kind: 'gear',
+      stock: ['loupe_blade', 'index_spear', 'tally_hammer', 'royal_scepter'],
+      lines: ['よう、旅の人。王都 いちばんの 鍛冶屋 タバネだ。', '集計のハンマーは、バラバラの 記録を 叩いて 1つに まとめる 逸品だぜ。'],
+    },
+  ]),
+  room('pivo_armor', '王都の仕立屋', 'pivoria', 'armor', [
+    {
+      id: 'pivo_tailor', x: 2, y: 2, name: '仕立屋ツヅリ', look: C.noble, kind: 'gear',
+      stock: ['librarian_robe', 'royal_suit', 'catalog_shield', 'ledger_shield', 'bookmark_band', 'pivot_crown'],
+      lines: ['いらっしゃいませ。王宮御用達の 仕立屋 ツヅリですわ。', '王宮の礼服は、宰相さまも お認めに なった 正装ですのよ。'],
+    },
+  ]),
+  room('pivo_inn', 'ピボリアの宿屋', 'pivoria', 'inn', [
+    inn('inn6', 8, 2, C.inn6),
+    { id: 'guest6', x: 5, y: 5, name: '旅の商人', look: C.traveler, kind: 'talk', lines: ['王都に 商売の 報告に 来たんだが、役所の 集計が 終わらなくて 足止めさ。', '「どの 店の、どの 品が、いくら 売れたか」……条件が 2つに なると、とたんに 手が 止まるらしい。'] },
+  ]),
+  room('pivo_church', 'ピボリアの大聖堂', 'pivoria', 'church', [church('church6', 5, 2)]),
+  room('pivo_shop', '王都の道具屋', 'pivoria', 'shop', [
+    shop('shop6', 2, 2, C.shop6),
+    { id: 'clerk6', x: 7, y: 4, name: '道具屋の見習い', look: C.kid5, kind: 'talk', lines: ['在庫を 品目ごと・棚ごとに 数えろって 言われて……', '1つの 条件なら 数えられるのに、2つ に なると 頭が こんがらがるんです！'] },
+  ]),
+  room('pivo_school', '王立学院', 'pivoria', 'school', [
+    { id: 'manabu', x: 6, y: 2, name: '学者マナブ', look: C.manabu, kind: 'quest', questId: 'pivo_average' },
+    { id: 'student6', x: 3, y: 5, name: '学院の生徒', look: C.student, kind: 'talk', lines: ['クラス全体の 平均なら AVERAGE で 出せるんだ。', 'でも「赤組だけの 平均」って 言われると……赤組の 点数だけ 書き写すしか ないのかなぁ。'] },
+  ]),
+  room('pivo_bank', '王都の税務所', 'pivoria', 'bank', [
+    { id: 'zeim', x: 2, y: 2, name: '税務官ゼイム', look: C.zeim, kind: 'quest', questId: 'pivo_compare' },
+    { id: 'taxpayer', x: 7, y: 5, name: '納税に 来た 商人', look: C.shop5, kind: 'talk', lines: ['税務所は いつも 大行列だ。', '帳簿の 束を 1枚ずつ めくって、地区と 金額を 確かめているらしい。'] },
+  ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
   ]),
 ]
 
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
-  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, ...rooms].map((m) => [m.id, m]),
+  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, ...rooms].map((m) => [m.id, m]),
 )
 
 // 町のドア → 室内
@@ -1467,5 +1684,13 @@ link(lookup, 4, 18, MAPS.lookup_church)
 link(lookup, 10, 18, MAPS.lookup_shop)
 link(lookup, 22, 18, MAPS.lookup_library)
 link(lookup, 29, 18, MAPS.lookup_knights)
+link(pivoria, 4, 10, MAPS.pivo_hall)
+link(pivoria, 11, 10, MAPS.pivo_weapon)
+link(pivoria, 21, 10, MAPS.pivo_armor)
+link(pivoria, 29, 10, MAPS.pivo_inn)
+link(pivoria, 4, 18, MAPS.pivo_church)
+link(pivoria, 10, 18, MAPS.pivo_shop)
+link(pivoria, 22, 18, MAPS.pivo_school)
+link(pivoria, 29, 18, MAPS.pivo_bank)
 
 for (const map of Object.values(MAPS)) for (const n of map.npcs) if (n.look && !SPEAKER_LOOKS[n.name]) SPEAKER_LOOKS[n.name] = n.look

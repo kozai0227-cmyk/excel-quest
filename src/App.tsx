@@ -24,7 +24,7 @@ type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'end
 interface BattleReq {
   id: string
   tutorial?: boolean
-  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library'
+  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury'
 }
 
 const INN_PRICE = 10
@@ -312,7 +312,7 @@ export default function App() {
         case 'ferry': {
           const f = npc.ferry!
           await say(npc.lines ?? [])
-          const i = await say([`${f.place}へ 渡るかい？`], ['乗る', 'やめる'])
+          const i = await say([`${f.place}へ ${f.verb ?? '渡る'}かい？`], ['乗る', 'やめる'])
           if (i !== 0) break
           sfx('door')
           setFade(true)
@@ -343,7 +343,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.boss ? 'boss' : 'forest',
+              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.boss ? 'boss' : 'forest',
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -478,6 +478,53 @@ export default function App() {
           await sleep(1400)
         }
         await talk(undefined, ['（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）'])
+        save()
+      })
+    if (ex.to === 'treasury1')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['金銀の 財宝の あいだに、伝票の 紙切れが 吹雪のように 舞っている。', '床から 天井まで、バラバラの 記録が 散らかり放題だ……。'])
+        await me(['（扉の 謎を 解きながら、宝物庫の 奥を 目指そう）'])
+      })
+    if (ex.to === 'treasury2')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['王の間。玉座の 前に、伝票の 山が うずたかく 積み上がっている。', '紙の 山が ざわりと うごめき、赤い 目が 2つ 開いた……。'])
+      })
+    if (ex.to === 'pivoria')
+      run(async () => {
+        await sleep(1100)
+        const f = fieldRef.current
+        await talk(undefined, ['ここは 集計の王都 ピボリア。', '国じゅうの 記録が 集まり、王宮で 1つに まとめられる……はずの 都だ。'])
+        await talk(undefined, ['しかし 役所の 窓からは、伝票の 山に 埋もれた 役人たちの うめき声が 聞こえてくる……。'])
+        f?.emote('player', 'bang', 1200)
+        await talk('宰相ヒョウマ', ['そこの 旅の方！ お待ちを！'])
+        if (f) {
+          // 宰相が 館から 走ってくる
+          f.spawn({ id: 'hyouma_event', x: 4, y: 11, name: '宰相ヒョウマ', look: SPEAKER_LOOKS['宰相ヒョウマ'], kind: 'talk', dir: 'down' })
+          await f.walkTo('hyouma_event', ex.tx - 1, ex.ty, 120)
+          f.face('hyouma_event', 'right')
+          f.face('player', 'left')
+          f.emote('hyouma_event', 'sweat', 2600)
+        }
+        await talk('宰相ヒョウマ', [
+          'はぁ、はぁ……。失礼。わたくし、この 国の 宰相、ヒョウマと 申します。',
+          'ルックアップの 大書庫を 救った 旅の方……あなたの ことですな？ 大臣サガスから 早馬で 知らせが 届いております。',
+          '実は 王宮の 宝物庫に「バラバラン」という 魔物が 居座り、王国の 記録を すべて バラバラに 散らかして しまったのです。',
+          '「北の 地区の、夜の 分だけ」「東店の、パンの 分だけ」……条件が 2つに なった とたん、誰も 数えられず、足せず……。',
+          '陛下への 報告書は、もう ひと月も 止まった ままなのです。',
+        ])
+        await me(['（条件が 2つ……会社でも「支店別・商品別の 売上」を 出すのに、毎月 徹夜してたな……）', '（……SUMIFS と COUNTIFS だ。条件を いくつでも 並べられる、集計の 魔法！）'])
+        await talk('宰相ヒョウマ', [
+          'どうか 王都の 者たちの 悩みを 聞いてやって くだされ。',
+          'すべて 解決すれば、王宮の 結界も とけるはず……。',
+          'わたくしは 館に おります。陛下に お見せする 収穫表の 件で、あとで ご相談させて くだされ。',
+        ])
+        if (f) {
+          void f.walkTo('hyouma_event', 4, 11, 200).then(() => f.remove('hyouma_event'))
+          await sleep(1400)
+        }
+        await talk(undefined, ['（SUMIF・COUNTIF の 最後に S が つくと、条件を いくつも 並べられる。馬車で いつでも ルックアップに 戻れるぞ）'])
         save()
       })
     if (ex.to === 'library1')
@@ -659,6 +706,8 @@ export default function App() {
                 ? '（北の 鏡の神殿に 入れるように なった。最奥に ズレズレ・ミラージュが いるらしい）'
                 : q.town === 'lookup'
                   ? '（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）'
+                  : q.town === 'pivoria'
+                    ? '（王宮の 結界が とけ、宝物庫に 入れるように なった。最奥に バラバランが いるらしい）'
                   : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
         ])
       save()
@@ -698,7 +747,7 @@ export default function App() {
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
-        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : '洞窟'
+        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
         sfx('door')
         setFade(true)
@@ -724,6 +773,12 @@ export default function App() {
         await talk(undefined, [
           '大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。',
           '城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！',
+          '（東の 街道が 通れるように なった。馬車の 御者に 話せば、王都へ 向かえるらしい）',
+        ])
+      if (b.id === 'barabaran')
+        await talk(undefined, [
+          '散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。',
+          '王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！',
         ])
       save()
       if (b.id === 'golem') {
@@ -740,6 +795,10 @@ export default function App() {
       }
       if (b.id === 'mitsukaranu') {
         setChapter(4)
+        setScene('ending')
+      }
+      if (b.id === 'barabaran') {
+        setChapter(5)
         setScene('ending')
       }
     })
@@ -845,7 +904,7 @@ export default function App() {
               onEncounter={(id) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.kind === 'dungeon' ? 'cave' : 'field',
                 })
               }
               onGate={onGate}

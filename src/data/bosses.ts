@@ -20,7 +20,7 @@ export type Question =
 export interface BossDef {
   id: string
   name: string
-  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu'
+  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran'
   /** ボス（こちらの攻撃 → ボスの攻撃問題 の2段構えで戦う） */
   boss?: boolean
   /** 決まった回数の正解で倒れる（チュートリアル用） */
@@ -223,6 +223,45 @@ Object.assign(BOSSES, {
   },
 } satisfies Record<string, BossDef>)
 
+Object.assign(BOSSES, {
+  barabaran: {
+    id: 'barabaran',
+    name: '散乱帳簿の王 バラバラン',
+    sprite: 'barabaran',
+    boss: true,
+    attackText: 'バラバラの 伝票を 嵐のように 吹き荒らした！',
+    defeatText: [
+      '「まとめ……られた……？ あれほど バラバラに した 記録が……たった 1つの 表に……。」',
+      '「数字は……並べる だけでは 何も 語らぬ……。まとめて はじめて……意味を 持つ……のか……。」',
+      'バラバランの 体を つくっていた 伝票が、1枚ずつ 光の 帳簿へと 綴じられていった。',
+    ],
+    hp: 560,
+    attack: [30, 37],
+    exp: 640,
+    gold: 520,
+    intro: [
+      '（宝物庫の 最奥。積み上げられた 伝票の 山が、ゆっくりと 起き上がった……！）',
+      'バラバラ……バラバラ……。王都の 記録は すべて ワシが 散らかして やった。',
+      '何千枚の 伝票を 1枚ずつ 数え、足し、途方に くれるが いい。キサマの 報告書も、永遠に 終わらぬ……！',
+    ],
+    questions: [
+      { type: 'choice', q: '条件が 2つ ある 合計を 出す 関数は？', choices: ['SUMIFS', 'SUMIF', 'SUM', 'COUNTIFS'], answer: 'SUMIFS', explain: 'SUMIFS(合計する範囲, 範囲1, 条件1, 範囲2, 条件2)。条件は いくつでも 並べられる。' },
+      { type: 'choice', q: 'SUMIFS と SUMIF で 位置が ちがう 引数は？', choices: ['合計する 範囲', '条件', '条件の 範囲', 'どれも 同じ'], answer: '合計する 範囲', explain: 'SUMIFS は 合計する範囲が 最初、SUMIF は 最後。' },
+      { type: 'choice', q: '「1000以上」を COUNTIFS の 条件に 書くと？', choices: ['">=1000"', '>=1000', '"=>1000"', '"≧1000"'], answer: '">=1000"', explain: '比べる 記号つきの 条件は " で 囲む。以上は >=。' },
+      { type: 'choice', q: 'ピボットテーブルで、合計する 数（売上など）を 置く 欄は？', choices: ['値', '行', '列', 'フィルター'], answer: '値', explain: 'ピボットテーブルは 行・列・値・フィルター の 4つの 欄で 表を 作る。' },
+      G.genCountifsPick,
+      G.genSumifsOrder,
+      G.genCrossRef,
+      G.genPivotArea,
+      G.genFormulaSumifs,
+      G.genFormulaCountifs,
+      G.genFormulaAvgif,
+      G.genFormulaXlookup,
+      G.genFormulaIferror,
+    ],
+  },
+} satisfies Record<string, BossDef>)
+
 // ================================================================ フィールドの敵
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
@@ -353,6 +392,27 @@ const SEARCHES: QuestionSrc[] = [
   G.genFormulaVlookup,
 ]
 
+const TALLIES: QuestionSrc[] = [
+  c('条件を 2つ 以上 つけて 数える 関数は？', ['COUNTIFS', 'COUNTIF', 'COUNT', 'COUNTA'], 'COUNTIFS', 'COUNTIF は 条件 1つ。最後に S が つくと 条件を いくつも 並べられる。'),
+  c('=COUNTIFS(A2:A9,"北",B2:B9,"夜") が 数えるのは？', ['北 で、しかも 夜 の 行', '北 か 夜 の どちらかの 行', '北 の 行と 夜 の 行の 合計', '夜 の 行だけ'], '北 で、しかも 夜 の 行', 'COUNTIFS は すべての 条件を 満たす（AND の）行を 数える。'),
+  G.genCountifsPick,
+  G.genCountifsPick,
+  G.genIfsFunction,
+  G.genSumifsOrder,
+  G.genFormulaCountifs,
+  G.genFormulaSumifs,
+]
+const TABLES: QuestionSrc[] = [
+  c('=AVERAGEIF(A2:A8,"赤組",B2:B8) の B2:B8 は？', ['平均する 範囲', '条件の 範囲', '条件', '答えの セル'], '平均する 範囲', 'AVERAGEIF は SUMIF と 同じ 並び（条件の範囲, 条件, 平均する範囲）。'),
+  c('地区ごとの 集計表で、条件に 地区の セル E2 を 使う 理由は？', ['コピーすると 地区が 自動で 変わる', '計算が 速い', '" が いらない だけ', 'エラーが 出ない'], 'コピーすると 地区が 自動で 変わる', '見出しの セルを 条件に すれば、1つの 式を コピーするだけで 表が 埋まる。'),
+  G.genPivotArea,
+  G.genPivotArea,
+  G.genCrossRef,
+  G.genIfsFunction,
+  G.genFormulaAvgif,
+  G.genFormulaSumifs,
+]
+
 export const FIELD_ENEMIES: Record<string, BossDef> = {
   celime_tutorial: {
     id: 'celime_tutorial',
@@ -375,6 +435,8 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
   jelly: { id: 'jelly', name: 'イフクラゲ', sprite: 'jelly', hp: 78, attack: [16, 21], exp: 52, gold: 40, intro: [], questions: CONDS },
   crab: { id: 'crab', name: 'ブンキガニ', sprite: 'crab', hp: 92, attack: [18, 24], exp: 64, gold: 50, intro: [], questions: BRANCHES },
   nainai: { id: 'nainai', name: 'ナイナイ', sprite: 'nainai', hp: 104, attack: [21, 27], exp: 78, gold: 60, intro: [], questions: LOOKS },
+  dupli: { id: 'dupli', name: 'ダブリン', sprite: 'dupli', hp: 132, attack: [25, 31], exp: 104, gold: 80, intro: [], questions: TALLIES },
+  chirakari: { id: 'chirakari', name: 'チラカリス', sprite: 'chirakari', hp: 146, attack: [27, 33], exp: 118, gold: 90, intro: [], questions: TABLES },
   shiori: { id: 'shiori', name: 'シオリムシ', sprite: 'shiori', hp: 118, attack: [23, 29], exp: 90, gold: 70, intro: [], questions: SEARCHES },
 }
 

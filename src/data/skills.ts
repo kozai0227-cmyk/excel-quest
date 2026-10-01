@@ -34,5 +34,11 @@ export const SKILLS: Record<string, SkillDef> = {
   approx: { name: '近似一致（TRUE）', town: 'ルックアップ', desc: '4つ目を TRUE に すると「探す値 以下で いちばん 近い 行」を 探す。区切りの 表は 小さい順に 並べる。' },
   iferror: { name: 'IFERROR', town: 'ルックアップ', desc: '=IFERROR(計算, エラーの ときの 値)。見つからない #N/A を「未登録」などに 置きかえる。' },
   xlookup: { name: 'XLOOKUP', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列)。探す列より 左の 列も 取り出せる。' },
+  countifs: { name: 'COUNTIFS', town: 'ピボリア', desc: '=COUNTIFS(範囲1, 条件1, 範囲2, 条件2)。範囲と 条件の ペアを 並べて、すべてを 満たす 行を 数える。' },
+  sumifs: { name: 'SUMIFS', town: 'ピボリア', desc: '=SUMIFS(合計する範囲, 範囲1, 条件1, 範囲2, 条件2)。合計する範囲が 最初（SUMIF とは 順番が ちがう）。' },
+  ifscompare: { name: '比べる 条件', town: 'ピボリア', desc: '条件に ">=1000" のように 比べる 記号を 使える。合計する範囲と 条件の範囲が 同じ 列でも よい。' },
+  averageif: { name: 'AVERAGEIF・MAXIFS', town: 'ピボリア', desc: '=AVERAGEIF(条件の範囲, 条件, 平均する範囲)。=MAXIFS(探す範囲, 条件の範囲, 条件)。MINIFS で 最小。' },
+  summary: { name: '集計表', town: 'ピボリア', desc: '条件に 見出しの セルを 使い、範囲を $ で 固定して コピー。=SUMIFS($B$2:$B$11,$A$2:$A$11,E2)' },
+  crosstab: { name: 'クロス集計', town: 'ピボリア', desc: '縦の 見出しは $E2、横の 見出しは F$1。1つの 式で「縦 × 横」の 表を 埋める。ピボットテーブルの 中身と 同じ。' },
   notfound: { name: 'XLOOKUP の 見つからないとき', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")。4つ目に 見つからない ときの 値を 書ける。' },
 }

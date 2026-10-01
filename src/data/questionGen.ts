@@ -853,3 +853,144 @@ export const genFormulaIferror: QGen = () => {
     explain: '=IFERROR(VLOOKUP(E1,A1:C4,2,FALSE),"なし")。見つからない #N/A の ときだけ "なし" に なる。XLOOKUP の 4つ目に "なし" でも いい。',
   }
 }
+
+// ---------------------------------------------------------------- 第5章：複数条件の 集計（SUMIFS・COUNTIFS）
+const AREAS = ['北', '南']
+const TIMES = ['昼', '夜']
+/** 地区・時間帯（・数）の 記録。どの 組み合わせも 1回は 出る */
+function patrolRows(n: number) {
+  const rows: [string, string, number][] = [
+    ['北', '昼', 0],
+    ['北', '夜', 0],
+    ['南', '昼', 0],
+    ['南', '夜', 0],
+  ]
+  while (rows.length < n) rows.push([pick(AREAS), pick(TIMES), 0])
+  return shuffled(rows).map(([a, t]) => [a, t, ri(1, 9) * 10] as [string, string, number])
+}
+
+export const genCountifsPick: QGen = () => {
+  const rows = patrolRows(6)
+  const a = pick(AREAS)
+  const t = pick(TIMES)
+  const cnt = rows.filter((r) => r[0] === a && r[1] === t).length
+  const onlyA = rows.filter((r) => r[0] === a).length
+  const onlyT = rows.filter((r) => r[1] === t).length
+  return choice(
+    `A列（地区）と B列（時間）に「${rows.map((r) => r[0] + r[1]).join('、')}」。=COUNTIFS(A1:A6,"${a}",B1:B6,"${t}") は？`,
+    cnt,
+    [onlyA, onlyT, cnt + 1],
+    `「${a}」で、しかも「${t}」の 行だけを 数える → ${cnt}個。片方だけ 満たす 行は 数えない。`,
+  )
+}
+
+export const genSumifsOrder: QGen = () => {
+  const [s, c1, c2] = pick([
+    ['C', 'A', 'B'],
+    ['D', 'B', 'C'],
+    ['B', 'A', 'C'],
+  ])
+  const n = ri(6, 12)
+  const r = (col: string) => `${col}2:${col}${n}`
+  return choice(
+    `${c1}列が「北」で ${c2}列が「夜」の 行の、${s}列の 合計を 出す 正しい 式は？`,
+    `=SUMIFS(${r(s)},${r(c1)},"北",${r(c2)},"夜")`,
+    [`=SUMIFS(${r(c1)},"北",${r(c2)},"夜",${r(s)})`, `=SUMIFS("北",${r(c1)},"夜",${r(c2)},${r(s)})`, `=SUMIF(${r(c1)},"北",${r(s)})`],
+    'SUMIFS は「合計する範囲」が 最初。そのあと「範囲, 条件」の ペアを 並べる。SUMIF とは 順番が ちがう。',
+  )
+}
+
+export const genIfsFunction: QGen = () => {
+  const [q, a, why] = pick([
+    ['「東店」の「パン」の 売上の 合計', 'SUMIFS', '条件が 2つの 合計は SUMIFS。'],
+    ['「北地区」で「夜」の 見回りの 回数', 'COUNTIFS', '条件が 2つの 個数は COUNTIFS。'],
+    ['「赤組」だけの 平均点', 'AVERAGEIF', '条件つきの 平均は AVERAGEIF。'],
+    ['「白組」の 最高点', 'MAXIFS', '条件つきの 最大は MAXIFS。最小なら MINIFS。'],
+    ['「金貨」の うち いちばん 軽い 重さ', 'MINIFS', '条件つきの 最小は MINIFS。'],
+    ['「東地区」で 1000G 以上の 納税の 件数', 'COUNTIFS', '地区と 金額、条件が 2つの 個数は COUNTIFS。'],
+  ] as const)
+  return choice(`${q}を 出したい。使う 関数は？`, a, ['SUMIFS', 'COUNTIFS', 'AVERAGEIF', 'MAXIFS', 'MINIFS', 'SUMIF', 'COUNT'].filter((f) => f !== a).sort(() => Math.random() - 0.5), why)
+}
+
+export const genPivotArea: QGen = () => {
+  const [q, a, wrongs, why] = pick([
+    ['地区ごとの 売上合計を、地区を 縦に 並べて 作りたい。「地区」を 置く 欄は？', '行', ['列', '値', 'フィルター'], '縦に 並べる 見出しは「行」。横に 並べるなら「列」。'],
+    ['ピボットテーブルで、合計や 個数を 計算する 数（売上など）を 置く 欄は？', '値', ['行', '列', 'フィルター'], '計算する 数は「値」。合計・個数・平均などを 選べる。'],
+    ['「東店だけ」に しぼって 集計したい。「店」を 置く 欄は？', 'フィルター', ['行', '列', '値'], '全体を しぼりこむ 項目は「フィルター」。'],
+    ['作物を 表の 横（上の 見出し）に 並べたい。「作物」を 置く 欄は？', '列', ['行', '値', 'フィルター'], '横に 並べる 見出しは「列」。'],
+    ['記録の 表から「項目ごとの 合計表」を マウス操作で 作る 機能は？', 'ピボットテーブル', ['オートフィル', '条件付き書式', 'フィルター'], 'ピボットテーブルは SUMIFS の 集計表を 自動で 作ってくれる 機能。'],
+  ] as const)
+  return choice(q, a, [...wrongs], why)
+}
+
+export const genCrossRef: QGen = () => {
+  const row = pick(['E', 'D', 'H'])
+  const top = COLS[COLS.indexOf(row) + 1]
+  const ask = pick(['left', 'top'] as const)
+  return ask === 'left'
+    ? choice(
+        `${top}2 の SUMIFS を 右へも 下へも コピーして 集計表を 作る。左の 見出し ${row}2 の 正しい 参照は？`,
+        `$${row}2`,
+        [`$${row}$2`, `${row}$2`, `${row}2`],
+        `右へ コピーしても ${row}列を 見続けるので 列を 固定、下へは ずれて ほしいので 行は そのまま → $${row}2。`,
+      )
+    : choice(
+        `${top}2 の SUMIFS を 右へも 下へも コピーして 集計表を 作る。上の 見出し ${top}1 の 正しい 参照は？`,
+        `${top}$1`,
+        [`$${top}$1`, `$${top}1`, `${top}1`],
+        `下へ コピーしても 1行目を 見続けるので 行を 固定、右へは ずれて ほしいので 列は そのまま → ${top}$1。`,
+      )
+}
+
+export const genFormulaCountifs: QGen = () => {
+  const rows = patrolRows(6)
+  const a = pick(AREAS)
+  const t = pick(TIMES)
+  return {
+    type: 'formula',
+    q: `E1 に、地区が「${a}」で 時間が「${t}」の 行の 数を 出せ！`,
+    table: rows.map((r) => [r[0], r[1]]),
+    target: 'E1',
+    expect: rows.filter((r) => r[0] === a && r[1] === t).length,
+    mustUse: 'COUNTIFS',
+    hint: `=COUNTIFS(A1:A6,"${a}",B1:B6,"${t}")`,
+    explain: `=COUNTIFS(A1:A6,"${a}",B1:B6,"${t}")。範囲と 条件の ペアを 並べる。`,
+  }
+}
+
+export const genFormulaSumifs: QGen = () => {
+  const rows = patrolRows(6)
+  const a = pick(AREAS)
+  const t = pick(TIMES)
+  return {
+    type: 'formula',
+    q: `E1 に、地区が「${a}」で 時間が「${t}」の 行の C列（数）の 合計を 出せ！`,
+    table: rows,
+    target: 'E1',
+    expect: rows.filter((r) => r[0] === a && r[1] === t).reduce((x, r) => x + r[2], 0),
+    mustUse: 'SUMIFS',
+    hint: `=SUMIFS(C1:C6,A1:A6,"${a}",B1:B6,"${t}")`,
+    explain: `=SUMIFS(C1:C6,A1:A6,"${a}",B1:B6,"${t}")。合計する 範囲（C列）が 最初。`,
+  }
+}
+
+export const genFormulaAvgif: QGen = () => {
+  const n = 6
+  const groups = shuffled(['赤', '赤', '赤', '白', '白', '白'])
+  const vals = groups.map(() => ri(5, 10) * 10)
+  const g = pick(['赤', '白'])
+  const fn = pick(['AVERAGEIF', 'MAXIFS', 'MINIFS'] as const)
+  const mine = vals.filter((_, i) => groups[i] === g)
+  const expect = fn === 'AVERAGEIF' ? mine.reduce((a, b) => a + b, 0) / mine.length : fn === 'MAXIFS' ? Math.max(...mine) : Math.min(...mine)
+  const hint = fn === 'AVERAGEIF' ? `=AVERAGEIF(A1:A${n},"${g}",B1:B${n})` : `=${fn}(B1:B${n},A1:A${n},"${g}")`
+  return {
+    type: 'formula',
+    q: `D1 に、A列が「${g}」の 行の B列の ${fn === 'AVERAGEIF' ? '平均' : fn === 'MAXIFS' ? '最大' : '最小'}を 出せ！`,
+    table: groups.map((x, i) => [x, vals[i]]),
+    target: 'D1',
+    expect,
+    mustUse: fn,
+    hint,
+    explain: `${hint}。${fn === 'AVERAGEIF' ? 'AVERAGEIF は SUMIF と 同じ 並び（条件の範囲が 先）。' : `${fn} は SUMIFS と 同じ 並び（答えを 探す 範囲が 先）。`}`,
+  }
+}
