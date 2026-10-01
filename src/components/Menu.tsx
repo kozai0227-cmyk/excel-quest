@@ -8,9 +8,14 @@ import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, SLOT_NAME, effectText, gearStats, type Slot } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
-import { jingle, setSoundOn, sfx, useSoundOn } from '../game/sound'
+import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
-const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', 'おと', 'セーブ', 'とじる'] as const
+const VOL_ROWS: [keyof Volume, string][] = [
+  ['bgm', 'BGM'],
+  ['sfx', '効果音'],
+]
+
+const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
 
 interface Props {
   gs: GameState
@@ -29,7 +34,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
   const [ecur, setEcur] = useState(0)
   const gear = gearStats(gs)
   const inputMode = useInputMode()
-  const soundOn = useSoundOn()
+  const volume = useVolume()
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
   const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
 
@@ -54,6 +59,12 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
     setNote('やくそうを つかった！ HPが かいふくした。')
   }
 
+  /** 音量を 変えて、効果音なら 新しい 大きさで 鳴らして みせる */
+  const changeVolume = (kind: keyof Volume, v: number) => {
+    setVolume(kind, v)
+    setTimeout(() => sfx(kind === 'sfx' ? 'hit' : 'select'), 90)
+  }
+
   const select = (i: number) => {
     const c = CMDS[i]
     setNote('')
@@ -66,11 +77,6 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
           ? 'ボタンで 答える（スマホ向け）に した。依頼は、Excel の 知識を 1つずつ 選んで 答える 形に なる。'
           : 'キーボードで 打つ（PC向け）に した。依頼は、Excel と 同じ 操作で 表を 直す 形に なる。',
       )
-      return
-    }
-    if (c === 'おと') {
-      setSoundOn(!soundOn)
-      setNote(soundOn ? 'BGM と 効果音を 消した。' : 'BGM と 効果音を 鳴らす ように した。')
       return
     }
     if (c === 'セーブ') {
@@ -87,6 +93,12 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
     if (k === 'up' || k === 'down') sfx('cursor')
     else if (k === 'ok') sfx('select')
     else if (k === 'cancel') sfx('cancel')
+    if (open === '設定') {
+      if (k === 'up' || k === 'down') setIcur((c) => (c + 1) % VOL_ROWS.length)
+      else if (k === 'left' || k === 'right') changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
+      else if (k === 'ok' || k === 'cancel') setOpen(null)
+      return
+    }
     if (open === 'そうび') {
       if (eqSlot) {
         const n = candidates.length
@@ -127,7 +139,6 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
           <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onClick={() => { setCursor(i); select(i) }}>
             {c}
             {c === 'にゅうりょく' && <small>：{inputMode === 'touch' ? 'ボタン' : 'キーボード'}</small>}
-            {c === 'おと' && <small>：{soundOn ? 'ON' : 'OFF'}</small>}
           </div>
         ))}
       </div>
@@ -183,6 +194,29 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
                 </li>
               </ul>
             ))}
+          {open === '設定' && (
+            <div className="settings">
+              <h4>サウンド</h4>
+              {VOL_ROWS.map(([kind, label], i) => (
+                <div key={kind} className={`vol-row ${i === icur ? 'on' : ''}`} onClick={() => setIcur(i)}>
+                  <span className="vol-label">{label}</span>
+                  <button type="button" className="vol-btn" data-nosfx onClick={() => changeVolume(kind, volume[kind] - 1)} aria-label={`${label}を 小さく`}>
+                    ◀
+                  </button>
+                  <div className="vol-bar">
+                    {Array.from({ length: VOLUME_MAX }, (_, n) => (
+                      <span key={n} className={n < volume[kind] ? 'lit' : ''} onClick={() => changeVolume(kind, n + 1 === volume[kind] ? n : n + 1)} />
+                    ))}
+                  </div>
+                  <button type="button" className="vol-btn" data-nosfx onClick={() => changeVolume(kind, volume[kind] + 1)} aria-label={`${label}を 大きく`}>
+                    ▶
+                  </button>
+                  <span className="vol-num">{volume[kind] === 0 ? 'OFF' : volume[kind]}</span>
+                </div>
+              ))}
+              <p className="muted vol-help">◀ ▶（← →キー）で 調整。0 に すると 消える。</p>
+            </div>
+          )}
           {open === 'スキル' &&
             (gs.skills.length ? (
               <ul className="skill-list">

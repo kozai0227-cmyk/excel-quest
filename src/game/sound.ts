@@ -80,20 +80,64 @@ export function setSoundOn(on: boolean) {
     void ctx.suspend()
   }
 }
+const subscribe = (f: () => void) => {
+  listeners.add(f)
+  return () => {
+    listeners.delete(f)
+  }
+}
 export function useSoundOn() {
-  return useSyncExternalStore(
-    (f) => {
-      listeners.add(f)
-      return () => listeners.delete(f)
-    },
-    () => enabled,
-  )
+  return useSyncExternalStore(subscribe, () => enabled)
+}
+
+// ---------------------------------------------------------------- 設定（音量）
+/** 音量は 0〜10 の 段階。BGM と 効果音を 別々に 決める */
+export interface Volume {
+  bgm: number
+  sfx: number
+}
+export const VOLUME_MAX = 10
+const VOL_KEY = 'excel-quest-volume'
+let volume: Volume = (() => {
+  try {
+    const v = JSON.parse(localStorage.getItem(VOL_KEY) ?? '{}') as Partial<Volume>
+    const ok = (n: unknown, d: number) => (typeof n === 'number' && n >= 0 && n <= VOLUME_MAX ? Math.round(n) : d)
+    return { bgm: ok(v.bgm, 7), sfx: ok(v.sfx, 7) }
+  } catch {
+    return { bgm: 7, sfx: 7 }
+  }
+})()
+/** 音量 7（はじめの 値）の ときの 大きさ。効果音は BGM に 負けないよう 大きめ */
+const BGM_GAIN = 0.6 / 7
+const SFX_GAIN = 2.2 / 7
+
+export function setVolume(kind: keyof Volume, v: number) {
+  volume = { ...volume, [kind]: Math.min(VOLUME_MAX, Math.max(0, Math.round(v))) }
+  try {
+    localStorage.setItem(VOL_KEY, JSON.stringify(volume))
+  } catch {
+    /* 保存できなくても 動く */
+  }
+  applyVolume()
+  listeners.forEach((f) => f())
+}
+export function useVolume() {
+  return useSyncExternalStore(subscribe, () => volume)
+}
+function applyVolume() {
+  if (!ctx) return
+  const now = ctx.currentTime
+  bgmBus.gain.setTargetAtTime(volume.bgm * BGM_GAIN, now, 0.03)
+  jingleBus.gain.setTargetAtTime(volume.bgm * BGM_GAIN, now, 0.03)
+  sfxBus.gain.setTargetAtTime(volume.sfx * SFX_GAIN, now, 0.03)
 }
 
 // ---------------------------------------------------------------- 音の 部品
 let ctx: AudioContext | null = null
 let master: GainNode
 let bgmBus: GainNode
+/** ジングルの 間だけ BGM を 小さくする */
+let duck: GainNode
 let sfxBus: GainNode
 let jingleBus: GainNode
 let noiseBuf: AudioBuffer
@@ -113,7 +157,7 @@ function setup() {
   if (!AC) return
   ctx = new AC()
   const comp = ctx.createDynamicsCompressor()
-  comp.threshold.value = -12
+  comp.threshold.value = -8
   comp.ratio.value = 4
   comp.connect(ctx.destination)
   master = ctx.createGain()
@@ -122,13 +166,15 @@ function setup() {
   meter = ctx.createAnalyser()
   comp.connect(meter)
   bgmBus = ctx.createGain()
-  bgmBus.gain.value = 0.6
+  bgmBus.gain.value = volume.bgm * BGM_GAIN
   bgmBus.connect(master)
+  duck = ctx.createGain()
+  duck.connect(bgmBus)
   jingleBus = ctx.createGain()
-  jingleBus.gain.value = 0.6
+  jingleBus.gain.value = volume.bgm * BGM_GAIN
   jingleBus.connect(master)
   sfxBus = ctx.createGain()
-  sfxBus.gain.value = 0.9
+  sfxBus.gain.value = volume.sfx * SFX_GAIN
   sfxBus.connect(master)
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
   const d = noiseBuf.getChannelData(0)
@@ -296,7 +342,7 @@ export function bgm(name: SongName | null) {
   if (!ctx || !enabled || ctx.state !== 'running') return
   if (current?.name === name) return
   stopTrack(0.5)
-  if (name) current = startTrack(name, Math.max(ctx.currentTime + 0.08, holdUntil), bgmBus)
+  if (name) current = startTrack(name, Math.max(ctx.currentTime + 0.08, holdUntil), duck)
 }
 
 /** 画面ごとの BGM（undefined の ときは 子の 画面に まかせる） */
@@ -320,12 +366,12 @@ export function jingle(name: SongName, opt: { stop?: boolean; delay?: number } =
     stopTrack(0.25)
     holdUntil = end + 0.3
   } else {
-    const g = bgmBus.gain
+    const g = duck.gain
     g.cancelScheduledValues(ctx.currentTime)
     g.setValueAtTime(g.value, ctx.currentTime)
-    g.linearRampToValueAtTime(0.05, at)
-    g.setValueAtTime(0.05, end)
-    g.linearRampToValueAtTime(0.6, end + 0.8)
+    g.linearRampToValueAtTime(0.08, at)
+    g.setValueAtTime(0.08, end)
+    g.linearRampToValueAtTime(1, end + 0.8)
   }
   startTrack(name, at, jingleBus)
 }
@@ -361,11 +407,11 @@ const nz = (dur: number, vol: number, type: BiquadFilterType, f: number, to?: nu
 
 const SFX = {
   /** ボタン・決定 */
-  select: () => tone({ f: 1050, dur: 0.05, vol: 0.07, wave: 'pulse25' }),
+  select: () => tone({ f: 1050, dur: 0.06, vol: 0.09, wave: 'pulse25' }),
   /** カーソル移動 */
-  cursor: () => tone({ f: 1400, dur: 0.03, vol: 0.05, wave: 'pulse12' }),
+  cursor: () => tone({ f: 1400, dur: 0.04, vol: 0.07, wave: 'pulse12' }),
   /** 会話を 送る */
-  blip: () => tone({ f: 780, dur: 0.035, vol: 0.05, wave: 'pulse12' }),
+  blip: () => tone({ f: 780, dur: 0.05, vol: 0.09, wave: 'pulse25' }),
   cancel: () => tone({ f: 520, to: 300, dur: 0.08, vol: 0.07, wave: 'pulse25' }),
   /** 出入り口・階段 */
   door: () => {
