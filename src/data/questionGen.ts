@@ -66,27 +66,43 @@ export const genNeighbor: QGen = () => {
   return choice(`「${COLS[ci]}${r}」の ${name}どなりの セルは？`, at(dirs[name]), others, '左右に動くと 列（アルファベット）が、上下に動くと 行（数字）が 変わる。')
 }
 
-export const genRangeCount: QGen = () => {
+export const genRangeWrite: QGen = () => {
+  // 範囲の 書き方（: で つなぐ）を 覚える
   const c1 = ri(0, 3)
-  const c2 = c1 + ri(0, 3)
-  const r1 = ri(1, 6)
-  const r2 = r1 + ri(1, 6)
-  const w = c2 - c1 + 1
-  const h = r2 - r1 + 1
+  const c2 = c1 + ri(0, 2)
+  const r1 = ri(1, 5)
+  const r2 = r1 + ri(2, 6)
+  const a = `${COLS[c1]}${r1}`
+  const z = `${COLS[c2]}${r2}`
   return choice(
-    `「${COLS[c1]}${r1}:${COLS[c2]}${r2}」の範囲に セルは いくつある？`,
-    w * h,
-    [w + h, w * h + w, w * h - h, (w + 1) * h],
-    `${w}列 × ${h}行 = ${w * h}個。「:」は 左上から 右下までの 四角い範囲。`,
+    `${a} から ${z} までの 範囲を 数式で 指定したい。正しい 書き方は？`,
+    `${a}:${z}`,
+    [`${a}-${z}`, `${a}~${z}`, `${a}→${z}`],
+    `範囲は「左上のセル:右下のセル」と「:（コロン）」で つなぐ。=SUM(${a}:${z}) のように 使う。`,
   )
 }
 
-export const genSumCellCount: QGen = () => {
-  const c = pick([...COLS.slice(0, 5)])
-  const r1 = ri(1, 8)
-  const r2 = r1 + ri(2, 12)
-  const n = r2 - r1 + 1
-  return choice(`=SUM(${c}${r1}:${c}${r2}) で 合計される セルの数は？`, n, [r2 - r1, r2, n + 1], `${c}${r1} から ${c}${r2} まで、${r2} − ${r1} + 1 = ${n}個。`)
+export const genRangeComma: QGen = () => {
+  // 「:」は 範囲、「,」は 1つずつ 並べる
+  const c = pick([...COLS.slice(0, 4)])
+  const n = ri(3, 5)
+  const cells = Array.from({ length: n }, (_, i) => `${c}${i + 1}`)
+  return pick([
+    () =>
+      choice(
+        `=SUM(${c}1:${c}${n}) と 同じ 意味の 式は？`,
+        `=${cells.join('+')}`,
+        [`=${c}1+${c}${n}`, `=SUM(${c}1,${c}${n})`, `=${c}1*${c}${n}`],
+        `「:」は ${c}1 から ${c}${n} までの すべての セル。「,」で 区切ると ${c}1 と ${c}${n} の 2つだけに なる。`,
+      ),
+    () =>
+      choice(
+        `=SUM(${c}1,${c}${n}) が 足すのは？`,
+        `${c}1 と ${c}${n} の 2つだけ`,
+        [`${c}1 から ${c}${n} まで すべて`, `${c}${n} だけ`, 'エラーに なる'],
+        `「,」は セルを 1つずつ 並べる 書き方。${c}1 から ${c}${n} まで まとめて 足すなら =SUM(${c}1:${c}${n})。`,
+      ),
+  ])()
 }
 
 // ---------------------------------------------------------------- オートフィル

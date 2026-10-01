@@ -94,7 +94,7 @@ export const BOSSES: Record<string, BossDef> = {
       G.genMaxMin,
       G.genAverageValues,
       G.genRelativeRef,
-      G.genSumCellCount,
+      G.genRangeComma,
       G.genFormulaSum,
       G.genFormulaAvg,
       G.genFormulaMul,
@@ -275,7 +275,7 @@ const BASICS: QuestionSrc[] = [
   G.genAddress,
   G.genNeighbor,
   G.genNeighbor,
-  G.genRangeCount,
+  G.genRangeWrite,
 ]
 
 const EDITS: QuestionSrc[] = [
@@ -288,7 +288,7 @@ const EDITS: QuestionSrc[] = [
   G.genCopyFill,
   G.genMonthFill,
   G.genDayFill,
-  G.genRangeCount,
+  G.genRangeWrite,
 ]
 
 const CALCS: QuestionSrc[] = [
@@ -301,7 +301,7 @@ const CALCS: QuestionSrc[] = [
   G.genSumValues,
   G.genSumValues,
   G.genAverageValues,
-  G.genSumCellCount,
+  G.genRangeComma,
 ]
 
 const FUNCS: QuestionSrc[] = [
