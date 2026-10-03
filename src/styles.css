@@ -1599,6 +1599,13 @@ kbd {
     linear-gradient(#0c0a14 0%, #241c34 48%, #4a4038 48%, #2a2420 100%);
 }
 
+.battle.bg-clock {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 190, 80, 0.2), transparent 55%),
+    repeating-radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.2) 0 3px, transparent 3px 14px),
+    linear-gradient(#120c06 0%, #2e2010 48%, #5a4626 48%, #3a2c16 100%);
+}
+
 .battle.bg-ship {
   background:
     radial-gradient(ellipse at 50% 30%, rgba(120, 255, 170, 0.18), transparent 55%),

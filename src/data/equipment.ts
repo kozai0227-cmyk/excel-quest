@@ -38,6 +38,8 @@ export const EQUIP: Record<string, EquipDef> = {
   royal_scepter: { name: '王都の笏', slot: 'weapon', price: 6200, atk: 72, desc: '縦と 横を 同時に 治める 王の 杖。' },
   quill_saber: { name: '羽ペンのサーベル', slot: 'weapon', price: 7200, atk: 79, desc: '書き損じを 一閃で 切り捨てる 細身の 剣。' },
   ampersand_blade: { name: 'アンパサンドの剣', slot: 'weapon', price: 8400, atk: 86, desc: '「&」の 形の 刀身。離れた ものを 1つに つなぐ。' },
+  clockhand_spear: { name: '時計の針の槍', slot: 'weapon', price: 9600, atk: 93, desc: '狂った 時計の 長針を 打ち直した 槍。' },
+  calendar_axe: { name: '暦のオノ', slot: 'weapon', price: 11000, atk: 101, desc: 'ひと振りで 1年分を なぎはらう 重い オノ。' },
   index_spear: { name: '索引の槍', slot: 'weapon', price: 4400, atk: 59, desc: '目録の 1行を 正確に 貫く 槍。' },
   // よろい（ビジネスウェア）
   old_suit: { name: 'いつものスーツ', slot: 'armor', price: 0, def: 1, desc: '転生前から 着ている 紺のスーツ。' },
@@ -48,6 +50,7 @@ export const EQUIP: Record<string, EquipDef> = {
   silver_suit: { name: 'ぎんのスーツ', slot: 'armor', price: 1100, def: 18, desc: '銀糸を 織りこんだ 光沢のある スーツ。' },
   captain_coat: { name: '船長のコート', slot: 'armor', price: 1800, def: 23, desc: '潮風にも 嵐にも 負けない 厚手の コート。' },
   typesetter_apron: { name: '植字工のエプロン', slot: 'armor', price: 4300, def: 38, desc: '鉛の 活字を 扱う 職人の 厚手の エプロン。' },
+  moonphase_robe: { name: '月齢のローブ', slot: 'armor', price: 5400, def: 44, desc: '月の 満ち欠けが 刺繍された ローブ。時の 流れを 味方に つける。' },
   royal_suit: { name: '王宮の礼服', slot: 'armor', price: 3400, def: 33, desc: '宰相も 認めた 正装。どんな 会議でも 動じない。' },
   librarian_robe: { name: '司書のローブ', slot: 'armor', price: 2600, def: 28, desc: '知識の 重みで 攻撃を 受け止める ローブ。' },
   // たて（書類ばさみ・PC）
@@ -57,6 +60,7 @@ export const EQUIP: Record<string, EquipDef> = {
   mirror_shield: { name: 'ミラーシールド', slot: 'shield', price: 950, def: 8, time: 7, desc: '攻撃を 映して はね返す 鏡の盾。' },
   buoy_shield: { name: '浮き輪のたて', slot: 'shield', price: 1500, def: 11, time: 8, desc: '沈まない 安心感。ミスしても 浮かび上がれる。' },
   galley_shield: { name: 'ゲラ箱のたて', slot: 'shield', price: 3600, def: 20, time: 11, desc: '活字を 並べる 箱を 打ち直した 頑丈な 盾。' },
+  hourglass_shield: { name: '砂時計のたて', slot: 'shield', price: 4400, def: 23, time: 13, desc: '落ちる 砂が 攻撃を 遅らせる。考える 時間も 増える。' },
   ledger_shield: { name: '総勘定のたて', slot: 'shield', price: 2900, def: 17, time: 10, desc: 'すべての 記録が 集まる 帳簿の 盾。' },
   catalog_shield: { name: '目録のたて', slot: 'shield', price: 2200, def: 14, time: 9, desc: '分厚い 目録の 表紙。調べものの 時間も 稼げる。' },
   // かぶと（集中グッズ）
@@ -65,6 +69,7 @@ export const EQUIP: Record<string, EquipDef> = {
   headphones: { name: 'ノイキャンヘッドホン', slot: 'head', price: 420, def: 3, time: 3, desc: '雑音を 消して 集中できる。' },
   captain_hat: { name: 'キャプテンハット', slot: 'head', price: 1400, def: 7, time: 3, desc: '「もしも」の時も 冷静に 判断できる 船長の帽子。' },
   proof_glasses: { name: '校正メガネ', slot: 'head', price: 3200, def: 13, time: 6, crit: 0.05, desc: '1文字の 誤りも 見逃さない。「一発決裁」が 出やすくなる。' },
+  alarm_band: { name: '目覚ましのハチマキ', slot: 'head', price: 3900, def: 15, time: 7, crit: 0.05, desc: 'どんな 締め切りにも 遅れない。「一発決裁」が 出やすくなる。' },
   pivot_crown: { name: 'ピボットの冠', slot: 'head', price: 2600, def: 11, time: 5, crit: 0.05, desc: '行と 列を 自在に 入れかえる 知恵の 冠。「一発決裁」が 出やすくなる。' },
   bookmark_band: { name: 'しおりのハチマキ', slot: 'head', price: 1900, def: 9, time: 4, crit: 0.05, desc: '大事な ページを 見失わない。「一発決裁」が 出やすくなる。' },
   loupe: { name: 'ルーペめがね', slot: 'head', price: 880, def: 5, time: 2, crit: 0.05, desc: '細かい「$」も 見逃さない。「一発決裁」が 出やすくなる。' },

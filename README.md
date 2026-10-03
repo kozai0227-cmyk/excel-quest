@@ -31,7 +31,7 @@ npm run check    # 依頼・謎がクリアできるか、戦闘の問題・マ�
 
 依頼ごとのステップは `src/data/guides.ts`。全ステップを正解すると 元の依頼の判定（`check`）も通るように作り、`npm run check` で確かめている。
 
-## 収録内容（第1章〜第6章）
+## 収録内容（第1章〜第7章）
 
 - **プロローグ**：現代のオフィス → 深夜に #REF! の光に包まれ転生
 - **はじまりの森**：目覚めるとセルイムが出現。戦い方を覚えるチュートリアル戦
@@ -64,6 +64,9 @@ npm run check    # 依頼・謎がクリアできるか、戦闘の問題・マ�
   - 行き方：ミツカラーヌを倒すと 東の街道が通れるようになる。ルックアップ東端の馬車の御者に話すと向かえる（ピボリアの馬車から いつでも戻れる）
 - **（第6章）文字の宿場町 テキストリア**：& で つなぐ・LEFT / RIGHT・MID・LEN（IF と組み合わせ）・TRIM / SUBSTITUTE・FIND（LEFT / RIGHT / LEN と組み合わせ） → ボス「文字化けの怪 モジバケーラ」
   - 行き方：バラバランを倒すと 西の宿場町への馬車が動く。ピボリア西端の御者に話すと向かえる（テキストリアの馬車から いつでも戻れる）
+- **（第7章）暦の里 コヨミノ**：日付の足し算・引き算（今日のセルを $ で固定）・YEAR / MONTH / DAY・WEEKDAY と IF・EDATE / EOMONTH・DATEDIF → ボス「刻を喰らう者 シメキリス」
+  - 行き方：モジバケーラを倒すと 東の里への馬車が動く。テキストリア東端の御者に話すと向かえる（コヨミノの馬車から いつでも戻れる）
+  - 日付は「2026/10/1」のように 年/月/日 で入力・表示する
   - ボスステージ：城の「大書庫」。棚の扉（VLOOKUP）・著者の扉（XLOOKUP で左の列）と、禁書の間の封印の扉（IFERROR＋VLOOKUP のコピー）を解いて進む
   - 戦闘：新しい敵ナイナイ・シオリムシ。数式問題では VLOOKUP・XLOOKUP・IFERROR を組み立てる
   - 数式の TRUE / FALSE は Excel と同じく そのまま書ける（`=VLOOKUP(…,FALSE)`）
@@ -111,9 +114,9 @@ src/
 ### 開発用ショートカット
 
 - `/?quest=calc_sum` … 指定クエストを直接開く
-- `/?boss=golem` … 指定ボスと直接戦う（第2章は `mirage`、第3章は `captain`、第4章は `mitsukaranu`、第5章は `barabaran`、第6章は `mojibake`）
+- `/?boss=golem` … 指定ボスと直接戦う（第2章は `mirage`、第3章は `captain`、第4章は `mitsukaranu`、第5章は `barabaran`、第6章は `mojibake`、第7章は `shimekiris`）
 - `/?prologue` … プロローグ（転生前のオフィス）から始める
-- `/?at=world,13,17` … 指定マップの指定座標から始める（例：`celuno_inn,6,7`、`sansho,1,13`、`temple1,11,14`、`ifport,16,1`、`ship1,10,12`、`lookup,16,23`、`library1,10,12`、`pivoria,16,26`、`treasury1,10,12`、`textria,16,25`、`print1,10,12`）
+- `/?at=world,13,17` … 指定マップの指定座標から始める（例：`celuno_inn,6,7`、`sansho,1,13`、`temple1,11,14`、`ifport,16,1`、`ship1,10,12`、`lookup,16,23`、`library1,10,12`、`pivoria,16,26`、`treasury1,10,12`、`textria,16,25`、`print1,10,12`、`koyomi,16,25`、`clock1,10,12`）
 - `/?ending=4` … 指定した章のエンディング画面を表示
 - `/?gallery` … 全キャラクターのドット絵を4方向で一覧表示
 - `/?soundtest` … BGM・ジングル・効果音を 1つずつ 鳴らして 確かめる（音は `src/data/music.ts` の 楽譜と `src/game/sound.ts` で その場で 合成）

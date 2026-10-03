@@ -2195,4 +2195,290 @@ Object.assign(QUESTS, {
   },
 } satisfies Record<string, QuestDef>)
 
+// ---------------------------------------------------------------- 第7章 コヨミノ（日付）
+/** 「2026/10/1」→ 日付（UTC） */
+const D = (t: string) => {
+  const [y, m, d] = t.split('/').map(Number)
+  return new Date(Date.UTC(y, m - 1, d))
+}
+const fmtD = (d: Date) => `${d.getUTCFullYear()}/${d.getUTCMonth() + 1}/${d.getUTCDate()}`
+const addDays = (t: string, n: number) => fmtD(new Date(D(t).getTime() + n * 86400000))
+const daysBetween = (a: string, b: string) => Math.round((D(b).getTime() - D(a).getTime()) / 86400000)
+/** EDATE：月を 足す（その月に ない 日は 月末に そろえる） */
+const addMonths = (t: string, n: number) => {
+  const d = D(t)
+  const y = d.getUTCFullYear()
+  const m = d.getUTCMonth() + n
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+  return fmtD(new Date(Date.UTC(y, m, Math.min(d.getUTCDate(), last))))
+}
+const monthEnd = (t: string) => {
+  const d = D(t)
+  return fmtD(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)))
+}
+/** WEEKDAY(日付, 2)：月曜 1 〜 日曜 7 */
+const weekday2 = (t: string) => ((D(t).getUTCDay() + 6) % 7) + 1
+/** DATEDIF の "Y" と "M" */
+const fullMonths = (a: string, b: string) => {
+  const x = D(a)
+  const y = D(b)
+  let m = (y.getUTCFullYear() - x.getUTCFullYear()) * 12 + (y.getUTCMonth() - x.getUTCMonth())
+  if (y.getUTCDate() < x.getUTCDate()) m--
+  return m
+}
+const fullYears = (a: string, b: string) => Math.floor(fullMonths(a, b) / 12)
+
+const ORDERS7: [string, number][] = [
+  ['2026/10/1', 7],
+  ['2026/10/5', 10],
+  ['2026/10/20', 14],
+  ['2026/10/28', 5],
+]
+const TODAY7 = '2026/10/10'
+const DEADLINES = ['2026/10/15', '2026/10/31', '2026/11/10', '2026/12/24']
+const BIRTHDAYS = ['1995/4/12', '1988/12/3', '2001/7/30', '1979/1/15']
+const MARKET_DAYS = ['2026/10/2', '2026/10/3', '2026/10/4', '2026/10/5', '2026/10/6']
+const CONTRACTS: [string, number][] = [
+  ['2026/1/15', 6],
+  ['2026/3/31', 1],
+  ['2026/8/10', 12],
+]
+const VILLAGERS: [string, string][] = [
+  ['ムラオサ', '2001/12/1'],
+  ['ハタケ', '2018/10/11'],
+  ['イズミ', '2016/10/9'],
+  ['モリ', '2010/4/1'],
+]
+
+Object.assign(QUESTS, {
+  date_add: {
+    id: 'date_add',
+    town: 'koyomi',
+    npc: '飛脚ハヤテ',
+    title: 'お届け予定日',
+    intro: [
+      'おっと、旅の人！ 飛脚の ハヤテだ。',
+      '荷物は「受付の日から 何日後に 届けるか」で 約束してる。予定日を 帳面に 書きたいんだが……',
+      '暦の 呪いで、10月の 次が 何月だったか、31日の 次が 何日だったか、さっぱり わからなく なっちまった！',
+    ],
+    task: ['C2:C5 に、受付日（A列）の 日数（B列）後の 日付を 出そう', '日付は 足し算・引き算が できる。=A2+B2'],
+    grid: () => makeGrid(6, 3, [['受付日', '日数', '届け予定日'], ...ORDERS7], ['A1', 'B1', 'C1']),
+    colWidths: [90, 50, 100],
+    hints: [
+      'Excel の 日付は「1日 ＝ 1」の 数として 扱われている。だから 足せば 何日後、引けば 何日前。',
+      '月や 年を またいでも、Excel が 暦どおりに 計算してくれる。',
+      'C2 に =A2+B2 → C5 まで オートフィル。',
+    ],
+    check: (c) => eachVal(c, ORDERS7.map(([d, n], i) => [`C${i + 2}`, addDays(d, n)]), undefined),
+    reward: { exp: 330, gold: 320, skill: 'dateadd' },
+    thanks: [
+      '10月20日の 14日後は 11月3日、28日の 5日後は 11月2日……月を またいでも ばっちりだ！',
+      '日付は 数と 同じように 足せる……こりゃ 便利だな。',
+      'これで お客さんとの 約束を 破らずに すむぜ。ありがとよ！',
+    ],
+  },
+
+  date_diff: {
+    id: 'date_diff',
+    town: 'koyomi',
+    npc: '鍛冶屋の弟子ノコリ',
+    title: '締め切りまで あと何日',
+    intro: [
+      'あ、あの……鍛冶屋の 弟子の ノコリです。',
+      '注文の 締め切りが いくつも あって、それぞれ「今日から あと何日か」を 知りたいんです。',
+      'カレンダーを 指で 数えてたら、途中で 何日目か わからなく なって……。',
+    ],
+    task: ['B2:B5 に、締め切り（A列）まで 今日（E1）から あと何日かを 出そう', '1つ 作って 下へ コピー。今日の セルは $ で 固定'],
+    grid: () => makeGrid(6, 5, [['締め切り', 'あと何日', '', '今日', TODAY7], ...DEADLINES.map((d) => [d])], ['A1', 'B1', 'D1']),
+    colWidths: [100, 70, 20, 50, 100],
+    hints: [
+      '日付どうしを 引き算すると、間の 日数が 出る。締め切り − 今日。',
+      '下へ コピーしても 今日の セル（E1）が ずれないよう $E$1 に する。',
+      'B2 に =A2-$E$1 → B5 まで オートフィル。',
+    ],
+    check: (c) => first(...DEADLINES.map((d, i) => expectNum(c, `B${i + 2}`, daysBetween(TODAY7, d), 'formula'))),
+    reward: { exp: 340, gold: 330, skill: 'datediff' },
+    thanks: [
+      'あと 5日、21日、31日、75日……！ いちばん 急ぐのは 10月15日の 注文ですね。',
+      '引き算するだけで 日数が 出る。今日の セルを 書きかえれば、毎日 使えますね！',
+      '師匠に 怒られずに すみそうです。ありがとうございます！',
+    ],
+  },
+
+  date_parts: {
+    id: 'date_parts',
+    town: 'koyomi',
+    npc: 'お祝い係ハレ',
+    title: '誕生月のお祝い',
+    intro: [
+      'こんにちは！ 村の お祝い係、ハレです。',
+      '毎月、その月が 誕生日の 人を お祝いするんですけど、名簿の 誕生日が「1995/4/12」みたいに 年・月・日 ぜんぶ くっついてて……',
+      '月と 日だけ 取り出す 方法って ないですか？',
+    ],
+    task: ['B2:B5 に、誕生日の「月」を 取り出そう（MONTH）', 'C2:C5 に、誕生日の「日」を 取り出そう（DAY）'],
+    grid: () => makeGrid(6, 3, [['誕生日', '月', '日'], ...BIRTHDAYS.map((d) => [d])], ['A1', 'B1', 'C1']),
+    colWidths: [100, 50, 50],
+    hints: [
+      '=YEAR(日付) で 年、=MONTH(日付) で 月、=DAY(日付) で 日を 数として 取り出せる。',
+      '月は =MONTH(A2)、日は =DAY(A2)。',
+      'B2 に =MONTH(A2)、C2 に =DAY(A2)。どちらも 5行目まで オートフィル。',
+    ],
+    check: (c) =>
+      first(
+        ...BIRTHDAYS.map((d, i) => expectNum(c, `B${i + 2}`, D(d).getUTCMonth() + 1, 'MONTH')),
+        ...BIRTHDAYS.map((d, i) => expectNum(c, `C${i + 2}`, D(d).getUTCDate(), 'DAY')),
+      ),
+    reward: { exp: 340, gold: 330, skill: 'dateparts' },
+    thanks: [
+      '4月、12月、7月、1月……日も ちゃんと 出ました！',
+      '月が 数に なれば、COUNTIF で「今月 誕生日の 人数」も 数えられますね！',
+      'お祝いの 準備が はかどります。ありがとう！',
+    ],
+  },
+
+  date_weekday: {
+    id: 'date_weekday',
+    town: 'koyomi',
+    npc: '市場番ヨウビ',
+    title: '市場の休み',
+    intro: [
+      '市場番の ヨウビじゃ。',
+      'この 村の 市場は、土曜と 日曜が 休み。じゃが 暦の 呪いで、日付から 曜日が わからなく なってしもうた。',
+      '「その日は 開いとるか」と 聞かれても、答えられんのじゃ……。',
+    ],
+    task: ['B2:B6 に、土曜・日曜なら「休み」、それ以外は「営業」と 出そう', '=WEEKDAY(日付, 2) は 月曜が 1、土曜が 6、日曜が 7'],
+    grid: () => makeGrid(7, 2, [['日付', '市場'], ...MARKET_DAYS.map((d) => [d])], ['A1', 'B1']),
+    colWidths: [100, 60],
+    hints: [
+      'WEEKDAY は 曜日を 数で 返す。2つ目に 2 を 書くと 月曜 1 〜 日曜 7。',
+      '土日は 6 と 7、つまり「6以上」。IF の 条件に WEEKDAY(A2,2)>=6 と 書く。',
+      'B2 に =IF(WEEKDAY(A2,2)>=6,"休み","営業") → B6 まで オートフィル。',
+    ],
+    check: (c) => eachVal(c, MARKET_DAYS.map((d, i) => [`B${i + 2}`, weekday2(d) >= 6 ? '休み' : '営業']), 'WEEKDAY'),
+    reward: { exp: 350, gold: 340, skill: 'weekday' },
+    thanks: [
+      '3日と 4日が 休みで、あとは 営業……そうじゃ、そうじゃった！',
+      '曜日を 数に すれば、IF で 判断できる。「6以上は 休み」とは わかりやすい。',
+      '客に 聞かれても もう 迷わん。礼を 言うぞ。',
+    ],
+  },
+
+  date_edate: {
+    id: 'date_edate',
+    town: 'koyomi',
+    npc: '契約係ツキミ',
+    title: '契約の更新日',
+    intro: [
+      '契約係の ツキミと 申します。',
+      '畑の 貸し借りの 契約は「○か月ごとに 更新」で、お代は「その月の 末日」に 締めます。',
+      '月によって 30日だったり 31日だったり、2月は 28日だったり……もう 頭が こんがらがって しまって。',
+    ],
+    task: ['C2:C4 に、開始日（A列）の 月数（B列）後の 更新日を 出そう（EDATE）', 'D2:D4 に、開始日の 月の 末日を 出そう（EOMONTH）'],
+    grid: () => makeGrid(5, 4, [['開始日', '月数', '更新日', '月末'], ...CONTRACTS], ['A1', 'B1', 'C1', 'D1']),
+    colWidths: [100, 50, 100, 100],
+    hints: [
+      '=EDATE(日付, 月数) で ○か月後の 同じ日。その月に ない 日（4月31日 など）は 月末に なる。',
+      '=EOMONTH(日付, 0) で その月の 末日。1 に すると 翌月の 末日。',
+      'C2 に =EDATE(A2,B2)、D2 に =EOMONTH(A2,0)。どちらも 4行目まで オートフィル。',
+    ],
+    check: (c) =>
+      first(
+        eachVal(c, CONTRACTS.map(([d, n], i) => [`C${i + 2}`, addMonths(d, n)]), 'EDATE'),
+        eachVal(c, CONTRACTS.map(([d], i) => [`D${i + 2}`, monthEnd(d)]), 'EOMONTH'),
+      ),
+    reward: { exp: 360, gold: 350, skill: 'edate' },
+    thanks: [
+      '3月31日の 1か月後は 4月30日……4月に 31日が ないことまで 考えて くれるのですね！',
+      '何日 足すか ではなく、何か月 足すか。暦に 合わせた 計算が できるのですね。',
+      '契約の 帳面が すっきりしました。ありがとうございます。',
+    ],
+  },
+
+  date_datedif: {
+    id: 'date_datedif',
+    town: 'koyomi',
+    npc: '村長トキワ',
+    title: '勤続のお祝い',
+    intro: [
+      '村長の トキワじゃ。村の 暦を 次々と 取り戻して くれて、礼を 言う。',
+      '最後に 頼みが ある。村に 来てから 10年 以上 たつ 者を 表彰したいのじゃ。',
+      'じゃが「何年 たったか」を 引き算で 出そうと すると、日数に なって しまって……。',
+    ],
+    task: ['B2:B5 に、入村日（A列）から 今日（E1）までの 年数（満年数）を 出そう', 'C2:C5 に、10年 以上なら「表彰」、それ以外は「-」と 出そう'],
+    grid: () => makeGrid(6, 5, [['入村日', '年数', '表彰', '今日', TODAY7], ...VILLAGERS.map(([, d]) => [d])], ['A1', 'B1', 'C1', 'D1']),
+    colWidths: [100, 50, 60, 50, 100],
+    hints: [
+      '=DATEDIF(開始日, 終了日, "Y") で 満年数。"M" なら 満月数、"D" なら 日数。',
+      '今日の セルは コピーしても ずれないよう $E$1。',
+      'B2 に =DATEDIF(A2,$E$1,"Y")、C2 に =IF(B2>=10,"表彰","-")。どちらも 5行目まで オートフィル。',
+    ],
+    check: (c) =>
+      first(
+        ...VILLAGERS.map(([, d], i) => expectNum(c, `B${i + 2}`, fullYears(d, TODAY7), 'DATEDIF')),
+        eachVal(c, VILLAGERS.map(([, d], i) => [`C${i + 2}`, fullYears(d, TODAY7) >= 10 ? '表彰' : '-']), 'IF'),
+      ),
+    reward: { exp: 380, gold: 370, skill: 'datedif' },
+    thanks: [
+      '24年、7年、10年、16年……2016年10月9日の 者は、きのうで ちょうど 10年じゃな。',
+      '「満何年」は DATEDIF。引き算と ちがって、誕生日を 迎えたかまで 見て くれるのじゃな。',
+      'じゃが 村の 暦を 狂わせた 張本人は、北の 時計塔に 棲む「シメキリス」。どうか、時を 取り戻して くれ。',
+    ],
+  },
+} satisfies Record<string, QuestDef>)
+
+// ---------------------------------------------------------------- 時計塔の扉（謎解き）
+const TERMS: [string, string][] = [
+  ['2026/1/10', '2026/4/10'],
+  ['2025/6/1', '2026/6/1'],
+  ['2026/2/20', '2026/3/19'],
+]
+
+Object.assign(QUESTS, {
+  clk_add: {
+    id: 'clk_add',
+    kind: 'puzzle',
+    town: 'clock',
+    npc: '百日の扉',
+    title: '百日の扉',
+    intro: ['扉に 日付と 数字が 刻まれている。', '「始まりの日より 百日の 後、その 日付を 示せ」――と 読める。'],
+    task: ['C2 に、A2 の 日付の B2 日後の 日付を 示せ'],
+    grid: () => makeGrid(3, 3, [['始まりの日', '日数', '百日の後'], ['2026/1/1', 100]]),
+    colWidths: [100, 50, 100],
+    hints: [],
+    check: (c) => expectVal(c, 'C2', addDays('2026/1/1', 100), undefined, true),
+    reward: { exp: 160, gold: 0 },
+    thanks: [`「${addDays('2026/1/1', 100)}」の 文字が 光り、扉が 開いた！`],
+  },
+  clk_weekday: {
+    id: 'clk_weekday',
+    kind: 'puzzle',
+    town: 'clock',
+    npc: '曜日の扉',
+    title: '曜日の扉',
+    intro: ['扉に 7つの 穴が 並び、1つの 日付が 刻まれている。', '「この日は 月より 数えて 幾つめの 日か。その 数を 示せ」――と 読める。'],
+    task: ['B2 に、A2 の 日付の 曜日を 月曜 1 〜 日曜 7 の 数で 示せ'],
+    grid: () => makeGrid(3, 2, [['日付', '曜日の数'], ['2026/12/25']]),
+    colWidths: [100, 70],
+    hints: [],
+    check: (c) => expectNum(c, 'B2', weekday2('2026/12/25'), 'WEEKDAY', 'B2', true),
+    reward: { exp: 170, gold: 0 },
+    thanks: ['7つの 穴の 1つに 光が ともり、錠が はずれた！'],
+  },
+  clk_months: {
+    id: 'clk_months',
+    kind: 'puzzle',
+    town: 'clock',
+    npc: '月日の扉',
+    title: '月日の扉',
+    intro: ['時計塔の 最上階へ 続く 扉。', '「3つの 時の 間、満ちた 月の 数を 示せ。1つの 式を すべてに 映せ」――と 読める。'],
+    task: ['C2:C4 に、開始日（A列）から 終了日（B列）までの 満月数を 示せ'],
+    grid: () => makeGrid(5, 3, [['開始日', '終了日', '満ちた月'], ...TERMS]),
+    colWidths: [100, 100, 70],
+    hints: [],
+    check: (c) => first(...TERMS.map(([a, b], i) => expectNum(c, `C${i + 2}`, fullMonths(a, b), 'DATEDIF', `C${i + 2}`, true))),
+    reward: { exp: 190, gold: 0 },
+    thanks: ['時計塔の 鐘が 1つ 鳴り、最上階への 扉が 開いた……！'],
+  },
+} satisfies Record<string, QuestDef>)
+
 export const townQuests = (town: string) => Object.values(QUESTS).filter((q) => q.town === town)

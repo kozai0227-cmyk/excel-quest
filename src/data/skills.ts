@@ -46,5 +46,11 @@ export const SKILLS: Record<string, SkillDef> = {
   len: { name: 'LEN', town: 'テキストリア', desc: '=LEN(文字列) で 文字数。空白も 1文字。IF と 組み合わせて 長さの 判定にも 使える。' },
   clean: { name: 'TRIM・SUBSTITUTE', town: 'テキストリア', desc: '=TRIM(文字列) で よけいな 空白を 消す。=SUBSTITUTE(文字列, 探す, 置きかえ) で 文字を 置きかえる。' },
   find: { name: 'FIND', town: 'テキストリア', desc: '=FIND("@", A2) で その文字が 何文字目か わかる。=LEFT(A2,FIND("@",A2)-1) で @ の 前を 取り出す。' },
+  dateadd: { name: '日付の 足し算', town: 'コヨミノ', desc: '日付は「1日 ＝ 1」の 数。=A2+7 で 7日後。月や 年を またいでも 暦どおり。' },
+  datediff: { name: '日付の 引き算', town: 'コヨミノ', desc: '=締め切り-今日 で 間の 日数。今日の セルは $E$1 のように 固定して コピー。' },
+  dateparts: { name: 'YEAR・MONTH・DAY', town: 'コヨミノ', desc: '=YEAR(日付)・=MONTH(日付)・=DAY(日付) で 年・月・日を 数として 取り出す。' },
+  weekday: { name: 'WEEKDAY', town: 'コヨミノ', desc: '=WEEKDAY(日付, 2) で 月曜 1 〜 日曜 7。土日は「6以上」で 判定できる。' },
+  edate: { name: 'EDATE・EOMONTH', town: 'コヨミノ', desc: '=EDATE(日付, 月数) で ○か月後、=EOMONTH(日付, 0) で その月の 末日。' },
+  datedif: { name: 'DATEDIF', town: 'コヨミノ', desc: '=DATEDIF(開始日, 終了日, "Y") で 満年数。"M" で 満月数、"D" で 日数。' },
   notfound: { name: 'XLOOKUP の 見つからないとき', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")。4つ目に 見つからない ときの 値を 書ける。' },
 }

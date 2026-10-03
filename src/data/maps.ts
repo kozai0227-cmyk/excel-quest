@@ -213,6 +213,20 @@ Object.assign(C, {
   kid7: { hair: 'spiky', hairColor: '#2a1a1a', eyes: 'big', blush: true, outfit: 'tunic', color: '#e0a030', accent: '#5a3a1a', pants: '#3a5ab0' },
 } satisfies Record<string, CharSpec>)
 
+// 第7章 コヨミノの人々
+Object.assign(C, {
+  tokiwa: { hair: 'bald', hairColor: '#d0d0d0', beard: 'long', beardColor: '#f0f0f0', eyes: 'closed', outfit: 'robe', color: '#5a4a8a', accent: '#f0c040' },
+  hayate: { hair: 'spiky', hairColor: '#2a1a1a', skin: '#d89a68', outfit: 'tunic', color: '#3a6ab0', accent: '#f0c040', pants: '#2a2a3a', hat: 'bandana', hatColor: '#d03030' },
+  nokori: { hair: 'messy', hairColor: '#6a3a1a', eyes: 'big', outfit: 'overalls', color: '#5a5a6a', inner: '#e8e0d0' },
+  hare: { hair: 'twin', hairColor: '#f0a040', eyes: 'big', blush: true, outfit: 'dress', color: '#f080a8', inner: '#ffffff' },
+  youbi: { hair: 'bald', hairColor: '#a0a0a0', beard: 'mustache', beardColor: '#e0e0e0', outfit: 'vest', color: '#3a7a4a', inner: '#f0e8d0', hat: 'straw', hatColor: '#e0c060' },
+  tsukimi: { hair: 'long', hairColor: '#1a1a2a', glasses: true, eyes: 'closed', outfit: 'coat', color: '#2a3a6a', inner: '#f4f4f4', accent: '#e0c050' },
+  clockman: { hair: 'neat', hairColor: '#8a8a8a', glasses: true, beard: 'mustache', beardColor: '#8a8a8a', outfit: 'vest', color: '#6a4a2a', inner: '#f0e8d0', accent: '#e0b040' },
+  inn8: { hair: 'bun', hairColor: '#3a2a1a', eyes: 'closed', outfit: 'apron', color: '#5a4a8a', inner: '#ffffff' },
+  shop8: { hair: 'neat', hairColor: '#2a1a1a', beard: 'stubble', outfit: 'leather', color: '#e8e0cc', accent: '#5a4a8a', pants: '#3a3a44', hat: 'beret', hatColor: '#5a4a8a' },
+  kid8: { hair: 'bob', hairColor: '#3a2a1a', eyes: 'big', blush: true, outfit: 'tunic', color: '#3aa07a', accent: '#5a3a1a', pants: '#4a4a58' },
+} satisfies Record<string, CharSpec>)
+
 const inn = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '宿屋', look, kind: 'inn' })
 const church = (id: string, x: number, y: number): NpcDef => ({ id, x, y, name: '神父', look: C.priest, kind: 'church' })
 const shop = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '道具屋', look, kind: 'shop' })
@@ -713,6 +727,78 @@ const PRINT2 = [
 ]
 const printEnemies = () => ['kuuhaku', 'kirehashi', 'kuuhaku']
 const PRINT_RATE = 1 / 32
+
+// ================================================================ 暦の里 コヨミノ
+function koyomiTiles() {
+  const m = blank(34, 28)
+  forest(m)
+  rect(m, 'M', 1, 1, 32, 4)
+  // 北の 時計塔（ダンジョンの 入口）
+  rect(m, 'X', 13, 1, 8, 1)
+  rect(m, 'V', 13, 2, 8, 3)
+  put(m, 'v', [[14, 2], [19, 2], [14, 3], [19, 3], [16, 2], [17, 2]])
+  m[4][16] = 'd'
+  rect(m, '.', 15, 5, 3, 1)
+  rect(m, 'Z', 15, 6, 3, 1)
+  // 道と 広場
+  rect(m, 'T', 15, 7, 3, 20)
+  rect(m, 'T', 1, 12, 32, 2)
+  rect(m, 'T', 1, 21, 32, 2)
+  rect(m, 'T', 12, 14, 9, 5)
+  rect(m, 'u', 15, 15, 3, 3)
+  m[16][16] = 'f'
+  // 北の並び
+  building(m, 2, 7, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 9, 7, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
+  building(m, 19, 7, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
+  building(m, 26, 7, 6, { roof: 'N', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
+  // 南の並び
+  building(m, 2, 16, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 7, 16, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
+  building(m, 22, 16, 5, { roof: 'Q', stone: true, upper: true, winUpper: [1, 3], winLower: [0, 4], door: 2, sign: [3, '5'] })
+  building(m, 28, 16, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  // 市場と 飾り
+  put(m, 'A', [[5, 24], [6, 24], [7, 24], [25, 24], [26, 24], [27, 24]])
+  put(m, 'S', [[14, 7]])
+  put(m, 'L', [[14, 11], [18, 11], [7, 14], [26, 14], [14, 24], [18, 24]])
+  put(m, 'p', [[1, 11], [32, 11], [12, 19], [20, 19], [13, 23], [19, 23]])
+  put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [11, 26], [21, 26]])
+  put(m, 'n', [[13, 18], [19, 18]])
+  sprinkle(m, 53, 7)
+  return done(m)
+}
+
+const CLOCK1 = [
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[:::::[[[{[[[:::::[[[',
+  '[[:::::[[:::[[:::::[[[',
+  '[[[[[:[[[[([[[[:[[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L:[[[:::::[[[:L:[[[',
+  '[[:::[[[:::::[[[:::[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[([[[[[[[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:::L:::::::::L:::[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[-[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+]
+const CLOCK2 = [
+  '[[[[[[[[[[[[[[[[[[',
+  '[::::::::::::::::[',
+  '[::L::::::::::L::[',
+  '[::::::::::::::::[',
+  '[[[[[[[[([[[[[[[[[',
+  '[::::::::::::::::[',
+  '[:L::::::::::::L:[',
+  '[::::::::::::::::[',
+  '[:::::::}::::::::[',
+  '[[[[[[[[[[[[[[[[[[',
+]
+const clockEnemies = () => ['karendaru', 'tokeidori', 'karendaru']
+const CLOCK_RATE = 1 / 32
 
 // ================================================================ はじまりの森
 function forestTiles() {
@@ -1522,6 +1608,12 @@ const textria: MapDef = {
       lines: ['五・七・五の 歌を 詠んで いるのだが、文字数を 数えるのが 苦手でね。', 'LEN という 魔法が あれば、指を 折らずに すむのだが……。'],
       linesAfter: { when: (s) => s.solved.includes('text_len'), lines: ['LEN で 数えたら、わたしの 歌は 5・8・5 だった……。字余りじゃ。'] },
     },
+    {
+      id: 'text_coach2', x: 32, y: 13, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'left',
+      lines: ['宿場の 文字が 戻って、東の 里への 便も 出せるように なった！', '行き先は「暦の里 コヨミノ」。時計塔の ある 静かな 里さ。……もっとも 最近は、日付が 狂って 大騒ぎらしいがね。'],
+      ferry: { to: 'koyomi', x: 16, y: 25, dir: 'up', place: '暦の里 コヨミノ', verb: '向かう' },
+      hideIf: (s) => !s.bosses.includes('mojibake'),
+    },
     { id: 'cat5', x: 6, y: 23, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ……ニ繝｣……？', '（ネコの 鳴き声まで 化けている……）'] },
   ],
 }
@@ -1569,6 +1661,88 @@ const print2: MapDef = {
   // モジバケーラの 前では 敵は出ない
   encounter: (_x, y) => (y <= 3 ? null : printEnemies()),
   encounterRate: PRINT_RATE,
+}
+
+// ---------------------------------------------------------------- 第7章
+const koyomi: MapDef = {
+  id: 'koyomi',
+  name: '暦の里 コヨミノ',
+  kind: 'town',
+  town: 'koyomi',
+  bossId: 'shimekiris',
+  tiles: koyomiTiles(),
+  spawn: { x: 16, y: 25, dir: 'up' },
+  respawn: { map: 'koyo_church', x: 5, y: 4 },
+  exits: [{ x: 16, y: 4, to: 'clock1', tx: 10, ty: 12, dir: 'up' }],
+  signs: [
+    { x: 14, y: 7, lines: ['コヨミノ 時計塔 ― 里の 暦と 時を 刻み続けて 300年。', 'いまは「刻を喰らう者 シメキリス」が 棲みつき、里の 日付を 狂わせているという。', '里の 悩みを すべて 解決すれば、時計塔の 結界は とけるだろう。'] },
+  ],
+  npcs: [
+    { id: 'nokori', x: 10, y: 22, name: '鍛冶屋の弟子ノコリ', look: C.nokori, kind: 'quest', questId: 'date_diff', dir: 'down' },
+    { id: 'youbi', x: 26, y: 23, name: '市場番ヨウビ', look: C.youbi, kind: 'quest', questId: 'date_weekday', dir: 'down' },
+    {
+      id: 'koyo_coach', x: 17, y: 26, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
+      lines: ['テキストリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'textria', x: 31, y: 13, dir: 'right', place: '文字の宿場町 テキストリア', verb: '向かう' },
+    },
+    {
+      id: 'clockman', x: 18, y: 8, name: '時計守りのゼンマイ', look: C.clockman, kind: 'guard', dir: 'left',
+      lines: ['この先は 時計塔じゃ。わしは 300年 この 塔の 時計を 守ってきた 家の 者。', 'シメキリスが 棲みついてから、時計は 好き勝手に 進んだり 戻ったり……里の 暦も めちゃくちゃじゃ。', '里の 者たちの 悩みが 晴れれば、結界も 弱まるはずじゃが……。'],
+      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['聞こえるかの、正しい 鐘の 音が。', '里の 暦が 戻った。あんたの おかげじゃ。'] },
+    },
+    {
+      id: 'kid8', x: 22, y: 13, name: '里の子ども', look: C.kid8, kind: 'talk', wander: true, emote: 'question',
+      lines: ['ぼくの 誕生日まで あと 何日？ ってきいたら、母ちゃんが「わからない」って。', 'カレンダーの 呪いで、日付が 数えられないんだって！'],
+      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['誕生日まで あと 12日！ 引き算で すぐ わかったよ！'] },
+    },
+    { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
+    { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）'] },
+  ],
+}
+
+const clock1: MapDef = {
+  id: 'clock1',
+  name: 'コヨミノ 時計塔',
+  kind: 'dungeon',
+  tiles: CLOCK1,
+  spawn: { x: 10, y: 12, dir: 'up' },
+  exits: [
+    { x: 10, y: 13, to: 'koyomi', tx: 16, ty: 5, dir: 'down' },
+    { x: 10, y: 2, to: 'clock2', tx: 8, ty: 7, dir: 'up' },
+  ],
+  signs: [],
+  gates: [
+    { x: 10, y: 9, puzzle: 'clk_add' },
+    { x: 10, y: 4, puzzle: 'clk_weekday' },
+  ],
+  npcs: [
+    ...chest('clk_chest1', 2, 2, { item: 'herb' }),
+    ...chest('clk_chest2', 18, 2, { gold: 1000 }),
+    ...chest('clk_chest3', 18, 12, { item: 'scroll' }),
+  ],
+  encounter: clockEnemies,
+  encounterRate: CLOCK_RATE,
+}
+
+const clock2: MapDef = {
+  id: 'clock2',
+  name: 'コヨミノ 時計塔 最上階',
+  kind: 'dungeon',
+  light: true,
+  tiles: CLOCK2,
+  spawn: { x: 8, y: 7, dir: 'up' },
+  exits: [{ x: 8, y: 8, to: 'clock1', tx: 10, ty: 3, dir: 'down' }],
+  bossExit: { map: 'koyomi', x: 16, y: 5, dir: 'down' },
+  signs: [],
+  gates: [{ x: 8, y: 4, puzzle: 'clk_months' }],
+  npcs: [
+    ...chest('clk_chest4', 3, 7, { equip: 'hourglass_shield' }),
+    { id: 'clk_spring', x: 14, y: 7, name: 'ふしぎな 泉', creature: 'spring', kind: 'heal' },
+    { id: 'boss_shimekiris', x: 8, y: 2, name: '刻を喰らう者 シメキリス', creature: 'shimekiris', kind: 'boss', bossId: 'shimekiris', hideIf: (s) => s.bosses.includes('shimekiris') },
+  ],
+  // シメキリスの 前では 敵は出ない
+  encounter: (_x, y) => (y <= 3 ? null : clockEnemies()),
+  encounterRate: CLOCK_RATE,
 }
 
 const rooms: MapDef[] = [
@@ -1835,13 +2009,48 @@ const rooms: MapDef[] = [
     { id: 'denwa', x: 2, y: 2, name: '通信士デンワ', look: C.denwa, kind: 'quest', questId: 'text_mid' },
     { id: 'caller', x: 7, y: 5, name: '電話を かけに 来た 商人', look: C.shop5, kind: 'talk', lines: ['局番ごとに 料金が ちがうらしいんだが、番号の どこが 局番か わからなくてね。'] },
   ]),
+  room('koyo_hall', '村長の家', 'koyomi', 'hall', [
+    { id: 'tokiwa', x: 6, y: 2, name: '村長トキワ', look: C.tokiwa, kind: 'quest', questId: 'date_datedif' },
+    { id: 'koyo_wife', x: 9, y: 5, name: '村長の妻', look: C.toki, kind: 'talk', wander: true, lines: ['うちの 人ったら、村人の 入村日を 帳面に 書いては、指折り 数えて いるのよ。', '「満 何年」って、数えるの 難しいのよね。誕生日を 過ぎたか どうかも あるし。'] },
+  ]),
+  room('koyo_weapon', '時の武器屋', 'koyomi', 'weapon', [
+    {
+      id: 'koyo_smith', x: 2, y: 2, name: '武器屋ハリ', look: C.smith6, kind: 'gear',
+      stock: ['quill_saber', 'ampersand_blade', 'clockhand_spear', 'calendar_axe'],
+      lines: ['いらっしゃい。時計の 針から 打った 槍が 自慢さ。', '暦のオノは、ひと振りで 1年分の 敵を なぎはらうって 評判だよ。'],
+    },
+  ]),
+  room('koyo_armor', '時の防具屋', 'koyomi', 'armor', [
+    {
+      id: 'koyo_tailor', x: 2, y: 2, name: '防具屋トケ', look: C.clockman, kind: 'gear',
+      stock: ['typesetter_apron', 'moonphase_robe', 'galley_shield', 'hourglass_shield', 'proof_glasses', 'alarm_band'],
+      lines: ['いらっしゃい。時を 味方に つける 防具を そろえて おるよ。', '目覚ましのハチマキは、どんな 締め切りにも 遅れない 優れものじゃ。'],
+    },
+  ]),
+  room('koyo_inn', 'コヨミノの宿屋', 'koyomi', 'inn', [
+    inn('inn8', 8, 2, C.inn8),
+    { id: 'guest8', x: 5, y: 5, name: '湯治の 旅人', look: C.traveler, kind: 'talk', lines: ['3泊の つもりで 来たのに、いつ 帰る 日なのか わからなく なってしまった。', '「到着日 ＋ 3」で わかるはず なんだが……。'] },
+  ]),
+  room('koyo_church', 'コヨミノの教会', 'koyomi', 'church', [church('church8', 5, 2)]),
+  room('koyo_shop', '暦の道具屋', 'koyomi', 'shop', [
+    shop('shop8', 2, 2, C.shop8),
+    { id: 'tsukimi', x: 7, y: 4, name: '契約係ツキミ', look: C.tsukimi, kind: 'quest', questId: 'date_edate' },
+  ]),
+  room('koyo_school', '里の寄り合い所', 'koyomi', 'school', [
+    { id: 'hare', x: 6, y: 2, name: 'お祝い係ハレ', look: C.hare, kind: 'quest', questId: 'date_parts' },
+    { id: 'koyo_elder', x: 3, y: 5, name: '寄り合いの 老人', look: C.elder, kind: 'talk', lines: ['わしの 誕生日は 何月 じゃったかのう……。', '名簿には 書いて あるんじゃが、年も 月も 日も くっついとって 読みにくいわい。'] },
+  ]),
+  room('koyo_post', '飛脚屋', 'koyomi', 'bank', [
+    { id: 'hayate', x: 2, y: 2, name: '飛脚ハヤテ', look: C.hayate, kind: 'quest', questId: 'date_add' },
+    { id: 'koyo_client', x: 7, y: 5, name: '荷物を 頼みに 来た 客', look: C.shop5, kind: 'talk', lines: ['「10日後に 届けて くれ」と 頼んだら、「10日後って 何日？」と 聞き返されてね……。'] },
+  ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
   ]),
 ]
 
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
-  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, ...rooms].map((m) => [m.id, m]),
+  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, koyomi, clock1, clock2, ...rooms].map((m) => [m.id, m]),
 )
 
 // 町のドア → 室内
@@ -1909,5 +2118,13 @@ link(textria, 4, 19, MAPS.text_church)
 link(textria, 10, 19, MAPS.text_shop)
 link(textria, 22, 19, MAPS.text_school)
 link(textria, 29, 19, MAPS.text_post)
+link(koyomi, 4, 10, MAPS.koyo_hall)
+link(koyomi, 11, 10, MAPS.koyo_weapon)
+link(koyomi, 21, 10, MAPS.koyo_armor)
+link(koyomi, 29, 10, MAPS.koyo_inn)
+link(koyomi, 4, 19, MAPS.koyo_church)
+link(koyomi, 9, 19, MAPS.koyo_shop)
+link(koyomi, 24, 19, MAPS.koyo_school)
+link(koyomi, 30, 19, MAPS.koyo_post)
 
 for (const map of Object.values(MAPS)) for (const n of map.npcs) if (n.look && !SPEAKER_LOOKS[n.name]) SPEAKER_LOOKS[n.name] = n.look

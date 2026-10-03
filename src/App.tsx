@@ -24,7 +24,7 @@ type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'end
 interface BattleReq {
   id: string
   tutorial?: boolean
-  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing'
+  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock'
 }
 
 const INN_PRICE = 10
@@ -343,7 +343,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.boss ? 'boss' : 'forest',
+              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.id === 'shimekiris' ? 'clock' : b.boss ? 'boss' : 'forest',
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -478,6 +478,53 @@ export default function App() {
           await sleep(1400)
         }
         await talk(undefined, ['（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）'])
+        save()
+      })
+    if (ex.to === 'clock1')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['チクタク、チクタク……塔の 中に 無数の 時計の 音が 響いている。', 'どの 時計も、ばらばらの 時刻を 指している……。'])
+        await me(['（扉の 謎を 解きながら、時計塔の 最上階を 目指そう）'])
+      })
+    if (ex.to === 'clock2')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['最上階。巨大な 歯車が 軋みながら 回っている。', '歯車の 中心の 文字盤が ぎょろりと 動き、針の 腕が 伸びてきた……。'])
+      })
+    if (ex.to === 'koyomi')
+      run(async () => {
+        await sleep(1100)
+        const f = fieldRef.current
+        await talk(undefined, ['ここは 暦の里 コヨミノ。', '里の 真ん中に そびえる 時計塔が、300年 時を 刻み続けてきた 静かな 里だ。'])
+        await talk(undefined, ['しかし 時計塔の 針は ぐるぐると 逆回りし、里の 人々は 指を 折って 日付を 数えている……。'])
+        f?.emote('player', 'bang', 1200)
+        await talk('村長トキワ', ['おお……旅の 方、待って くだされ！'])
+        if (f) {
+          // 村長が 家から 走ってくる
+          f.spawn({ id: 'tokiwa_event', x: 4, y: 11, name: '村長トキワ', look: SPEAKER_LOOKS['村長トキワ'], kind: 'talk', dir: 'down' })
+          await f.walkTo('tokiwa_event', ex.tx - 1, ex.ty, 140)
+          f.face('tokiwa_event', 'right')
+          f.face('player', 'left')
+          f.emote('tokiwa_event', 'sweat', 2600)
+        }
+        await talk('村長トキワ', [
+          'ぜぇ……ぜぇ……。わしは この 里の 村長、トキワじゃ。',
+          'テキストリアの 文字を 取り戻した 旅人……あんたの ことじゃな？ 宿場長の 手紙が、ちゃんと 読める 文字で 届いたわい。',
+          '実は 時計塔に「シメキリス」という 魔物が 棲みつき、里の 暦を 喰らって しまったのじゃ。',
+          '「10日後は 何日か」「締め切りまで あと 何日か」「今日は 何曜日か」……誰も 数えられん。',
+          '約束は 破られ、締め切りは 過ぎ、里は 大混乱じゃ……。',
+        ])
+        await me(['（日付の 計算……会社でも、納期や 締め切りを カレンダーで 指折り 数えてたっけ）', '（……Excel の 日付は ただの 数。足して 引けば いいんだ！）'])
+        await talk('村長トキワ', [
+          'どうか 里の 者たちの 悩みを 聞いてやって くれんか。',
+          'すべて 解決すれば、時計塔の 結界も とけるはずじゃ。',
+          'わしは 家に おる。村人の 表彰の 件で、あとで 相談させて くれ。',
+        ])
+        if (f) {
+          void f.walkTo('tokiwa_event', 4, 11, 220).then(() => f.remove('tokiwa_event'))
+          await sleep(1400)
+        }
+        await talk(undefined, ['（Excel の 日付は「1日 ＝ 1」の 数。足せば 何日後、引けば 何日間。馬車で いつでも テキストリアに 戻れるぞ）'])
         save()
       })
     if (ex.to === 'print1')
@@ -756,6 +803,8 @@ export default function App() {
                     ? '（王宮の 結界が とけ、宝物庫に 入れるように なった。最奥に バラバランが いるらしい）'
                     : q.town === 'textria'
                       ? '（印刷所の 結界が とけ、中に 入れるように なった。奥の間に モジバケーラが いるらしい）'
+                      : q.town === 'koyomi'
+                        ? '（時計塔の 結界が とけ、中に 入れるように なった。最上階に シメキリスが いるらしい）'
                   : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
         ])
       save()
@@ -795,7 +844,7 @@ export default function App() {
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
-        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : '洞窟'
+        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : id.startsWith('clock') ? '時計塔' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
         sfx('door')
         setFade(true)
@@ -833,6 +882,12 @@ export default function App() {
         await talk(undefined, [
           '化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。',
           '宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！',
+          '（東の 里への 馬車が 動き出した。宿場の 東の はずれの 御者に 話せば 向かえるらしい）',
+        ])
+      if (b.id === 'shimekiris')
+        await talk(undefined, [
+          '時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。',
+          '里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！',
         ])
       save()
       if (b.id === 'golem') {
@@ -857,6 +912,10 @@ export default function App() {
       }
       if (b.id === 'mojibake') {
         setChapter(6)
+        setScene('ending')
+      }
+      if (b.id === 'shimekiris') {
+        setChapter(7)
         setScene('ending')
       }
     })
@@ -962,7 +1021,7 @@ export default function App() {
               onEncounter={(id) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.id.startsWith('clock') ? 'clock' : map.kind === 'dungeon' ? 'cave' : 'field',
                 })
               }
               onGate={onGate}

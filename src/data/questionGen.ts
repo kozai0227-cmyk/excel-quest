@@ -1131,3 +1131,116 @@ export const genFormulaFind: QGen = () => {
     explain: '=LEFT(A1,FIND("@",A1)-1)。FIND で @ の 位置を 調べ、その 1つ手前まで LEFT で 取り出す。',
   }
 }
+
+// ---------------------------------------------------------------- 第7章：日付（足し算・引き算・WEEKDAY・EDATE・DATEDIF）
+const ymd = (y: number, m: number, d: number) => `${y}/${m}/${d}`
+const WEEK = ['月', '火', '水', '木', '金', '土', '日']
+
+export const genDateAddPick: QGen = () => {
+  // 月の 中で おさまる 足し算（暗算の 負担は 小さく）
+  const m = ri(1, 12)
+  const d = ri(1, 15)
+  const n = ri(3, 12)
+  const ans = ymd(2026, m, d + n)
+  return choice(`A1 に「${ymd(2026, m, d)}」。=A1+${n} の 結果は？`, ans, [ymd(2026, m + 1 > 12 ? 1 : m + 1, d), ymd(2026, m, d + n - 1), `${ymd(2026, m, d)}${n}`], `日付は「1日 ＝ 1」の 数。${n} を 足すと ${n}日後。`)
+}
+
+export const genDateDiffPick: QGen = () => {
+  const m = ri(1, 12)
+  const a = ri(1, 10)
+  const b = a + ri(3, 15)
+  return choice(`A1 に「${ymd(2026, m, a)}」、B1 に「${ymd(2026, m, b)}」。=B1-A1 の 結果は？`, b - a, [b - a + 1, b, '#VALUE!'], '日付どうしの 引き算は 間の 日数。')
+}
+
+export const genWeekdayPick: QGen = () => {
+  const k = ri(0, 6)
+  return pick([
+    () => choice(`=WEEKDAY(日付, 2) で ${WEEK[k]}曜日は いくつ？`, k + 1, [((k + 1) % 7) + 1, k, k + 2 > 7 ? 1 : k + 2], '2つ目を 2 に すると 月曜 1 〜 日曜 7。'),
+    () => choice(`=WEEKDAY(A1,2) が ${k + 1} なら、A1 は 何曜日？`, `${WEEK[k]}曜日`, [`${WEEK[(k + 1) % 7]}曜日`, `${WEEK[(k + 6) % 7]}曜日`, `${WEEK[(k + 3) % 7]}曜日`], '月曜 1・火曜 2 … 日曜 7。'),
+    () => choice('土日を まとめて「休み」と 判定する 条件は？（WEEKDAY(A1,2) を 使う）', 'WEEKDAY(A1,2)>=6', ['WEEKDAY(A1,2)>=5', 'WEEKDAY(A1,2)=7', 'WEEKDAY(A1,2)<=2'], '土曜 6・日曜 7 なので「6以上」。'),
+  ])()
+}
+
+export const genDateFunction: QGen = () => {
+  const [q, a, why] = pick([
+    ['日付から「月」だけを 数で 取り出す', 'MONTH', '年は YEAR、月は MONTH、日は DAY。'],
+    ['日付から「年」だけを 数で 取り出す', 'YEAR', '年は YEAR。'],
+    ['日付の 曜日を 数で 調べる', 'WEEKDAY', 'WEEKDAY(日付, 2) で 月曜 1 〜 日曜 7。'],
+    ['契約開始日の 3か月後の 日付を 出す', 'EDATE', '○か月後は EDATE(日付, 月数)。'],
+    ['その月の 末日（月末）を 出す', 'EOMONTH', '月末は EOMONTH(日付, 0)。'],
+    ['入社日から 今日までの 満年数を 出す', 'DATEDIF', '満年数は DATEDIF(開始日, 終了日, "Y")。'],
+  ] as const)
+  return choice(`${q}。使う 関数は？`, a, ['YEAR', 'MONTH', 'DAY', 'WEEKDAY', 'EDATE', 'EOMONTH', 'DATEDIF'].filter((f) => f !== a).sort(() => Math.random() - 0.5), why)
+}
+
+export const genFormulaDateAdd: QGen = () => {
+  const m = ri(1, 12)
+  const d = ri(1, 15)
+  const n = ri(3, 12)
+  return {
+    type: 'formula',
+    q: `C1 に、A1 の 日付の B1 日後を 出せ！`,
+    table: [[ymd(2026, m, d), n]],
+    target: 'C1',
+    expect: ymd(2026, m, d + n),
+    mustUse: '+',
+    hint: '=A1+B1',
+    explain: '=A1+B1。日付は 数と 同じように 足せる。',
+  }
+}
+
+export const genFormulaDateDiff: QGen = () => {
+  const m = ri(1, 11)
+  const a = ri(1, 20)
+  const b = ri(1, 20)
+  const end = ymd(2026, m + 1, b)
+  const start = ymd(2026, m, a)
+  const days = Math.round((Date.UTC(2026, m, b) - Date.UTC(2026, m - 1, a)) / 86400000)
+  return {
+    type: 'formula',
+    q: 'C1 に、A1（今日）から B1（締め切り）まで あと何日かを 出せ！',
+    table: [[start, end]],
+    target: 'C1',
+    expect: days,
+    mustUse: '-',
+    hint: '=B1-A1',
+    explain: '=B1-A1。締め切り − 今日 で 残りの 日数。',
+  }
+}
+
+export const genFormulaDatePart: QGen = () => {
+  const y = ri(1980, 2010)
+  const m = ri(1, 12)
+  const d = ri(1, 28)
+  const [fn, ans, label] = pick([
+    ['YEAR', y, '年'],
+    ['MONTH', m, '月'],
+    ['DAY', d, '日'],
+  ] as const)
+  return {
+    type: 'formula',
+    q: `B1 に、A1 の 日付の「${label}」を 数で 取り出せ！`,
+    table: [[ymd(y, m, d)]],
+    target: 'B1',
+    expect: ans,
+    mustUse: fn,
+    hint: `=${fn}(A1)`,
+    explain: `=${fn}(A1)。`,
+  }
+}
+
+export const genFormulaEdate: QGen = () => {
+  const m = ri(1, 9)
+  const d = ri(1, 28)
+  const n = ri(1, 3)
+  return {
+    type: 'formula',
+    q: `C1 に、A1 の 日付の B1 か月後の 日付を 出せ！`,
+    table: [[ymd(2026, m, d), n]],
+    target: 'C1',
+    expect: ymd(2026, m + n, d),
+    mustUse: 'EDATE',
+    hint: '=EDATE(A1,B1)',
+    explain: '=EDATE(A1,B1)。何日 足すかではなく、何か月 足すか。',
+  }
+}

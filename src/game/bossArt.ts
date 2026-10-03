@@ -452,6 +452,58 @@ Object.assign(DRAW, {
   },
 })
 
+Object.assign(DRAW, {
+  // シメキリス：歯車と 針で できた、時を 喰らう 時計の 怪物
+  shimekiris: {
+    glow: ['#ff2a2a', '#ffe060', '#ffffff', '#80d0ff'],
+    draw(p: Paint) {
+      // うしろの 歯車
+      for (const [cx, cy, r] of [[10, 14, 8], [54, 12, 7], [52, 50, 8]] as [number, number, number][]) {
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2
+          p.box(cx + Math.cos(a) * r - 1.5, cy + Math.sin(a) * r - 1.5, 3, 3, '#7a5a28')
+        }
+        p.ell(cx, cy, r - 1, r - 1, '#9a7434')
+        p.ell(cx, cy, 2, 2, '#4a3418')
+      }
+      // 振り子
+      p.line(32, 46, 32, 58, '#c0a050', 2)
+      p.ell(32, 59, 4, 4, '#e0b040')
+      // 針の 腕
+      p.poly([[14, 30], [2, 22], [1, 25], [12, 34]], '#c8c8d8')
+      p.poly([[50, 30], [62, 40], [60, 43], [48, 34]], '#c8c8d8')
+      p.poly([[0, 21], [5, 20], [3, 26]], '#e8e8f8')
+      p.poly([[63, 41], [60, 46], [57, 41]], '#e8e8f8')
+      // 本体（文字盤と 歯の ついた ふち）
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2
+        p.box(32 + Math.cos(a) * 21 - 2, 29 + Math.sin(a) * 21 - 2, 4, 4, '#a07830')
+      }
+      p.ell(32, 29, 20, 20, '#c0903a')
+      p.ell(32, 29, 16.5, 16.5, '#f0e8d0')
+      // 目盛り
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2
+        p.box(32 + Math.cos(a) * 14.5 - 0.5, 29 + Math.sin(a) * 14.5 - 0.5, i % 3 ? 1 : 2, i % 3 ? 1 : 2, '#4a3a2a')
+      }
+      // 顔
+      p.poly([[21, 21], [29, 24], [28, 28], [21, 26]], '#2a0a0a')
+      p.poly([[43, 21], [35, 24], [36, 28], [43, 26]], '#2a0a0a')
+      p.box(24, 24, 2, 2, '#ff2a2a')
+      p.box(38, 24, 2, 2, '#ff2a2a')
+      p.box(23, 33, 18, 6, '#3a0a0a')
+      for (const x of [24, 28, 32, 36]) p.poly([[x, 33], [x + 4, 33], [x + 2, 36]], '#ffffff')
+      for (const x of [26, 30, 34]) p.poly([[x, 39], [x + 4, 39], [x + 2, 36]], '#ffffff')
+      // 針（中心から）
+      p.line(32, 29, 32, 17, '#202020', 2)
+      p.line(32, 29, 40, 31, '#202020')
+      p.ell(32, 29, 1.5, 1.5, '#ffe060')
+      // 舞う 砂時計の 砂と 光
+      for (const [x, y] of [[3, 44], [6, 52], [58, 22], [61, 28], [26, 2], [38, 3]] as Pt[]) p.box(x, y, 2, 2, '#80d0ff')
+    },
+  },
+})
+
 export const hasBossArt = (id: string) => id in DRAW
 
 const cache = new Map<string, HTMLCanvasElement>()
@@ -477,4 +529,5 @@ export const AURA: Record<string, [string, string, string]> = {
   mitsukaranu: ['#ffd8ff', '#c060ff', '#3a0c6a'],
   barabaran: ['#fff8c0', '#ffc040', '#8a1810'],
   mojibake: ['#e0ffe8', '#60ff90', '#4a1a8a'],
+  shimekiris: ['#fff4c0', '#ffb030', '#7a1010'],
 }

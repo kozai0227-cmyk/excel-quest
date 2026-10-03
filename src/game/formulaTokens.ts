@@ -9,7 +9,7 @@ export interface ChipGroup {
 }
 
 /** 町（ダンジョン）の順番。ここまでに 習った関数だけを ボタンに出す */
-const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury', 'textria', 'printing']
+const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury', 'textria', 'printing', 'koyomi', 'clock']
 const FUNCS_AT: Record<string, string[]> = {
   calculet: ['SUM', 'AVERAGE', 'MAX', 'MIN', 'COUNT'],
   sansho: ['ROUND'],
@@ -17,6 +17,7 @@ const FUNCS_AT: Record<string, string[]> = {
   lookup: ['VLOOKUP', 'IFERROR', 'XLOOKUP'],
   pivoria: ['SUMIFS', 'COUNTIFS', 'AVERAGEIF', 'MAXIFS', 'MINIFS'],
   textria: ['LEFT', 'RIGHT', 'MID', 'LEN', 'TRIM', 'SUBSTITUTE', 'FIND'],
+  koyomi: ['YEAR', 'MONTH', 'DAY', 'WEEKDAY', 'EDATE', 'EOMONTH', 'DATEDIF'],
 }
 export const ALL_FUNCS = Object.values(FUNCS_AT).flat()
 
@@ -41,6 +42,10 @@ const SKILL_FUNCS: Record<string, string[]> = {
   len: ['LEN'],
   clean: ['TRIM', 'SUBSTITUTE'],
   find: ['FIND'],
+  dateparts: ['YEAR', 'MONTH', 'DAY'],
+  weekday: ['WEEKDAY'],
+  edate: ['EDATE', 'EOMONTH'],
+  datedif: ['DATEDIF'],
 }
 export const learnedFuncs = (skills: string[]) => skills.flatMap((s) => SKILL_FUNCS[s] ?? [])
 

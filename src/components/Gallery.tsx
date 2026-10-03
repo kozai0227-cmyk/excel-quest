@@ -22,7 +22,7 @@ export function Gallery() {
       ))}
       <div className="gallery-item">
         <div>
-          {(['slime', 'golem', 'celime', 'frog', 'bat', 'ghost', 'nainai', 'shiori', 'mitsukaranu', 'dupli', 'chirakari', 'barabaran', 'kuuhaku', 'kirehashi', 'mojibake', 'sheep', 'cat', 'dog'] as const).map((c) => (
+          {(['slime', 'golem', 'celime', 'frog', 'bat', 'ghost', 'nainai', 'shiori', 'mitsukaranu', 'dupli', 'chirakari', 'barabaran', 'kuuhaku', 'kirehashi', 'mojibake', 'karendaru', 'tokeidori', 'shimekiris', 'sheep', 'cat', 'dog'] as const).map((c) => (
             <SpriteView key={c} creature={c} />
           ))}
         </div>

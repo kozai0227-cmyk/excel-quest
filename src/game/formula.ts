@@ -57,16 +57,37 @@ const withBool = (raw: string) =>
 
 export function evaluate(grid: Grid): Value[][] {
   const data = grid.map((row) => row.map((c) => (c.raw === '' ? null : withBool(c.raw))))
-  const hf = HyperFormula.buildFromArray(data, { licenseKey: 'gpl-v3' })
+  const hf = HyperFormula.buildFromArray(data, { licenseKey: 'gpl-v3', dateFormats: DATE_FORMATS, timeFormats: ['hh:mm', 'hh:mm:ss'] })
   const out = hf.getSheetValues(0)
-  hf.destroy()
-  return grid.map((row, r) =>
+  const result = grid.map((row, r) =>
     row.map((_, c) => {
       const v = out[r]?.[c]
       if (v instanceof DetailedCellError) return { error: v.value }
+      // 日付・時刻は Excel と 同じように「2026/10/1」「9:30」の 形で 見せる
+      if (typeof v === 'number') {
+        const t = hf.getCellValueDetailedType({ sheet: 0, row: r, col: c })
+        if (t === 'NUMBER_DATE') return serialToDate(v)
+        if (t === 'NUMBER_TIME') return serialToTime(v)
+        if (t === 'NUMBER_DATETIME') return `${serialToDate(v)} ${serialToTime(v)}`
+      }
       return (v ?? null) as Value
     }),
   )
+  hf.destroy()
+  return result
+}
+
+/** 日付の 書き方（年/月/日）。日本の Excel と 同じ */
+const DATE_FORMATS = ['YYYY/MM/DD', 'YYYY-MM-DD']
+const DAY_MS = 86400000
+/** Excel の 日付の 通し番号（1899/12/30 が 0）→「2026/10/1」 */
+export function serialToDate(n: number) {
+  const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(n + 1e-9) * DAY_MS)
+  return `${d.getUTCFullYear()}/${d.getUTCMonth() + 1}/${d.getUTCDate()}`
+}
+function serialToTime(n: number) {
+  const m = Math.round((n - Math.floor(n + 1e-9)) * 24 * 60)
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
 }
 
 const mapOutsideQuotes = (s: string, f: (part: string) => string) =>

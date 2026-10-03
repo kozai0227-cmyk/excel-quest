@@ -20,7 +20,7 @@ export type Question =
 export interface BossDef {
   id: string
   name: string
-  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran' | 'kuuhaku' | 'kirehashi' | 'mojibake'
+  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran' | 'kuuhaku' | 'kirehashi' | 'mojibake' | 'karendaru' | 'tokeidori' | 'shimekiris'
   /** ボス（こちらの攻撃 → ボスの攻撃問題 の2段構えで戦う） */
   boss?: boolean
   /** 決まった回数の正解で倒れる（チュートリアル用） */
@@ -301,6 +301,45 @@ Object.assign(BOSSES, {
   },
 } satisfies Record<string, BossDef>)
 
+Object.assign(BOSSES, {
+  shimekiris: {
+    id: 'shimekiris',
+    name: '刻を喰らう者 シメキリス',
+    sprite: 'shimekiris',
+    boss: true,
+    attackText: '時計の 針を 振りかざし、締め切りの 日付を 次々と 奪っていく！',
+    defeatText: [
+      '「時は……数えられる……。足して、引いて、月を 数え、年を 数え……。」',
+      '「暦を 知る者からは……時を 奪えぬ……のか……。」',
+      'シメキリスの 歯車が 1つずつ はずれ、時計塔の 鐘が 正しい 時を 打ちはじめた。',
+    ],
+    hp: 720,
+    attack: [36, 43],
+    exp: 880,
+    gold: 680,
+    intro: [
+      '（時計塔の 最上階。巨大な 歯車の 中から、針の 腕を 持つ 怪物が 現れた……！）',
+      'チクタク……チクタク……。この 村の 暦は ワタシが 喰らった。',
+      '何日後か、何曜日か、何年 たったか……もう 誰にも わからぬ。キサマの 締め切りも、永遠に 過ぎ去るが いい……！',
+    ],
+    questions: [
+      { type: 'choice', q: 'Excel の 日付の 中身は？', choices: ['1日 ＝ 1 の 数', '文字', '時刻', '曜日の 番号'], answer: '1日 ＝ 1 の 数', explain: 'だから 足し算・引き算で 何日後・何日間が わかる。' },
+      { type: 'choice', q: '=EDATE("2026/1/31", 1) の 答えは？', choices: ['2026/2/28', '2026/2/31', '2026/3/3', '2026/3/1'], answer: '2026/2/28', explain: '2月に 31日は ないので、その月の 末日（2月28日）に なる。' },
+      { type: 'choice', q: '満年数を 出す DATEDIF の 3つ目は？', choices: ['"Y"', '"M"', '"D"', '"YEAR"'], answer: '"Y"', explain: '"Y" で 満年数、"M" で 満月数、"D" で 日数。' },
+      { type: 'choice', q: '=EOMONTH(A1, 0) で 出るのは？', choices: ['A1 の 月の 末日', 'A1 の 翌月の 1日', 'A1 の 月の 1日', 'A1 の 曜日'], answer: 'A1 の 月の 末日', explain: '0 で その月、1 で 翌月の 末日。' },
+      G.genDateAddPick,
+      G.genDateDiffPick,
+      G.genWeekdayPick,
+      G.genDateFunction,
+      G.genFormulaDateAdd,
+      G.genFormulaDateDiff,
+      G.genFormulaDatePart,
+      G.genFormulaEdate,
+      G.genFormulaFind,
+    ],
+  },
+} satisfies Record<string, BossDef>)
+
 // ================================================================ フィールドの敵
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
@@ -473,6 +512,27 @@ const FRAGMENTS: QuestionSrc[] = [
   G.genFormulaFind,
 ]
 
+const CALENDARS: QuestionSrc[] = [
+  c('日付「2026/10/1」に 7 を 足すと？', ['2026/10/8', '2026/10/17', '2026/17/1', 'エラー'], '2026/10/8', '日付は「1日 ＝ 1」の 数。7 を 足せば 7日後。'),
+  c('日付から「月」を 取り出す 関数は？', ['MONTH', 'MID', 'DAY', 'MON'], 'MONTH', '年 YEAR、月 MONTH、日 DAY。'),
+  G.genDateAddPick,
+  G.genDateDiffPick,
+  G.genDateFunction,
+  G.genFormulaDateAdd,
+  G.genFormulaDatePart,
+  G.genFormulaDateDiff,
+]
+const CLOCKS: QuestionSrc[] = [
+  c('=WEEKDAY(A1,2) の 2 の 意味は？', ['月曜を 1 として 数える', '2日後の 曜日', '2週目', '火曜を 1 として 数える'], '月曜を 1 として 数える', '2 を 書くと 月曜 1 〜 日曜 7。'),
+  c('3か月後の 同じ日を 出す 関数は？', ['EDATE', 'EOMONTH', 'DATEDIF', 'MONTH'], 'EDATE', '=EDATE(日付, 3)。'),
+  G.genWeekdayPick,
+  G.genWeekdayPick,
+  G.genDateFunction,
+  G.genFormulaEdate,
+  G.genFormulaDateDiff,
+  G.genFormulaDatePart,
+]
+
 export const FIELD_ENEMIES: Record<string, BossDef> = {
   celime_tutorial: {
     id: 'celime_tutorial',
@@ -495,6 +555,8 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
   jelly: { id: 'jelly', name: 'イフクラゲ', sprite: 'jelly', hp: 78, attack: [16, 21], exp: 52, gold: 40, intro: [], questions: CONDS },
   crab: { id: 'crab', name: 'ブンキガニ', sprite: 'crab', hp: 92, attack: [18, 24], exp: 64, gold: 50, intro: [], questions: BRANCHES },
   nainai: { id: 'nainai', name: 'ナイナイ', sprite: 'nainai', hp: 104, attack: [21, 27], exp: 78, gold: 60, intro: [], questions: LOOKS },
+  karendaru: { id: 'karendaru', name: 'カレンダル', sprite: 'karendaru', hp: 190, attack: [33, 39], exp: 160, gold: 120, intro: [], questions: CALENDARS },
+  tokeidori: { id: 'tokeidori', name: 'トケイドリ', sprite: 'tokeidori', hp: 206, attack: [35, 41], exp: 174, gold: 130, intro: [], questions: CLOCKS },
   kuuhaku: { id: 'kuuhaku', name: 'クウハクン', sprite: 'kuuhaku', hp: 160, attack: [29, 35], exp: 132, gold: 100, intro: [], questions: SPACES },
   kirehashi: { id: 'kirehashi', name: 'キレハシ', sprite: 'kirehashi', hp: 176, attack: [31, 37], exp: 146, gold: 110, intro: [], questions: FRAGMENTS },
   dupli: { id: 'dupli', name: 'ダブリン', sprite: 'dupli', hp: 132, attack: [25, 31], exp: 104, gold: 80, intro: [], questions: TALLIES },
