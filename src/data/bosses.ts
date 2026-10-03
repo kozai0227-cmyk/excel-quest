@@ -20,7 +20,7 @@ export type Question =
 export interface BossDef {
   id: string
   name: string
-  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran'
+  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran' | 'kuuhaku' | 'kirehashi' | 'mojibake'
   /** ボス（こちらの攻撃 → ボスの攻撃問題 の2段構えで戦う） */
   boss?: boolean
   /** 決まった回数の正解で倒れる（チュートリアル用） */
@@ -262,6 +262,45 @@ Object.assign(BOSSES, {
   },
 } satisfies Record<string, BossDef>)
 
+Object.assign(BOSSES, {
+  mojibake: {
+    id: 'mojibake',
+    name: '文字化けの怪 モジバケーラ',
+    sprite: 'mojibake',
+    boss: true,
+    attackText: '「縺薙ｓ縺ｫ縺｡縺ｯ」――意味の ない 文字の 渦が 襲いかかってきた！',
+    defeatText: [
+      '「繧ｪ……オ……ワタシの 言葉が……戻って……いく……？」',
+      '「つなげば 意味に なり、切りとれば 必要な 分だけ 取り出せる……。文字とは……そういう ものだった のか……。」',
+      'モジバケーラの 体を つくっていた 文字の 渦が ほどけ、1つずつ 正しい 活字へと 戻っていった。',
+    ],
+    hp: 640,
+    attack: [33, 40],
+    exp: 760,
+    gold: 600,
+    intro: [
+      '（印刷所の 最奥。積み上げられた 活字が ざわめき、文字の 渦が 人の 形に なった……！）',
+      '繧ｳ繝ｳ繝九メ繝……おっと 失礼。ワタシは モジバケーラ。この 町の 文字は すべて ワタシが 化けさせた。',
+      '名前も 番号も、つなげず 切れず 読めもしない。キサマの 言葉も、意味の ない 記号に してやろう……！',
+    ],
+    questions: [
+      { type: 'choice', q: '文字と 文字を つなぐ 記号は？', choices: ['&', '+', '*', '#'], answer: '&', explain: '=A1&B1 で つながる。+ は 数の 足し算。' },
+      { type: 'choice', q: '=LEFT(A1,FIND("@",A1)-1) の 役割は？', choices: ['@ より 前を 取り出す', '@ より 後ろを 取り出す', '@ を 消す', '@ の 数を 数える'], answer: '@ より 前を 取り出す', explain: 'FIND で @ の 位置を 調べ、その 1つ手前まで LEFT で 取り出す。' },
+      { type: 'choice', q: '=TRIM(" A  B ") の 結果は？', choices: ['"A B"', '"AB"', '" A  B "', '"A  B"'], answer: '"A B"', explain: 'TRIM は 前後の 空白を 消し、間の 空白は 1つに そろえる。' },
+      { type: 'choice', q: '「株式会社」を「(株)」に 置きかえる 関数は？', choices: ['SUBSTITUTE', 'TRIM', 'REPLACE', 'FIND'], answer: 'SUBSTITUTE', explain: '=SUBSTITUTE(文字列, 探す文字, 置きかえる文字)。' },
+      G.genLeftRightPick,
+      G.genMidPick,
+      G.genJoinPick,
+      G.genTextFunction,
+      G.genFormulaJoin,
+      G.genFormulaLeftRight,
+      G.genFormulaMid,
+      G.genFormulaFind,
+      G.genFormulaSumifs,
+    ],
+  },
+} satisfies Record<string, BossDef>)
+
 // ================================================================ フィールドの敵
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
@@ -413,6 +452,27 @@ const TABLES: QuestionSrc[] = [
   G.genFormulaSumifs,
 ]
 
+const SPACES: QuestionSrc[] = [
+  c('文字と 文字を つなぐ 記号は？', ['&', '+', ',', ':'], '&', '=A1&B1 のように 使う。'),
+  c('=A1&" "&B1 の " " は 何？', ['空白 1文字', '何も ない 文字', 'エラー', '改行'], '空白 1文字', '" " は 空白 1文字の 文字列。名字と 名前の 間に はさむ。'),
+  c('よけいな 空白を 消す 関数は？', ['TRIM', 'LEN', 'CLEAN', 'SUBSTITUTE'], 'TRIM', 'TRIM は 前後の 空白を 消し、間の 空白を 1つに そろえる。'),
+  G.genJoinPick,
+  G.genJoinPick,
+  G.genLenPick,
+  G.genFormulaJoin,
+  G.genFormulaLeftRight,
+]
+const FRAGMENTS: QuestionSrc[] = [
+  c('=MID(文字列, 4, 2) の 4 は？', ['何文字目から', '何文字', '何回', '何行目'], '何文字目から', 'MID(文字列, 何文字目から, 何文字)。'),
+  c('「@」が 何文字目に あるかを 調べる 関数は？', ['FIND', 'LEN', 'MID', 'COUNTIF'], 'FIND', '=FIND("@",A1)。LEFT や MID と 組み合わせて 使う。'),
+  G.genLeftRightPick,
+  G.genLeftRightPick,
+  G.genMidPick,
+  G.genTextFunction,
+  G.genFormulaMid,
+  G.genFormulaFind,
+]
+
 export const FIELD_ENEMIES: Record<string, BossDef> = {
   celime_tutorial: {
     id: 'celime_tutorial',
@@ -435,6 +495,8 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
   jelly: { id: 'jelly', name: 'イフクラゲ', sprite: 'jelly', hp: 78, attack: [16, 21], exp: 52, gold: 40, intro: [], questions: CONDS },
   crab: { id: 'crab', name: 'ブンキガニ', sprite: 'crab', hp: 92, attack: [18, 24], exp: 64, gold: 50, intro: [], questions: BRANCHES },
   nainai: { id: 'nainai', name: 'ナイナイ', sprite: 'nainai', hp: 104, attack: [21, 27], exp: 78, gold: 60, intro: [], questions: LOOKS },
+  kuuhaku: { id: 'kuuhaku', name: 'クウハクン', sprite: 'kuuhaku', hp: 160, attack: [29, 35], exp: 132, gold: 100, intro: [], questions: SPACES },
+  kirehashi: { id: 'kirehashi', name: 'キレハシ', sprite: 'kirehashi', hp: 176, attack: [31, 37], exp: 146, gold: 110, intro: [], questions: FRAGMENTS },
   dupli: { id: 'dupli', name: 'ダブリン', sprite: 'dupli', hp: 132, attack: [25, 31], exp: 104, gold: 80, intro: [], questions: TALLIES },
   chirakari: { id: 'chirakari', name: 'チラカリス', sprite: 'chirakari', hp: 146, attack: [27, 33], exp: 118, gold: 90, intro: [], questions: TABLES },
   shiori: { id: 'shiori', name: 'シオリムシ', sprite: 'shiori', hp: 118, attack: [23, 29], exp: 90, gold: 70, intro: [], questions: SEARCHES },

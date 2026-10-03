@@ -40,5 +40,11 @@ export const SKILLS: Record<string, SkillDef> = {
   averageif: { name: 'AVERAGEIF・MAXIFS', town: 'ピボリア', desc: '=AVERAGEIF(条件の範囲, 条件, 平均する範囲)。=MAXIFS(探す範囲, 条件の範囲, 条件)。MINIFS で 最小。' },
   summary: { name: '集計表', town: 'ピボリア', desc: '条件に 見出しの セルを 使い、範囲を $ で 固定して コピー。=SUMIFS($B$2:$B$11,$A$2:$A$11,E2)' },
   crosstab: { name: 'クロス集計', town: 'ピボリア', desc: '縦の 見出しは $E2、横の 見出しは F$1。1つの 式で「縦 × 横」の 表を 埋める。ピボットテーブルの 中身と 同じ。' },
+  concat: { name: '& で つなぐ', town: 'テキストリア', desc: '=A2&" "&B2 のように「&」で 文字と 文字を つなぐ。空白や 記号も " " で 囲んで つなげる。' },
+  leftright: { name: 'LEFT・RIGHT', town: 'テキストリア', desc: '=LEFT(文字列, 文字数) で 左から、=RIGHT(文字列, 文字数) で 右から 文字を 取り出す。' },
+  mid: { name: 'MID', town: 'テキストリア', desc: '=MID(文字列, 何文字目から, 何文字)。まん中の 文字を 取り出す。' },
+  len: { name: 'LEN', town: 'テキストリア', desc: '=LEN(文字列) で 文字数。空白も 1文字。IF と 組み合わせて 長さの 判定にも 使える。' },
+  clean: { name: 'TRIM・SUBSTITUTE', town: 'テキストリア', desc: '=TRIM(文字列) で よけいな 空白を 消す。=SUBSTITUTE(文字列, 探す, 置きかえ) で 文字を 置きかえる。' },
+  find: { name: 'FIND', town: 'テキストリア', desc: '=FIND("@", A2) で その文字が 何文字目か わかる。=LEFT(A2,FIND("@",A2)-1) で @ の 前を 取り出す。' },
   notfound: { name: 'XLOOKUP の 見つからないとき', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")。4つ目に 見つからない ときの 値を 書ける。' },
 }

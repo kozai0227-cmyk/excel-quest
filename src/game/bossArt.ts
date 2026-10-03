@@ -401,6 +401,57 @@ const DRAW: Record<string, { glow: string[]; draw(p: Paint): void }> = {
   },
 }
 
+/** 文字化けした 字（3×5 の ドットで 意味の ない 形） */
+const GLYPHS = ['111101111101111', '110101110101110', '011100100100011', '101101111001001', '111010010010111', '100111101111001']
+function glyph(p: Paint, x: number, y: number, k: number, col: string) {
+  const g = GLYPHS[k % GLYPHS.length]
+  for (let i = 0; i < 15; i++) if (g[i] === '1') p.px(x + (i % 3), y + Math.floor(i / 3), col)
+}
+
+Object.assign(DRAW, {
+  // モジバケーラ：化けた 文字で できた 黒い 頭巾の 怪人
+  mojibake: {
+    glow: ['#60ff90', '#ffe040', '#ff3060', '#ffffff', '#c8a0ff'],
+    draw(p: Paint) {
+      // 紙テープの 腕
+      p.poly([[12, 30], [2, 44], [5, 47], [15, 35]], '#f4ead0')
+      p.poly([[52, 30], [62, 44], [59, 47], [49, 35]], '#f4ead0')
+      for (const [x, y] of [[6, 41], [9, 37], [56, 41], [53, 37]] as Pt[]) p.box(x, y, 2, 1, '#8a8070')
+      // 頭巾と マント（すそは ギザギザ）
+      const cloak = new Path2D()
+      cloak.moveTo(32, 3)
+      cloak.quadraticCurveTo(50, 6, 52, 26)
+      cloak.lineTo(58, 56)
+      for (let i = 0; i < 6; i++) {
+        const x = 58 - i * 9
+        cloak.lineTo(x - 4.5, 62)
+        cloak.lineTo(x - 9, 56)
+      }
+      cloak.lineTo(12, 26)
+      cloak.quadraticCurveTo(14, 6, 32, 3)
+      p.path(cloak, '#4a2a8a')
+      p.poly([[22, 30], [42, 30], [48, 56], [16, 56]], '#3a1e70')
+      // 顔の 闇
+      p.ell(32, 22, 13, 13, '#1a0a30')
+      // ちぐはぐな 目と ギザギザの 口
+      p.ell(26, 20, 3.5, 3.5, '#ff3060')
+      p.box(25, 19, 2, 2, '#ffffff')
+      p.box(35, 17, 6, 6, '#60ff90')
+      p.box(37, 19, 2, 2, '#1a0a30')
+      const mouth: Pt[] = [[23, 28], [26, 31], [29, 28], [32, 31], [35, 28], [38, 31], [41, 28]]
+      mouth.slice(1).forEach(([x, y], i) => p.line(mouth[i][0], mouth[i][1], x, y, '#ffe040'))
+      // マントに 浮かぶ 化けた 文字
+      let k = 0
+      for (const [x, y] of [[20, 36], [28, 40], [36, 36], [42, 44], [24, 48], [33, 50], [17, 44]] as Pt[]) glyph(p, x, y, k++, k % 2 ? '#60ff90' : '#ffe040')
+      // まわりを 舞う 化けた 文字
+      for (const [x, y] of [[2, 4], [57, 6], [2, 22], [59, 22], [4, 54]] as Pt[]) {
+        p.box(x - 1, y - 1, 5, 7, '#2a1450')
+        glyph(p, x, y, k++, '#c8a0ff')
+      }
+    },
+  },
+})
+
 export const hasBossArt = (id: string) => id in DRAW
 
 const cache = new Map<string, HTMLCanvasElement>()
@@ -425,4 +476,5 @@ export const AURA: Record<string, [string, string, string]> = {
   captain: ['#e0fff0', '#60ffb0', '#0c5a48'],
   mitsukaranu: ['#ffd8ff', '#c060ff', '#3a0c6a'],
   barabaran: ['#fff8c0', '#ffc040', '#8a1810'],
+  mojibake: ['#e0ffe8', '#60ff90', '#4a1a8a'],
 }

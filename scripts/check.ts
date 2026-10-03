@@ -89,7 +89,7 @@ for (const boss of Object.values(ENEMIES))
       const same = (v: unknown, e: number | string) => (typeof e === 'string' ? v === e : typeof v === 'number' && Math.abs(v - e) < 1e-9)
       if (!same(vals[t.r][t.c], q.expect)) bad(`${at}: 模範 ${q.hint} → ${formatValue(vals[t.r][t.c])}（期待 ${q.expect}）`)
       for (const cp of copies) if (!same(vals[cp.p.r][cp.p.c], cp.expect)) bad(`${at}: コピー先 ${cp.at} が ${formatValue(vals[cp.p.r][cp.p.c])}（期待 ${cp.expect}）`)
-      if (q.mustUse && q.mustUse !== '*' && q.mustUse !== '$' && !usesFn(raw, q.mustUse)) bad(`${at}: 模範が ${q.mustUse} を 使っていない`)
+      if (q.mustUse && q.mustUse !== '*' && q.mustUse !== '$' && q.mustUse !== '&' && !usesFn(raw, q.mustUse)) bad(`${at}: 模範が ${q.mustUse} を 使っていない`)
     }
 console.log(`戦闘の問題：${gens} 問 生成して チェック`)
 

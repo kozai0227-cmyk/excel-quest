@@ -1010,3 +1010,124 @@ export const genFormulaAvgif: QGen = () => {
     explain: `${hint}。${fn === 'AVERAGEIF' ? 'AVERAGEIF は SUMIF と 同じ 並び（条件の範囲が 先）。' : `${fn} は SUMIFS と 同じ 並び（答えを 探す 範囲が 先）。`}`,
   }
 }
+
+// ---------------------------------------------------------------- 第6章：文字列（& ・LEFT・RIGHT・MID・LEN・FIND）
+const KANA = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワ'
+const word = (n: number) => Array.from({ length: n }, () => KANA[ri(0, KANA.length - 1)]).join('')
+const LETTERS = 'ABCDEFGHJKLMNPRSTUVWXYZ'
+const code = () => `${LETTERS[ri(0, LETTERS.length - 1)]}${LETTERS[ri(0, LETTERS.length - 1)]}-${ri(1000, 9999)}`
+const FIRST = ['山田', '佐藤', '鈴木', '田中', '高橋', '伊藤']
+const GIVEN = ['太郎', '花子', '一郎', '美咲', '健太', '結衣']
+const USERS = ['taro', 'hana', 'ken', 'yui', 'moji', 'kaki', 'yomi']
+const HOSTS = ['moji.jp', 'text.co', 'kaki.ne', 'yomi.or']
+
+export const genLeftRightPick: QGen = () => {
+  const c = code()
+  const v = pick(['left', 'right', 'mid'] as const)
+  if (v === 'left') return choice(`A1 に「${c}」。=LEFT(A1,2) の 結果は？`, c.slice(0, 2), [c.slice(-2), c.slice(0, 3), c.slice(3, 5)], 'LEFT は 左から 数えて 指定した 文字数を 取り出す。')
+  if (v === 'right') return choice(`A1 に「${c}」。=RIGHT(A1,4) の 結果は？`, c.slice(-4), [c.slice(0, 4), c.slice(-3), c.slice(2, 6)], 'RIGHT は 右から 数えて 指定した 文字数を 取り出す。')
+  return choice(`A1 に「${c}」。=MID(A1,4,2) の 結果は？`, c.slice(3, 5), [c.slice(4, 6), c.slice(2, 4), c.slice(0, 2)], `MID(文字列, 何文字目から, 何文字)。「-」が 3文字目なので、4文字目から 2文字。`)
+}
+
+export const genMidPick: QGen = () => {
+  const w = word(7)
+  const s = ri(2, 4)
+  const n = ri(2, 3)
+  return choice(
+    `=MID("${w}",${s},${n}) の 結果は？`,
+    w.slice(s - 1, s - 1 + n),
+    [w.slice(s, s + n), w.slice(s - 2, s - 2 + n), w.slice(0, n)],
+    `${s}文字目の「${w[s - 1]}」から ${n}文字 → ${w.slice(s - 1, s - 1 + n)}。`,
+  )
+}
+
+export const genJoinPick: QGen = () => {
+  const a = pick(FIRST)
+  const b = pick(GIVEN)
+  const v = pick(['plain', 'space', 'plus'] as const)
+  if (v === 'plain') return choice(`A1 に「${a}」、B1 に「${b}」。=A1&B1 の 結果は？`, a + b, [`${a} ${b}`, `${b}${a}`, '#VALUE!'], '「&」は 文字を そのまま つなぐ。空白が ほしいときは =A1&" "&B1。')
+  if (v === 'space') return choice(`A1 に「${a}」、B1 に「${b}」。=A1&" "&B1 の 結果は？`, `${a} ${b}`, [a + b, `${a}" "${b}`, `${b} ${a}`], '" " は 空白 1文字。名字・空白・名前 の 順に つながる。')
+  return choice(`A1 に「${a}」、B1 に「${b}」。=A1+B1 の 結果は？`, '#VALUE!', [a + b, `${a} ${b}`, '0'], '+ は 数の 足し算。文字を つなぐなら「&」を 使う。')
+}
+
+export const genLenPick: QGen = () => {
+  const n = ri(3, 6)
+  const w = word(n)
+  const sp = Math.random() < 0.5
+  const s = sp ? `${w.slice(0, 2)} ${w.slice(2)}` : w
+  return choice(`=LEN("${s}") の 結果は？`, s.length, [s.length - 1, s.length + 1, sp ? n : n + 2], `LEN は 文字数を 数える。${sp ? '空白も 1文字と 数える。' : ''}`)
+}
+
+export const genTextFunction: QGen = () => {
+  const [q, a, why] = pick([
+    ['商品コードの 左から 2文字を 取り出す', 'LEFT', '左から 取り出すのは LEFT。'],
+    ['電話番号の 末尾 4けたを 取り出す', 'RIGHT', '右から 取り出すのは RIGHT。'],
+    ['文字列の まん中（5文字目から 3文字）を 取り出す', 'MID', 'まん中は MID(文字列, 開始位置, 文字数)。'],
+    ['看板の 文字数を 数える', 'LEN', '文字数は LEN。'],
+    ['名前の 前後の よけいな 空白を 消す', 'TRIM', '空白の 掃除は TRIM。'],
+    ['「株式会社」を「(株)」に 置きかえる', 'SUBSTITUTE', '文字の 置きかえは SUBSTITUTE。'],
+    ['メールアドレスの「@」が 何文字目かを 調べる', 'FIND', '文字の 位置を 調べるのは FIND。'],
+  ] as const)
+  return choice(`${q}。使う 関数は？`, a, ['LEFT', 'RIGHT', 'MID', 'LEN', 'TRIM', 'SUBSTITUTE', 'FIND'].filter((f) => f !== a).sort(() => Math.random() - 0.5), why)
+}
+
+export const genFormulaJoin: QGen = () => {
+  const a = pick(FIRST)
+  const b = pick(GIVEN)
+  return {
+    type: 'formula',
+    q: `C1 に「${a} ${b}」のように、A1 と B1 を 空白で つないで 出せ！`,
+    table: [[a, b]],
+    target: 'C1',
+    expect: `${a} ${b}`,
+    mustUse: '&',
+    hint: '=A1&" "&B1',
+    explain: '=A1&" "&B1。空白も " " で 囲んで & で つなぐ。',
+  }
+}
+
+export const genFormulaLeftRight: QGen = () => {
+  const c = code()
+  const left = Math.random() < 0.5
+  return {
+    type: 'formula',
+    q: left ? `B1 に、A1 の コードの 左から 2文字を 取り出せ！` : `B1 に、A1 の コードの 右から 4文字を 取り出せ！`,
+    table: [[c]],
+    target: 'B1',
+    expect: left ? c.slice(0, 2) : c.slice(-4),
+    mustUse: left ? 'LEFT' : 'RIGHT',
+    hint: left ? '=LEFT(A1,2)' : '=RIGHT(A1,4)',
+    explain: left ? '=LEFT(A1,2)。左から 2文字。' : '=RIGHT(A1,4)。右から 4文字。',
+  }
+}
+
+export const genFormulaMid: QGen = () => {
+  const w = word(7)
+  const s = ri(2, 4)
+  const n = ri(2, 3)
+  return {
+    type: 'formula',
+    q: `B1 に、A1 の ${s}文字目から ${n}文字を 取り出せ！`,
+    table: [[w]],
+    target: 'B1',
+    expect: w.slice(s - 1, s - 1 + n),
+    mustUse: 'MID',
+    hint: `=MID(A1,${s},${n})`,
+    explain: `=MID(A1,${s},${n})。何文字目から・何文字 の 順。`,
+  }
+}
+
+export const genFormulaFind: QGen = () => {
+  const u = pick(USERS)
+  const h = pick(HOSTS)
+  return {
+    type: 'formula',
+    q: 'B1 に、A1 の アドレスの「@」より 前を 取り出せ！',
+    table: [[`${u}@${h}`]],
+    target: 'B1',
+    expect: u,
+    mustUse: 'FIND',
+    hint: '=LEFT(A1,FIND("@",A1)-1)',
+    explain: '=LEFT(A1,FIND("@",A1)-1)。FIND で @ の 位置を 調べ、その 1つ手前まで LEFT で 取り出す。',
+  }
+}

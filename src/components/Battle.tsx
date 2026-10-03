@@ -22,7 +22,7 @@ interface Props {
   /** 最初の戦闘（操作説明つき・逃げられない） */
   tutorial?: boolean
   /** 背景（森・草原・ボス） */
-  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury'
+  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
   onWin(): void
@@ -308,7 +308,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     const okVal = same(v, q.expect)
     const bad = copies.find((cp) => !same(vals[cp.p.r][cp.p.c], cp.expect))
     const okUse =
-      !q.mustUse || (q.mustUse === '*' ? raw.includes('*') : q.mustUse === '$' ? raw.includes('$') : usesFn(raw, q.mustUse))
+      !q.mustUse || (q.mustUse === '*' || q.mustUse === '$' || q.mustUse === '&' ? raw.includes(q.mustUse) : usesFn(raw, q.mustUse))
     if (!raw.startsWith('=')) answer(false, '数式は「=」で はじめよう！')
     else if (/[≧≦≠]/.test(raw)) answer(false, '「≧ ≦ ≠」は 使えない！ 以上は >=、以下は <=、等しくないは <> と 書こう。')
     else if (okVal && bad) {

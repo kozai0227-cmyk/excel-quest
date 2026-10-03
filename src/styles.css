@@ -927,7 +927,7 @@ kbd {
   border-bottom: 1px solid #e3e3e3;
   padding: 0 5px;
   line-height: 25px;
-  white-space: nowrap;
+  white-space: pre;
   overflow: hidden;
   cursor: cell;
   background: #fff;
@@ -1590,6 +1590,13 @@ kbd {
     radial-gradient(ellipse at 50% 30%, rgba(255, 210, 90, 0.28), transparent 55%),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 4px, transparent 4px 12%),
     linear-gradient(#1a1206 0%, #3a2a10 48%, #8a6a28 48%, #5a4418 100%);
+}
+
+.battle.bg-printing {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(120, 255, 160, 0.16), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 8%),
+    linear-gradient(#0c0a14 0%, #241c34 48%, #4a4038 48%, #2a2420 100%);
 }
 
 .battle.bg-ship {
@@ -2720,4 +2727,17 @@ kbd {
 .phone .boss-stage {
   width: 62cqw;
   height: 62cqw;
+}
+
+/* 文字列の 問題：セルの 中の 空白（TRIM の 前など）を そのまま 見せる */
+.gs-table td,
+.mini-table td,
+.xl-cell {
+  white-space: pre;
+}
+.guide-q,
+.guide-choice,
+.q-text,
+.q-choices .opt {
+  white-space: pre-wrap;
 }

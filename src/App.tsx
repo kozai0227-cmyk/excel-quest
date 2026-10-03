@@ -24,7 +24,7 @@ type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'end
 interface BattleReq {
   id: string
   tutorial?: boolean
-  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury'
+  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing'
 }
 
 const INN_PRICE = 10
@@ -343,7 +343,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.boss ? 'boss' : 'forest',
+              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.boss ? 'boss' : 'forest',
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -478,6 +478,52 @@ export default function App() {
           await sleep(1400)
         }
         await talk(undefined, ['（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）'])
+        save()
+      })
+    if (ex.to === 'print1')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['インクの においが 立ちこめる 印刷所。', '床に 散らばった 紙には「縺薙ｓ縺ｫ縺｡縺ｯ」のような 読めない 文字が びっしり 刷られている……。'])
+        await me(['（扉の 謎を 解きながら、印刷所の 奥を 目指そう）'])
+      })
+    if (ex.to === 'print2')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['奥の間。巨大な 印刷機の 上で、文字の 渦が ぐるぐると 回っている。', '渦が ゆっくりと 人の 形を とり、2つの ちぐはぐな 目が 光った……。'])
+      })
+    if (ex.to === 'textria')
+      run(async () => {
+        await sleep(1100)
+        const f = fieldRef.current
+        await talk(undefined, ['ここは 文字の宿場町 テキストリア。', '旅人の 手紙や 看板、書物を 一手に 引き受ける、文字の 町だ。'])
+        await talk(undefined, ['しかし 看板も 張り紙も、文字が ぐちゃぐちゃに 化けて 読めない……。'])
+        f?.emote('player', 'bang', 1200)
+        await talk('宿場長カキコ', ['あら、旅の方！ ちょうど よかった、お待ちになって！'])
+        if (f) {
+          // 宿場長が 屋敷から 走ってくる
+          f.spawn({ id: 'kakiko_event', x: 4, y: 11, name: '宿場長カキコ', look: SPEAKER_LOOKS['宿場長カキコ'], kind: 'talk', dir: 'down' })
+          await f.walkTo('kakiko_event', ex.tx - 1, ex.ty, 120)
+          f.face('kakiko_event', 'right')
+          f.face('player', 'left')
+          f.emote('kakiko_event', 'sweat', 2600)
+        }
+        await talk('宿場長カキコ', [
+          'はぁ……はぁ……。わたくし、この 宿場の 宿場長、カキコと 申します。',
+          '王都の 帳簿を 取り戻した 旅の方……あなたの ことね？ 宰相さまから 手紙が 届いて……届いた けれど、文字が 化けて 半分 読めなかったわ。',
+          '北の 活版印刷所に「モジバケーラ」という 魔物が 住みついてから、町の 文字が みんな 化けて しまったの。',
+          '名前を つなげば 化け、コードを 切り分ければ 化け……。みんな 1文字ずつ 手で 書き写しては、また 間違えて。',
+        ])
+        await me(['（1文字ずつ 書き写す……会社でも、姓と 名を つなげたり、コードを 分けたりするのに 何時間も かけてたな）', '（……文字列関数だ。& で つなぎ、LEFT や MID で 切り取る 魔法！）'])
+        await talk('宿場長カキコ', [
+          'どうか 宿場の 者たちの 悩みを 聞いてやって。',
+          'すべて 解決すれば、印刷所の 結界も とけるはず……。',
+          'わたくしは 屋敷に いるわ。伝書鳩の あて先の 件で、あとで 相談させて ちょうだい。',
+        ])
+        if (f) {
+          void f.walkTo('kakiko_event', 4, 11, 200).then(() => f.remove('kakiko_event'))
+          await sleep(1400)
+        }
+        await talk(undefined, ['（文字と 文字は「&」で つなぐ。文字を 数式に 書くときは " で 囲もう。馬車で いつでも ピボリアに 戻れるぞ）'])
         save()
       })
     if (ex.to === 'treasury1')
@@ -708,6 +754,8 @@ export default function App() {
                   ? '（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）'
                   : q.town === 'pivoria'
                     ? '（王宮の 結界が とけ、宝物庫に 入れるように なった。最奥に バラバランが いるらしい）'
+                    : q.town === 'textria'
+                      ? '（印刷所の 結界が とけ、中に 入れるように なった。奥の間に モジバケーラが いるらしい）'
                   : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
         ])
       save()
@@ -747,7 +795,7 @@ export default function App() {
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
-        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : '洞窟'
+        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
         sfx('door')
         setFade(true)
@@ -779,6 +827,12 @@ export default function App() {
         await talk(undefined, [
           '散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。',
           '王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！',
+          '（西の 宿場町への 馬車が 動き出した。王都の 西の はずれの 御者に 話せば 向かえるらしい）',
+        ])
+      if (b.id === 'mojibake')
+        await talk(undefined, [
+          '化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。',
+          '宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！',
         ])
       save()
       if (b.id === 'golem') {
@@ -799,6 +853,10 @@ export default function App() {
       }
       if (b.id === 'barabaran') {
         setChapter(5)
+        setScene('ending')
+      }
+      if (b.id === 'mojibake') {
+        setChapter(6)
         setScene('ending')
       }
     })
@@ -904,7 +962,7 @@ export default function App() {
               onEncounter={(id) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.kind === 'dungeon' ? 'cave' : 'field',
                 })
               }
               onGate={onGate}

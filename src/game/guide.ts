@@ -229,7 +229,9 @@ export function guideChips(step: FormulaStep, rows: number, cols: number, town: 
   )
   // 先頭の = は 入っているので、= の ボタンは 比較（等しい）に 使うときだけ
   const cmp = toks.some((t) => COMPARE.includes(t) || t === '=') || town === 'ifport' || town === 'ship'
-  const symbols = ['(', ')', ':', ',', '+', '-', '*', '/', ...(step.extra ?? []).filter((t) => t === '×' || t === '÷'), ...(cmp ? [...COMPARE, '='] : [])]
+  // 文字を つなぐ「&」は 第6章（テキストリア）から
+  const amp = toks.includes('&') || town === 'textria' || town === 'printing'
+  const symbols = ['(', ')', ':', ',', '+', '-', '*', '/', ...(amp ? ['&'] : []), ...(step.extra ?? []).filter((t) => t === '×' || t === '÷'), ...(cmp ? [...COMPARE, '='] : [])]
   return [
     ...(funcs.size ? [{ label: '関数', chips: [...funcs].sort() }] : []),
     { label: 'セル', chips: [...cells].sort(byAddr) },

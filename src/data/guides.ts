@@ -1104,4 +1104,195 @@ export const GUIDES: Record<string, GuideStep[]> = {
       explain: '王冠の 扉が 開いた。',
     },
   ],
+
+  // ---------------------------------------------------------------- 第6章 テキストリア（文字列）
+  text_concat: [
+    {
+      kind: 'choice',
+      q: 'A2「山田」と B2「太郎」を つないで「山田太郎」に する 式は？',
+      answer: '=A2&B2',
+      wrong: ['=A2+B2', '=SUM(A2,B2)', '=A2B2'],
+      explain: '文字と 文字を つなぐのは「&」。+ は 数の 足し算なので、文字に 使うと エラー（#VALUE!）に なる。',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に「山田 太郎」（間に 空白）を 作ろう。C5 まで コピーするぞ',
+      target: 'C2',
+      fill: 'C2:C5',
+      answer: '=A2&" "&B2',
+      extra: ['""'],
+      explain: '空白も 1つの 文字。" " と 書いて、名字と 名前の 間に & で つなぐ。',
+      hint: '=A2 & " " & B2',
+    },
+  ],
+
+  text_leftright: [
+    {
+      kind: 'choice',
+      q: '「TX-1023」の 左から 2文字を 取り出す 式は？',
+      answer: '=LEFT(A2,2)',
+      wrong: ['=RIGHT(A2,2)', '=LEFT(2,A2)', '=MID(A2,2)'],
+      explain: '=LEFT(文字列, 文字数)。左から 数えて 何文字 取り出すかを 2つ目に 書く。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 産地（左から 2文字）を 取り出そう。B5 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B5',
+      answer: '=LEFT(A2,2)',
+      extra: ['3', '4'],
+      explain: 'TX・NB・KS・TX。決まった 位置の 文字なら LEFT で 一発。',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に 品番（右から 4文字）を 取り出そう。C5 まで コピーするぞ',
+      target: 'C2',
+      fill: 'C2:C5',
+      answer: '=RIGHT(A2,4)',
+      extra: ['2', '3'],
+      explain: '右から 数えて 4文字。「0450」の 頭の 0 も 消えずに 残る（文字として 取り出すため）。',
+    },
+  ],
+
+  text_mid: [
+    {
+      kind: 'choice',
+      q: '=MID("03-1234-5678", 4, 4) の 4 と 4 は それぞれ 何？',
+      answer: '4文字目から、4文字 取り出す',
+      wrong: ['4文字目まで、4回 取り出す', '左から 4文字と 右から 4文字', '4文字目を 4に 置きかえる'],
+      explain: '=MID(文字列, 何文字目から, 何文字)。0・3・- の 次の「1」が 4文字目。そこから 4文字で「1234」。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 局番（4文字目から 4文字）を 取り出そう。B5 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B5',
+      answer: '=MID(A2,4,4)',
+      extra: ['3', '5'],
+      explain: 'まん中の 文字も「何文字目から 何文字」で 自由に 切り取れる。',
+    },
+  ],
+
+  text_len: [
+    {
+      kind: 'choice',
+      q: '=LEN("宿屋 ひらがな") の 答えは？（間に 空白が 1つ）',
+      answer: '7',
+      wrong: ['6', '5', '8'],
+      explain: 'LEN は 文字数を 数える。空白も 1文字と 数えるので、6文字 ＋ 空白 1つ で 7。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に 店名の 文字数を 出そう。B5 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B5',
+      answer: '=LEN(A2)',
+      explain: '7・10・6・9 文字。指で 数えなくても 一瞬。',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に、8文字より 多ければ「長い」、そうでなければ「OK」と 出そう。C5 まで コピーするぞ',
+      target: 'C2',
+      fill: 'C2:C5',
+      answer: '=IF(LEN(A2)>8,"長い","OK")',
+      extra: ['長い', '">=8"'],
+      explain: 'IF の 条件に LEN を そのまま 書ける。関数の 中に 関数を 入れて 組み合わせるのが コツ。',
+      hint: '=IF( LEN(A2)>8 , "長い" , "OK" )',
+    },
+  ],
+
+  text_clean: [
+    {
+      kind: 'choice',
+      q: '=TRIM("  佐藤  次郎 ") の 答えは？',
+      answer: '「佐藤 次郎」（前後の 空白が 消え、間は 1つ）',
+      wrong: ['「佐藤次郎」（空白が すべて 消える）', '「  佐藤  次郎 」（何も 変わらない）', '「佐藤  次郎」（前後だけ 消える）'],
+      explain: 'TRIM は 前後の 空白を 消し、間に 続いた 空白は 1つに そろえる。間の 空白まで 全部は 消さない。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に、A2 の 名前から よけいな 空白を 取り除こう。B4 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B4',
+      answer: '=TRIM(A2)',
+      explain: '並べたときに ガタガタしていた 名前が そろった。',
+    },
+    {
+      kind: 'formula',
+      q: 'D2 に、C2 の「株式会社」を「(株)」に 置きかえよう。D4 まで コピーするぞ',
+      target: 'D2',
+      fill: 'D2:D4',
+      answer: '=SUBSTITUTE(C2,"株式会社","(株)")',
+      extra: ['株式会社', '"株"'],
+      explain: '=SUBSTITUTE(文字列, 探す文字, 置きかえる文字)。前に あっても 後ろに あっても 置きかわる。',
+      hint: '=SUBSTITUTE( C2 , "株式会社" , "(株)" )',
+    },
+  ],
+
+  text_find: [
+    {
+      kind: 'choice',
+      q: '=FIND("@","taro@moji.jp") の 答えは？',
+      answer: '5',
+      wrong: ['4', '6', 'taro'],
+      explain: 'FIND は その文字が 何文字目に あるかを 返す。t・a・r・o の 次なので 5文字目。',
+    },
+    {
+      kind: 'choice',
+      q: '名前（@ より 前）を 取り出すには、LEFT で 何文字 取り出せば いい？',
+      answer: 'FIND("@",A2)-1 文字',
+      wrong: ['FIND("@",A2) 文字', 'FIND("@",A2)+1 文字', 'LEN(A2) 文字'],
+      explain: '@ が 5文字目なら、名前は その 1つ手前の 4文字。だから FIND(…)-1。',
+    },
+    {
+      kind: 'formula',
+      q: 'B2 に、@ より 前（名前）を 取り出そう。B4 まで コピーするぞ',
+      target: 'B2',
+      fill: 'B2:B4',
+      answer: '=LEFT(A2,FIND("@",A2)-1)',
+      extra: ['"."'],
+      explain: '@ の 位置が 人ごとに ちがっても、FIND が 毎回 数えて くれる。',
+      hint: '=LEFT( A2 , FIND("@",A2)-1 )',
+    },
+    {
+      kind: 'formula',
+      q: 'C2 に、@ より 後ろ（町の 印）を 取り出そう。C4 まで コピーするぞ',
+      target: 'C2',
+      fill: 'C2:C4',
+      answer: '=RIGHT(A2,LEN(A2)-FIND("@",A2))',
+      explain: '全体の 文字数（LEN）から @ までの 文字数（FIND）を 引くと、@ より 後ろの 文字数に なる。',
+      hint: '=RIGHT( A2 , LEN(A2)-FIND("@",A2) )',
+    },
+  ],
+
+  // ---------------------------------------------------------------- 活版印刷所の扉（謎解き）
+  prt_join: [
+    {
+      kind: 'formula',
+      q: '左の 字と 右の 字を つなぎ、扉に 命じよ（C2 に 刻む）',
+      target: 'C2',
+      answer: '=A2&B2',
+      explain: '扉が 開いた。',
+    },
+  ],
+  prt_mid: [
+    {
+      kind: 'formula',
+      q: '4番目の 字より 2字、そこに 鍵は 眠る（B2 に 刻む）',
+      target: 'B2',
+      answer: '=MID(A2,4,2)',
+      extra: ['3', '5'],
+      explain: '錠が はずれた。',
+    },
+  ],
+  prt_find: [
+    {
+      kind: 'formula',
+      q: '「:」の 後ろの 言葉を 示せ（B2 に 刻み、B4 まで 映す）',
+      target: 'B2',
+      fill: 'B2:B4',
+      answer: '=RIGHT(A2,LEN(A2)-FIND(":",A2))',
+      explain: '最奥の 扉が 開いた。',
+    },
+  ],
 }

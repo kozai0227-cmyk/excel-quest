@@ -9,13 +9,14 @@ export interface ChipGroup {
 }
 
 /** 町（ダンジョン）の順番。ここまでに 習った関数だけを ボタンに出す */
-const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury']
+const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury', 'textria', 'printing']
 const FUNCS_AT: Record<string, string[]> = {
   calculet: ['SUM', 'AVERAGE', 'MAX', 'MIN', 'COUNT'],
   sansho: ['ROUND'],
   ifport: ['IF', 'AND', 'OR', 'COUNTIF', 'SUMIF'],
   lookup: ['VLOOKUP', 'IFERROR', 'XLOOKUP'],
   pivoria: ['SUMIFS', 'COUNTIFS', 'AVERAGEIF', 'MAXIFS', 'MINIFS'],
+  textria: ['LEFT', 'RIGHT', 'MID', 'LEN', 'TRIM', 'SUBSTITUTE', 'FIND'],
 }
 export const ALL_FUNCS = Object.values(FUNCS_AT).flat()
 
@@ -35,6 +36,11 @@ const SKILL_FUNCS: Record<string, string[]> = {
   countifs: ['COUNTIFS'],
   sumifs: ['SUMIFS'],
   averageif: ['AVERAGEIF', 'MAXIFS', 'MINIFS'],
+  leftright: ['LEFT', 'RIGHT'],
+  mid: ['MID'],
+  len: ['LEN'],
+  clean: ['TRIM', 'SUBSTITUTE'],
+  find: ['FIND'],
 }
 export const learnedFuncs = (skills: string[]) => skills.flatMap((s) => SKILL_FUNCS[s] ?? [])
 
@@ -127,7 +133,7 @@ export function battlePad(hint: string, rows: number, cols: number, target: stri
   return [
     ...(funcs.size ? [{ label: '関数', chips: [...funcs].sort() }] : []),
     { label: 'セル', chips: [...cells].sort(byAddr) },
-    { label: '記号', chips: [...PUNCT, ...ARITH, ...(hasCmp ? [...COMPARE, '='] : [])] },
+    { label: '記号', chips: [...PUNCT, ...ARITH, ...(toks.includes('&') ? ['&'] : []), ...(hasCmp ? [...COMPARE, '='] : [])] },
     ...(values.length ? [{ label: '値', chips: values }] : []),
   ]
 }

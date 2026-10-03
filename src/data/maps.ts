@@ -199,6 +199,20 @@ Object.assign(C, {
   kid6: { hair: 'twin', hairColor: '#5a3a1a', eyes: 'big', blush: true, outfit: 'dress', color: '#3a8ab0', inner: '#ffffff' },
 } satisfies Record<string, CharSpec>)
 
+// 第6章 テキストリアの人々
+Object.assign(C, {
+  kakiko: { hair: 'bun', hairColor: '#2a1a1a', glasses: true, eyes: 'closed', outfit: 'robe', color: '#2a6a5a', accent: '#f0c040', hat: 'hood', hatColor: '#1a4a3a' },
+  fumi: { hair: 'long', hairColor: '#3a2a1a', eyes: 'big', blush: true, outfit: 'apron', color: '#c05a7a', inner: '#ffffff' },
+  kodo: { hair: 'buzz', hairColor: '#2a2a2a', beard: 'stubble', outfit: 'overalls', color: '#5a6a3a', inner: '#e8e0d0', hat: 'bandana', hatColor: '#c08030' },
+  denwa: { hair: 'messy', hairColor: '#4a3a2a', glasses: true, eyes: 'tired', outfit: 'vest', color: '#3a4a6a', inner: '#f0f0f0', accent: '#c03030' },
+  kanba: { hair: 'twin', hairColor: '#e07040', eyes: 'big', blush: true, outfit: 'overalls', color: '#e0a030', inner: '#fff4e0', hat: 'beret', hatColor: '#3a6ab0' },
+  narabe: { hair: 'neat', hairColor: '#1a1a1a', glasses: true, outfit: 'coat', color: '#4a4a5a', inner: '#f4f4f4', accent: '#2a6a5a', pants: '#2a2a3a' },
+  printer: { hair: 'messy', hairColor: '#5a5a5a', skin: '#d8a070', beard: 'mustache', beardColor: '#5a5a5a', outfit: 'apron', color: '#3a3a3a', inner: '#e8e0d0' },
+  inn7: { hair: 'bob', hairColor: '#5a2a1a', eyes: 'closed', outfit: 'apron', color: '#2a6a5a', inner: '#ffffff' },
+  shop7: { hair: 'neat', hairColor: '#3a2a1a', beard: 'stubble', outfit: 'leather', color: '#e8e0cc', accent: '#2a6a5a', pants: '#3a3a44', hat: 'beret', hatColor: '#2a6a5a' },
+  kid7: { hair: 'spiky', hairColor: '#2a1a1a', eyes: 'big', blush: true, outfit: 'tunic', color: '#e0a030', accent: '#5a3a1a', pants: '#3a5ab0' },
+} satisfies Record<string, CharSpec>)
+
 const inn = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '宿屋', look, kind: 'inn' })
 const church = (id: string, x: number, y: number): NpcDef => ({ id, x, y, name: '神父', look: C.priest, kind: 'church' })
 const shop = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '道具屋', look, kind: 'shop' })
@@ -630,6 +644,75 @@ const TREASURY2 = [
 ]
 const treasuryEnemies = () => ['dupli', 'chirakari', 'dupli']
 const TREASURY_RATE = 1 / 32
+
+// ================================================================ 文字の宿場町 テキストリア
+function textriaTiles() {
+  const m = blank(34, 28)
+  forest(m)
+  rect(m, 'M', 1, 1, 32, 4)
+  // 北の 活版印刷所（ダンジョンの 入口）
+  rect(m, 'X', 11, 1, 12, 1)
+  rect(m, 'V', 11, 2, 12, 3)
+  put(m, 'v', [[12, 2], [14, 2], [19, 2], [21, 2], [12, 3], [21, 3]])
+  m[4][16] = 'd'
+  rect(m, '.', 15, 5, 3, 1)
+  rect(m, 'Z', 15, 6, 3, 1)
+  // 南北の 道と、宿場の 大通り
+  rect(m, 'T', 15, 7, 3, 20)
+  rect(m, 'T', 1, 12, 32, 3)
+  rect(m, 'T', 1, 21, 32, 2)
+  // 北の並び
+  building(m, 2, 7, 6, { roof: 'N', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 9, 7, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
+  building(m, 19, 7, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
+  building(m, 26, 7, 6, { roof: 'Q', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
+  // 南の並び
+  building(m, 2, 16, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 8, 16, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
+  building(m, 20, 16, 6, { roof: 'R', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
+  building(m, 27, 16, 5, { roof: 'E', stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  // 市場と 飾り
+  put(m, 'A', [[8, 24], [9, 24], [10, 24], [22, 24], [23, 24], [24, 24]])
+  put(m, 'S', [[14, 7]])
+  put(m, 'L', [[14, 11], [18, 11], [7, 15], [26, 15], [14, 20], [18, 20], [14, 24], [18, 24]])
+  put(m, 'p', [[1, 11], [32, 11], [1, 15], [32, 15], [13, 23], [19, 23]])
+  put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [12, 26], [20, 26]])
+  put(m, 'n', [[11, 15], [22, 15]])
+  sprinkle(m, 41, 7)
+  return done(m)
+}
+
+const PRINT1 = [
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[:::[[[[[{[[[[[:::[[[',
+  '[[:::[[[[:::[[[[:::[[[',
+  '[[[:[[[[[[([[[[[[:[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[::[[:L:::::L:[[::[[[',
+  '[[::[[:::::::::[[::[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[([[[[[[[[[[[',
+  '[[:::::::::::::::::[[[',
+  '[[:L::[[[:::[[[::L:[[[',
+  '[[:::::::::::::::::[[[',
+  '[[[[[[[[[[-[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+]
+const PRINT2 = [
+  '[[[[[[[[[[[[[[[[[[',
+  '[::::::::::::::::[',
+  '[:L::::::::::::L:[',
+  '[::::::::::::::::[',
+  '[[[[[[[[([[[[[[[[[',
+  '[::::::::::::::::[',
+  '[::L::::::::::L::[',
+  '[::::::::::::::::[',
+  '[:::::::}::::::::[',
+  '[[[[[[[[[[[[[[[[[[',
+]
+const printEnemies = () => ['kuuhaku', 'kirehashi', 'kuuhaku']
+const PRINT_RATE = 1 / 32
 
 // ================================================================ はじまりの森
 function forestTiles() {
@@ -1347,6 +1430,12 @@ const pivoria: MapDef = {
       lines: ['この先は ピボリア王宮の 宝物庫だ。', 'バラバランの 結界が 張られていて、陛下でさえ 入れぬ。', '王都の 者たちの 悩みを 晴らせば、結界も 弱まるはずだ。'],
       linesAfter: { when: (s) => s.bosses.includes('barabaran'), lines: ['宝物庫の 記録が、1冊の 帳簿に まとまった！', '王都の 者 一同、感謝して おるぞ。'] },
     },
+    {
+      id: 'pivo_coach2', x: 1, y: 20, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
+      lines: ['王都の 帳簿が 戻って、西の 宿場町への 便も 再開だ！', '行き先は「文字の宿場町 テキストリア」。手紙と 書物の 町さ。……最近は 文字が 化けて 読めないって 噂だがね。'],
+      ferry: { to: 'textria', x: 16, y: 25, dir: 'up', place: '文字の宿場町 テキストリア', verb: '向かう' },
+      hideIf: (s) => !s.bosses.includes('barabaran'),
+    },
     { id: 'cat4', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャー。', '（市場の 魚屋の 前から 動かない）'] },
     { id: 'dog3', x: 6, y: 23, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（馬車の 車輪を じっと 見ている）'] },
   ],
@@ -1395,6 +1484,91 @@ const treasury2: MapDef = {
   // バラバランの 前では 敵は出ない
   encounter: (_x, y) => (y <= 4 ? null : treasuryEnemies()),
   encounterRate: TREASURY_RATE,
+}
+
+// ---------------------------------------------------------------- 第6章
+const textria: MapDef = {
+  id: 'textria',
+  name: '文字の宿場町 テキストリア',
+  kind: 'town',
+  town: 'textria',
+  bossId: 'mojibake',
+  tiles: textriaTiles(),
+  spawn: { x: 16, y: 25, dir: 'up' },
+  respawn: { map: 'text_church', x: 5, y: 4 },
+  exits: [{ x: 16, y: 4, to: 'print1', tx: 10, ty: 12, dir: 'up' }],
+  signs: [
+    { x: 14, y: 7, lines: ['テキストリア 活版印刷所 ― 宿場の 手紙・看板・書物を すべて 刷る 場所。', 'いまは「文字化けの怪 モジバケーラ」が 住みつき、刷る 文字が すべて 化けてしまうという。', '宿場の 悩みを すべて 解決すれば、印刷所の 結界は とけるだろう。'] },
+  ],
+  npcs: [
+    { id: 'kodo', x: 25, y: 23, name: '倉庫番コード', look: C.kodo, kind: 'quest', questId: 'text_leftright', dir: 'down' },
+    {
+      id: 'text_coach', x: 17, y: 26, name: '王都行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
+      lines: ['ピボリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'pivoria', x: 2, y: 20, dir: 'left', place: '集計の王都 ピボリア', verb: '向かう' },
+    },
+    {
+      id: 'printer', x: 18, y: 8, name: '印刷工のハンコ', look: C.printer, kind: 'guard', dir: 'left',
+      lines: ['この先は 活版印刷所だ。……いや、もう 印刷所とは 呼べんな。', 'モジバケーラが 住みついてから、刷る 文字が ぜんぶ「縺薙ｓ縺ｫ縺｡縺ｯ」みたいに 化けちまう。', '宿場の みんなの 悩みが 晴れれば、結界も 弱まるはずなんだが……。'],
+      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: ['見ろ、刷りたての 新聞だ！ 1文字も 化けて ねえ！', 'あんたの おかげだ。宿場の 文字が 戻ってきたぜ。'] },
+    },
+    {
+      id: 'kid7', x: 23, y: 13, name: '宿場の子ども', look: C.kid7, kind: 'talk', wander: true, emote: 'note',
+      lines: ['しりとり しよう！ 「テキスト」……「トマト」……「ト……縺ｨ」……あれ？', 'なんか 言葉が 化けちゃう！ 呪いのせいだって 母ちゃんが 言ってた。'],
+      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: ['しりとり 再開！ 「テキスト」「トマト」「とけい」……ちゃんと 言えるよ！'] },
+    },
+    {
+      id: 'poet', x: 9, y: 13, name: '旅の歌詠み', look: C.traveler, kind: 'talk', wander: true,
+      lines: ['五・七・五の 歌を 詠んで いるのだが、文字数を 数えるのが 苦手でね。', 'LEN という 魔法が あれば、指を 折らずに すむのだが……。'],
+      linesAfter: { when: (s) => s.solved.includes('text_len'), lines: ['LEN で 数えたら、わたしの 歌は 5・8・5 だった……。字余りじゃ。'] },
+    },
+    { id: 'cat5', x: 6, y: 23, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ……ニ繝｣……？', '（ネコの 鳴き声まで 化けている……）'] },
+  ],
+}
+
+const print1: MapDef = {
+  id: 'print1',
+  name: 'テキストリア 活版印刷所',
+  kind: 'dungeon',
+  tiles: PRINT1,
+  spawn: { x: 10, y: 12, dir: 'up' },
+  exits: [
+    { x: 10, y: 13, to: 'textria', tx: 16, ty: 5, dir: 'down' },
+    { x: 10, y: 2, to: 'print2', tx: 8, ty: 7, dir: 'up' },
+  ],
+  signs: [],
+  gates: [
+    { x: 10, y: 9, puzzle: 'prt_join' },
+    { x: 10, y: 4, puzzle: 'prt_mid' },
+  ],
+  npcs: [
+    ...chest('prt_chest1', 2, 2, { item: 'herb' }),
+    ...chest('prt_chest2', 18, 2, { gold: 800 }),
+    ...chest('prt_chest3', 18, 12, { item: 'sandglass' }),
+  ],
+  encounter: printEnemies,
+  encounterRate: PRINT_RATE,
+}
+
+const print2: MapDef = {
+  id: 'print2',
+  name: 'テキストリア 活版印刷所 奥の間',
+  kind: 'dungeon',
+  light: true,
+  tiles: PRINT2,
+  spawn: { x: 8, y: 7, dir: 'up' },
+  exits: [{ x: 8, y: 8, to: 'print1', tx: 10, ty: 3, dir: 'down' }],
+  bossExit: { map: 'textria', x: 16, y: 5, dir: 'down' },
+  signs: [],
+  gates: [{ x: 8, y: 4, puzzle: 'prt_find' }],
+  npcs: [
+    ...chest('prt_chest4', 3, 7, { equip: 'proof_glasses' }),
+    { id: 'prt_spring', x: 14, y: 7, name: 'ふしぎな インク壺', creature: 'spring', kind: 'heal' },
+    { id: 'boss_mojibake', x: 8, y: 2, name: '文字化けの怪 モジバケーラ', creature: 'mojibake', kind: 'boss', bossId: 'mojibake', hideIf: (s) => s.bosses.includes('mojibake') },
+  ],
+  // モジバケーラの 前では 敵は出ない
+  encounter: (_x, y) => (y <= 3 ? null : printEnemies()),
+  encounterRate: PRINT_RATE,
 }
 
 const rooms: MapDef[] = [
@@ -1626,13 +1800,48 @@ const rooms: MapDef[] = [
     { id: 'zeim', x: 2, y: 2, name: '税務官ゼイム', look: C.zeim, kind: 'quest', questId: 'pivo_compare' },
     { id: 'taxpayer', x: 7, y: 5, name: '納税に 来た 商人', look: C.shop5, kind: 'talk', lines: ['税務所は いつも 大行列だ。', '帳簿の 束を 1枚ずつ めくって、地区と 金額を 確かめているらしい。'] },
   ]),
+  room('text_hall', '宿場長の屋敷', 'textria', 'hall', [
+    { id: 'kakiko', x: 6, y: 2, name: '宿場長カキコ', look: C.kakiko, kind: 'quest', questId: 'text_find' },
+    { id: 'clerk7', x: 9, y: 5, name: '屋敷の書生', look: C.student, kind: 'talk', wander: true, lines: ['伝書鳩の あて先が 読めなくて、手紙が 迷子に なって いるんです。', '「@」の 前と 後ろで 分けられたら、すぐ 届けられるのに……。'] },
+  ]),
+  room('text_weapon', '活字の武器屋', 'textria', 'weapon', [
+    {
+      id: 'text_smith', x: 2, y: 2, name: '武器屋スミツキ', look: C.smith6, kind: 'gear',
+      stock: ['tally_hammer', 'royal_scepter', 'quill_saber', 'ampersand_blade'],
+      lines: ['いらっしゃい。文字を 斬る 武器なら うちに おまかせ。', 'アンパサンドの剣は、離れた ものを 1つに つなぐ 不思議な 剣だよ。'],
+    },
+  ]),
+  room('text_armor', '植字工の防具屋', 'textria', 'armor', [
+    {
+      id: 'text_tailor', x: 2, y: 2, name: '防具屋クミハン', look: C.printer, kind: 'gear',
+      stock: ['royal_suit', 'typesetter_apron', 'ledger_shield', 'galley_shield', 'pivot_crown', 'proof_glasses'],
+      lines: ['よう。印刷所の 職人たちの 防具を 作ってる クミハンだ。', 'ゲラ箱のたては、活字を 並べる 箱を 打ち直した 頑丈な 盾さ。'],
+    },
+  ]),
+  room('text_inn', 'テキストリアの宿屋', 'textria', 'inn', [
+    inn('inn7', 8, 2, C.inn7),
+    { id: 'fumi', x: 2, y: 6, name: '宿帳係フミ', look: C.fumi, kind: 'quest', questId: 'text_concat', dir: 'right' },
+  ]),
+  room('text_church', 'テキストリアの教会', 'textria', 'church', [church('church7', 5, 2)]),
+  room('text_shop', '看板と道具の店', 'textria', 'shop', [
+    shop('shop7', 2, 2, C.shop7),
+    { id: 'kanba', x: 7, y: 4, name: '看板屋カンバ', look: C.kanba, kind: 'quest', questId: 'text_len' },
+  ]),
+  room('text_school', '宿場の寺子屋', 'textria', 'school', [
+    { id: 'narabe', x: 6, y: 2, name: '書記ナラベ', look: C.narabe, kind: 'quest', questId: 'text_clean' },
+    { id: 'pupil7', x: 3, y: 5, name: '寺子屋の子', look: C.kid5, kind: 'talk', lines: ['名前を 並べたら、空白の せいで ガタガタに なっちゃった。', '先生が「よけいな 空白は 魔物の しわざ」だって。'] },
+  ]),
+  room('text_post', '宿場の通信所', 'textria', 'bank', [
+    { id: 'denwa', x: 2, y: 2, name: '通信士デンワ', look: C.denwa, kind: 'quest', questId: 'text_mid' },
+    { id: 'caller', x: 7, y: 5, name: '電話を かけに 来た 商人', look: C.shop5, kind: 'talk', lines: ['局番ごとに 料金が ちがうらしいんだが、番号の どこが 局番か わからなくてね。'] },
+  ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
   ]),
 ]
 
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
-  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, ...rooms].map((m) => [m.id, m]),
+  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, ...rooms].map((m) => [m.id, m]),
 )
 
 // 町のドア → 室内
@@ -1692,5 +1901,13 @@ link(pivoria, 4, 18, MAPS.pivo_church)
 link(pivoria, 10, 18, MAPS.pivo_shop)
 link(pivoria, 22, 18, MAPS.pivo_school)
 link(pivoria, 29, 18, MAPS.pivo_bank)
+link(textria, 4, 10, MAPS.text_hall)
+link(textria, 11, 10, MAPS.text_weapon)
+link(textria, 21, 10, MAPS.text_armor)
+link(textria, 29, 10, MAPS.text_inn)
+link(textria, 4, 19, MAPS.text_church)
+link(textria, 10, 19, MAPS.text_shop)
+link(textria, 22, 19, MAPS.text_school)
+link(textria, 29, 19, MAPS.text_post)
 
 for (const map of Object.values(MAPS)) for (const n of map.npcs) if (n.look && !SPEAKER_LOOKS[n.name]) SPEAKER_LOOKS[n.name] = n.look
