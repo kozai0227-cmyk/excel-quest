@@ -9,7 +9,7 @@ export interface ChipGroup {
 }
 
 /** 町（ダンジョン）の順番。ここまでに 習った関数だけを ボタンに出す */
-const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury', 'textria', 'printing', 'koyomi', 'clock']
+const ORDER = ['celuno', 'cave', 'calculet', 'tower', 'sansho', 'temple', 'ifport', 'ship', 'lookup', 'library', 'pivoria', 'treasury', 'textria', 'printing', 'koyomi', 'clock', 'hope', 'castle']
 const FUNCS_AT: Record<string, string[]> = {
   calculet: ['SUM', 'AVERAGE', 'MAX', 'MIN', 'COUNT'],
   sansho: ['ROUND'],

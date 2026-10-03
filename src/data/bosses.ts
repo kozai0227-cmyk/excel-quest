@@ -20,7 +20,7 @@ export type Question =
 export interface BossDef {
   id: string
   name: string
-  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran' | 'kuuhaku' | 'kirehashi' | 'mojibake' | 'karendaru' | 'tokeidori' | 'shimekiris'
+  sprite: 'slime' | 'golem' | 'celime' | 'frog' | 'bat' | 'ghost' | 'kagamin' | 'zuredori' | 'mirage' | 'jelly' | 'crab' | 'captain' | 'nainai' | 'shiori' | 'mitsukaranu' | 'dupli' | 'chirakari' | 'barabaran' | 'kuuhaku' | 'kirehashi' | 'mojibake' | 'karendaru' | 'tokeidori' | 'shimekiris' | 'zerowarin' | 'nanashi' | 'refera'
   /** ボス（こちらの攻撃 → ボスの攻撃問題 の2段構えで戦う） */
   boss?: boolean
   /** 決まった回数の正解で倒れる（チュートリアル用） */
@@ -340,6 +340,48 @@ Object.assign(BOSSES, {
   },
 } satisfies Record<string, BossDef>)
 
+Object.assign(BOSSES, {
+  refera: {
+    id: 'refera',
+    name: '魔王レフエラー',
+    sprite: 'refera',
+    boss: true,
+    attackText: '「#REF!」の 黒い 稲妻が、世界じゅうの 参照を 断ち切っていく！',
+    defeatText: [
+      '「バカな……。ワシが 消した 参照を……つなぎ直した だと……？」',
+      '「エラーは……終わりでは なく……直すための……合図……。そう 言うのか……人間……。」',
+      '「時間を 奪えば……人は 何も できぬと 思って いた……。だが キサマは……仕組みで 時間を 取り戻した……。」',
+      '魔王レフエラーの 体が「#REF!」の 文字と ともに 崩れ、まぶしい 光が 城を つつみこんだ……。',
+    ],
+    hp: 960,
+    attack: [42, 50],
+    exp: 1500,
+    gold: 1200,
+    intro: [
+      '（玉座に 座る 黒い 影が、ゆっくりと 立ち上がった……！）',
+      'よくぞ 来た、表の理を 知る者よ。ワシこそ 魔王レフエラー。',
+      '人々から「時間」を 奪う ため、数式を 消し、参照を 断ち、世界を エラーで 埋めつくして やった。',
+      '手作業に 追われ、雑用に 1日を 費やす……それこそが 人間の 正しい 姿よ。',
+      '7つの 町で 覚えた 小手先の 魔法など、ワシの「#REF!」の 前には 無力！ さあ、すべての 参照を 失うが いい……！',
+    ],
+    questions: [
+      { type: 'choice', q: 'エラーが 出たとき、まず すべきことは？', choices: ['エラーの 種類から 原因を 読む', 'セルを 消す', '式を すべて 書き直す', '見なかった ことに する'], answer: 'エラーの 種類から 原因を 読む', explain: '#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……種類ごとに 原因と 直し方が 決まっている。' },
+      { type: 'choice', q: '列を 削除する 前に 確かめたいことは？', choices: ['その 列を 使っている 式が ないか', '列の 幅', '文字の 色', 'シートの 名前'], answer: 'その 列を 使っている 式が ないか', explain: '使われている セルを 消すと #REF! に なる。' },
+      G.genErrorCause,
+      G.genErrorMeaning,
+      G.genFormulaSafeDivide,
+      G.genFormulaFixSum,
+      G.genFormulaShare,
+      G.genFormulaIf,
+      G.genFormulaXlookup,
+      G.genFormulaSumifs,
+      G.genFormulaFind,
+      G.genFormulaDateDiff,
+      G.genFormulaTimes,
+    ],
+  },
+} satisfies Record<string, BossDef>)
+
 // ================================================================ フィールドの敵
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
@@ -533,6 +575,27 @@ const CLOCKS: QuestionSrc[] = [
   G.genFormulaDatePart,
 ]
 
+const ZEROS: QuestionSrc[] = [
+  c('0 で 割ったときに 出る エラーは？', ['#DIV/0!', '#VALUE!', '#N/A', '#REF!'], '#DIV/0!', 'DIV は 割る。0 では 割れない。'),
+  c('=IFERROR(A1/B1,0) の 0 は？', ['エラーの ときに 出す 値', '割る数', '小数点の けた', '最初に 出る 値'], 'エラーの ときに 出す 値', 'IFERROR(計算, エラーの ときの 値)。'),
+  G.genErrorCause,
+  G.genErrorMeaning,
+  G.genFormulaSafeDivide,
+  G.genFormulaFixSum,
+  G.genFormulaSumIf,
+  G.genFormulaVlookup,
+]
+const NAMELESS: QuestionSrc[] = [
+  c('文字に " を 付け忘れると 出る エラーは？', ['#NAME?', '#VALUE!', '#DIV/0!', '#REF!'], '#NAME?', '" が ないと、Excel は その 文字を 名前だと 思ってしまう。'),
+  c('参照先の セルを 削除すると 出る エラーは？', ['#REF!', '#N/A', '#NAME?', '#VALUE!'], '#REF!', 'REF は reference（参照）。'),
+  G.genErrorCause,
+  G.genErrorMeaning,
+  G.genFormulaFixSum,
+  G.genFormulaJoin,
+  G.genFormulaEdate,
+  G.genFormulaCountifs,
+]
+
 export const FIELD_ENEMIES: Record<string, BossDef> = {
   celime_tutorial: {
     id: 'celime_tutorial',
@@ -555,6 +618,8 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
   jelly: { id: 'jelly', name: 'イフクラゲ', sprite: 'jelly', hp: 78, attack: [16, 21], exp: 52, gold: 40, intro: [], questions: CONDS },
   crab: { id: 'crab', name: 'ブンキガニ', sprite: 'crab', hp: 92, attack: [18, 24], exp: 64, gold: 50, intro: [], questions: BRANCHES },
   nainai: { id: 'nainai', name: 'ナイナイ', sprite: 'nainai', hp: 104, attack: [21, 27], exp: 78, gold: 60, intro: [], questions: LOOKS },
+  zerowarin: { id: 'zerowarin', name: 'ゼロワリン', sprite: 'zerowarin', hp: 222, attack: [37, 43], exp: 190, gold: 140, intro: [], questions: ZEROS },
+  nanashi: { id: 'nanashi', name: 'ナナシ', sprite: 'nanashi', hp: 240, attack: [39, 45], exp: 205, gold: 150, intro: [], questions: NAMELESS },
   karendaru: { id: 'karendaru', name: 'カレンダル', sprite: 'karendaru', hp: 190, attack: [33, 39], exp: 160, gold: 120, intro: [], questions: CALENDARS },
   tokeidori: { id: 'tokeidori', name: 'トケイドリ', sprite: 'tokeidori', hp: 206, attack: [35, 41], exp: 174, gold: 130, intro: [], questions: CLOCKS },
   kuuhaku: { id: 'kuuhaku', name: 'クウハクン', sprite: 'kuuhaku', hp: 160, attack: [29, 35], exp: 132, gold: 100, intro: [], questions: SPACES },

@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { DialogBox, type DialogReq } from './DialogBox'
 import { usePhoneLayout } from '../game/layout'
-import { sfx, useBgm } from '../game/sound'
+import { jingle, sfx, useBgm } from '../game/sound'
 
 type Scene = 'day' | 'night' | 'monitor'
-type Mood = 'nervous' | 'flat' | 'tired'
+type Mood = 'nervous' | 'flat' | 'tired' | 'smile'
 
 interface Step {
   scene?: Scene
   speaker?: 'senior' | 'me'
   text?: string
   mood?: Mood
-  fx?: 'corrupt' | 'storm' | 'white'
+  fx?: 'corrupt' | 'storm' | 'white' | 'wake' | 'broken' | 'repair' | 'black'
+  /** 壁の 時計（[時, 分]） */
+  clock?: [number, number]
   auto?: number
 }
 
@@ -19,7 +21,7 @@ const SENIOR = '神崎 先輩'
 const SENIOR_COLOR = '#2d4f86'
 const ME_COLOR = '#c8283c'
 
-const STEPS: Step[] = [
+const PROLOGUE: Step[] = [
   { scene: 'day', text: '――株式会社ミライ商事、営業企画部。月曜日の夕方。', mood: 'flat' },
   { speaker: 'senior', text: '{name}、ちょっといいか。' },
   { speaker: 'me', text: 'は、はいっ！', mood: 'nervous' },
@@ -37,6 +39,29 @@ const STEPS: Step[] = [
   { speaker: 'me', text: '#REF!……？ な、なんだこれ……！ 画面から、光が――！' },
   { fx: 'storm', auto: 4400 },
   { fx: 'white', auto: 1300 },
+]
+
+/** エピローグ：魔王を 倒して、元の オフィスへ */
+export const EPILOGUE_STEPS: Step[] = [
+  { scene: 'night', fx: 'wake', clock: [23, 48], auto: 2200, mood: 'tired' },
+  { speaker: 'me', text: '……ん……。ここは……オフィス……？' },
+  { text: '――23時48分。壁の 時計は、あの瞬間から 1分しか 進んでいなかった。' },
+  { speaker: 'me', text: '夢……？ セルシア大陸も、魔王レフエラーも……。' },
+  { scene: 'monitor', fx: 'broken', text: '画面には、#REF! だらけの 集計ファイルが 開いたままだった。' },
+  { speaker: 'me', text: '（……もう、怖くない。#REF! は「消えた セルを 参照している」って 意味だ）' },
+  { speaker: 'me', text: '（参照を 正しい 範囲に 直せば いい。合計は =SUM(F4:F15)……！）' },
+  { fx: 'repair', text: 'カタカタカタ……ッ、ターン！' },
+  { speaker: 'me', text: '……直った。たった 数分で。' },
+  { scene: 'day', clock: [9, 2], text: '――翌朝。営業企画部。', mood: 'flat' },
+  { speaker: 'senior', text: '{name}。今朝の 集計、見たぞ。' },
+  { speaker: 'senior', text: 'SUM に、SUMIFS に、XLOOKUP、エラー対策の IFERROR まで……。一晩で 何が あった。' },
+  { speaker: 'me', text: 'あ、あの……ちょっと、長い 旅を してきまして。', mood: 'nervous' },
+  { speaker: 'senior', text: '……旅？ まあ いい。合計も、ぴったり 合ってる。いい 仕事だ。' },
+  { speaker: 'senior', text: 'これで、お前の 時間が、ちゃんと お前の ものに なったな。' },
+  { speaker: 'me', text: '（……先輩の 言っていた 意味が、やっと わかった 気がする）', mood: 'smile' },
+  { speaker: 'me', text: '（浮いた 時間で、本当に やりたかった 仕事を しよう）' },
+  { speaker: 'me', text: 'はい！ ありがとうございます！' },
+  { fx: 'black', auto: 1800 },
 ]
 
 function rng(seed: number) {
@@ -138,6 +163,17 @@ function Protagonist({ mood, night }: { mood: Mood; night: boolean }) {
           <path d="M373,332 L387,331" stroke="#9a5040" strokeWidth="2.4" />
         </g>
       )}
+      {mood === 'smile' && (
+        <g>
+          <path d="M355,286 L372,284" stroke="#2a2a33" strokeWidth="3" strokeLinecap="round" />
+          <path d="M388,284 L405,286" stroke="#2a2a33" strokeWidth="3" strokeLinecap="round" />
+          <path d="M357,305 Q364,297 371,305" stroke="#2a2a33" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M389,305 Q396,297 403,305" stroke="#2a2a33" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M370,328 Q380,338 390,328" stroke="#9a5040" strokeWidth="2.6" fill="#c86a5a" strokeLinecap="round" />
+          <ellipse cx="358" cy="318" rx="6" ry="3" fill="#f2a0a0" opacity="0.5" />
+          <ellipse cx="402" cy="318" rx="6" ry="3" fill="#f2a0a0" opacity="0.5" />
+        </g>
+      )}
       {mood === 'tired' && (
         <g>
           <path d="M355,289 L372,285" stroke="#2a2a33" strokeWidth="3" strokeLinecap="round" />
@@ -230,7 +266,7 @@ function Senior() {
 const VIEW_WIDE = '0 0 960 704'
 const VIEW_PHONE = '250 -270 660 1500'
 
-function OfficeScene({ night, senior, mood, phone }: { night: boolean; senior: boolean; mood: Mood; phone: boolean }) {
+function OfficeScene({ night, senior, mood, phone, clock }: { night: boolean; senior: boolean; mood: Mood; phone: boolean; clock?: [number, number] }) {
   const windows = useMemo(() => {
     const r = rng(7)
     return SKYLINE.flatMap(([x, w, h], bi) => {
@@ -312,7 +348,7 @@ function OfficeScene({ night, senior, mood, phone }: { night: boolean; senior: b
       ))}
       <rect x="40" y="72" width="560" height="270" fill="none" stroke={night ? '#2a3244' : '#b6bec8'} strokeWidth="10" />
 
-      <Clock h={night ? 23 : 18} m={night ? 47 : 5} night={night} />
+      <Clock h={clock?.[0] ?? (night ? 23 : 18)} m={clock?.[1] ?? (night ? 47 : 5)} night={night} />
 
       {/* ホワイトボード */}
       <rect x="660" y="96" width="250" height="190" rx="4" fill={night ? '#252c3a' : '#fbfcfd'} stroke={night ? '#3a4254' : '#a9b1ba'} strokeWidth="6" />
@@ -563,7 +599,8 @@ function RefStorm() {
 }
 
 // ================================================================ 本体
-export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
+export function Prologue({ name, onDone, steps: STEPS = PROLOGUE }: { name: string; onDone(): void; steps?: Step[] }) {
+  const epilogue = STEPS !== PROLOGUE
   const [i, setI] = useState(0)
   const [corrupt, setCorrupt] = useState(0)
   const doneRef = useRef(false)
@@ -573,9 +610,13 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
   const mood = STEPS.slice(0, i + 1).reduce<Mood>((m, st) => st.mood ?? m, 'flat')
   const corrupting = STEPS.slice(0, i + 1).some((s) => s.fx === 'corrupt')
   const storm = STEPS.slice(0, i + 1).some((s) => s.fx === 'storm')
+  const broken = STEPS.slice(0, i + 1).some((s) => s.fx === 'broken')
+  const repairing = STEPS.slice(0, i + 1).some((s) => s.fx === 'repair')
+  const clock = STEPS.slice(0, i + 1).reduce<[number, number] | undefined>((c, st) => st.clock ?? (st.scene ? undefined : c), undefined)
 
   // 昼の オフィス → 夜 → 画面が 壊れたら 音楽が 止まる
-  useBgm(scene === 'monitor' ? null : scene === 'night' ? 'night' : 'office')
+  // エピローグ：夜の オフィス → 画面を 直す → 朝は エンディングの 曲
+  useBgm(epilogue ? (scene === 'day' ? 'ending' : 'night') : scene === 'monitor' ? null : scene === 'night' ? 'night' : 'office')
   useEffect(() => {
     if (!corrupting || storm) return
     sfx('glitch')
@@ -585,6 +626,7 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
   useEffect(() => {
     if (step.fx === 'storm') sfx('storm')
     if (step.fx === 'white') sfx('white')
+    if (step.fx === 'repair') jingle('clear')
   }, [i]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const finish = () => {
@@ -593,6 +635,14 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
     onDone()
   }
   const next = () => (i + 1 < STEPS.length ? setI(i + 1) : finish())
+
+  // エピローグ：#REF! だらけの 画面が、直していくと 元に 戻る
+  useEffect(() => {
+    if (broken && !repairing) setCorrupt(1)
+    if (!repairing) return
+    const t = setInterval(() => setCorrupt((c) => Math.max(0, c - 0.02)), 40)
+    return () => clearInterval(t)
+  }, [broken, repairing])
 
   // セルが次々と #REF! に変わっていく
   useEffect(() => {
@@ -625,10 +675,12 @@ export function Prologue({ name, onDone }: { name: string; onDone(): void }) {
       {scene === 'monitor' ? (
         <MonitorScene corrupt={corrupt} />
       ) : (
-        <OfficeScene night={scene === 'night'} senior={scene === 'day'} mood={mood} phone={phone} />
+        <OfficeScene night={scene === 'night'} senior={scene === 'day'} mood={mood} phone={phone} clock={clock} />
       )}
       {storm && <RefStorm />}
       {step.fx === 'white' && <div className="white-out" />}
+      {step.fx === 'wake' && <div className="white-in" />}
+      {step.fx === 'black' && <div className="black-out" />}
       {req && <DialogBox key={i} req={req} />}
       <button className="skip" onClick={finish}>
         SKIP ▶▶

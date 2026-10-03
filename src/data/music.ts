@@ -48,6 +48,11 @@ const CHORDS: Record<string, string[]> = {
   Bb: ['Bb', 'D', 'F'],
   Bbmaj7: ['Bb', 'D', 'F', 'A'],
   B: ['B', 'D#', 'F#'],
+  A: ['A', 'C#', 'E'],
+  Ab: ['Ab', 'C', 'Eb'],
+  Cm: ['C', 'Eb', 'G'],
+  Eb: ['Eb', 'G', 'Bb'],
+  Fm: ['F', 'Ab', 'C'],
 }
 
 /**
@@ -279,6 +284,42 @@ const ending: Song = {
   ],
 }
 
+// ---------------------------------------------------------------- 魔王城（ダンジョン）
+const CASTLE_PROG = 'Dm | Bb | Gm | A | Dm | Bb | Eb | A'
+const castle: Song = {
+  bpm: 84,
+  bar: 16,
+  loop: true,
+  voices: [
+    { wave: 'pulse12', vol: 0.09, env: 'pad', notes: '| D5:8 F5:4 E5:4 | D5:6 C5:2 Bb4:8 | G4:4 Bb4:4 D5:4 Eb5:4 | C#5:12 r:4 | A5:8 G5:4 F5:4 | F5:6 E5:2 D5:8 | Eb5:4 D5:4 C5:4 Bb4:4 | A4:12 r:4 |' },
+    { wave: 'pulse25', vol: 0.05, env: 'pad', notes: gen(CASTLE_PROG, '0:8 1:8', 50) },
+    { wave: 'triangle', vol: 0.34, notes: gen(CASTLE_PROG, 'R:4 F:4 O:4 F:4', 38) },
+    { wave: 'drums', vol: 0.26, notes: '[k:3 k:5 r:8 |]x8' },
+  ],
+}
+
+// ---------------------------------------------------------------- 魔王戦
+const LAST_PROG = 'Cm | Cm | Ab | Bb | Cm | Cm | Ab | G | Fm | G | Ab | Bb | Cm | Ab | Fm | G'
+const lastboss: Song = {
+  bpm: 176,
+  bar: 16,
+  loop: true,
+  voices: [
+    {
+      wave: 'square',
+      vol: 0.11,
+      notes: `
+| C5:2 Eb5:2 G5:2 C6:6 Bb5:2 G5:2 | Ab5:4 G5:2 Eb5:2 G5:4 Eb5:4 | Ab5:2 G5:2 Eb5:2 C5:6 Eb5:2 Ab5:2 | Bb5:8 F5:4 D5:4 |
+| C5:2 Eb5:2 G5:2 C6:6 D6:2 Eb6:2 | D6:4 C6:2 Bb5:2 C6:4 G5:4 | Ab5:4 C6:4 Eb6:4 C6:4 | B5:8 G5:4 D5:4 |
+| F5:2 Ab5:2 C6:2 F6:6 Eb6:2 C6:2 | D6:4 B5:4 G5:4 D5:4 | Eb5:2 Ab5:2 C6:2 Eb6:6 C6:2 Ab5:2 | F6:4 D6:4 Bb5:4 F5:4 |
+| G5:2 C6:2 Eb6:2 G6:6 F6:2 Eb6:2 | Eb6:4 C6:4 Ab5:4 C6:4 | F5:4 Ab5:4 C6:4 F6:4 | G6:4 F6:2 Eb6:2 D6:4 B5:4 |`,
+    },
+    { wave: 'pulse12', vol: 0.06, env: 'pluck', notes: gen(LAST_PROG, '-:2 0:2 -:2 1:2 -:2 0:2 -:2 2:2', 55) },
+    { wave: 'triangle', vol: 0.38, notes: gen(LAST_PROG, 'R:2 O:2 R:2 O:2 R:2 O:2 R:2 O:2', 36) },
+    { wave: 'drums', vol: 0.34, notes: '[k:2 k:2 s:2 k:2 k:2 k:2 s:2 s:1 s:1 |]x16' },
+  ],
+}
+
 // ---------------------------------------------------------------- ジングル
 const victory: Song = {
   bpm: 140,
@@ -351,5 +392,5 @@ const lose: Song = {
   ],
 }
 
-export const SONGS = { title, office, night, town, field, dungeon, battle, boss, quest, ending, victory, levelup, clear, item, inn, save, lose }
+export const SONGS = { title, office, night, town, field, dungeon, castle, battle, boss, lastboss, quest, ending, victory, levelup, clear, item, inn, save, lose }
 export type SongName = keyof typeof SONGS

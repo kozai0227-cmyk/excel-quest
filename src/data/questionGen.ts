@@ -1244,3 +1244,62 @@ export const genFormulaEdate: QGen = () => {
     explain: '=EDATE(A1,B1)。何日 足すかではなく、何か月 足すか。',
   }
 }
+
+// ---------------------------------------------------------------- 最終章：エラーの 読み方・直し方
+const ERRORS: [string, string][] = [
+  ['#DIV/0!', '0（空の セル）で 割った'],
+  ['#VALUE!', '文字など 計算できない 値が まざった'],
+  ['#NAME?', '関数名の まちがい・" の 付け忘れ'],
+  ['#REF!', '参照先の セルが 消えた'],
+  ['#N/A', '探した 値が 見つからない'],
+]
+
+export const genErrorMeaning: QGen = () => {
+  const [e, m] = pick(ERRORS)
+  return pick([
+    () => choice(`エラー「${e}」の 意味は？`, m, ERRORS.filter(([x]) => x !== e).map(([, y]) => y).sort(() => Math.random() - 0.5), `${e} は「${m}」。エラーは 直し方の ヒント。`),
+    () => choice(`「${m}」ときに 出る エラーは？`, e, ERRORS.filter(([x]) => x !== e).map(([x]) => x).sort(() => Math.random() - 0.5), `${m} → ${e}。`),
+  ])()
+}
+
+export const genErrorCause: QGen = () => {
+  const [q, a, why] = pick([
+    ['A1 に 10、B1 に 0。=A1/B1 の 結果は？', '#DIV/0!', '0 で 割ったので #DIV/0!。IFERROR(A1/B1,0) で 防げる。'],
+    ['A1 に 10、B1 に「休み」。=A1+B1 の 結果は？', '#VALUE!', '文字は + で 足せない。=SUM(A1:B1) なら 文字を 飛ばして 10。'],
+    ['=SUMM(A1:A5) の 結果は？', '#NAME?', 'SUMM という 関数は ない。つづりを SUM に 直す。'],
+    ['=IF(A1>=60,OK,NG) の 結果は？（A1 は 70）', '#NAME?', '文字の OK・NG に " が ない。"OK" と 書く。'],
+    ['表に ない 番号を =VLOOKUP(番号,A1:B5,2,FALSE) で 探すと？', '#N/A', '見つからないと #N/A。IFERROR か XLOOKUP の 4つ目で 防げる。'],
+    ['=A1*C1 の C列を まるごと 削除すると？', '#REF!', '参照先が 消えたので #REF!。新しい セルへ 付けかえる。'],
+  ] as const)
+  return choice(q, a, ERRORS.map(([x]) => x).filter((x) => x !== a).sort(() => Math.random() - 0.5), why)
+}
+
+export const genFormulaSafeDivide: QGen = () => {
+  const zero = Math.random() < 0.5
+  const b = zero ? 0 : pick([2, 4, 5])
+  const a = (zero ? ri(2, 9) : ri(2, 9) * b) as number
+  return {
+    type: 'formula',
+    q: 'C1 に A1 ÷ B1 を 出せ！ 割れない（0 で 割る）ときは 0 に すること。',
+    table: [[a, b]],
+    target: 'C1',
+    expect: zero ? 0 : a / b,
+    mustUse: 'IFERROR',
+    hint: '=IFERROR(A1/B1,0)',
+    explain: '=IFERROR(A1/B1,0)。エラーの ときだけ 0 に なる。',
+  }
+}
+
+export const genFormulaFixSum: QGen = () => {
+  const vals: (number | string)[] = [ri(2, 9), '休み', ri(2, 9), ri(2, 9)]
+  return {
+    type: 'formula',
+    q: 'A5 に、A1〜A4 の 数の 合計を 出せ！（「休み」が まざっている）',
+    table: vals.map((v) => [v]),
+    target: 'A5',
+    expect: vals.reduce<number>((x, v) => x + (typeof v === 'number' ? v : 0), 0),
+    mustUse: 'SUM',
+    hint: '=SUM(A1:A4)',
+    explain: '=SUM(A1:A4)。+ で 足すと #VALUE! に なるが、SUM は 文字を 飛ばして くれる。',
+  }
+}

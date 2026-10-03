@@ -77,7 +77,7 @@ export function NameEntry({ onDone }: { onDone(name: string): void }) {
   )
 }
 
-const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNode; next: [string, string] }> = {
+const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNode; next: [string, string]; label?: string }> = {
   1: {
     title: '第1章　完',
     body: (name) => (
@@ -174,7 +174,27 @@ const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNod
         </p>
       </>
     ),
-    next: ['最終章　（開発中）', '7つの 町を 救った 力を 胸に、ついに 魔王レフエラーの 城へ――。'],
+    next: ['最終章　魔王レフエラーの城', 'エラーを 恐れず、読み、直す――7つの 町の 力を すべて 結集せよ！（エラー対処と 総まとめ 編）'],
+  },
+  8: {
+    title: '最終章　完',
+    body: (name) => (
+      <>
+        <p>魔王レフエラーは 消え、セルシア大陸に「効率化」の 光が 戻った。</p>
+        <p>
+          セルを 選び、数式で 計算し、$ で 固定し、IF で 判断し、
+          <br />
+          XLOOKUP で 探し、SUMIFS で 集計し、文字と 日付を 操り、エラーを 読んで 直す。
+        </p>
+        <p>
+          {name}が 旅で 手に入れたのは、魔法では なく――
+          <br />
+          明日からの 仕事で 使える、本物の Excel の 力だ。
+        </p>
+      </>
+    ),
+    label: 'エクセル・クエスト',
+    next: ['THE END', 'ここまで 遊んでくれて ありがとう！ 町の 人や 石版に もう一度 挑戦して、復習することも できるよ。'],
   },
 }
 
@@ -193,7 +213,7 @@ export function Ending({ chapter, name, onDone }: { chapter: number; name: strin
         <h2>{ch.title}</h2>
         {ch.body(name)}
         <div className="next-chapter">
-          <div>次章予告</div>
+          <div>{ch.label ?? '次章予告'}</div>
           <strong>{ch.next[0]}</strong>
           <p>{ch.next[1]}</p>
         </div>

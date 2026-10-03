@@ -22,7 +22,7 @@ export function Gallery() {
       ))}
       <div className="gallery-item">
         <div>
-          {(['slime', 'golem', 'celime', 'frog', 'bat', 'ghost', 'nainai', 'shiori', 'mitsukaranu', 'dupli', 'chirakari', 'barabaran', 'kuuhaku', 'kirehashi', 'mojibake', 'karendaru', 'tokeidori', 'shimekiris', 'sheep', 'cat', 'dog'] as const).map((c) => (
+          {(['slime', 'golem', 'celime', 'frog', 'bat', 'ghost', 'nainai', 'shiori', 'mitsukaranu', 'dupli', 'chirakari', 'barabaran', 'kuuhaku', 'kirehashi', 'mojibake', 'karendaru', 'tokeidori', 'shimekiris', 'zerowarin', 'nanashi', 'refera', 'sheep', 'cat', 'dog'] as const).map((c) => (
             <SpriteView key={c} creature={c} />
           ))}
         </div>
@@ -39,8 +39,10 @@ const SONG_LABEL: Record<SongName, string> = {
   town: '町',
   field: 'フィールド',
   dungeon: 'ダンジョン',
+  castle: '魔王城',
   battle: '戦闘',
   boss: 'ボス戦',
+  lastboss: '魔王戦',
   quest: '依頼・謎解き',
   ending: '章の おわり',
   victory: '勝利',

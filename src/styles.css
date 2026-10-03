@@ -2748,3 +2748,16 @@ kbd {
 .q-choices .opt {
   white-space: pre-wrap;
 }
+.black-out {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 25;
+  animation: whiteOut 1.4s ease forwards;
+}
+.battle.bg-castle {
+  background:
+    radial-gradient(ellipse at 50% 32%, rgba(255, 40, 90, 0.28), transparent 55%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0 18px, transparent 18px 96px),
+    linear-gradient(180deg, #3a0a24 0%, #1c0616 55%, #08020c 100%);
+}

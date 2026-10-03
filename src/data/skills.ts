@@ -52,5 +52,11 @@ export const SKILLS: Record<string, SkillDef> = {
   weekday: { name: 'WEEKDAY', town: 'コヨミノ', desc: '=WEEKDAY(日付, 2) で 月曜 1 〜 日曜 7。土日は「6以上」で 判定できる。' },
   edate: { name: 'EDATE・EOMONTH', town: 'コヨミノ', desc: '=EDATE(日付, 月数) で ○か月後、=EOMONTH(日付, 0) で その月の 末日。' },
   datedif: { name: 'DATEDIF', town: 'コヨミノ', desc: '=DATEDIF(開始日, 終了日, "Y") で 満年数。"M" で 満月数、"D" で 日数。' },
+  diverr: { name: '#DIV/0! の 直し方', town: 'ホープ', desc: '0 で 割ると #DIV/0!。=IFERROR(A2/B2,"-") で エラーの ときの 答えを 決めておく。' },
+  valueerr: { name: '#VALUE! の 直し方', town: 'ホープ', desc: '文字を + で 計算すると #VALUE!。SUM なら 文字を 飛ばして 数だけ 足す。' },
+  nameerr: { name: '#NAME? の 直し方', town: 'ホープ', desc: '関数名の 打ちまちがいや、" の 付け忘れで #NAME?。つづりと " を 確かめる。' },
+  referr: { name: '#REF! の 直し方', town: 'ホープ', desc: '参照先の セルを 消すと #REF!。新しい セルへ 参照を 付けかえる。' },
+  combine: { name: '集計と 判定の 組み合わせ', town: 'ホープ', desc: 'SUMIFS で 集計し、IF で 判定。関数を つなげれば 報告書が 自動に なる。' },
+  message: { name: '計算結果を 文に する', town: 'ホープ', desc: '="総勢 "&B6&" 名" のように、計算した 数と 文字を & で つないで 文を 作る。' },
   notfound: { name: 'XLOOKUP の 見つからないとき', town: 'ルックアップ', desc: '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")。4つ目に 見つからない ときの 値を 書ける。' },
 }

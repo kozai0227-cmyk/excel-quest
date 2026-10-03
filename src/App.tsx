@@ -5,7 +5,7 @@ import { Menu } from './components/Menu'
 import { QuestScreen } from './components/QuestScreen'
 import { Battle } from './components/Battle'
 import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
-import { Prologue } from './components/Prologue'
+import { EPILOGUE_STEPS, Prologue } from './components/Prologue'
 import { Gallery, SoundTest } from './components/Gallery'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
@@ -20,11 +20,11 @@ import { isTouchDevice, usePhoneLayout } from './game/layout'
 import { bgm, jingle, sfx, useBgm } from './game/sound'
 import type { SongName } from './data/music'
 
-type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'ending'
+type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epilogue' | 'ending'
 interface BattleReq {
   id: string
   tutorial?: boolean
-  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock'
+  scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
 }
 
 const INN_PRICE = 10
@@ -148,6 +148,7 @@ export default function App() {
   useEffect(() => {
     const p = new URLSearchParams(location.search)
     if (p.has('prologue')) return setScene('prologue')
+    if (p.has('epilogue')) return setScene('epilogue')
     const test = { ...newGame('テスト'), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
@@ -343,7 +344,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.id === 'shimekiris' ? 'clock' : b.boss ? 'boss' : 'forest',
+              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.id === 'shimekiris' ? 'clock' : b.id === 'refera' ? 'castle' : b.boss ? 'boss' : 'forest',
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -490,6 +491,54 @@ export default function App() {
       run(async () => {
         await sleep(900)
         await talk(undefined, ['最上階。巨大な 歯車が 軋みながら 回っている。', '歯車の 中心の 文字盤が ぎょろりと 動き、針の 腕が 伸びてきた……。'])
+      })
+    if (ex.to === 'castle1')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['黒い 石で 組まれた 城の 中は、赤い「#」の 文字が 壁一面に 浮かんでは 消えている。', '#DIV/0!、#VALUE!、#NAME?、#REF!……どこかで 見た エラーの 文字ばかりだ。'])
+        await me(['（これまでの 町で 覚えた 力を 全部 使う時だ。扉の 謎を 解いて、玉座の間を 目指そう）'])
+      })
+    if (ex.to === 'castle2')
+      run(async () => {
+        await sleep(900)
+        await talk(undefined, ['玉座の間。割れた ステンドグラスから、赤黒い 光が 差しこんでいる。', '玉座の 上の 影が、ゆっくりと 立ち上がった……。'])
+        await me(['（……いよいよだ）'])
+      })
+    if (ex.to === 'hope')
+      run(async () => {
+        await sleep(1100)
+        const f = fieldRef.current
+        await talk(undefined, ['ここは 最果ての砦 ホープ。', '北の 山の 向こうに、黒い 城が 見える……あれが 魔王レフエラーの 城だ。'])
+        await talk(undefined, ['砦の 兵士たちは、赤い「#」の 文字が 浮かんだ 帳面を 前に 立ちすくんでいる……。'])
+        f?.emote('player', 'bang', 1200)
+        await talk('砦の長ガンバル', ['おお、来たか！ 待っていたぞ、旅の者！'])
+        if (f) {
+          // 砦の長が 本営から 走ってくる
+          f.spawn({ id: 'ganbaru_event', x: 4, y: 11, name: '砦の長ガンバル', look: SPEAKER_LOOKS['砦の長ガンバル'], kind: 'talk', dir: 'down' })
+          await f.walkTo('ganbaru_event', ex.tx - 1, ex.ty, 120)
+          f.face('ganbaru_event', 'right')
+          f.face('player', 'left')
+          f.emote('ganbaru_event', 'sweat', 2600)
+        }
+        await talk('砦の長ガンバル', [
+          'ふう……。俺は この 砦を 預かる、ガンバルだ。',
+          'セルノから コヨミノまで、7つの 町を 救った 旅人……お前の 噂は 大陸じゅうに 届いている。',
+          'この 砦は 魔王城を 見張る 最後の 守り。だが 魔王レフエラーの 呪いで、帳面が エラーだらけに なってしまった。',
+          '「#DIV/0!」「#VALUE!」「#NAME?」「#REF!」……赤い 文字が 出るたび、兵たちは 怖がって 表を 丸ごと 捨てて しまうんだ。',
+          'そして 一から 手で 作り直す。……それこそが、魔王の 狙いなのさ。',
+        ])
+        await me(['（エラーが 出たら、怖くて 全部 消して やり直す……。入社した ころの 自分も そうだった）', '（でも エラーは「ここが おかしいよ」という メッセージ。読めば、直し方が わかるんだ！）'])
+        await talk('砦の長ガンバル', [
+          'どうか 砦の 者たちの 悩みを 聞いてやって くれ。',
+          'すべて 解決すれば、魔王城の 結界も とけるはずだ。',
+          '俺は 本営に いる。出陣の 号令の 件で、あとで 相談させて くれ。',
+        ])
+        if (f) {
+          void f.walkTo('ganbaru_event', 4, 11, 200).then(() => f.remove('ganbaru_event'))
+          await sleep(1400)
+        }
+        await talk(undefined, ['（エラーは 種類で 原因が わかる。#DIV/0! は 0で 割った、#NAME? は 名前の 間違い、#REF! は 消えた セルを 参照。馬車で いつでも コヨミノに 戻れるぞ）'])
+        save()
       })
     if (ex.to === 'koyomi')
       run(async () => {
@@ -805,6 +854,8 @@ export default function App() {
                       ? '（印刷所の 結界が とけ、中に 入れるように なった。奥の間に モジバケーラが いるらしい）'
                       : q.town === 'koyomi'
                         ? '（時計塔の 結界が とけ、中に 入れるように なった。最上階に シメキリスが いるらしい）'
+                      : q.town === 'hope'
+                        ? '（城門の 結界が とけ、魔王城に 入れるように なった。玉座の間に 魔王レフエラーが いるらしい）'
                   : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
         ])
       save()
@@ -844,7 +895,7 @@ export default function App() {
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
-        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : id.startsWith('clock') ? '時計塔' : '洞窟'
+        const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : id.startsWith('clock') ? '時計塔' : id.startsWith('castle') ? '魔王城' : '洞窟'
         await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
         sfx('door')
         setFade(true)
@@ -888,6 +939,7 @@ export default function App() {
         await talk(undefined, [
           '時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。',
           '里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！',
+          '（北の 果ての 砦への 馬車が 動き出した。里の 東の はずれの 御者に 話せば 向かえるらしい）',
         ])
       save()
       if (b.id === 'golem') {
@@ -917,6 +969,10 @@ export default function App() {
       if (b.id === 'shimekiris') {
         setChapter(7)
         setScene('ending')
+      }
+      if (b.id === 'refera') {
+        await talk(undefined, ['魔王城が 崩れ落ちる 轟音の 中、空が まっ白に 光った……。'])
+        setScene('epilogue')
       }
     })
   }
@@ -970,11 +1026,13 @@ export default function App() {
         ? 'ending'
         : scene === 'quest'
           ? 'quest'
-          : scene === 'battle' || scene === 'prologue'
+          : scene === 'battle' || scene === 'prologue' || scene === 'epilogue'
             ? undefined
             : map.kind === 'town' || map.kind === 'interior'
               ? 'town'
-              : map.kind === 'dungeon'
+              : map.id.startsWith('castle')
+                ? 'castle'
+                : map.kind === 'dungeon'
                 ? 'dungeon'
                 : 'field'
   useBgm(/gallery|soundtest/.test(location.search) ? null : music)
@@ -996,6 +1054,16 @@ export default function App() {
               setWhiteIn(true)
               setTimeout(() => setWhiteIn(false), 2000)
               setTimeout(() => showBanner(MAPS[gsRef.current.mapId].name), 900)
+            }}
+          />
+        )}
+        {scene === 'epilogue' && (
+          <Prologue
+            name={gs.name}
+            steps={EPILOGUE_STEPS}
+            onDone={() => {
+              setChapter(8)
+              setScene('ending')
             }}
           />
         )}
@@ -1021,7 +1089,7 @@ export default function App() {
               onEncounter={(id) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.id.startsWith('clock') ? 'clock' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.id.startsWith('clock') ? 'clock' : map.id.startsWith('castle') ? 'castle' : map.kind === 'dungeon' ? 'cave' : 'field',
                 })
               }
               onGate={onGate}
@@ -1066,7 +1134,7 @@ export default function App() {
             )}
           </>
         )}
-        {dialog && scene !== 'prologue' && <DialogBox key={dialog.id} req={dialog} />}
+        {dialog && scene !== 'prologue' && scene !== 'epilogue' && <DialogBox key={dialog.id} req={dialog} />}
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
       {isTouchDevice && inWorld && scene !== 'quest' && !(phone && scene === 'battle') && <TouchPad />}

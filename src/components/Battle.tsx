@@ -22,7 +22,7 @@ interface Props {
   /** 最初の戦闘（操作説明つき・逃げられない） */
   tutorial?: boolean
   /** 背景（森・草原・ボス） */
-  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock'
+  scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
   onWin(): void
@@ -74,7 +74,7 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
 
 export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
   const boss = ENEMIES[bossId]
-  useBgm(boss.boss ? 'boss' : 'battle')
+  useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
   const deck = useRef<QuestionSrc[]>([])
   const [bossHp, setBossHp] = useState(boss.hp)
   const [phase, setPhase] = useState<Phase>('msg')

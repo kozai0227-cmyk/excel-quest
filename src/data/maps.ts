@@ -227,6 +227,19 @@ Object.assign(C, {
   kid8: { hair: 'bob', hairColor: '#3a2a1a', eyes: 'big', blush: true, outfit: 'tunic', color: '#3aa07a', accent: '#5a3a1a', pants: '#4a4a58' },
 } satisfies Record<string, CharSpec>)
 
+// 最終章 ホープの人々
+Object.assign(C, {
+  ganbaru: { hair: 'buzz', hairColor: '#8a8a8a', beard: 'long', beardColor: '#b0b0b0', eyes: 'narrow', outfit: 'armor', color: '#7a6a3a', hat: 'helmet', hatAccent: '#c03030', pants: '#3a3a44' },
+  warizan: { hair: 'spiky', hairColor: '#4a3020', beard: 'stubble', outfit: 'apron', color: '#6a5a3a', inner: '#e8e0d0' },
+  miharu: { hair: 'long', hairColor: '#3a2a4a', eyes: 'narrow', outfit: 'armor', color: '#3a5a7a', hat: 'helmet', hatAccent: '#e0b040', pants: '#3a3a4a' },
+  kakumisu: { hair: 'messy', hairColor: '#5a3a2a', glasses: true, eyes: 'tired', outfit: 'tunic', color: '#5a6a8a', accent: '#3a2a1a', pants: '#3a3a44' },
+  tsunagi: { hair: 'bob', hairColor: '#c06a3a', eyes: 'big', outfit: 'coat', color: '#3a6a4a', inner: '#f0e8d8', accent: '#e0b040', hat: 'beret', hatColor: '#3a4a2a' },
+  matome: { hair: 'slick', hairColor: '#2a2a2a', beard: 'mustache', beardColor: '#2a2a2a', outfit: 'armor', color: '#4a4a6a', hat: 'helmet', hatAccent: '#3a64c0', pants: '#2a2a3a' },
+  inn9: { hair: 'bun', hairColor: '#6a4a2a', eyes: 'closed', outfit: 'apron', color: '#7a3a3a', inner: '#ffffff' },
+  shop9: { hair: 'neat', hairColor: '#2a2a2a', beard: 'stubble', outfit: 'leather', color: '#e8e0cc', accent: '#7a3a3a', pants: '#3a3a44', hat: 'beret', hatColor: '#7a3a3a' },
+  soldier9: { hair: 'neat', hairColor: '#3a2a1a', outfit: 'armor', color: '#5a5a6a', hat: 'helmet', hatAccent: '#c03030', pants: '#3a3a44' },
+} satisfies Record<string, CharSpec>)
+
 const inn = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '宿屋', look, kind: 'inn' })
 const church = (id: string, x: number, y: number): NpcDef => ({ id, x, y, name: '神父', look: C.priest, kind: 'church' })
 const shop = (id: string, x: number, y: number, look: CharSpec): NpcDef => ({ id, x, y, name: '道具屋', look, kind: 'shop' })
@@ -799,6 +812,75 @@ const CLOCK2 = [
 ]
 const clockEnemies = () => ['karendaru', 'tokeidori', 'karendaru']
 const CLOCK_RATE = 1 / 32
+
+// ================================================================ 最果ての砦 ホープ
+function hopeTiles() {
+  const m = blank(34, 28)
+  forest(m)
+  rect(m, 'M', 1, 1, 32, 4)
+  // 北の 魔王城の 門
+  rect(m, 'X', 10, 1, 14, 1)
+  rect(m, 'V', 10, 2, 14, 3)
+  put(m, 'v', [[11, 2], [13, 2], [20, 2], [22, 2], [11, 3], [22, 3], [15, 2], [18, 2]])
+  m[4][16] = 'd'
+  rect(m, '.', 15, 5, 3, 1)
+  rect(m, 'Z', 15, 6, 3, 1)
+  // 砦の 道
+  rect(m, 'T', 15, 7, 3, 20)
+  rect(m, 'T', 1, 12, 32, 2)
+  rect(m, 'T', 1, 21, 32, 2)
+  // 北の並び
+  building(m, 2, 7, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 9, 7, 5, { roof: 'R', stone: true, upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
+  building(m, 19, 7, 5, { roof: 'U', stone: true, upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
+  building(m, 26, 7, 6, { roof: 'E', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
+  // 南の並び
+  building(m, 2, 16, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 8, 16, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
+  building(m, 20, 16, 6, { roof: 'R', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
+  building(m, 27, 16, 5, { roof: 'Q', stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  // 野営と 飾り
+  put(m, 'A', [[7, 24], [8, 24], [24, 24], [25, 24]])
+  put(m, 'S', [[14, 7]])
+  put(m, 'L', [[14, 11], [18, 11], [7, 14], [26, 14], [14, 20], [18, 20], [14, 24], [18, 24]])
+  put(m, 'p', [[1, 11], [32, 11], [12, 23], [20, 23]])
+  put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [11, 26], [21, 26]])
+  put(m, 'n', [[11, 14], [22, 14]])
+  sprinkle(m, 67, 7)
+  return done(m)
+}
+
+const CASTLE1 = [
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+  '[[:::[[[[[{[[[[[:::[[[',
+  '[[:::[[[[:::[[[[:::[[[',
+  '[[[:[[[[[[([[[[[[:[[[[',
+  '[[:::::[[:::[[:::::[[[',
+  '[[:L:::::::::::::L:[[[',
+  '[[:::::[[:::[[:::::[[[',
+  '[[[[:[[[[:::[[[[:[[[[[',
+  '[[:::::::::(::::::::[[',
+  '[[:::::::::::::::::::[',
+  '[[:L:::[[[:::[[[:::L:[',
+  '[[::::::::::::::::::[[',
+  '[[[[[[[[[[-[[[[[[[[[[[',
+  '[[[[[[[[[[[[[[[[[[[[[[',
+]
+const CASTLE2 = [
+  '[[[[[[[[[[[[[[[[[[',
+  '[::::::::::::::::[',
+  '[:L::::::::::::L:[',
+  '[::::::::::::::::[',
+  '[[[[[[[[([[[[[[[[[',
+  '[::::::::::::::::[',
+  '[:L::::::::::::L:[',
+  '[::::::::::::::::[',
+  '[:::::::}::::::::[',
+  '[[[[[[[[[[[[[[[[[[',
+]
+const castleEnemies = () => ['zerowarin', 'nanashi', 'zerowarin']
+const CASTLE_RATE = 1 / 30
 
 // ================================================================ はじまりの森
 function forestTiles() {
@@ -1695,6 +1777,12 @@ const koyomi: MapDef = {
       lines: ['ぼくの 誕生日まで あと 何日？ ってきいたら、母ちゃんが「わからない」って。', 'カレンダーの 呪いで、日付が 数えられないんだって！'],
       linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['誕生日まで あと 12日！ 引き算で すぐ わかったよ！'] },
     },
+    {
+      id: 'koyo_coach2', x: 32, y: 12, name: '砦行きの御者', look: C.coachman, kind: 'ferry', dir: 'left',
+      lines: ['時計塔の 鐘が 鳴って、北の 果てへの 道が 開けた……。', '行き先は「最果ての砦 ホープ」。魔王レフエラーの 城を 見張る 最後の 砦さ。……覚悟は いいかい？'],
+      ferry: { to: 'hope', x: 16, y: 25, dir: 'up', place: '最果ての砦 ホープ', verb: '向かう' },
+      hideIf: (s) => !s.bosses.includes('shimekiris'),
+    },
     { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
     { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）'] },
   ],
@@ -1743,6 +1831,90 @@ const clock2: MapDef = {
   // シメキリスの 前では 敵は出ない
   encounter: (_x, y) => (y <= 3 ? null : clockEnemies()),
   encounterRate: CLOCK_RATE,
+}
+
+// ---------------------------------------------------------------- 最終章
+const hope: MapDef = {
+  id: 'hope',
+  name: '最果ての砦 ホープ',
+  kind: 'town',
+  town: 'hope',
+  bossId: 'refera',
+  tiles: hopeTiles(),
+  spawn: { x: 16, y: 25, dir: 'up' },
+  respawn: { map: 'hope_church', x: 5, y: 4 },
+  exits: [{ x: 16, y: 4, to: 'castle1', tx: 10, ty: 12, dir: 'up' }],
+  signs: [
+    { x: 14, y: 7, lines: ['この先 魔王レフエラーの 城。', '城門は 魔王の 結界で 閉ざされている。', '砦の 者たちの 悩みを すべて 解決すれば、結界は とけるだろう。'] },
+  ],
+  npcs: [
+    { id: 'miharu', x: 23, y: 13, name: '見張り番ミハル', look: C.miharu, kind: 'quest', questId: 'err_value', dir: 'up' },
+    {
+      id: 'hope_coach', x: 17, y: 26, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
+      lines: ['コヨミノ行きの 馬車だ。準備が 足りなければ、いつでも 戻れるぞ。'],
+      ferry: { to: 'koyomi', x: 31, y: 12, dir: 'right', place: '暦の里 コヨミノ', verb: '向かう' },
+    },
+    {
+      id: 'gatekeeper', x: 18, y: 8, name: '城門の見張り', look: C.soldier9, kind: 'guard', dir: 'left',
+      lines: ['この先は 魔王レフエラーの 城だ。', '城門には「#REF!」の 結界が 張られている。どんな 参照も 届かない、黒い 壁だ。', '砦の みんなの 悩みが 晴れれば、結界も 弱まるはずだ。'],
+      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: ['魔王が 倒れた……！ 世界じゅうの 数式が、元に 戻っていく！', 'あんたは 本物の 勇者だ。'] },
+    },
+    {
+      id: 'veteran', x: 9, y: 13, name: '古参兵', look: C.ganbaru, kind: 'talk', wander: true,
+      lines: ['エラーが 出ると、新兵は すぐ 慌てて 表を 全部 消しちまう。', 'だが エラーには 種類が ある。#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……。種類を 読めば、直し方は 見える。'],
+    },
+    {
+      id: 'recruit', x: 26, y: 23, name: '新兵', look: C.kid7, kind: 'talk', wander: true, emote: 'sweat',
+      lines: ['ま、魔王の 城って、ほんとに 行くんですか……？', '自分の 作った 表が エラーだらけで……もう 何が 何だか……。'],
+      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: ['エラーの 意味が わかったら、怖く なくなりました！', '自分の 表は、自分で 直せます！'] },
+    },
+    { id: 'horse', x: 6, y: 23, name: 'ウマ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……砦の 人いわく、ウマらしい）'] },
+  ],
+}
+
+const castle1: MapDef = {
+  id: 'castle1',
+  name: '魔王城',
+  kind: 'dungeon',
+  tiles: CASTLE1,
+  spawn: { x: 10, y: 12, dir: 'up' },
+  exits: [
+    { x: 10, y: 13, to: 'hope', tx: 16, ty: 5, dir: 'down' },
+    { x: 10, y: 2, to: 'castle2', tx: 8, ty: 7, dir: 'up' },
+  ],
+  signs: [],
+  gates: [
+    { x: 11, y: 9, puzzle: 'cst_iferror' },
+    { x: 10, y: 4, puzzle: 'cst_lookup' },
+  ],
+  npcs: [
+    ...chest('cst_chest1', 2, 2, { item: 'herb' }),
+    ...chest('cst_chest2', 18, 2, { item: 'sandglass' }),
+    ...chest('cst_chest3', 20, 10, { gold: 1500 }),
+  ],
+  encounter: castleEnemies,
+  encounterRate: CASTLE_RATE,
+}
+
+const castle2: MapDef = {
+  id: 'castle2',
+  name: '魔王城 玉座の間',
+  kind: 'dungeon',
+  light: true,
+  tiles: CASTLE2,
+  spawn: { x: 8, y: 7, dir: 'up' },
+  exits: [{ x: 8, y: 8, to: 'castle1', tx: 10, ty: 3, dir: 'down' }],
+  bossExit: { map: 'hope', x: 16, y: 5, dir: 'down' },
+  signs: [],
+  gates: [{ x: 8, y: 4, puzzle: 'cst_seals' }],
+  npcs: [
+    ...chest('cst_chest4', 3, 7, { equip: 'excel_sword' }),
+    { id: 'cst_spring', x: 14, y: 7, name: 'ふしぎな 泉', creature: 'spring', kind: 'heal' },
+    { id: 'boss_refera', x: 8, y: 2, name: '魔王レフエラー', creature: 'refera', kind: 'boss', bossId: 'refera', hideIf: (s) => s.bosses.includes('refera') },
+  ],
+  // 魔王の 前では 敵は出ない
+  encounter: (_x, y) => (y <= 3 ? null : castleEnemies()),
+  encounterRate: CASTLE_RATE,
 }
 
 const rooms: MapDef[] = [
@@ -2044,13 +2216,48 @@ const rooms: MapDef[] = [
     { id: 'hayate', x: 2, y: 2, name: '飛脚ハヤテ', look: C.hayate, kind: 'quest', questId: 'date_add' },
     { id: 'koyo_client', x: 7, y: 5, name: '荷物を 頼みに 来た 客', look: C.shop5, kind: 'talk', lines: ['「10日後に 届けて くれ」と 頼んだら、「10日後って 何日？」と 聞き返されてね……。'] },
   ]),
+  room('hope_hall', '砦の本陣', 'hope', 'hall', [
+    { id: 'ganbaru', x: 6, y: 2, name: '砦の長ガンバル', look: C.ganbaru, kind: 'quest', questId: 'err_final' },
+    { id: 'matome', x: 3, y: 5, name: '兵站長マトメ', look: C.matome, kind: 'quest', questId: 'err_report', dir: 'right' },
+  ]),
+  room('hope_weapon', '砦の武器庫', 'hope', 'weapon', [
+    {
+      id: 'hope_smith', x: 2, y: 2, name: '武器係ツルギ', look: C.smith6, kind: 'gear',
+      stock: ['ampersand_blade', 'clockhand_spear', 'calendar_axe', 'iferror_lance'],
+      lines: ['ここは 砦の 武器庫だ。魔王と 戦う 者に、最高の 武器を。', 'IFERRORの槍は、どんな エラーも 受け流して 貫く 槍だ。'],
+    },
+  ]),
+  room('hope_armor', '砦の防具庫', 'hope', 'armor', [
+    {
+      id: 'hope_tailor', x: 2, y: 2, name: '防具係マモル', look: C.soldier9, kind: 'gear',
+      stock: ['moonphase_robe', 'hero_suit', 'hourglass_shield', 'sheet_shield', 'alarm_band', 'focus_crown'],
+      lines: ['防具庫だ。魔王の「#REF!」に 耐えられる 防具を 用意してある。', '勇者のスーツは、むかし この 世界を 救った 者が 着ていたと いう。'],
+    },
+  ]),
+  room('hope_inn', '砦の宿舎', 'hope', 'inn', [
+    inn('inn9', 8, 2, C.inn9),
+    { id: 'guest9', x: 5, y: 5, name: '休んでいる 兵士', look: C.soldier9, kind: 'talk', lines: ['出陣の 前の 晩は、眠れないもんだ。', 'あんたが 7つの 町を 救ったって 本当か？ ……なら、きっと 勝てる。'] },
+  ]),
+  room('hope_church', '砦の礼拝堂', 'hope', 'church', [church('church9', 5, 2)]),
+  room('hope_shop', '補給所', 'hope', 'shop', [
+    shop('shop9', 2, 2, C.shop9),
+    { id: 'warizan', x: 7, y: 4, name: '補給係ワリザン', look: C.warizan, kind: 'quest', questId: 'err_div0' },
+  ]),
+  room('hope_school', '書記の詰所', 'hope', 'school', [
+    { id: 'kakumisu', x: 6, y: 2, name: '書記兵カクミス', look: C.kakumisu, kind: 'quest', questId: 'err_name' },
+    { id: 'clerk9', x: 3, y: 5, name: '見習い書記', look: C.student, kind: 'talk', lines: ['先輩の 式、どこが 間違ってるか わからないって 嘆いてました。', '関数の 名前って、1文字 ちがうだけで 動かなく なるんですね……。'] },
+  ]),
+  room('hope_map', '地図の間', 'hope', 'bank', [
+    { id: 'tsunagi', x: 2, y: 2, name: '地図係ツナギ', look: C.tsunagi, kind: 'quest', questId: 'err_ref' },
+    { id: 'scout9', x: 7, y: 5, name: '斥候', look: C.traveler, kind: 'talk', lines: ['魔王城の 中は、扉の 謎だらけだ。', 'これまで 覚えた 魔法を、組み合わせないと 開かない らしい。'] },
+  ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
   ]),
 ]
 
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
-  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, koyomi, clock1, clock2, ...rooms].map((m) => [m.id, m]),
+  [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, koyomi, clock1, clock2, hope, castle1, castle2, ...rooms].map((m) => [m.id, m]),
 )
 
 // 町のドア → 室内
@@ -2126,5 +2333,13 @@ link(koyomi, 4, 19, MAPS.koyo_church)
 link(koyomi, 9, 19, MAPS.koyo_shop)
 link(koyomi, 24, 19, MAPS.koyo_school)
 link(koyomi, 30, 19, MAPS.koyo_post)
+link(hope, 4, 10, MAPS.hope_hall)
+link(hope, 11, 10, MAPS.hope_weapon)
+link(hope, 21, 10, MAPS.hope_armor)
+link(hope, 29, 10, MAPS.hope_inn)
+link(hope, 4, 19, MAPS.hope_church)
+link(hope, 10, 19, MAPS.hope_shop)
+link(hope, 22, 19, MAPS.hope_school)
+link(hope, 29, 19, MAPS.hope_map)
 
 for (const map of Object.values(MAPS)) for (const n of map.npcs) if (n.look && !SPEAKER_LOOKS[n.name]) SPEAKER_LOOKS[n.name] = n.look
