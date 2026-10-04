@@ -64,13 +64,40 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 
 ---
 
+## 5. App Store Connect の 入力で 迷いやすい ところ（おすすめの 答え）
+
+| 項目 | おすすめ |
+|---|---|
+| **Appのプライバシー**（データの収集） | 「データを収集していません」。セーブは 端末の 中だけで、外部に 送らない。広告・解析も ない |
+| **プライバシーポリシーの URL** | 必須。「個人情報を 集めない」旨の ページを 用意する（例：GitHub Pages など） |
+| **年齢制限指定** | 「アニメまたはファンタジーの暴力：まれ/軽度」→ 結果は 4+ か 9+ の 想定。ほかは すべて「なし」 |
+| **カテゴリ** | プライマリ：教育　セカンダリ：ゲーム（ロールプレイング） |
+| **対応端末** | iPhone のみ（iPad では iPhone 版が 拡大表示で 動く） |
+| **サインイン情報** | 不要（アカウントの 仕組みが ない） |
+| **審査メモ（App Review Information の Notes）** | 下の 文例を 貼る |
+| **スクリーンショット** | 6.9インチ（iPhone 16 Pro Max など）が 必須。シミュレーターで 撮れる |
+
+### 審査メモの 文例
+
+```
+This is an offline educational RPG that teaches spreadsheet formulas (SUM, IF, VLOOKUP, dates, etc.) in Japanese.
+No account or network connection is required. All progress is saved on the device.
+Tip for review: tap 「ふくしゅう」 on the title screen to try the quiz mode immediately,
+or 「はじめから」 to play the story from the beginning (the first battle starts within 1 minute).
+The formula engine is our own implementation; the app does not use or imitate any third-party spreadsheet product.
+```
+
+---
+
 ## 仕組みの メモ（開発者向け）
 
 | 項目 | 内容 |
 |---|---|
 | 設定ファイル | `capacitor.config.ts`（バンドルID・アプリ名・背景色） |
 | ネイティブ部分 | `ios/App`（Swift Package Manager 方式。CocoaPods は 不要） |
-| 画面の 向き | iPhone は 縦のみ、iPad は 全方向（`ios/App/App/Info.plist`） |
+| 対応端末・向き | iPhone のみ・縦のみ（`TARGETED_DEVICE_FAMILY = 1`、`Info.plist`） |
+| プライバシーマニフェスト | `ios/App/App/PrivacyInfo.xcprivacy`（追跡なし・収集なし・UserDefaults の 理由 CA92.1） |
+| 入力方式 | アプリ版は ボタン入力に 固定（キーボード用の 切り替えと 説明を 出さない） |
 | ステータスバー | 非表示（ゲーム画面を 全面に） |
 | セーブデータ | localStorage に 加えて、アプリ本体の 保存領域（`@capacitor/preferences`）にも 写す（`src/game/native.ts`）。iOS が Web の データを 消しても 起動時に 戻る |
 | フォント | DotGothic16 を アプリに 同梱（`@fontsource/dotgothic16`）。日本語の 本文は iPhone 内蔵の ヒラギノ |

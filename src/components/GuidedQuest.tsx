@@ -165,11 +165,14 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
             <span className="muted">{brief ? '▲ とじる' : '▼ やることを 見る'}</span>
           </button>
           {brief && (
-            <ol>
-              {quest.task.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ol>
+            <>
+              <ol>
+                {quest.task.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ol>
+              <p className="muted brief-note">※ 表計算ソフトでの やり方。ここでは 下の 質問に 答えて 進めよう</p>
+            </>
           )}
         </div>
 

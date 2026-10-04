@@ -1,3 +1,4 @@
+import { isNative } from './native'
 import { useSyncExternalStore } from 'react'
 
 /**
@@ -14,6 +15,8 @@ const isMode = (s: string | null): s is InputMode => s === 'keyboard' || s === '
 
 function initial(): InputMode {
   if (typeof window === 'undefined') return 'keyboard'
+  // iPhone アプリは いつも ボタン入力
+  if (isNative) return 'touch'
   const p = new URLSearchParams(location.search).get('input')
   if (isMode(p)) return p
   try {

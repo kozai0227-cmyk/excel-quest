@@ -381,7 +381,7 @@ export default function App() {
     if (ex.to === 'world')
       run(async () => {
         await sleep(1000)
-        await talk(undefined, ['森を 抜けると、見渡すかぎりの 大地が 広がっていた。', '（北の方に 村が 見える。あそこを 目指そう）', '（外では モンスターが 出る。Shiftキーを 押しながら 移動すると 走れるぞ）'])
+        await talk(undefined, ['森を 抜けると、見渡すかぎりの 大地が 広がっていた。', '（北の方に 村が 見える。あそこを 目指そう）', isTouchDevice ? '（外では モンスターが 出る。気をつけて 進もう）' : '（外では モンスターが 出る。Shiftキーを 押しながら 移動すると 走れるぞ）'])
       })
     if (ex.to === 'celuno')
       run(async () => {
@@ -420,7 +420,7 @@ export default function App() {
           void f.walkTo('elder_event', 5, 8, 200).then(() => f.remove('elder_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で セーブもできるぞ）', '（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）'])
+        await talk(undefined, ['（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で セーブもできるぞ）', isTouchDevice ? '（十字ボタン：移動　A：話す・決定　B：メニュー）' : '（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）'])
         save()
       })
     if (ex.to === 'cave')
@@ -768,7 +768,7 @@ export default function App() {
           void f.walkTo('kagami_event', 4, 10, 200).then(() => f.remove('kagami_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（この町では、数式の 入力中に F4キーで「$」を 付け外しできる。Mac は fn+F4）'])
+        await talk(undefined, [isTouchDevice ? '（この町では、数式を 作るとき「F4 ($)」ボタンで「$」を 付け外しできる）' : '（この町では、数式の 入力中に F4キーで「$」を 付け外しできる。Mac は fn+F4）'])
         save()
       })
     if (ex.to === 'calculet')

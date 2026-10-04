@@ -3092,3 +3092,56 @@ kbd {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* タイトル：はじめから の 上書き確認 */
+.title-screen .title-confirm {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  width: min(90%, 520px);
+  font-size: 2.4cqw;
+  line-height: 1.6;
+}
+.title-confirm p {
+  margin: 0 0 0.6em;
+}
+.phone .title-confirm {
+  font-size: 15px;
+  padding: 14px 16px;
+}
+
+/* 背の 低い スマホ（iPhone SE など）：タイトルと 戦闘の 数式を つめる */
+@media (max-height: 700px) {
+  .phone .title-screen {
+    gap: 12px;
+    justify-content: flex-start;
+    padding-top: calc(56px + env(safe-area-inset-top));
+  }
+  .phone .logo-main {
+    font-size: 28px;
+  }
+  .phone .logo-grid {
+    margin-top: 6px;
+  }
+  .phone .title-cast {
+    transform: scale(0.75);
+    margin: -10px 0;
+  }
+  .question-win.touch-q {
+    max-height: 90dvh;
+  }
+  .touch-q .mini-table th,
+  .touch-q .mini-table td {
+    padding: 0 0.5em;
+    line-height: 1.5;
+  }
+  .touch-q .q-text {
+    font-size: 13px;
+  }
+}
+.brief-note {
+  margin: 0.2em 0 0;
+  font-size: 0.85em;
+}

@@ -9,6 +9,7 @@ import { maxHp } from '../game/progress'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { useInputMode } from '../game/inputMode'
+import { isTouchDevice } from '../game/layout'
 import { FormulaQuestion } from './FormulaQuestion'
 import { judgeFormula } from '../game/judge'
 import { markWeak, questionKey } from '../game/weak'
@@ -91,7 +92,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           '（まちがえたり 時間切れになると、敵の 反撃を うける）',
           '（本番の戦いでは、残り時間のバーが 緑のうちに 答えると「即答ボーナス」で ダメージアップ！）',
           '（連続正解でも 威力が上がる。ごくまれに「一発決裁」で 大ダメージも 出るぞ）',
-          '（答えは タップ、または 数字キー 1〜4 でも 選べるぞ）',
+          isTouchDevice ? '（答えは タップで 選べるぞ）' : '（答えは クリック、または 数字キー 1〜4 でも 選べるぞ）',
         ]
       : []),
   ])

@@ -8,6 +8,8 @@ import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, SLOT_NAME, effectText, gearStats, type Slot } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
+import { isTouchDevice } from '../game/layout'
+import { isNative } from '../game/native'
 import { totalPercent } from '../data/chapters'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
@@ -16,7 +18,9 @@ const VOL_ROWS: [keyof Volume, string][] = [
   ['sfx', '効果音'],
 ]
 
-const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
+const ALL_CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
+/** iPhone アプリでは 入力方式の 切り替えを 出さない（ボタン入力 だけ） */
+const CMDS = ALL_CMDS.filter((c) => !(isNative && c === 'にゅうりょく'))
 
 interface Props {
   gs: GameState
@@ -29,7 +33,7 @@ interface Props {
 
 export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
   const [cursor, setCursor] = useState(0)
-  const [open, setOpen] = useState<(typeof CMDS)[number] | null>(null)
+  const [open, setOpen] = useState<(typeof ALL_CMDS)[number] | null>(null)
   const [icur, setIcur] = useState(0)
   const [note, setNote] = useState('')
   const items = ITEM_IDS.filter((id) => gs.items[id] > 0)
@@ -239,7 +243,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
                   <span className="vol-num">{volume[kind] === 0 ? 'OFF' : volume[kind]}</span>
                 </div>
               ))}
-              <p className="muted vol-help">◀ ▶（← →キー）で 調整。0 に すると 消える。</p>
+              <p className="muted vol-help">{isTouchDevice ? '◀ ▶ で 調整。' : '◀ ▶（← →キー）で 調整。'}0 に すると 消える。</p>
               <h4>そのほか</h4>
               <div className={`opt lic-row ${icur === VOL_ROWS.length ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length); openLicenses() }}>
                 ライセンス表記

@@ -8,6 +8,8 @@ import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
   const opts = hasSave ? ['つづきから', 'はじめから', 'ふくしゅう'] : ['はじめから', 'ふくしゅう']
   const [cursor, setCursor] = useState(0)
+  /** セーブが あるのに「はじめから」を 選んだ：上書きの 確認（0：やめる 1：はじめから） */
+  const [confirm, setConfirm] = useState<number | null>(null)
   const phone = usePhoneLayout()
   const soundOn = useSoundOn()
   const pick = (i: number) => {
@@ -15,9 +17,27 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
     enterFullscreen()
     if (opts[i] === 'つづきから') onContinue()
     else if (opts[i] === 'ふくしゅう') onStudy()
+    else if (hasSave) setConfirm(0)
     else onNew()
   }
+  const answer = (yes: boolean) => {
+    setConfirm(null)
+    if (yes) onNew()
+  }
   useKeys((k) => {
+    if (confirm !== null) {
+      if (k === 'up' || k === 'down' || k === 'left' || k === 'right') {
+        sfx('cursor')
+        setConfirm((c) => (c === 0 ? 1 : 0))
+      } else if (k === 'ok') {
+        sfx('select')
+        answer(confirm === 1)
+      } else if (k === 'cancel') {
+        sfx('cancel')
+        answer(false)
+      }
+      return
+    }
     if (k === 'up' || k === 'down') {
       sfx('cursor')
       setCursor((c) => (c + (k === 'up' ? opts.length - 1 : 1)) % opts.length)
@@ -51,6 +71,20 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
           </div>
         ))}
       </div>
+      {confirm !== null && (
+        <div className="win title-confirm">
+          <p>
+            セーブデータが あります。
+            <br />
+            はじめから 始めると、次に 記録したとき 今の データは 上書きされます。
+          </p>
+          {['やめる', 'はじめから 始める'].map((o, i) => (
+            <div key={o} className={`opt ${i === confirm ? 'on' : ''}`} onPointerEnter={() => setConfirm(i)} onClick={() => answer(i === 1)}>
+              {o}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="title-help">
         {isTouchDevice ? '十字ボタン：移動　A：話す・決定　B：メニュー・もどる' : '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'}
       </div>
