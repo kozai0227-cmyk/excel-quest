@@ -49,7 +49,7 @@ export function makeCtx(grid: Grid, values: Value[][], actions: Set<string>): Ch
 
 const isN = (v: Value, n: number) => typeof v === 'number' && Math.abs(v - n) < 1e-9
 
-const BAD_OP = '「≧ ≦ ≠」は Excel では 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。'
+const BAD_OP = '「≧ ≦ ≠」は 数式では 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。'
 
 /** 数値の期待値チェック。数式必須なら mustUse を指定 */
 /** vague=true は 謎解き用（解き方の名前を 出さない） */
@@ -226,7 +226,7 @@ export const QUESTS: Record<string, QuestDef> = {
     ],
     colWidths: [100, 90],
     hints: [
-      'Excelには「さっきの操作を取り消す」魔法がある。',
+      '表計算ソフトには「さっきの操作を取り消す」魔法がある。',
       'キーボードの Ctrl を押しながら Z。Macなら ⌘ + Z。',
       'ツールバーの ↶ ボタンでも 元に戻せるよ。',
     ],
@@ -273,7 +273,7 @@ export const QUESTS: Record<string, QuestDef> = {
       return null
     },
     reward: { exp: 30, gold: 30, skill: 'autofill' },
-    thanks: ['ほっほう！ 見事な暦じゃ。', '面倒な作業ほど、Excelに まかせるのが 賢い者のやり方じゃよ。'],
+    thanks: ['ほっほう！ 見事な暦じゃ。', '面倒な作業ほど、表計算に まかせるのが 賢い者のやり方じゃよ。'],
   },
 
   celuno_bold: {
@@ -2265,8 +2265,8 @@ Object.assign(QUESTS, {
     grid: () => makeGrid(6, 3, [['受付日', '日数', '届け予定日'], ...ORDERS7], ['A1', 'B1', 'C1']),
     colWidths: [90, 50, 100],
     hints: [
-      'Excel の 日付は「1日 ＝ 1」の 数として 扱われている。だから 足せば 何日後、引けば 何日前。',
-      '月や 年を またいでも、Excel が 暦どおりに 計算してくれる。',
+      '表計算の 日付は「1日 ＝ 1」の 数として 扱われている。だから 足せば 何日後、引けば 何日前。',
+      '月や 年を またいでも、表計算ソフトが 暦どおりに 計算してくれる。',
       'C2 に =A2+B2 → C5 まで オートフィル。',
     ],
     check: (c) => eachVal(c, ORDERS7.map(([d, n], i) => [`C${i + 2}`, addDays(d, n)]), undefined),

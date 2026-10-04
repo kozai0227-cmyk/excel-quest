@@ -553,7 +553,7 @@ export const genOpMeaning: QGen = () => {
     ['等しくない', '<>', ['!=', '≠', '><']],
   ]
   const [name, ans, wrongs] = pick(table)
-  return choice(`「${name}」を 表す Excelの 比較演算子は？`, ans, wrongs, 'Excel では ≧ ≦ ≠ は 使えない。>= <= <> と 書く。')
+  return choice(`「${name}」を 表す 数式の 比較演算子は？`, ans, wrongs, '数式では ≧ ≦ ≠ は 使えない。>= <= <> と 書く。')
 }
 
 export const genIfText: QGen = () => {

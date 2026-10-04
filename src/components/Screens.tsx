@@ -190,7 +190,7 @@ const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNod
         <p>
           {name}が 旅で 手に入れたのは、魔法では なく――
           <br />
-          明日からの 仕事で 使える、本物の Excel の 力だ。
+          明日からの 仕事で 使える、本物の 表計算の 力だ。
         </p>
       </>
     ),

@@ -145,7 +145,7 @@ export function tryFormula(g: Grid, step: FormulaStep, input: string, puzzle = f
   const raw = normalizeInput(input)
   const fail = (msg: string): TryResult => ({ grid: g, values: evaluate(g), wrong: [], msg })
   if (!raw.startsWith('=')) return fail('数式は「=」から 始めよう。= が ないと、ただの 文字として 入力されて しまう。')
-  if (/[×÷]/.test(raw)) return fail('掛け算は *、割り算は / を 使おう。× や ÷ は Excel では 使えない。')
+  if (/[×÷]/.test(raw)) return fail('掛け算は *、割り算は / を 使おう。× や ÷ は 数式では 使えない。')
   if (/[≧≦≠]/.test(raw)) return fail('「≧ ≦ ≠」は 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。')
 
   const grid = placeFormula(g, step, raw)

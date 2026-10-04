@@ -88,7 +88,7 @@ export const BOSSES: Record<string, BossDef> = {
       { type: 'choice', q: '「平均」を 求める関数は？', choices: ['AVERAGE', 'SUM', 'MEAN', 'AVG'], answer: 'AVERAGE', explain: '=AVERAGE(範囲) で平均。' },
       { type: 'choice', q: 'COUNT関数が 数えるのは？', choices: ['数値が入ったセル', '空白でないすべてのセル', '空白のセル', '文字だけのセル'], answer: '数値が入ったセル', explain: '空白以外すべてを数えるなら COUNTA。' },
       { type: 'choice', q: '割り算に使う 記号は？', choices: ['/', '÷', '%', '\\'], answer: '/', explain: '足す+ 引く- 掛ける* 割る/。' },
-      { type: 'choice', q: '数式の最初に 必ず付ける 記号は？', choices: ['=', '+', '#', '@'], answer: '=', explain: '= で始めると Excel が「計算して」と理解する。' },
+      { type: 'choice', q: '数式の最初に 必ず付ける 記号は？', choices: ['=', '+', '#', '@'], answer: '=', explain: '= で始めると 表計算ソフトが「計算して」と理解する。' },
       G.genPrecedence,
       G.genPrecedence,
       G.genMaxMin,
@@ -126,7 +126,7 @@ export const BOSSES: Record<string, BossDef> = {
       { type: 'choice', q: '数式をコピーしても 参照が ずれないように するには？', choices: ['$を付ける', '#を付ける', '@を付ける', '!を付ける'], answer: '$を付ける', explain: '$A$1 のように $ を付けると 絶対参照になる。' },
       { type: 'choice', q: '「列は ずれて、行は 固定」なのは？', choices: ['A$1', '$A1', '$A$1', 'A1'], answer: 'A$1', explain: '$ は すぐ後ろを 固定する。A$1 は 行（1）だけ 固定。' },
       { type: 'choice', q: '数値を 四捨五入する 関数は？', choices: ['ROUND', 'INT', 'ROUNDUP', 'TRIM'], answer: 'ROUND', explain: 'ROUND は 四捨五入、ROUNDUP は 切り上げ、ROUNDDOWN は 切り捨て。' },
-      { type: 'choice', q: 'Macで F4 の代わりに $ を切り替えるキーは？', choices: ['⌘+T', '⌘+4', '⌘+$', 'fn+F2'], answer: '⌘+T', explain: 'Mac の Excel では ⌘+T（または fn+F4）で 切り替わる。' },
+      { type: 'choice', q: 'Macで F4 の代わりに $ を切り替えるキーは？', choices: ['⌘+T', '⌘+4', '⌘+$', 'fn+F2'], answer: '⌘+T', explain: 'Mac では ⌘+T（または fn+F4）で 切り替わる ソフトが 多い。' },
       G.genAbsCopy,
       G.genF4Cycle,
       G.genMixedMeaning,
@@ -323,7 +323,7 @@ Object.assign(BOSSES, {
       '何日後か、何曜日か、何年 たったか……もう 誰にも わからぬ。キサマの 締め切りも、永遠に 過ぎ去るが いい……！',
     ],
     questions: [
-      { type: 'choice', q: 'Excel の 日付の 中身は？', choices: ['1日 ＝ 1 の 数', '文字', '時刻', '曜日の 番号'], answer: '1日 ＝ 1 の 数', explain: 'だから 足し算・引き算で 何日後・何日間が わかる。' },
+      { type: 'choice', q: '表計算の 日付の 中身は？', choices: ['1日 ＝ 1 の 数', '文字', '時刻', '曜日の 番号'], answer: '1日 ＝ 1 の 数', explain: 'だから 足し算・引き算で 何日後・何日間が わかる。' },
       { type: 'choice', q: '=EDATE("2026/1/31", 1) の 答えは？', choices: ['2026/2/28', '2026/2/31', '2026/3/3', '2026/3/1'], answer: '2026/2/28', explain: '2月に 31日は ないので、その月の 末日（2月28日）に なる。' },
       { type: 'choice', q: '満年数を 出す DATEDIF の 3つ目は？', choices: ['"Y"', '"M"', '"D"', '"YEAR"'], answer: '"Y"', explain: '"Y" で 満年数、"M" で 満月数、"D" で 日数。' },
       { type: 'choice', q: '=EOMONTH(A1, 0) で 出るのは？', choices: ['A1 の 月の 末日', 'A1 の 翌月の 1日', 'A1 の 月の 1日', 'A1 の 曜日'], answer: 'A1 の 月の 末日', explain: '0 で その月、1 で 翌月の 末日。' },
@@ -386,7 +386,7 @@ Object.assign(BOSSES, {
 const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
 const BASICS: QuestionSrc[] = [
-  c('Excelの マス目の ひとつひとつを 何と呼ぶ？', ['セル', 'マス', 'ボックス', 'ピクセル'], 'セル', 'マス目は「セル」。セルが 集まって 表になる。'),
+  c('表計算の マス目の ひとつひとつを 何と呼ぶ？', ['セル', 'マス', 'ボックス', 'ピクセル'], 'セル', 'マス目は「セル」。セルが 集まって 表になる。'),
   c('横方向の 並びを 何と呼ぶ？', ['行', '列', '段', '帯'], '行', '横が「行（ぎょう）」、縦が「列（れつ）」。'),
   c('縦方向の 並びを 何と呼ぶ？', ['列', '行', '柱', '段'], '列', '列は A, B, C… のアルファベットで表す。'),
   c('入力した内容を 確定するキーは？', ['Enter', 'Esc', 'F1', 'Alt'], 'Enter', 'Enter で確定して 下へ。Tab なら 右へ。'),
@@ -413,7 +413,7 @@ const EDITS: QuestionSrc[] = [
 
 const CALCS: QuestionSrc[] = [
   c('合計を出す関数は？', ['SUM', 'ADD', 'TOTAL', 'PLUS'], 'SUM', '=SUM(範囲) で合計。'),
-  c('「100÷4」を Excelで書くと？', ['=100/4', '=100÷4', '=100:4', '=100%4'], '=100/4', '割り算は /（スラッシュ）。'),
+  c('「100÷4」を 数式で書くと？', ['=100/4', '=100÷4', '=100:4', '=100%4'], '=100/4', '割り算は /（スラッシュ）。'),
   G.genPrecedence,
   G.genPrecedence,
   G.genPrecedence,
@@ -586,7 +586,7 @@ const ZEROS: QuestionSrc[] = [
   G.genFormulaVlookup,
 ]
 const NAMELESS: QuestionSrc[] = [
-  c('文字に " を 付け忘れると 出る エラーは？', ['#NAME?', '#VALUE!', '#DIV/0!', '#REF!'], '#NAME?', '" が ないと、Excel は その 文字を 名前だと 思ってしまう。'),
+  c('文字に " を 付け忘れると 出る エラーは？', ['#NAME?', '#VALUE!', '#DIV/0!', '#REF!'], '#NAME?', '" が ないと、表計算ソフトは その 文字を 名前だと 思ってしまう。'),
   c('参照先の セルを 削除すると 出る エラーは？', ['#REF!', '#N/A', '#NAME?', '#VALUE!'], '#REF!', 'REF は reference（参照）。'),
   G.genErrorCause,
   G.genErrorMeaning,

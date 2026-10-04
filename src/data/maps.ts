@@ -1181,7 +1181,7 @@ const celuno: MapDef = {
     { id: 'bold', x: 20, y: 14, name: '看板職人ボルド', look: C.bold, kind: 'quest', questId: 'celuno_bold' },
     {
       id: 'kid1', x: 14, y: 17, name: '村の子ども', look: C.kid, kind: 'talk', wander: true, emote: 'note',
-      lines: ['ねえねえ、「エクセル」って 魔法なんでしょ？', 'ぼくも 大きくなったら 表の魔法使いに なるんだ！'],
+      lines: ['ねえねえ、「表計算」って 魔法なんでしょ？', 'ぼくも 大きくなったら 表の魔法使いに なるんだ！'],
     },
     {
       id: 'youth', x: 25, y: 12, name: '村の若者', look: C.youth, kind: 'talk', wander: true,

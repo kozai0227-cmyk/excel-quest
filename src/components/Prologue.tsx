@@ -27,9 +27,9 @@ const PROLOGUE: Step[] = [
   { speaker: 'me', text: 'は、はいっ！', mood: 'nervous' },
   { speaker: 'senior', text: '今朝の売上集計。これ、電卓で 手打ちしただろ。' },
   { speaker: 'senior', text: '合計が 三か所 ずれてる。……別に、責めてるわけじゃない。' },
-  { speaker: 'senior', text: 'ただな。エクセルくらい、ある程度 使えるようになれよ。' },
+  { speaker: 'senior', text: 'ただな。表計算くらい、ある程度 使えるようになれよ。' },
   { speaker: 'senior', text: 'お前の時間が、もったいない。' },
-  { speaker: 'me', text: '（……エクセルなんて、使えなくても 仕事は回るし）', mood: 'flat' },
+  { speaker: 'me', text: '（……表計算なんて、使えなくても 仕事は回るし）', mood: 'flat' },
   { speaker: 'me', text: '（必要になったら、そのとき 覚えればいいや）' },
   { scene: 'night', text: '――その夜。23時47分。', mood: 'tired' },
   { text: 'フロアに残っているのは、自分ひとりだけだった。' },
@@ -484,20 +484,18 @@ function MonitorScene({ corrupt }: { corrupt: number }) {
         <div className="xlm">
           <div className="xlm-title">
             <span className="xlm-dots">● ● ●</span>
-            <span>2025年度_第1四半期_売上集計_最終版(2).xlsx ― Excel</span>
+            <span>2025年度_第1四半期_売上集計_最終版(2) ― 表計算</span>
             <span />
           </div>
           <div className="xlm-tabs">
-            {['ファイル', 'ホーム', '挿入', '描画', 'ページ レイアウト', '数式', 'データ', '校閲', '表示'].map((t, i) => (
-              <span key={t} className={i === 1 ? 'on' : ''}>
-                {t}
-              </span>
+            {['ファイル', '編集', '表示', '挿入', '書式', 'データ'].map((t) => (
+              <span key={t}>{t}</span>
             ))}
           </div>
           <div className="xlm-ribbon">
-            {Array.from({ length: 14 }, (_, i) => (
-              <span key={i} className={i % 4 === 3 ? 'sep' : ''} />
-            ))}
+            {['↶', '↷', '|', 'B', 'I', 'U', '|', '¥', '%', '.0', '|', 'Σ', '▦'].map((t, i) =>
+              t === '|' ? <span key={i} className="sep" /> : <span key={i}>{t}</span>,
+            )}
           </div>
           <div className="xlm-fbar">
             <span className="nb">F16</span>
@@ -547,7 +545,7 @@ function MonitorScene({ corrupt }: { corrupt: number }) {
             <span className="on">集計</span>
             <span>明細</span>
             <span>前年</span>
-            <span className="status">{corrupt > 0 ? '⚠ 参照が無効です' : '準備完了'}</span>
+            <span className="status">{corrupt > 0 ? '⚠ 参照が無効です' : '✓ 保存済み'}</span>
           </div>
         </div>
       </div>

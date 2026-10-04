@@ -78,8 +78,8 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
       setInputMode(m)
       setNote(
         m === 'touch'
-          ? 'ボタンで 答える（スマホ向け）に した。依頼は、Excel の 知識を 1つずつ 選んで 答える 形に なる。'
-          : 'キーボードで 打つ（PC向け）に した。依頼は、Excel と 同じ 操作で 表を 直す 形に なる。',
+          ? 'ボタンで 答える（スマホ向け）に した。依頼は、表計算の 知識を 1つずつ 選んで 答える 形に なる。'
+          : 'キーボードで 打つ（PC向け）に した。依頼は、表計算ソフトと 同じ 操作で 表を 直す 形に なる。',
       )
       return
     }

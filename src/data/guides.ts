@@ -54,7 +54,7 @@ export const GUIDES: Record<string, GuideStep[]> = {
   celuno_copy: [
     {
       kind: 'choice',
-      q: 'A1 から B4 までの 四角い 範囲は、Excel では どう 書く？',
+      q: 'A1 から B4 までの 四角い 範囲は、表計算では どう 書く？',
       focus: 'A1:B4',
       answer: 'A1:B4',
       wrong: ['A1-B4', 'A1~B4', 'A1,B4'],
@@ -149,7 +149,7 @@ export const GUIDES: Record<string, GuideStep[]> = {
   calc_arith: [
     {
       kind: 'choice',
-      q: 'Excel の 数式で「掛け算」に 使う 記号は？',
+      q: '数式で「掛け算」に 使う 記号は？',
       answer: '*（アスタリスク）',
       wrong: ['×', 'x（エックス）', '・'],
       explain: '掛け算は *、割り算は /。算数の × や ÷ は 使えない。',
@@ -526,7 +526,7 @@ export const GUIDES: Record<string, GuideStep[]> = {
   port_compare: [
     {
       kind: 'choice',
-      q: '「180 以上」を Excel の 記号で 書くと？',
+      q: '「180 以上」を 数式の 記号で 書くと？',
       answer: '>=180',
       wrong: ['≧180', '=>180', '>180'],
       explain: '「以上」は >=、「以下」は <=、「等しくない」は <>。≧ ≦ ≠ は 使えない。> は「より大きい」なので、180 ちょうどを ふくまない。',
@@ -1037,7 +1037,7 @@ export const GUIDES: Record<string, GuideStep[]> = {
     },
     {
       kind: 'choice',
-      q: 'このような「項目ごとの 合計表」を、式を 書かずに マウス操作だけで 作れる Excel の 機能は？',
+      q: 'このような「項目ごとの 合計表」を、式を 書かずに マウス操作だけで 作れる 表計算ソフトの 機能は？',
       answer: 'ピボットテーブル',
       wrong: ['オートフィル', '条件付き書式', '入力規則'],
       explain: 'ピボットテーブルは、記録の 表から「地区ごとの 合計」などを 一瞬で 作る 機能。SUMIFS で 作る 集計表は、その しくみを 式で 書いたもの。',
@@ -1300,10 +1300,10 @@ export const GUIDES: Record<string, GuideStep[]> = {
   date_add: [
     {
       kind: 'choice',
-      q: 'Excel で「2026/10/28」の 5日後を 出すには？',
+      q: '表計算で「2026/10/28」の 5日後を 出すには？',
       answer: '日付の セルに 5 を 足す（=A5+5）',
       wrong: ['日付は 計算できないので 手で 数える', '=DAY(A5)+5', '=A5&"+5"'],
-      explain: 'Excel の 日付は「1日 ＝ 1」の 数として 中に しまわれている。だから 足せば 何日後。月を またいでも 暦どおりに 11月2日に なる。',
+      explain: '表計算の 日付は「1日 ＝ 1」の 数として 中に しまわれている。だから 足せば 何日後。月を またいでも 暦どおりに 11月2日に なる。',
     },
     {
       kind: 'formula',
@@ -1527,7 +1527,7 @@ export const GUIDES: Record<string, GuideStep[]> = {
       target: 'D3',
       answer: '=IF(A2>=60,"OK","NG")',
       extra: ['OK', 'NG'],
-      explain: '文字は かならず " で 囲む。囲まないと、Excel は それを 関数や 名前だと 思ってしまう。',
+      explain: '文字は かならず " で 囲む。囲まないと、表計算ソフトは それを 関数や 名前だと 思ってしまう。',
     },
   ],
 
