@@ -17,7 +17,7 @@ import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
 import { SONGS } from '../src/data/music'
 import { parseVoice } from '../src/game/sound'
-import { CHAPTERS, chapterPractice } from '../src/data/chapters'
+import { CHAPTERS, allCourse, chapterCourse, weakCourse } from '../src/data/chapters'
 
 let errors = 0
 let passed = 0
@@ -158,7 +158,9 @@ for (const q of Object.values(QUESTS)) if (!places.includes(q.town)) bad(`依頼
 const members = CHAPTERS.flatMap((ch) => [...ch.bosses, ...ch.enemies])
 for (const id of Object.keys(ENEMIES)) if (id !== 'celime_tutorial' && !members.includes(id)) bad(`敵 ${id}：どの 章にも 入っていない`)
 for (const id of members) if (!ENEMIES[id]) bad(`章の 敵 ${id}：存在しない`)
-for (const ch of CHAPTERS) if (chapterPractice(ch).length < 5) bad(`${ch.title}：復習の 問題が 足りない`)
+for (const ch of CHAPTERS) if (chapterCourse(ch).length < 5) bad(`${ch.title}：復習の 問題が 足りない`)
+if (allCourse(CHAPTERS).length < 10) bad('全章まとめ：問題が 足りない')
+if (weakCourse(['frog#1', 'refera#3']).length < 5) bad('苦手克服：類題が 足りない')
 console.log(`章：${CHAPTERS.length} 章`)
 
 if (errors) {

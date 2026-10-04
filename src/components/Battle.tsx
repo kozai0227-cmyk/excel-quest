@@ -5,18 +5,16 @@ import { ITEMS } from '../data/items'
 import { useKeys } from '../game/keys'
 import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
-import { makeGrid, evaluate, normalizeInput, parseAddr, colName, formatValue, usesFn, shiftFormula, toggleAbsAt } from '../game/formula'
 import { maxHp } from '../game/progress'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { useInputMode } from '../game/inputMode'
-import { battlePad, learnedFuncs, pickRef, toggleLastRef, type ChipGroup } from '../game/formulaTokens'
-import { FormulaPad } from './FormulaPad'
-import { useCellPick } from './useCellPick'
+import { FormulaQuestion } from './FormulaQuestion'
+import { judgeFormula } from '../game/judge'
+import { markWeak, questionKey } from '../game/weak'
 import { BossVisual } from './BossVisual'
 import { hasBossArt } from '../game/bossArt'
 import { cue, sfx, useBgm } from '../game/sound'
-import { markWeak, questionKey, type PracticeItem } from '../data/chapters'
 
 interface Props {
   bossId: string
@@ -29,10 +27,6 @@ interface Props {
   onWin(): void
   onLose(): void
   onFlee(): void
-  /** 復習モード：決まった 問題を 順に 出す（ダメージなし・時間制限なし） */
-  practice?: { name: string; items: PracticeItem[] }
-  /** 復習モードが 終わった（正解数） */
-  onPracticeEnd?(correct: number, total: number): void
 }
 
 type Phase = 'msg' | 'command' | 'items' | 'question'
@@ -77,21 +71,19 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
   return <canvas ref={ref} width={16} height={16} className={`boss-sprite ${hit ? 'hit' : ''}`} />
 }
 
-export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee, practice, onPracticeEnd }: Props) {
-  const base = ENEMIES[bossId]
-  // 復習モードは「まぼろし」が 相手。HP は 問題の 数
-  const boss: BossDef = practice ? { ...base, name: practice.name, hp: practice.items.length, boss: false, hits: undefined } : base
-  useBgm(practice ? 'battle' : boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
+export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
+  const boss = ENEMIES[bossId]
+  useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
   /** 山札（boss.questions の 番号） */
   const deck = useRef<number[]>([])
   /** 出題中の 問題の 出どころ（苦手リスト用） */
   const curKey = useRef('')
-  const done = useRef<boolean[]>([])
+  /** 問題ごとに 入力欄を 作り直す */
+  const [qNo, setQNo] = useState(0)
   const [bossHp, setBossHp] = useState(boss.hp)
   const [phase, setPhase] = useState<Phase>('msg')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     `${boss.name}が あらわれた！`,
-    ...(practice ? ['（復習モード：まちがえても ダメージは うけない。時間制限も ない。じっくり 考えよう）'] : []),
     ...(tutorial
       ? [
           '（戦いは「Excelの問題」で 行われる！）',
@@ -103,16 +95,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         ]
       : []),
   ])
-  const after = useRef<() => void>(() => (practice ? nextQuestion() : setPhase('command')))
+  const after = useRef<() => void>(() => setPhase('command'))
   const [cursor, setCursor] = useState(0)
   const [q, setQ] = useState<Question | null>(null)
   const [choices, setChoices] = useState<string[]>([])
-  const [formula, setFormula] = useState('=')
   const touch = useInputMode() === 'touch'
-  /** スマホ：押した ボタン（= は 最初から 入っている） */
-  const [chips, setChips] = useState<string[]>([])
-  /** スマホ：この問題で 選べる 数式ボタン */
-  const [pad, setPad] = useState<ChipGroup[]>([])
   /** attack：こちらの攻撃の問題 ／ defense：ボスの攻撃の問題（正解でダメージ減） */
   const [mode, setMode] = useState<'attack' | 'defense'>('attack')
   const guardHinted = useRef(false)
@@ -143,21 +130,15 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   }
 
   const nextQuestion = (m: 'attack' | 'defense' = 'attack') => {
-    let src: QuestionSrc
-    if (practice) {
-      const it = practice.items[done.current.length]
-      curKey.current = it.key
-      src = it.src
-    } else {
-      if (!deck.current.length) deck.current = shuffle(boss.questions.map((_, i) => i))
-      const i = deck.current.shift()!
-      curKey.current = questionKey(boss.id, i)
-      src = boss.questions[i]
-    }
+    if (!deck.current.length) deck.current = shuffle(boss.questions.map((_, i) => i))
+    const qi = deck.current.shift()!
+    curKey.current = questionKey(boss.id, qi)
+    const src: QuestionSrc = boss.questions[qi]
     // 自動生成の問題は、出すたびに 数値が変わる
     const nq = typeof src === 'function' ? src() : src
     setMode(m)
     setQ(nq)
+    setQNo((n) => n + 1)
     answered.current = false
     if (nq.type === 'choice') {
       let cs = shuffle(nq.choices)
@@ -166,16 +147,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         cs = cs.filter((c) => !wrong.includes(c))
       }
       setChoices(cs)
-    } else {
-      setFormula('=')
-      setChips([])
-      const t = parseAddr(nq.target)
-      const rows = Math.max(nq.table.length, t.r + 1)
-      const cols = Math.max(...nq.table.map((r) => r.length), t.c + 1)
-      setPad(battlePad(nq.hint, rows, cols, nq.target, learnedFuncs(gs.skills)))
     }
     setCursor(0)
-    const limit = practice ? Infinity : (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
+    const limit = (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
     startedAt.current = Date.now()
     setDeadline(Date.now() + limit)
     setPhase('question')
@@ -247,9 +221,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     const usedScroll = buff.scroll
     if (usedScroll) setBuff((b) => ({ ...b, scroll: false }))
     // まちがえた 問題は 苦手リストへ（正解したら 外す）
-    const key = curKey.current
-    if (!tutorial) setGs((g) => markWeak(g, key, ok))
-    if (practice) return practiceAnswer(ok, note)
+    if (!tutorial) markWeak(curKey.current, ok)
     if (mode === 'defense') return defend(ok, note)
     if (ok) {
       const limit = deadline - startedAt.current
@@ -312,65 +284,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     }
   }
 
-  /** 復習モード：1問ずつ 答えて、全部 出したら 終わり */
-  const practiceAnswer = (ok: boolean, note?: string) => {
-    if (!q || !practice) return
-    const results = [...done.current, ok]
-    done.current = results
-    const total = practice.items.length
-    const lines: Msg[] = []
-    if (ok) {
-      const hp = Math.max(0, bossHp - 1)
-      lines.push('せいかい！', {
-        text: `${boss.name}に 1の ダメージ！`,
-        fx: () => {
-          setHit((h) => h + 1)
-          setBossHp(hp)
-        },
-      })
-      if (hp <= 0) lines.push(`${boss.name}は 消えていった……。`)
-    } else {
-      sfx('wrong')
-      lines.push(note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`, '（この問題は「苦手」に 記録した）')
-    }
-    if (results.length < total) return say([...lines, `――${results.length + 1}問目（全${total}問）`], () => nextQuestion())
-    const correct = results.filter(Boolean).length
-    say([...lines, `復習 おわり！ ${total}問中 ${correct}問 正解！`], () => onPracticeEnd?.(correct, total))
-  }
-
-  const submitFormula = () => {
+  const submitFormula = (input: string) => {
     if (!q || q.type !== 'formula') return
-    const raw = normalizeInput(touch ? '=' + chips.join('') : formula)
-    const t = parseAddr(q.target)
-    const rows = Math.max(q.table.length, t.r + 1)
-    const cols = Math.max(...q.table.map((r) => r.length), t.c + 1)
-    const copies = (q.copies ?? []).map((cp) => ({ ...cp, p: parseAddr(cp.at) }))
-    const grid = makeGrid(
-      Math.max(rows, ...copies.map((cp) => cp.p.r + 1)),
-      Math.max(cols, ...copies.map((cp) => cp.p.c + 1)),
-      q.table,
-    )
-    grid[t.r][t.c].raw = raw
-    for (const cp of copies) grid[cp.p.r][cp.p.c].raw = shiftFormula(raw, cp.p.r - t.r, cp.p.c - t.c)
-    const vals = evaluate(grid)
-    const v = vals[t.r][t.c]
-    const same = (x: typeof v, n: number | string) =>
-      typeof n === 'string' ? typeof x === 'string' && x.trim() === n : typeof x === 'number' && Math.abs(x - n) < 1e-9
-    const okVal = same(v, q.expect)
-    const bad = copies.find((cp) => !same(vals[cp.p.r][cp.p.c], cp.expect))
-    const okUse =
-      !q.mustUse || (q.mustUse.length === 1 ? raw.includes(q.mustUse) : usesFn(raw, q.mustUse))
-    if (!raw.startsWith('=')) answer(false, '数式は「=」で はじめよう！')
-    else if (/[≧≦≠]/.test(raw)) answer(false, '「≧ ≦ ≠」は 使えない！ 以上は >=、以下は <=、等しくないは <> と 書こう。')
-    else if (okVal && bad) {
-      const got = `${bad.at}に コピーすると ${grid[bad.p.r][bad.p.c].raw} → ${formatValue(vals[bad.p.r][bad.p.c]) || '（空）'}`
-      // 文字の答え（IF）なら 条件の まちがい、数値なら 参照の ずれ
-      const why = typeof bad.expect === 'string' ? `本当は「${bad.expect}」。条件を 見直そう……！` : '参照が ずれた……！'
-      answer(false, `${q.target}は 合ってる！ でも ${got}。${why}`)
-    }
-    else if (okVal && okUse) answer(true)
-    else if (okVal) answer(false, `答えは合ってる！ でも ${q.mustUse} を使ってほしかった……。`)
-    else answer(false, `あなたの数式の結果：${formatValue(v) || '（空）'}`)
+    const r = judgeFormula(q, input)
+    answer(r.ok, r.note)
   }
 
   const commands = ['たたかう', 'どうぐ', 'にげる']
@@ -465,26 +382,12 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const remain = Math.max(0, deadline - now)
   const limit = Math.max(1, deadline - startedAt.current)
   // 即答ボーナスは こちらの攻撃のときだけ（チュートリアルは固定ダメージなので出さない）
-  const showQuick = mode === 'attack' && !boss.hits && !practice
+  const showQuick = mode === 'attack' && !boss.hits
   const quickZone = showQuick && 1 - remain / limit < QUICK
-  const target = q?.type === 'formula' ? parseAddr(q.target) : null
-  const copyCells = q?.type === 'formula' ? (q.copies ?? []).map((cp) => parseAddr(cp.at)) : []
-  const tableCols = q?.type === 'formula' ? Math.max(...q.table.map((r) => r.length), target!.c + 1, ...copyCells.map((p) => p.c + 1)) : 0
-  const tableRows = q?.type === 'formula' ? Math.max(q.table.length, target!.r + 1, ...copyCells.map((p) => p.r + 1)) : 0
 
   // スマホの 数式ボタンは 画面の下いっぱいに 出す（ゲーム画面の中だと 小さすぎる）
   const touchFormula = touch && q?.type === 'formula'
 
-  // 表を タップ・ドラッグして セル・範囲を 数式に 入れる（直前が 参照なら 置きかえ）
-  const cellPick = useCellPick(
-    q?.type === 'formula'
-      ? (ref) => {
-          if (ref === q.target) return
-          if (touch) setChips((c) => pickRef(c, ref))
-          else setFormula((f) => f.replace(/\$?[A-Z]{1,3}\$?\d+(:\$?[A-Z]{1,3}\$?\d+)?$/, '') + ref)
-        }
-      : null,
-  )
   const portal = (el: ReactElement) => (touchFormula ? createPortal(el, document.body) : el)
 
   return (
@@ -504,14 +407,14 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       </div>
       <div className="boss-area">
         <div className="boss-hp">
-          <span>{boss.name}{practice && `（のこり ${practice.items.length - done.current.length}問）`}</span>
+          <span>{boss.name}</span>
           <div className="bar">
             <div style={{ width: `${(bossHp / boss.hp) * 100}%` }} />
           </div>
         </div>
         {bossHp <= 0 ? (
           <div className="boss-gone">✨</div>
-        ) : base.boss && hasBossArt(boss.sprite) ? (
+        ) : boss.boss && hasBossArt(boss.sprite) ? (
           <BossVisual key={hit} id={boss.sprite} hit={hit} />
         ) : (
           <BossSprite key={hit} id={boss.sprite} hit={hit} />
@@ -523,11 +426,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           {boss.boss && (
             <div className="q-mode">{mode === 'defense' ? `🛡 ${boss.name}の 攻撃！ 正解で ダメージを へらせ！` : '⚔ こちらの 攻撃！'}</div>
           )}
-          {!practice && <div className={`timer ${quickZone ? 'quick' : remain / limit < 0.2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
+          <div className={`timer ${quickZone ? 'quick' : remain / limit < 0.2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
             <div className="timer-fill" style={{ width: `${(remain / limit) * 100}%` }} />
             {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
             {quickZone && <span className="timer-label">即答ボーナス！</span>}
-          </div>}
+          </div>
           <div className="q-text">{q.q}</div>
           {q.type === 'choice' ? (
             <div className="q-choices">
@@ -538,98 +441,19 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
               ))}
             </div>
           ) : (
-            <div className="q-formula">
-              <table className="mini-table picking" {...cellPick.handlers}>
-                <thead>
-                  <tr>
-                    <th />
-                    {Array.from({ length: tableCols }, (_, c) => (
-                      <th key={c}>{colName(c)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: tableRows }, (_, r) => (
-                    <tr key={r}>
-                      <th>{r + 1}</th>
-                      {Array.from({ length: tableCols }, (_, c) => {
-                        const isT = r === target!.r && c === target!.c
-                        const isCopy = copyCells.some((p) => p.r === r && p.c === c)
-                        const a = `${colName(c)}${r + 1}`
-                        return (
-                          <td key={c} data-a={a} className={`${isT ? 'target' : isCopy ? 'copy' : ''} ${cellPick.selecting.has(a) ? 'selecting' : ''}`}>
-                            {isT ? '？' : isCopy ? '⇩' : (q.table[r]?.[c] ?? '')}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  submitFormula()
-                }}
-              >
-                {touch ? (
-                  <>
-                    <div className="fpad-formula">
-                      <span className="fpad-target">{q.target}</span>
-                      <span className="fpad-text">
-                        ={chips.join('')}
-                        {!chips.length && <span className="fpad-ph">ボタンか、表を タップ・ドラッグ</span>}
-                      </span>
-                    </div>
-                    <FormulaPad
-                      groups={pad}
-                      onChip={(t) => setChips((c) => [...c, t])}
-                      actions={[
-                        { label: 'F4 ($)', onClick: () => setChips(toggleLastRef) },
-                        { label: '⌫', onClick: () => setChips((c) => c.slice(0, -1)) },
-                        { label: 'クリア', onClick: () => setChips([]) },
-                      ]}
-                    />
-                  </>
-                ) : (
-                  <label>
-                    {q.target} ＝{' '}
-                    <input
-                      autoFocus
-                      value={formula}
-                      onChange={(e) => setFormula(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'F4') return
-                        // F4 で カーソル位置の参照に「$」を付け外し
-                        e.preventDefault()
-                        const el = e.currentTarget
-                        const t = toggleAbsAt(el.value, el.selectionStart ?? el.value.length)
-                        if (t) {
-                          el.value = t.text
-                          el.setSelectionRange(t.caret, t.caret)
-                          setFormula(t.text)
-                          requestAnimationFrame(() => el.setSelectionRange(t.caret, t.caret))
-                        }
-                      }}
-                      spellCheck={false}
-                      autoComplete="off"
-                    />
-                  </label>
-                )}
-                <button className="btn primary" data-nosfx>{mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}</button>
-                {q.copies && <div className="copy-note">⇩ の セルにも この数式を コピーして 確かめるぞ！（F4 で $ 切替）</div>}
-                {buff.scroll && <div className="hint">📜 ヒント：{q.hint.replace(/\(.*\)/, '(…)')}</div>}
-              </form>
-            </div>
+            <FormulaQuestion
+              key={qNo}
+              q={q}
+              skills={gs.skills}
+              touch={touch}
+              label={mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}
+              showHint={buff.scroll}
+              onSubmit={submitFormula}
+            />
           )}
         </div>,
       )}
 
-      {practice && (
-        <button className="btn ghost practice-quit" onClick={onFlee}>
-          やめる
-        </button>
-      )}
       {(phase === 'command' || phase === 'items') && (
         <div className="battle-cmds">
           <div className="win cmd-win">

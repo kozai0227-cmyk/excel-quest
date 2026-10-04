@@ -25,8 +25,6 @@ export interface GameState {
   equip: Partial<Record<'weapon' | 'armor' | 'shield' | 'head', string>>
   /** 持っている装備 */
   gear: string[]
-  /** まちがえた 問題（「敵ID#番号」）。復習モードの「苦手」で 出し直す */
-  weak?: string[]
 }
 
 export interface NpcDef {

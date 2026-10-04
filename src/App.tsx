@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Field, type FieldHandle } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
 import { Menu } from './components/Menu'
-import { Review } from './components/Review'
-import { chapterPractice, weakPractice, type ChapterDef, type PracticeItem } from './data/chapters'
+import { Study } from './components/Study'
 import { QuestScreen } from './components/QuestScreen'
 import { Battle } from './components/Battle'
 import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
@@ -22,13 +21,11 @@ import { isTouchDevice, usePhoneLayout } from './game/layout'
 import { bgm, jingle, sfx, useBgm } from './game/sound'
 import type { SongName } from './data/music'
 
-type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epilogue' | 'ending'
+type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epilogue' | 'ending' | 'study'
 interface BattleReq {
   id: string
   tutorial?: boolean
   scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
-  /** 復習モード */
-  practice?: { name: string; items: PracticeItem[] }
 }
 
 /** ボスと 戦う 場所（背景） */
@@ -158,6 +155,7 @@ export default function App() {
     const p = new URLSearchParams(location.search)
     if (p.has('prologue')) return setScene('prologue')
     if (p.has('epilogue')) return setScene('epilogue')
+    if (p.has('study')) return setScene('study')
     const test = { ...newGame('テスト'), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
@@ -1019,29 +1017,6 @@ export default function App() {
     setScene('field')
   }
 
-  /** 復習を はじめる（ch が null なら 苦手な 問題） */
-  const startPractice = (ch: ChapterDef | null) => {
-    const g = gsRef.current
-    const items = ch ? chapterPractice(ch) : weakPractice(g)
-    if (!items.length) return
-    setReview(false)
-    // 相手は その章の ボス（苦手なら 最初の 問題の 敵）の まぼろし
-    const id = ch ? ch.bosses[ch.bosses.length - 1] : items[0].key.split('#')[0]
-    startBattle({ id, scene: ch ? bossScene(id) : 'field', practice: { name: `${ENEMIES[id].name}の まぼろし`, items } })
-  }
-
-  const onPracticeEnd = (correct: number, total: number) => {
-    setBattle(null)
-    setScene('field')
-    run(async () => {
-      const weak = (gsRef.current.weak ?? []).length
-      await talk(undefined, [
-        correct === total ? `${total}問 すべて 正解！ 見事な 復習だった！` : `${total}問中 ${correct}問 正解。まちがえた 問題は「苦手」に 残っている。`,
-        weak ? `（苦手な 問題：のこり ${weak}問。メニューの「ふくしゅう」から 再挑戦できる）` : '（苦手な 問題は 1つも ない！）',
-      ])
-    })
-  }
-
   const doorHint = (ex: Exit) => {
     const dest = MAPS[ex.to]
     return dest?.kind === 'interior' && dest.npcs.some((n) => n.kind === 'quest' && !gsRef.current.solved.includes(n.questId!))
@@ -1054,6 +1029,8 @@ export default function App() {
   const music: SongName | null | undefined =
     scene === 'title' || scene === 'name'
       ? 'title'
+      : scene === 'study' || review
+        ? 'quest'
       : scene === 'ending'
         ? 'ending'
         : scene === 'quest'
@@ -1076,7 +1053,8 @@ export default function App() {
   return (
     <div className={`app ${phone ? 'phone' : ''}`}>
       <div className="screen">
-        {scene === 'title' && <Title hasSave={!!loadGame()} onNew={() => setScene('name')} onContinue={continueGame} />}
+        {scene === 'title' && <Title hasSave={!!loadGame()} onNew={() => setScene('name')} onContinue={continueGame} onStudy={() => setScene('study')} />}
+        {scene === 'study' && <Study gs={loadGame()} fromTitle onClose={() => setScene('title')} />}
         {scene === 'name' && <NameEntry onDone={(name) => startGame(newGame(name), 'prologue')} />}
         {scene === 'prologue' && (
           <Prologue
@@ -1162,7 +1140,7 @@ export default function App() {
                 }}
               />
             )}
-            {review && scene === 'field' && <Review gs={gs} onStart={startPractice} onClose={() => setReview(false)} />}
+            {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {scene === 'battle' && battle && (
               <Battle
                 key={`${battle.id}-${spawn.key}`}
@@ -1174,8 +1152,6 @@ export default function App() {
                 onWin={onWin}
                 onLose={onLose}
                 onFlee={onFlee}
-                practice={battle.practice}
-                onPracticeEnd={onPracticeEnd}
               />
             )}
           </>
@@ -1183,7 +1159,7 @@ export default function App() {
         {dialog && scene !== 'prologue' && scene !== 'epilogue' && <DialogBox key={dialog.id} req={dialog} />}
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
-      {isTouchDevice && inWorld && scene !== 'quest' && !(phone && scene === 'battle') && <TouchPad />}
+      {isTouchDevice && inWorld && scene !== 'quest' && !review && !(phone && scene === 'battle') && <TouchPad />}
       {scene === 'quest' && questId && <QuestScreen quest={QUESTS[questId]} onClear={onQuestClear} onClose={onQuestClose} />}
     </div>
   )

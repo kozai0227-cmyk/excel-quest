@@ -2,6 +2,7 @@ import { ENEMIES, type QuestionSrc } from './bosses'
 import { QUESTS } from './quests'
 import { MAPS } from './maps'
 import type { GameState } from '../game/types'
+import { questionKey } from '../game/weak'
 
 /** 章ごとの まとめ（復習モード・達成率で 使う） */
 export interface ChapterDef {
@@ -72,18 +73,24 @@ export function percent(ps: Progress[]) {
 export const totalPercent = (g: GameState) => percent(CHAPTERS.map((ch) => chapterProgress(ch, g)))
 
 // ---------------------------------------------------------------- 復習の 出題
-/** 問題の 出どころ（「敵ID#番号」）。苦手リストにも この形で 記録する */
+/** 1問ぶん（key は「敵ID#番号」） */
 export interface PracticeItem {
   key: string
   src: QuestionSrc
+  /** 苦手な 問題の 類題（同じ 敵の 別の 問題） */
+  similar?: boolean
 }
-
-export const questionKey = (enemyId: string, i: number) => `${enemyId}#${i}`
 
 export function resolveKey(key: string): PracticeItem | null {
   const [id, n] = key.split('#')
   const src = ENEMIES[id]?.questions[Number(n)]
   return src ? { key, src } : null
+}
+
+/** 問題が どの 章の ものか */
+export const chapterOfKey = (key: string) => {
+  const id = key.split('#')[0]
+  return CHAPTERS.find((ch) => ch.bosses.includes(id) || ch.enemies.includes(id))
 }
 
 const shuffle = <T,>(a: T[]) => {
@@ -95,27 +102,45 @@ const shuffle = <T,>(a: T[]) => {
   return b
 }
 
-export const PRACTICE_SIZE = 5
+const keysOf = (id: string) => ENEMIES[id].questions.map((_, i) => questionKey(id, i))
+const chapterKeys = (ch: ChapterDef) => [...ch.bosses, ...ch.enemies].flatMap(keysOf)
 
-/** 章の ボスと モンスターの 問題から、重ならないように 選ぶ */
-export function chapterPractice(ch: ChapterDef, n = PRACTICE_SIZE): PracticeItem[] {
-  const keys = [...ch.bosses, ...ch.enemies].flatMap((id) => ENEMIES[id].questions.map((_, i) => questionKey(id, i)))
-  return shuffle(keys)
+/** 章の 復習：ボスと モンスターの 問題から 重ならないように */
+export function chapterCourse(ch: ChapterDef, n = 5): PracticeItem[] {
+  return shuffle(chapterKeys(ch))
     .slice(0, n)
     .map((k) => resolveKey(k)!)
 }
 
-/** 苦手な 問題から 選ぶ */
-export function weakPractice(g: GameState, n = PRACTICE_SIZE): PracticeItem[] {
-  return shuffle(g.weak ?? [])
-    .map(resolveKey)
-    .filter((x): x is PracticeItem => !!x)
-    .slice(0, n)
+/** 全章まとめ：章を 順に まわして 1問ずつ（章の 順に 並べる） */
+export function allCourse(chs: ChapterDef[], n = 10): PracticeItem[] {
+  const decks = chs.map((ch) => shuffle(chapterKeys(ch)))
+  const picked: string[][] = chs.map(() => [])
+  for (let k = 0, got = 0; got < n && k < n * chs.length; k++) {
+    const i = k % chs.length
+    const key = decks[i].shift()
+    if (key) {
+      picked[i].push(key)
+      got++
+    }
+  }
+  return picked.flat().map((k) => resolveKey(k)!)
 }
 
-/** まちがえたら 苦手に 入れ、正解したら 外す */
-export function markWeak(g: GameState, key: string, ok: boolean): GameState {
-  const weak = g.weak ?? []
-  if (ok) return weak.includes(key) ? { ...g, weak: weak.filter((k) => k !== key) } : g
-  return weak.includes(key) ? g : { ...g, weak: [...weak, key].slice(-60) }
+/**
+ * 苦手克服：まちがえた 問題を 中心に、同じ 敵の 別の 問題（類題）を まぜる。
+ * 自動生成の 問題は 出すたびに 数値が 変わるので、それ自体も 類題に なる
+ */
+export function weakCourse(weak: string[], n = 10): PracticeItem[] {
+  const own = shuffle(weak)
+    .map(resolveKey)
+    .filter((x): x is PracticeItem => !!x)
+    .slice(0, Math.ceil(n * 0.6))
+  if (!own.length) return []
+  const used = new Set(own.map((x) => x.key))
+  const similar = shuffle([...new Set(own.map((x) => x.key.split('#')[0]))].flatMap(keysOf))
+    .filter((k) => !used.has(k))
+    .slice(0, n - own.length)
+    .map((k) => ({ ...resolveKey(k)!, similar: true }))
+  return shuffle([...own, ...similar])
 }

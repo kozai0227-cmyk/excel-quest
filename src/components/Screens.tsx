@@ -5,8 +5,8 @@ import { PLAYER_SPEC } from '../data/maps'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 
-export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(): void; onContinue(): void }) {
-  const opts = hasSave ? ['つづきから', 'はじめから'] : ['はじめから']
+export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
+  const opts = hasSave ? ['つづきから', 'はじめから', 'ふくしゅう'] : ['はじめから', 'ふくしゅう']
   const [cursor, setCursor] = useState(0)
   const phone = usePhoneLayout()
   const soundOn = useSoundOn()
@@ -14,12 +14,13 @@ export function Title({ hasSave, onNew, onContinue }: { hasSave: boolean; onNew(
     // スマホは ここで 全画面に する（ボタンを 押したときにしか 切り替えられないため）
     enterFullscreen()
     if (opts[i] === 'つづきから') onContinue()
+    else if (opts[i] === 'ふくしゅう') onStudy()
     else onNew()
   }
   useKeys((k) => {
     if (k === 'up' || k === 'down') {
       sfx('cursor')
-      setCursor((c) => (c + 1) % opts.length)
+      setCursor((c) => (c + (k === 'up' ? opts.length - 1 : 1)) % opts.length)
     } else if (k === 'ok') {
       sfx('select')
       pick(cursor)
