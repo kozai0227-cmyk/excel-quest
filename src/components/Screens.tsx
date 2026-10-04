@@ -42,7 +42,7 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
       </div>
       <div className="title-cast">
         <SpriteView spec={PLAYER_SPEC} />
-        <SpriteView creature="slime" />
+        <SpriteView creature="celime" />
       </div>
       <div className="win title-menu">
         {opts.map((o, i) => (

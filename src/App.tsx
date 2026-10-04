@@ -185,7 +185,7 @@ export default function App() {
       await me(['（スーツのまま……。ネクタイも、ちゃんと 締めてる）'])
       await talk(undefined, ['ガサガサッ！', '茂みの中から 緑色の 何かが 飛び出してきた！'])
       await talk('セルイム', ['ぷるるっ！ 見たことない ニンゲンだぷる！', 'セルの 基本も 知らないやつは、この森を 通さないぷる〜！'])
-      await me(['な、なんだこいつ！？ ゼリー……いや、スライム……？'])
+      await me(['な、なんだこいつ！？ 四角い……ゼリー……？'])
       startBattle({ id: 'celime_tutorial', tutorial: true, scene: 'forest' })
     })
   }, [scene, gs.mapId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -216,7 +216,7 @@ export default function App() {
           break
         }
         case 'inn': {
-          const i = await say([`旅人の宿屋へ ようこそ。ひとばん ${INN_PRICE}ゴールドですが、おとまりに なりますか？`], ['はい', 'いいえ'])
+          const i = await say([`いらっしゃいませ！ ふかふかの ベッドが 1泊 ${INN_PRICE}ゴールド。泊まって いかれます？`], ['はい', 'いいえ'])
           if (i !== 0) {
             await say(['またの おこしを おまちしております。'])
             break
@@ -230,7 +230,7 @@ export default function App() {
           setFade(true)
           await sleep(1200)
           setFade(false)
-          await say(['おはようございます。ゆうべは よく おやすみでしたね。', 'HPが まんたんに なった！'])
+          await say(['窓から 朝の 光が さしこんで、目が さめた。', '体が 軽い！ HPが まんたんに なった！'])
           break
         }
         case 'shop': {
@@ -238,7 +238,7 @@ export default function App() {
           for (;;) {
             const cur = gsRef.current
             const opts = [...ITEM_IDS.map((id) => `${ITEMS[id].name}　${ITEMS[id].price}G`), 'やめる']
-            const i = await say([`${first ? 'いらっしゃい！ ' : ''}なにを かっていくかい？（所持金 ${cur.gold}G）`], opts)
+            const i = await say([`${first ? 'へい、らっしゃい！ ' : ''}何に しやしょう？（所持金 ${cur.gold}G）`], opts)
             first = false
             if (i < 0 || i >= ITEM_IDS.length) {
               await say(['まいど！ また きてくれよ。'])
@@ -282,7 +282,7 @@ export default function App() {
               continue
             }
             setGs((g) => ({ ...g, gold: g.gold - e.price, gear: [...g.gear, id] }))
-            const k = await say([`まいど あり！ ${e.name}を てにいれた！`, 'いま ここで そうびして いくかい？'], ['はい', 'いいえ'])
+            const k = await say([`まいど あり！ ${e.name}を てにいれた！`, 'せっかくだ、いま 身に つけて 帰るかい？'], ['はい', 'いいえ'])
             if (k === 0) {
               setGs((g) => ({ ...g, equip: { ...g.equip, [e.slot]: id } }))
               await talk(undefined, [`${gsRef.current.name}は ${e.name}を そうびした！`])
@@ -314,7 +314,7 @@ export default function App() {
               got.push(`${EQUIP[id].name}を てにいれた！`, '（メニューの「そうび」で 装備できる）')
             }
           }
-          await talk(undefined, [`${g.name}は たからばこを あけた！`, ...got])
+          await talk(undefined, [`${g.name}は 宝箱の ふたを 開けた！`, ...got])
           break
         }
         case 'ferry': {
@@ -337,10 +337,10 @@ export default function App() {
           break
         }
         case 'church': {
-          const i = await say(['迷える旅人よ。きょうは どんな ご用ですか？'], ['セーブする', 'やめる'])
+          const i = await say(['ようこそ、旅人さん。ここでは 旅の 記録を 残せますよ。'], ['セーブする', 'やめる'])
           if (i === 0) {
             save()
-            await say(['あなたの ぼうけんを きろくしました。', 'まだ 旅を つづけますか？ では、気をつけて。'])
+            await say(['旅の 記録を 書きのこしました。', 'あなたの 旅に 光が ありますように。'])
           }
           break
         }
@@ -1004,7 +1004,8 @@ export default function App() {
     else moveTo('forest', MAPS.forest.spawn.x, MAPS.forest.spawn.y, 'right')
     run(async () => {
       await talk(r ? '神父' : undefined, [
-        'おお 迷える旅人よ。まだ 学ぶべきことが あるようですね。',
+        '……気が ついたようですね。ここは 町の 教会です。',
+        '無理は いけません。学びに 近道は ありませんから。',
         '（所持金が 半分に なった）',
         'メニューの「スキル」で 復習するか、宿屋で 休んでから また いどみなさい。',
       ])

@@ -1975,8 +1975,8 @@ const rooms: MapDef[] = [
   ]),
   room('calc_school', 'モンスター学校', 'calculet', 'school', [
     { id: 'minerva', x: 7, y: 3, name: '先生ミネルバ', look: C.minerva, kind: 'quest', questId: 'calc_average' },
-    { id: 'surao', x: 3, y: 5, name: 'スラお', creature: 'celime', kind: 'talk', lines: ['ぼく 72点だったよ。', '平均点より 上かなぁ？ 下かなぁ？ ぷるぷる……。'] },
-    { id: 'student', x: 6, y: 5, name: 'ドラ吉', look: C.student, kind: 'talk', lines: ['メタ坊は 100点なんだって！ ずるいよ〜。', '平均点が わかれば、自分が どのへんか わかるのになぁ。'] },
+    { id: 'surao', x: 3, y: 5, name: 'プルお', creature: 'celime', kind: 'talk', lines: ['ぼく 72点だったよ。', '平均点より 上かなぁ？ 下かなぁ？ ぷるぷる……。'] },
+    { id: 'student', x: 6, y: 5, name: 'タケ吉', look: C.student, kind: 'talk', lines: ['ピカ坊は 100点なんだって！ ずるいよ〜。', '平均点が わかれば、自分が どのへんか わかるのになぁ。'] },
   ]),
   room('calc_hall', 'カルキュレ町役場', 'calculet', 'hall', [
     { id: 'calk', x: 6, y: 2, name: '町長カルク', look: C.calk, kind: 'quest', questId: 'calc_report' },

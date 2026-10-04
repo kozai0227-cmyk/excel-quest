@@ -86,7 +86,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
     if (c === 'セーブ') {
       onSave()
       jingle('save')
-      setNote('ぼうけんの きろくを かきこんだ。')
+      setNote('旅の 記録を 書きのこした。')
       return
     }
     setOpen(c)

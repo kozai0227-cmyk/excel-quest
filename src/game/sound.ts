@@ -500,10 +500,10 @@ export function sfx(name: SfxName) {
 export function cue(text: string) {
   if (/レベルが .*あがった/.test(text)) return jingle('levelup')
   if (/てにいれた/.test(text) && !/ゴールドを てにいれた/.test(text)) return jingle('item')
-  if (/きろくしました/.test(text)) return jingle('save')
+  if (/記録を 書きのこし/.test(text)) return jingle('save')
   if (/ゴゴゴ/.test(text)) return sfx('rumble')
   if (/結界が とける/.test(text)) return sfx('barrier')
-  if (/たからばこを あけた/.test(text)) return sfx('chest')
+  if (/宝箱の ふたを 開けた/.test(text)) return sfx('chest')
   if (/HPが .*かいふく|HPが まんたん/.test(text)) return sfx('heal')
   if (/すなどけい|まきものを ひらいた/.test(text)) return sfx('magic')
   // 戦闘
@@ -520,7 +520,7 @@ export function cue(text: string) {
   }
   if (/ちからつきた/.test(text)) return jingle('lose', { stop: true })
   if (/は にげだした！$/.test(text)) return sfx('flee')
-  if (/まわりこまれて/.test(text)) return sfx('wrong')
+  if (/行く手を ふさがれた/.test(text)) return sfx('wrong')
 }
 
 /** 音を 出せる 状態に もどし、待たせていた BGM を 流す */

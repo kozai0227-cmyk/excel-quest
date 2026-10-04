@@ -322,7 +322,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         say(
           [
             `${gs.name}は にげだした！`,
-            'しかし まわりこまれてしまった！',
+            'しかし 行く手を ふさがれた！',
             `${boss.name}の こうげき！`,
             {
               text: `${gs.name}は ${dmg}の ダメージを うけた！`,
