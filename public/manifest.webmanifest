@@ -1,7 +1,7 @@
 {
-  "name": "エクセル・クエスト",
-  "short_name": "エクセルクエスト",
-  "description": "町の人の悩みを Excel で解決しながら、関数や参照を覚えるRPG",
+  "name": "イコール・クエスト 〜表計算で世界を救うRPG〜",
+  "short_name": "イコールクエスト",
+  "description": "町の人の悩みを 表計算の魔法で解決しながら、関数や参照を覚えるRPG",
   "lang": "ja",
   "start_url": "/",
   "scope": "/",

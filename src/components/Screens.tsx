@@ -32,8 +32,8 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
         {soundOn ? '🔊 おと ON' : '🔇 おと OFF'}
       </button>
       <div className="logo">
-        <div className="logo-sub">〜 転生したら表計算が魔法だった件 〜</div>
-        <div className="logo-main">エクセル・クエスト</div>
+        <div className="logo-main">イコール・クエスト</div>
+        <div className="logo-sub">〜 表計算で世界を救うRPG 〜</div>
         <div className="logo-grid">
           {'=SUM(勇気)'.split('').map((ch, i) => (
             <span key={i}>{ch}</span>
@@ -194,7 +194,7 @@ const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNod
         </p>
       </>
     ),
-    label: 'エクセル・クエスト',
+    label: 'イコール・クエスト',
     next: ['THE END', 'ここまで 遊んでくれて ありがとう！ 町の 人や 石版に もう一度 挑戦して、復習することも できるよ。'],
   },
 }
