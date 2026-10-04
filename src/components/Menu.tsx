@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
 import { ITEMS, ITEM_IDS } from '../data/items'
 import { SKILLS } from '../data/skills'
@@ -38,6 +38,18 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
   const gear = gearStats(gs)
   const inputMode = useInputMode()
   const volume = useVolume()
+  /** 設定：ライセンス表記を 開いているか（中身は public/licenses.txt） */
+  const [lic, setLic] = useState<string | null>(null)
+  const openLicenses = () => {
+    setLic('よみこみ中……')
+    fetch('licenses.txt')
+      .then((r) => r.text())
+      .then(setLic)
+      .catch(() => setLic('ライセンス表記を 読みこめませんでした。'))
+  }
+  useEffect(() => {
+    if (open !== '設定') setLic(null)
+  }, [open])
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
   const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
 
@@ -98,8 +110,16 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
     else if (k === 'ok') sfx('select')
     else if (k === 'cancel') sfx('cancel')
     if (open === '設定') {
-      if (k === 'up' || k === 'down') setIcur((c) => (c + 1) % VOL_ROWS.length)
-      else if (k === 'left' || k === 'right') changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
+      // 行：BGM・効果音・ライセンス表記
+      const rows = VOL_ROWS.length + 1
+      if (lic !== null) {
+        if (k === 'ok' || k === 'cancel') setLic(null)
+        return
+      }
+      if (k === 'up') setIcur((c) => (c + rows - 1) % rows)
+      else if (k === 'down') setIcur((c) => (c + 1) % rows)
+      else if ((k === 'left' || k === 'right') && icur < VOL_ROWS.length) changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
+      else if (k === 'ok' && icur === VOL_ROWS.length) openLicenses()
       else if (k === 'ok' || k === 'cancel') setOpen(null)
       return
     }
@@ -220,6 +240,18 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
                 </div>
               ))}
               <p className="muted vol-help">◀ ▶（← →キー）で 調整。0 に すると 消える。</p>
+              <h4>そのほか</h4>
+              <div className={`opt lic-row ${icur === VOL_ROWS.length ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length); openLicenses() }}>
+                ライセンス表記
+              </div>
+              {lic !== null && (
+                <div className="lic-view">
+                  <pre>{lic}</pre>
+                  <button type="button" className="btn" onClick={() => setLic(null)}>
+                    とじる
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {open === 'スキル' &&

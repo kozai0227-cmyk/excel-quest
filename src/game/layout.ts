@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { isNative } from './native'
 
 /**
  * 画面の レイアウト。
@@ -26,7 +27,7 @@ export const usePhoneLayout = () =>
 /** スマホで 全画面にする（Android の Chrome など）。iPhone の Safari は 未対応なので 何もしない */
 export function enterFullscreen() {
   const el = document.documentElement
-  if (!isPhoneLayout() || document.fullscreenElement || !el.requestFullscreen) return
+  if (isNative || !isPhoneLayout() || document.fullscreenElement || !el.requestFullscreen) return
   const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
   el.requestFullscreen({ navigationUI: 'hide' })
     .then(() => orientation.lock?.('portrait'))
@@ -35,6 +36,6 @@ export function enterFullscreen() {
     })
 }
 
-/** iPhone の Safari で 開いている（ホーム画面に 追加すれば 全画面で 遊べる） */
+/** iPhone の Safari で 開いている（ホーム画面に 追加すれば 全画面で 遊べる）。アプリ版では false */
 export const isIosBrowser = () =>
-  hasWindow && /iPhone|iPod/.test(navigator.userAgent) && !(navigator as Navigator & { standalone?: boolean }).standalone
+  hasWindow && !isNative && /iPhone|iPod/.test(navigator.userAgent) && !(navigator as Navigator & { standalone?: boolean }).standalone

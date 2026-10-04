@@ -1118,7 +1118,7 @@ kbd {
   border-radius: 1.2cqw;
   padding: 1.6cqw 2.6cqw;
   color: #f4f6fa;
-  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
   box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
 }
@@ -3066,4 +3066,29 @@ kbd {
 }
 .phone .quiz-choices {
   grid-template-columns: 1fr;
+}
+
+/* 設定：ライセンス表記 */
+.lic-row {
+  margin-top: 0.3em;
+}
+.lic-view {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  background: #070a14;
+}
+.lic-view pre {
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  font: 12px/1.5 ui-monospace, Menlo, monospace;
+  color: #dfe5ee;
+  user-select: text;
+  -webkit-user-select: text;
 }

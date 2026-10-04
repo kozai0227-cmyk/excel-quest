@@ -150,6 +150,11 @@ src/
   outfit: 'apron', color: '#6aa84a', hat: 'straw', hatColor: '#e8c870' }
 ```
 
+## iPhone アプリ（App Store）
+
+`ios/` に Capacitor の Xcode プロジェクトがあります。Mac で `npm run ios` → `npx cap open ios` で開けます。
+手順は [docs/ios-release.md](docs/ios-release.md) を参照。
+
 ## デプロイ
 
 GitHub の `main` ブランチに push すると、Vercel が自動でビルド・公開します（Vite のプリセット：ビルド `npm run build`、出力 `dist`）。
