@@ -16,6 +16,7 @@ import { useCellPick } from './useCellPick'
 import { BossVisual } from './BossVisual'
 import { hasBossArt } from '../game/bossArt'
 import { cue, sfx, useBgm } from '../game/sound'
+import { markWeak, questionKey, type PracticeItem } from '../data/chapters'
 
 interface Props {
   bossId: string
@@ -28,6 +29,10 @@ interface Props {
   onWin(): void
   onLose(): void
   onFlee(): void
+  /** 復習モード：決まった 問題を 順に 出す（ダメージなし・時間制限なし） */
+  practice?: { name: string; items: PracticeItem[] }
+  /** 復習モードが 終わった（正解数） */
+  onPracticeEnd?(correct: number, total: number): void
 }
 
 type Phase = 'msg' | 'command' | 'items' | 'question'
@@ -72,14 +77,21 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
   return <canvas ref={ref} width={16} height={16} className={`boss-sprite ${hit ? 'hit' : ''}`} />
 }
 
-export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
-  const boss = ENEMIES[bossId]
-  useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
-  const deck = useRef<QuestionSrc[]>([])
+export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee, practice, onPracticeEnd }: Props) {
+  const base = ENEMIES[bossId]
+  // 復習モードは「まぼろし」が 相手。HP は 問題の 数
+  const boss: BossDef = practice ? { ...base, name: practice.name, hp: practice.items.length, boss: false, hits: undefined } : base
+  useBgm(practice ? 'battle' : boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
+  /** 山札（boss.questions の 番号） */
+  const deck = useRef<number[]>([])
+  /** 出題中の 問題の 出どころ（苦手リスト用） */
+  const curKey = useRef('')
+  const done = useRef<boolean[]>([])
   const [bossHp, setBossHp] = useState(boss.hp)
   const [phase, setPhase] = useState<Phase>('msg')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     `${boss.name}が あらわれた！`,
+    ...(practice ? ['（復習モード：まちがえても ダメージは うけない。時間制限も ない。じっくり 考えよう）'] : []),
     ...(tutorial
       ? [
           '（戦いは「Excelの問題」で 行われる！）',
@@ -91,7 +103,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         ]
       : []),
   ])
-  const after = useRef<() => void>(() => setPhase('command'))
+  const after = useRef<() => void>(() => (practice ? nextQuestion() : setPhase('command')))
   const [cursor, setCursor] = useState(0)
   const [q, setQ] = useState<Question | null>(null)
   const [choices, setChoices] = useState<string[]>([])
@@ -131,8 +143,17 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   }
 
   const nextQuestion = (m: 'attack' | 'defense' = 'attack') => {
-    if (!deck.current.length) deck.current = shuffle(boss.questions)
-    const src = deck.current.shift()!
+    let src: QuestionSrc
+    if (practice) {
+      const it = practice.items[done.current.length]
+      curKey.current = it.key
+      src = it.src
+    } else {
+      if (!deck.current.length) deck.current = shuffle(boss.questions.map((_, i) => i))
+      const i = deck.current.shift()!
+      curKey.current = questionKey(boss.id, i)
+      src = boss.questions[i]
+    }
     // 自動生成の問題は、出すたびに 数値が変わる
     const nq = typeof src === 'function' ? src() : src
     setMode(m)
@@ -154,7 +175,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       setPad(battlePad(nq.hint, rows, cols, nq.target, learnedFuncs(gs.skills)))
     }
     setCursor(0)
-    const limit = (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
+    const limit = practice ? Infinity : (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
     startedAt.current = Date.now()
     setDeadline(Date.now() + limit)
     setPhase('question')
@@ -225,6 +246,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     answered.current = true
     const usedScroll = buff.scroll
     if (usedScroll) setBuff((b) => ({ ...b, scroll: false }))
+    // まちがえた 問題は 苦手リストへ（正解したら 外す）
+    const key = curKey.current
+    if (!tutorial) setGs((g) => markWeak(g, key, ok))
+    if (practice) return practiceAnswer(ok, note)
     if (mode === 'defense') return defend(ok, note)
     if (ok) {
       const limit = deadline - startedAt.current
@@ -285,6 +310,32 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       if (hp <= 0) say([...lines, `${gs.name}は ちからつきた……。`], onLose)
       else say(lines, () => setPhase('command'))
     }
+  }
+
+  /** 復習モード：1問ずつ 答えて、全部 出したら 終わり */
+  const practiceAnswer = (ok: boolean, note?: string) => {
+    if (!q || !practice) return
+    const results = [...done.current, ok]
+    done.current = results
+    const total = practice.items.length
+    const lines: Msg[] = []
+    if (ok) {
+      const hp = Math.max(0, bossHp - 1)
+      lines.push('せいかい！', {
+        text: `${boss.name}に 1の ダメージ！`,
+        fx: () => {
+          setHit((h) => h + 1)
+          setBossHp(hp)
+        },
+      })
+      if (hp <= 0) lines.push(`${boss.name}は 消えていった……。`)
+    } else {
+      sfx('wrong')
+      lines.push(note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`, '（この問題は「苦手」に 記録した）')
+    }
+    if (results.length < total) return say([...lines, `――${results.length + 1}問目（全${total}問）`], () => nextQuestion())
+    const correct = results.filter(Boolean).length
+    say([...lines, `復習 おわり！ ${total}問中 ${correct}問 正解！`], () => onPracticeEnd?.(correct, total))
   }
 
   const submitFormula = () => {
@@ -414,7 +465,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const remain = Math.max(0, deadline - now)
   const limit = Math.max(1, deadline - startedAt.current)
   // 即答ボーナスは こちらの攻撃のときだけ（チュートリアルは固定ダメージなので出さない）
-  const showQuick = mode === 'attack' && !boss.hits
+  const showQuick = mode === 'attack' && !boss.hits && !practice
   const quickZone = showQuick && 1 - remain / limit < QUICK
   const target = q?.type === 'formula' ? parseAddr(q.target) : null
   const copyCells = q?.type === 'formula' ? (q.copies ?? []).map((cp) => parseAddr(cp.at)) : []
@@ -453,14 +504,14 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       </div>
       <div className="boss-area">
         <div className="boss-hp">
-          <span>{boss.name}</span>
+          <span>{boss.name}{practice && `（のこり ${practice.items.length - done.current.length}問）`}</span>
           <div className="bar">
             <div style={{ width: `${(bossHp / boss.hp) * 100}%` }} />
           </div>
         </div>
         {bossHp <= 0 ? (
           <div className="boss-gone">✨</div>
-        ) : boss.boss && hasBossArt(boss.sprite) ? (
+        ) : base.boss && hasBossArt(boss.sprite) ? (
           <BossVisual key={hit} id={boss.sprite} hit={hit} />
         ) : (
           <BossSprite key={hit} id={boss.sprite} hit={hit} />
@@ -472,11 +523,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           {boss.boss && (
             <div className="q-mode">{mode === 'defense' ? `🛡 ${boss.name}の 攻撃！ 正解で ダメージを へらせ！` : '⚔ こちらの 攻撃！'}</div>
           )}
-          <div className={`timer ${quickZone ? 'quick' : remain / limit < 0.2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
+          {!practice && <div className={`timer ${quickZone ? 'quick' : remain / limit < 0.2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
             <div className="timer-fill" style={{ width: `${(remain / limit) * 100}%` }} />
             {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
             {quickZone && <span className="timer-label">即答ボーナス！</span>}
-          </div>
+          </div>}
           <div className="q-text">{q.q}</div>
           {q.type === 'choice' ? (
             <div className="q-choices">
@@ -574,6 +625,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         </div>,
       )}
 
+      {practice && (
+        <button className="btn ghost practice-quit" onClick={onFlee}>
+          やめる
+        </button>
+      )}
       {(phase === 'command' || phase === 'items') && (
         <div className="battle-cmds">
           <div className="win cmd-win">

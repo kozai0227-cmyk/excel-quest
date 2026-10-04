@@ -5,6 +5,7 @@
  * 3. 戦闘の 自動生成問題の 選択肢と 模範解答が 正しい
  * 4. マップの 出口・NPC が 表の 中にあり、出口の 行き先が 歩ける
  * 5. BGM の 楽譜：小節の 長さと、声部ごとの 長さが そろっている
+ * 6. すべての 依頼・謎・ボス・モンスターが どこかの 章に 入っている（復習・達成率）
  */
 import { QUESTS, makeCtx } from '../src/data/quests'
 import { GUIDES } from '../src/data/guides'
@@ -16,6 +17,7 @@ import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
 import { SONGS } from '../src/data/music'
 import { parseVoice } from '../src/game/sound'
+import { CHAPTERS, chapterPractice } from '../src/data/chapters'
 
 let errors = 0
 let passed = 0
@@ -149,6 +151,15 @@ for (const [name, song] of Object.entries(SONGS)) {
   if (new Set(totals).size > 1) bad(`曲 ${name}：声部の 長さが ちがう（${totals.join(' / ')}）`)
 }
 console.log(`BGM：${Object.keys(SONGS).length} 曲`)
+
+// ---------------------------------------------------------------- 6. 章
+const places = CHAPTERS.flatMap((ch) => [...ch.towns, ...ch.dungeons])
+for (const q of Object.values(QUESTS)) if (!places.includes(q.town)) bad(`依頼 ${q.id}：どの 章にも 入っていない（${q.town}）`)
+const members = CHAPTERS.flatMap((ch) => [...ch.bosses, ...ch.enemies])
+for (const id of Object.keys(ENEMIES)) if (id !== 'celime_tutorial' && !members.includes(id)) bad(`敵 ${id}：どの 章にも 入っていない`)
+for (const id of members) if (!ENEMIES[id]) bad(`章の 敵 ${id}：存在しない`)
+for (const ch of CHAPTERS) if (chapterPractice(ch).length < 5) bad(`${ch.title}：復習の 問題が 足りない`)
+console.log(`章：${CHAPTERS.length} 章`)
 
 if (errors) {
   console.error(`\n${errors} 件の 問題が あります`)

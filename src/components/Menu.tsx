@@ -8,6 +8,7 @@ import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, SLOT_NAME, effectText, gearStats, type Slot } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
+import { totalPercent } from '../data/chapters'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
 const VOL_ROWS: [keyof Volume, string][] = [
@@ -15,16 +16,18 @@ const VOL_ROWS: [keyof Volume, string][] = [
   ['sfx', '効果音'],
 ]
 
-const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
+const CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
 
 interface Props {
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
   onSave(): void
   onClose(): void
+  /** ふくしゅうの書を ひらく */
+  onReview(): void
 }
 
-export function Menu({ gs, setGs, onSave, onClose }: Props) {
+export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
   const [cursor, setCursor] = useState(0)
   const [open, setOpen] = useState<(typeof CMDS)[number] | null>(null)
   const [icur, setIcur] = useState(0)
@@ -69,6 +72,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
     const c = CMDS[i]
     setNote('')
     if (c === 'とじる') return onClose()
+    if (c === 'ふくしゅう') return onReview()
     if (c === 'にゅうりょく') {
       const m = inputMode === 'touch' ? 'keyboard' : 'touch'
       setInputMode(m)
@@ -157,6 +161,7 @@ export function Menu({ gs, setGs, onSave, onClose }: Props) {
               <dt>攻撃力</dt><dd>+{gear.atk}</dd>
               <dt>守備力</dt><dd>+{gear.def}{gear.time > 0 && `（回答時間 +${gear.time}秒）`}</dd>
               <dt>解決した悩み</dt><dd>{gs.solved.length} 件</dd>
+              <dt>達成率</dt><dd>{totalPercent(gs)}%</dd>
             </dl>
             </div>
           )}

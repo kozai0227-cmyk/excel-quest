@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Field, type FieldHandle } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
 import { Menu } from './components/Menu'
+import { Review } from './components/Review'
+import { chapterPractice, weakPractice, type ChapterDef, type PracticeItem } from './data/chapters'
 import { QuestScreen } from './components/QuestScreen'
 import { Battle } from './components/Battle'
 import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
@@ -25,7 +27,13 @@ interface BattleReq {
   id: string
   tutorial?: boolean
   scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
+  /** 復習モード */
+  practice?: { name: string; items: PracticeItem[] }
 }
+
+/** ボスと 戦う 場所（背景） */
+const bossScene = (id: string): BattleReq['scene'] =>
+  id === 'mirage' ? 'temple' : id === 'captain' ? 'ship' : id === 'mitsukaranu' ? 'library' : id === 'barabaran' ? 'treasury' : id === 'mojibake' ? 'printing' : id === 'shimekiris' ? 'clock' : id === 'refera' ? 'castle' : ENEMIES[id]?.boss ? 'boss' : 'forest'
 
 const INN_PRICE = 10
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -43,6 +51,7 @@ export default function App() {
   const [spawn, setSpawn] = useState({ x: gs.x, y: gs.y, dir: gs.dir as Dir, key: 0 })
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [menu, setMenu] = useState(false)
+  const [review, setReview] = useState(false)
   const [busy, setBusy] = useState(false)
   const [questId, setQuestId] = useState<string | null>(null)
   const [battle, setBattle] = useState<BattleReq | null>(null)
@@ -344,7 +353,7 @@ export default function App() {
           if (i === 0)
             startBattle({
               id: b.id,
-              scene: b.id === 'mirage' ? 'temple' : b.id === 'captain' ? 'ship' : b.id === 'mitsukaranu' ? 'library' : b.id === 'barabaran' ? 'treasury' : b.id === 'mojibake' ? 'printing' : b.id === 'shimekiris' ? 'clock' : b.id === 'refera' ? 'castle' : b.boss ? 'boss' : 'forest',
+              scene: bossScene(b.id),
               tutorial: b.id === 'celime_tutorial',
             })
           break
@@ -1010,6 +1019,29 @@ export default function App() {
     setScene('field')
   }
 
+  /** 復習を はじめる（ch が null なら 苦手な 問題） */
+  const startPractice = (ch: ChapterDef | null) => {
+    const g = gsRef.current
+    const items = ch ? chapterPractice(ch) : weakPractice(g)
+    if (!items.length) return
+    setReview(false)
+    // 相手は その章の ボス（苦手なら 最初の 問題の 敵）の まぼろし
+    const id = ch ? ch.bosses[ch.bosses.length - 1] : items[0].key.split('#')[0]
+    startBattle({ id, scene: ch ? bossScene(id) : 'field', practice: { name: `${ENEMIES[id].name}の まぼろし`, items } })
+  }
+
+  const onPracticeEnd = (correct: number, total: number) => {
+    setBattle(null)
+    setScene('field')
+    run(async () => {
+      const weak = (gsRef.current.weak ?? []).length
+      await talk(undefined, [
+        correct === total ? `${total}問 すべて 正解！ 見事な 復習だった！` : `${total}問中 ${correct}問 正解。まちがえた 問題は「苦手」に 残っている。`,
+        weak ? `（苦手な 問題：のこり ${weak}問。メニューの「ふくしゅう」から 再挑戦できる）` : '（苦手な 問題は 1つも ない！）',
+      ])
+    })
+  }
+
   const doorHint = (ex: Exit) => {
     const dest = MAPS[ex.to]
     return dest?.kind === 'interior' && dest.npcs.some((n) => n.kind === 'quest' && !gsRef.current.solved.includes(n.questId!))
@@ -1036,7 +1068,7 @@ export default function App() {
                 ? 'dungeon'
                 : 'field'
   useBgm(/gallery|soundtest/.test(location.search) ? null : music)
-  const paused = scene !== 'field' || !!dialog || menu || busy || flash
+  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash
 
   if (location.search.includes('gallery')) return <Gallery />
   if (location.search.includes('soundtest')) return <SoundTest />
@@ -1095,7 +1127,7 @@ export default function App() {
               onGate={onGate}
               doorHint={doorHint}
             />
-            {scene === 'field' && !menu && (
+            {scene === 'field' && !menu && !review && (
               <>
                 <div className="win hud">
                   <div className="hud-name">{gs.name}</div>
@@ -1118,7 +1150,19 @@ export default function App() {
             {fade && <div className="fade" />}
             {flash && <div className="encounter-flash" />}
             {whiteIn && <div className="white-in" />}
-            {menu && <Menu gs={gs} setGs={setGs} onSave={save} onClose={() => setMenu(false)} />}
+            {menu && (
+              <Menu
+                gs={gs}
+                setGs={setGs}
+                onSave={save}
+                onClose={() => setMenu(false)}
+                onReview={() => {
+                  setMenu(false)
+                  setReview(true)
+                }}
+              />
+            )}
+            {review && scene === 'field' && <Review gs={gs} onStart={startPractice} onClose={() => setReview(false)} />}
             {scene === 'battle' && battle && (
               <Battle
                 key={`${battle.id}-${spawn.key}`}
@@ -1130,6 +1174,8 @@ export default function App() {
                 onWin={onWin}
                 onLose={onLose}
                 onFlee={onFlee}
+                practice={battle.practice}
+                onPracticeEnd={onPracticeEnd}
               />
             )}
           </>

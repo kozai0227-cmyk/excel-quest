@@ -2761,3 +2761,135 @@ kbd {
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0 18px, transparent 18px 96px),
     linear-gradient(180deg, #3a0a24 0%, #1c0616 55%, #08020c 100%);
 }
+
+/* ふくしゅうの書（章ごとの 達成率と 復習） */
+.review {
+  inset: 3%;
+  background: #070a14;
+  display: flex;
+  flex-direction: column;
+  font-size: 2.3cqw;
+}
+.review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2cqw;
+}
+.review-head h3 {
+  margin: 0;
+  color: #ffd76a;
+}
+.review-total {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  white-space: nowrap;
+}
+.review-total b {
+  color: #ffd76a;
+  font-size: 1.3em;
+}
+.review-total .pbar {
+  width: 14cqw;
+}
+.review-help {
+  margin: 0.6em 0;
+}
+.review-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding-right: 0.4em;
+}
+.review-list .opt,
+.review-ch.locked {
+  white-space: normal;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0.5em;
+  padding: 0.4em 0.6em 0.5em 1.4em;
+}
+.review-list .opt.on {
+  border-color: #ffd76a;
+  background: rgba(255, 215, 106, 0.08);
+}
+.review-list .opt.on::before {
+  left: 0.3em;
+  top: 0.4em;
+}
+.review-ch.locked {
+  opacity: 0.45;
+  display: flex;
+  gap: 1em;
+}
+.review-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+}
+.review-pct {
+  color: #ffd76a;
+}
+.pbar {
+  height: 0.55em;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 1em;
+  overflow: hidden;
+  margin: 0.25em 0;
+}
+.pbar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4fbf7a, #ffd76a);
+}
+.review-topic {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+.review-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1em;
+  font-size: 0.85em;
+}
+.review-counts .full {
+  color: #8fe3a8;
+}
+.review-weak {
+  display: flex;
+  flex-direction: column;
+  border-color: #ff9a6a !important;
+}
+.review-weak b {
+  color: #ffb08a;
+}
+.review-weak span {
+  font-size: 0.85em;
+}
+.review-close {
+  text-align: center;
+}
+.phone .screen .review {
+  flex: 1;
+  min-height: 0;
+  font-size: 14px;
+  padding: 12px;
+}
+.phone .review-total .pbar {
+  width: 70px;
+}
+
+/* 復習モードの「やめる」 */
+.practice-quit {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  z-index: 6;
+  font-size: 2.2cqw;
+}
+.phone .practice-quit {
+  font-size: 14px;
+}
