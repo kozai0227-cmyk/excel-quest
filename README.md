@@ -109,7 +109,8 @@ src/
     maps.ts               マップ・NPC配置
     skills.ts items.ts
   game/
-    formula.ts            数式評価（HyperFormula）・参照シフト・オートフィル
+    formula.ts            数式評価の入口・参照シフト・オートフィル
+    engine.ts             自前の数式エンジン（字句解析・構文解析・約90関数）
     spriteParts.ts        キャラのドット絵パーツ（髪型・服装・帽子など）
     sprites.ts tiles.ts   パーツの合成・タイル描画（画像素材なし）
     progress.ts           レベル・セーブ（localStorage）
@@ -158,5 +159,5 @@ GitHub の `main` ブランチに push すると、Vercel が自動でビルド�
 
 このプロジェクトは [GNU General Public License v3.0](LICENSE)（GPL-3.0-or-later）で公開しています。
 
-数式エンジンに [HyperFormula](https://hyperformula.handsontable.com/) を `licenseKey: 'gpl-v3'` で使用しています。
-GPLv3 以外の形態（クローズドな商用配布など）で公開する場合は、Handsontable社の商用ライセンスが必要です。
+数式エンジンは自前の実装（`src/game/engine.ts`）で、外部の数式ライブラリには依存していません。
+実行時の依存は React（MIT）のみです。

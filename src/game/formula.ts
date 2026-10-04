@@ -1,4 +1,4 @@
-import { HyperFormula, DetailedCellError } from 'hyperformula'
+import { evaluateSheet, Err, TNum, type Scalar } from './engine'
 
 export interface Cell {
   raw: string
@@ -51,36 +51,25 @@ export function makeGrid(rows: number, cols: number, data: (string | number)[][]
 
 export const cloneGrid = (g: Grid): Grid => g.map((row) => row.map((c) => ({ ...c })))
 
-/** Excel では TRUE / FALSE を そのまま 書ける（=VLOOKUP(…,FALSE)）。数式エンジン用に TRUE() / FALSE() へ */
-const withBool = (raw: string) =>
-  raw.startsWith('=') ? mapOutsideQuotes(raw, (p) => p.replace(/(?<![A-Za-z0-9_.$])(TRUE|FALSE)(?![A-Za-z0-9_(])/gi, (m) => `${m.toUpperCase()}()`)) : raw
-
-export function evaluate(grid: Grid): Value[][] {
-  const data = grid.map((row) => row.map((c) => (c.raw === '' ? null : withBool(c.raw))))
-  const hf = HyperFormula.buildFromArray(data, { licenseKey: 'gpl-v3', dateFormats: DATE_FORMATS, timeFormats: ['hh:mm', 'hh:mm:ss'] })
-  const out = hf.getSheetValues(0)
-  const result = grid.map((row, r) =>
-    row.map((_, c) => {
-      const v = out[r]?.[c]
-      if (v instanceof DetailedCellError) return { error: v.value }
-      // 日付・時刻は Excel と 同じように「2026/10/1」「9:30」の 形で 見せる
-      if (typeof v === 'number') {
-        const t = hf.getCellValueDetailedType({ sheet: 0, row: r, col: c })
-        if (t === 'NUMBER_DATE') return serialToDate(v)
-        if (t === 'NUMBER_TIME') return serialToTime(v)
-        if (t === 'NUMBER_DATETIME') return `${serialToDate(v)} ${serialToTime(v)}`
-      }
-      return (v ?? null) as Value
-    }),
-  )
-  hf.destroy()
-  return result
+const toValue = (v: Scalar): Value => {
+  if (v instanceof Err) return { error: v.code }
+  // 日付・時刻は「2026/10/1」「9:30」の 形で 見せる（％は ただの 数）
+  if (v instanceof TNum) {
+    if (v.t === 'date') return serialToDate(v.n)
+    if (v.t === 'time') return serialToTime(v.n)
+    if (v.t === 'datetime') return `${serialToDate(v.n)} ${serialToTime(v.n)}`
+    return v.n
+  }
+  return v
 }
 
-/** 日付の 書き方（年/月/日）。日本の Excel と 同じ */
-const DATE_FORMATS = ['YYYY/MM/DD', 'YYYY-MM-DD']
+/** 表を まるごと 計算する（自前の 数式エンジン：engine.ts） */
+export function evaluate(grid: Grid): Value[][] {
+  return evaluateSheet(grid.map((row) => row.map((c) => c.raw))).map((row) => row.map(toValue))
+}
+
 const DAY_MS = 86400000
-/** Excel の 日付の 通し番号（1899/12/30 が 0）→「2026/10/1」 */
+/** 日付の 通し番号（1899/12/30 が 0）→「2026/10/1」 */
 export function serialToDate(n: number) {
   const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(n + 1e-9) * DAY_MS)
   return `${d.getUTCFullYear()}/${d.getUTCMonth() + 1}/${d.getUTCDate()}`
@@ -96,7 +85,7 @@ const mapOutsideQuotes = (s: string, f: (part: string) => string) =>
     .map((p, i) => (i % 2 === 0 ? f(p) : p))
     .join('"')
 
-/** 全角→半角・大文字化・閉じカッコの補完など、Excelが入力時に行う正規化 */
+/** 全角→半角・大文字化・閉じカッコの補完など、表計算ソフトが入力時に行う正規化 */
 export function normalizeInput(input: string): string {
   // 日本語入力で入りがちな「“ ”」なども ふつうの " として扱う
   const nfkc = input.trim().replace(/[“”„‟″〃]/g, '"').normalize('NFKC')

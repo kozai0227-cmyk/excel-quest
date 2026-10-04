@@ -6,6 +6,7 @@
  * 4. マップの 出口・NPC が 表の 中にあり、出口の 行き先が 歩ける
  * 5. BGM の 楽譜：小節の 長さと、声部ごとの 長さが そろっている
  * 6. すべての 依頼・謎・ボス・モンスターが どこかの 章に 入っている（復習・達成率）
+ * 7. 数式エンジンの 回帰テスト（scripts/engine-cases.ts）
  */
 import { QUESTS, makeCtx } from '../src/data/quests'
 import { GUIDES } from '../src/data/guides'
@@ -17,6 +18,7 @@ import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
 import { SONGS } from '../src/data/music'
 import { parseVoice } from '../src/game/sound'
+import { ENGINE_CASES, ENGINE_DATA } from './engine-cases'
 import { CHAPTERS, allCourse, chapterCourse, weakCourse } from '../src/data/chapters'
 
 let errors = 0
@@ -162,6 +164,15 @@ for (const ch of CHAPTERS) if (chapterCourse(ch).length < 5) bad(`${ch.title}：
 if (allCourse(CHAPTERS).length < 10) bad('全章まとめ：問題が 足りない')
 if (weakCourse(['frog#1', 'refera#3']).length < 5) bad('苦手克服：類題が 足りない')
 console.log(`章：${CHAPTERS.length} 章`)
+
+// ---------------------------------------------------------------- 7. 数式エンジン
+for (const [f, want] of ENGINE_CASES) {
+  const g = makeGrid(ENGINE_DATA.length + 1, 9, ENGINE_DATA)
+  g[ENGINE_DATA.length][8].raw = f
+  const got = formatValue(evaluate(g)[ENGINE_DATA.length][8])
+  if (got !== want) bad(`数式エンジン ${f} → ${got}（期待 ${want}）`)
+}
+console.log(`数式エンジン：${ENGINE_CASES.length} 式`)
 
 if (errors) {
   console.error(`\n${errors} 件の 問題が あります`)
