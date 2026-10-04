@@ -157,7 +157,11 @@ GitHub の `main` ブランチに push すると、Vercel が自動でビルド�
 
 ## ライセンス
 
-このプロジェクトは [GNU General Public License v3.0](LICENSE)（GPL-3.0-or-later）で公開しています。
+Copyright (c) 2026 kozai0227-cmyk. All rights reserved.
+
+ソースコードは閲覧できるよう公開していますが、利用許諾はしていません。無断での複製・改変・再配布・販売・他サイトやアプリストアへの掲載を禁じます（詳しくは [LICENSE](LICENSE)）。
+
+2026年10月より前に GPL-3.0 で公開した版は、その版に限り GPL-3.0 の条件が引き続き適用されます。
 
 数式エンジンは自前の実装（`src/game/engine.ts`）で、外部の数式ライブラリには依存していません。
 実行時の依存は React（MIT）のみです。
