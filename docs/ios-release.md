@@ -56,8 +56,8 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 
 **提出前の チェック**（Mac でなくても できる）
 
-- [ ] `public/privacy.html` と `public/support.html` の `__CONTACT_EMAIL__` を、問い合わせ用の メールアドレスに 差し替えた（`npm run check` で 残っていると ⚠ が 出る）
-- [ ] 差し替えを main に 入れて、Vercel の 公開ページ（下の URL）に 反映された
+- [x] `public/privacy.html` と `public/support.html` の 問い合わせ先を `mita333.support@gmail.com` に した
+- [ ] main に 入れて、Vercel の 公開ページ（下の URL）に 反映された
 - [ ] （任意）Vercel の **Settings → Domains** で `excel` を 含まない URL（例：`equal-quest.vercel.app`）を 追加した
 
 **手順**

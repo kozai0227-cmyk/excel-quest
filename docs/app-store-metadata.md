@@ -23,7 +23,7 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 プロジェクト → **Settings → Domains** で `equal-quest.vercel.app` などの 名前を 追加すると、
 同じ ページが その URL でも 開けるように なります（無料）。追加したら、こちらの URL を 使ってください。
 
-> ページ内の 問い合わせ先（`__CONTACT_EMAIL__`）は、提出前に 本物の アドレスに 差し替えます。
+> ページ内の 問い合わせ先は `mita333.support@gmail.com`。
 
 ---
 
