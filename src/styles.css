@@ -2566,9 +2566,11 @@ kbd {
   font-size: 12px;
 }
 
-/* 数式の 入力中：表の セルを タップ・ドラッグして 参照を 入れる */
+/* 数式の 入力中：表の セルを タップ・ドラッグして 参照を 入れる
+   （指で なぞると スクロール。長押し してから なぞると 範囲選択：useCellPick） */
 .picking td {
-  touch-action: none;
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
   cursor: cell;

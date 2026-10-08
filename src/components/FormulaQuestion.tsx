@@ -40,7 +40,7 @@ export function FormulaQuestion({ q, skills, touch, label, showHint, onSubmit }:
 
   return (
     <div className="q-formula">
-      <table className="mini-table picking" {...cellPick.handlers}>
+      <table ref={cellPick.ref} className="mini-table picking" {...cellPick.handlers}>
         <thead>
           <tr>
             <th />
@@ -79,7 +79,7 @@ export function FormulaQuestion({ q, skills, touch, label, showHint, onSubmit }:
               <span className="fpad-target">{q.target}</span>
               <span className="fpad-text">
                 ={chips.join('')}
-                {!chips.length && <span className="fpad-ph">ボタンか、表を タップ・ドラッグ</span>}
+                {!chips.length && <span className="fpad-ph">ボタンか、表を タップ（長押しで 範囲）</span>}
               </span>
             </div>
             <FormulaPad

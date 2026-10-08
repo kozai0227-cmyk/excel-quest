@@ -26,7 +26,7 @@ function diffCells(a: Grid, b: Grid): string[] {
 
 /**
  * スマホ用の 依頼画面（ステップ式）。
- * 表は タップで 数式を のぞける。答えは 選択肢か、数式ボタン（または 表の タップ・ドラッグ）で 組み立てる。
+ * 表は タップで 数式を のぞける。答えは 選択肢か、数式ボタン（または 表の タップ・長押しドラッグ）で 組み立てる。
  */
 export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
   const history = useMemo(() => quest.history?.() ?? [], [quest])
@@ -229,7 +229,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
                 <span className="fpad-target">{step.target}</span>
                 <span className="fpad-text">
                   ={chips.join('')}
-                  {!chips.length && !solved && <span className="fpad-ph">ボタンか、表を タップ・ドラッグ</span>}
+                  {!chips.length && !solved && <span className="fpad-ph">ボタンか、表を タップ（長押しで 範囲）</span>}
                 </span>
               </div>
               {!solved && (
@@ -300,7 +300,7 @@ interface SheetProps {
 
 function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspect, onInspect, onPick }: SheetProps) {
   const scroller = useRef<HTMLDivElement>(null)
-  const { selecting, handlers } = useCellPick(onPick, scroller)
+  const { selecting, handlers, ref } = useCellPick(onPick, scroller)
   const cols = grid[0].length
   const widths = Array.from({ length: cols }, (_, c) => Math.round((colWidths?.[c] ?? 80) * 0.9))
   const flash = new Set(changed.cells)
@@ -327,7 +327,7 @@ function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspe
         <span className="gs-raw">{bar}</span>
       </div>
       <div className="gs-scroll" ref={scroller}>
-        <table className={`gs-table ${onPick ? 'picking' : ''}`} style={{ width: 30 + widths.reduce((a, b) => a + b, 0) }} {...handlers}>
+        <table ref={ref} className={`gs-table ${onPick ? 'picking' : ''}`} style={{ width: 30 + widths.reduce((a, b) => a + b, 0) }} {...handlers}>
           <colgroup>
             <col style={{ width: 30 }} />
             {widths.map((w, c) => (
