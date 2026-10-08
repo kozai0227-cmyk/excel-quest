@@ -49,43 +49,41 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 - 「はじめから」で プロローグ → 森 → 戦闘 まで 進める
 - いったん アプリを 終了して 再起動しても「つづきから」が できる
 - 機内モードでも 遊べる（ネットを 使わない）
-- メニュー → 設定 →「ライセンス表記」が 表示される
+- メニュー → 設定 →「ライセンス表記」「プライバシーポリシー」が 表示される
+- タイトル画面 下の「プライバシーポリシー」も 開ける
 
 ## 4. App Store に 提出する
 
+**提出前の チェック**（Mac でなくても できる）
+
+- [ ] `public/privacy.html` と `public/support.html` の `__CONTACT_EMAIL__` を、問い合わせ用の メールアドレスに 差し替えた（`npm run check` で 残っていると ⚠ が 出る）
+- [ ] 差し替えを main に 入れて、Vercel の 公開ページ（下の URL）に 反映された
+- [ ] （任意）Vercel の **Settings → Domains** で `excel` を 含まない URL（例：`equal-quest.vercel.app`）を 追加した
+
+**手順**
+
 1. https://appstoreconnect.apple.com で「マイApp」→「＋」→ 新規App
    - プラットフォーム：iOS、名前：イコール・クエスト、言語：日本語
-   - バンドルID：`com.kozai0227.equalquest`
+   - バンドルID：`com.kozai0227.equalquest`、SKU：`equalquest`（自分用の 管理番号。何でも よい）
 2. Xcode で 端末を **Any iOS Device (arm64)** に して、メニュー **Product → Archive**
 3. できあがった アーカイブで **Distribute App → App Store Connect → Upload**
-4. App Store Connect で ビルドを 選び、説明文・スクリーンショット・年齢区分・価格・プライバシーポリシーの URL などを 入れて「審査に 提出」
+4. App Store Connect に、下の「入れる 内容」を 貼り付けて、ビルドを 選び「審査に 提出」
 
 > 「輸出コンプライアンス（暗号化）」の 質問は、`Info.plist` に「独自の 暗号化を 使っていない」と 書いてあるので 出ません。
 
 ---
 
-## 5. App Store Connect の 入力で 迷いやすい ところ（おすすめの 答え）
+## 5. App Store Connect に 入れる 内容（用意済み）
 
-| 項目 | おすすめ |
+| もの | 場所 |
 |---|---|
-| **Appのプライバシー**（データの収集） | 「データを収集していません」。セーブは 端末の 中だけで、外部に 送らない。広告・解析も ない |
-| **プライバシーポリシーの URL** | 必須。「個人情報を 集めない」旨の ページを 用意する（例：GitHub Pages など） |
-| **年齢制限指定** | 「アニメまたはファンタジーの暴力：まれ/軽度」→ 結果は 4+ か 9+ の 想定。ほかは すべて「なし」 |
-| **カテゴリ** | プライマリ：教育　セカンダリ：ゲーム（ロールプレイング） |
-| **対応端末** | iPhone のみ（iPad では iPhone 版が 拡大表示で 動く） |
-| **サインイン情報** | 不要（アカウントの 仕組みが ない） |
-| **審査メモ（App Review Information の Notes）** | 下の 文例を 貼る |
-| **スクリーンショット** | 6.9インチ（iPhone 16 Pro Max など）が 必須。シミュレーターで 撮れる |
+| 名前・サブタイトル・説明文・キーワード・年齢制限・プライバシー・審査メモ | [`docs/app-store-metadata.md`](app-store-metadata.md)（そのまま 貼れる 形） |
+| スクリーンショット（6.9インチ・1320×2868・6枚） | `store/screenshots/`（01〜06 の 順に 入れる） |
+| プライバシーポリシーの URL | `https://excel-quest-nine.vercel.app/privacy.html`（アプリ内でも 同じ 内容を 表示） |
+| サポート URL | `https://excel-quest-nine.vercel.app/support.html` |
 
-### 審査メモの 文例
-
-```
-This is an offline educational RPG that teaches spreadsheet formulas (SUM, IF, VLOOKUP, dates, etc.) in Japanese.
-No account or network connection is required. All progress is saved on the device.
-Tip for review: tap 「ふくしゅう」 on the title screen to try the quiz mode immediately,
-or 「はじめから」 to play the story from the beginning (the first battle starts within 1 minute).
-The formula engine is our own implementation; the app does not use or imitate any third-party spreadsheet product.
-```
+> スクリーンショットは Web 版の 開発用 URL（`?quest=…`・`?boss=…`・`?at=…` など）で 場面を 呼び出し、6.9インチの 大きさで 撮った ものです。
+> ゲームの 見た目を 変えたら 撮り直してください。
 
 ---
 
@@ -103,3 +101,4 @@ The formula engine is our own implementation; the app does not use or imitate an
 | フォント | DotGothic16 を アプリに 同梱（`@fontsource/dotgothic16`）。日本語の 本文は iPhone 内蔵の ヒラギノ |
 | アイコン・起動画面 | `ios/App/App/Assets.xcassets`（アイコンは 1024×1024・透明なし） |
 | ライセンス表記 | `public/licenses.txt`。部品を 足したら `npm run licenses` で 作り直す |
+| プライバシー・サポート | `public/privacy.html`・`public/support.html`（Web で 公開、アプリ内では `DocView` で 表示。通信なし） |

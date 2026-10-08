@@ -156,7 +156,7 @@ export default function App() {
     if (p.has('prologue')) return setScene('prologue')
     if (p.has('epilogue')) return setScene('epilogue')
     if (p.has('study')) return setScene('study')
-    const test = { ...newGame('テスト'), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
+    const test = { ...newGame('サトウ'), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
     const end = Number(p.get('ending'))

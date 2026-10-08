@@ -10,6 +10,7 @@ import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
 import { isTouchDevice } from '../game/layout'
 import { isNative } from '../game/native'
+import { DocView } from './DocView'
 import { totalPercent } from '../data/chapters'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
@@ -51,8 +52,13 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
       .then(setLic)
       .catch(() => setLic('ライセンス表記を 読みこめませんでした。'))
   }
+  /** 設定：プライバシーポリシーを 開いているか */
+  const [privacy, setPrivacy] = useState(false)
   useEffect(() => {
-    if (open !== '設定') setLic(null)
+    if (open !== '設定') {
+      setLic(null)
+      setPrivacy(false)
+    }
   }, [open])
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
   const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
@@ -114,16 +120,20 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
     else if (k === 'ok') sfx('select')
     else if (k === 'cancel') sfx('cancel')
     if (open === '設定') {
-      // 行：BGM・効果音・ライセンス表記
-      const rows = VOL_ROWS.length + 1
-      if (lic !== null) {
-        if (k === 'ok' || k === 'cancel') setLic(null)
+      // 行：BGM・効果音・ライセンス表記・プライバシーポリシー
+      const rows = VOL_ROWS.length + 2
+      if (lic !== null || privacy) {
+        if (k === 'ok' || k === 'cancel') {
+          setLic(null)
+          setPrivacy(false)
+        }
         return
       }
       if (k === 'up') setIcur((c) => (c + rows - 1) % rows)
       else if (k === 'down') setIcur((c) => (c + 1) % rows)
       else if ((k === 'left' || k === 'right') && icur < VOL_ROWS.length) changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
       else if (k === 'ok' && icur === VOL_ROWS.length) openLicenses()
+      else if (k === 'ok' && icur === VOL_ROWS.length + 1) setPrivacy(true)
       else if (k === 'ok' || k === 'cancel') setOpen(null)
       return
     }
@@ -248,6 +258,10 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
               <div className={`opt lic-row ${icur === VOL_ROWS.length ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length); openLicenses() }}>
                 ライセンス表記
               </div>
+              <div className={`opt lic-row ${icur === VOL_ROWS.length + 1 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 1); setPrivacy(true) }}>
+                プライバシーポリシー
+              </div>
+              {privacy && <DocView src="privacy.html" onClose={() => setPrivacy(false)} />}
               {lic !== null && (
                 <div className="lic-view">
                   <pre>{lic}</pre>

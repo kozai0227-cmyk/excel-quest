@@ -174,6 +174,13 @@ for (const [f, want] of ENGINE_CASES) {
 }
 console.log(`数式エンジン：${ENGINE_CASES.length} 式`)
 
+// ---------------------------------------------------------------- 8. 公開ページ（プライバシーポリシー・サポート）
+{
+  const { readFileSync } = await import('node:fs')
+  const left = ['privacy.html', 'support.html'].filter((f) => readFileSync(`public/${f}`, 'utf8').includes('__CONTACT_EMAIL__'))
+  if (left.length) console.log(`⚠ 問い合わせ先の メールアドレスが まだ 仮の ままです（public/${left.join('・public/')}）。App Store に 出す 前に 差し替えて ください`)
+}
+
 if (errors) {
   console.error(`\n${errors} 件の 問題が あります`)
   process.exit(1)

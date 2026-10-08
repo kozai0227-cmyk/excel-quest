@@ -4,12 +4,15 @@ import { SpriteView } from './SpriteView'
 import { PLAYER_SPEC } from '../data/maps'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
+import { DocView } from './DocView'
 
 export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
   const opts = hasSave ? ['つづきから', 'はじめから', 'ふくしゅう'] : ['はじめから', 'ふくしゅう']
   const [cursor, setCursor] = useState(0)
   /** セーブが あるのに「はじめから」を 選んだ：上書きの 確認（0：やめる 1：はじめから） */
   const [confirm, setConfirm] = useState<number | null>(null)
+  /** プライバシーポリシーを 開いているか */
+  const [privacy, setPrivacy] = useState(false)
   const phone = usePhoneLayout()
   const soundOn = useSoundOn()
   const pick = (i: number) => {
@@ -25,6 +28,10 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
     if (yes) onNew()
   }
   useKeys((k) => {
+    if (privacy) {
+      if (k === 'ok' || k === 'cancel') setPrivacy(false)
+      return
+    }
     if (confirm !== null) {
       if (k === 'up' || k === 'down' || k === 'left' || k === 'right') {
         sfx('cursor')
@@ -89,6 +96,10 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
         {isTouchDevice ? '十字ボタン：移動　A：話す・決定　B：メニュー・もどる' : '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'}
       </div>
       {phone && isIosBrowser() && <div className="title-ios">共有ボタン →「ホーム画面に追加」で、全画面で 遊べます</div>}
+      <button type="button" className="title-privacy" onClick={() => setPrivacy(true)}>
+        プライバシーポリシー
+      </button>
+      {privacy && <DocView src="privacy.html" onClose={() => setPrivacy(false)} />}
     </div>
   )
 }

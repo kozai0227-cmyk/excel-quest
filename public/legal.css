@@ -1,0 +1,82 @@
+/* プライバシーポリシー・サポートの ページ（アプリ内でも 表示する） */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1d2330;
+  --muted: #5b6576;
+  --line: #dde2ea;
+  --accent: #12807f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1016;
+    --fg: #e8edf4;
+    --muted: #9aa6b8;
+    --line: #253041;
+    --accent: #4cc3bf;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.75 system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
+}
+h1 {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  margin: 0 0 4px;
+}
+.app {
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0;
+}
+.date {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 4px 0 24px;
+}
+h2 {
+  font-size: 1.1rem;
+  margin: 28px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+p,
+li {
+  margin: 0 0 8px;
+}
+ul {
+  padding-left: 1.3em;
+}
+a {
+  color: var(--accent);
+}
+.box {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+.en {
+  margin-top: 40px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.en h2 {
+  color: var(--fg);
+}
+nav {
+  margin-top: 32px;
+  font-size: 0.95rem;
+}
