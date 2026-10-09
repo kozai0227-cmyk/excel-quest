@@ -26,6 +26,24 @@ export interface QuestDef {
   check(ctx: CheckCtx): string | null
   reward: { exp: number; gold: number; skill?: string; item?: ItemId }
   thanks: string[]
+  /**
+   * 町の 代表の 依頼のように「町で 最後の 悩み」として 話す 依頼。
+   * ほかの 悩みが まだ 残っている ときは、intro の 先頭と thanks の 末尾を これに 差しかえる
+   */
+  notLast?: { introHead: string[]; thanksTail: string[] }
+}
+
+/** 町の ほかの 悩みが すべて 解決ずみか（この 依頼が 最後の 1つか） */
+export const isLastInTown = (q: QuestDef, solved: string[]) => townQuests(q.town).every((x) => x.id === q.id || solved.includes(x.id))
+
+/** 話す 順番に 合わせた 依頼の 前置き・お礼（ほかの 悩みが 残っていれば notLast を 使う） */
+export function questLines(q: QuestDef, solved: string[]) {
+  if (!q.notLast || isLastInTown(q, solved)) return { intro: q.intro, thanks: q.thanks }
+  const { introHead, thanksTail } = q.notLast
+  return {
+    intro: [...introHead, ...q.intro.slice(introHead.length)],
+    thanks: [...q.thanks.slice(0, q.thanks.length - thanksTail.length), ...thanksTail],
+  }
 }
 
 export function makeCtx(grid: Grid, values: Value[][], actions: Set<string>): CheckCtx {
@@ -875,6 +893,10 @@ Object.assign(QUESTS, {
       '町の 悩みを すべて 解決して くださって、本当に ありがとうございます。',
       '北の 鏡の神殿の 結界も、これで とけるはず……。どうか、ミラージュを 止めてください。',
     ],
+    notLast: {
+      introHead: ['サンショウの 町長、カガミです。旅の方、ようこそ。', 'お願いが あります。町の 予算表に 税（F1）を 足した「税込額」を 出したいのです。'],
+      thanksTail: ['町には まだ 困っている 者が おります。', '頭の上に「！」の 出ている 者の 話も、聞いてやって ください。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 
@@ -1199,6 +1221,10 @@ Object.assign(QUESTS, {
       '町の 悩みを すべて 解決して くれて、本当に ありがとう。',
       '桟橋の 結界も とけたはずだ。どうか 幽霊船の 船長を 止めてくれ。港の 未来を たのむ。',
     ],
+    notLast: {
+      introHead: ['港長の ミナトだ。よく 来てくれた。', 'ひとつ、この 入港記録を 集計してほしい。'],
+      thanksTail: ['港には まだ 困っている 者が いる。', '頭の上に「！」の 出ている 者の 話も、聞いてやってくれ。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 
@@ -1523,6 +1549,10 @@ Object.assign(QUESTS, {
       '見つからない ときの 答えまで 決めておける。これなら 台帳が どれだけ 大きくても 困りません。',
       '城下の 悩みは これで すべて……。どうか、城の 大書庫に 巣くう ミツカラーヌを 止めてください。',
     ],
+    notLast: {
+      introHead: ['大臣の サガスで ございます。よく お越しくださいました。', 'お願いが ございます。晩餐会の 注文表に、城の 在庫を 書き入れたいのです。'],
+      thanksTail: ['城下には まだ 困っている 者が おります。どうか、頭の上に「！」の 出ている 者の 話も 聞いてやって ください。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 
@@ -2137,6 +2167,10 @@ Object.assign(QUESTS, {
       '場所を 探す FIND と、切り取る LEFT・RIGHT。組み合わせれば、どんな 文字でも 自由自在ね。',
       'でも 町の 文字を 化けさせている 張本人は、北の 活版印刷所に 住みついた「モジバケーラ」。どうか、止めて ちょうだい。',
     ],
+    notLast: {
+      introHead: ['宿場長の カキコです。ようこそ、テキストリアへ。', 'お願いが あるの。伝書鳩の あて先は「taro@moji.jp」のように、@ の 前が 名前、後ろが 町の 印なの。'],
+      thanksTail: ['宿場には まだ 文字の 呪いで 困っている 人が いるの。頭の上に「！」の 出ている 人の 話も、聞いてあげて。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 
@@ -2423,6 +2457,10 @@ Object.assign(QUESTS, {
       '「満何年」は DATEDIF。引き算と ちがって、誕生日を 迎えたかまで 見て くれるのじゃな。',
       'じゃが 村の 暦を 狂わせた 張本人は、北の 時計塔に 棲む「シメキリス」。どうか、時を 取り戻して くれ。',
     ],
+    notLast: {
+      introHead: ['村長の トキワじゃ。よう 来てくれた。', '頼みが ある。村に 来てから 10年 以上 たつ 者を 表彰したいのじゃ。'],
+      thanksTail: ['村には まだ 困っている 者が おる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 
@@ -2704,6 +2742,10 @@ Object.assign(QUESTS, {
       '数を 計算して、文に 組みこむ。これまでの 力が、すべて つながったな。',
       '魔王レフエラーの 城は、北の 結界の 向こうだ。どうか……この 世界の「時間」を 取り戻して くれ。',
     ],
+    notLast: {
+      introHead: ['砦の長、ガンバルだ。7つの 町を 救った 噂は、ここまで 届いて おる。', '頼みが ある。出陣の 号令を、名簿から 自動で 作りたいのだ。'],
+      thanksTail: ['砦には まだ 困っている 者が いる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'],
+    },
   },
 } satisfies Record<string, QuestDef>)
 

@@ -170,6 +170,13 @@ for (const m of Object.values(MAPS))
     const side = (Object.keys(d) as (keyof typeof d)[]).reduce((a, b) => (d[b] < d[a] ? b : a))
     if (edgeDist(dest, f.x, f.y)[OPP[side]] > 4) bad(`${m.id} → ${dest.id}: ${side} の 門から 出たのに、${OPP[side]} 側に 着かない (${f.x},${f.y})`)
   }
+// 「最後の 悩み」の 言い方は、ほかの 悩みが 残っている ときの 言い方（notLast）も 用意する
+for (const q of Object.values(QUESTS)) {
+  if (q.kind === 'puzzle') continue
+  const lastLike = /最後に|すべて 解決|これで すべて/.test([...q.intro, ...q.thanks].join(''))
+  if (lastLike && !q.notLast) bad(`${q.id}: 「最後の 悩み」の 言い方だが、ほかが 残っている ときの notLast が ない`)
+  if (q.notLast && (q.notLast.introHead.length > q.intro.length || q.notLast.thanksTail.length > q.thanks.length)) bad(`${q.id}: notLast が 長すぎる`)
+}
 console.log(`マップ：${Object.keys(MAPS).length} 枚`)
 
 // ---------------------------------------------------------------- 5. BGM

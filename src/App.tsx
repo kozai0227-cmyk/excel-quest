@@ -12,7 +12,7 @@ import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
-import { QUESTS, townQuests } from './data/quests'
+import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
 import { ITEMS, ITEM_IDS } from './data/items'
 import { EQUIP, SLOT_NAME, effectText } from './data/equipment'
@@ -219,11 +219,13 @@ export default function App() {
         }
         case 'quest': {
           const q = QUESTS[npc.questId!]
+          // 町の 代表は、ほかの 悩みが 残っているか どうかで 話し方が 変わる
+          const lines = questLines(q, g.solved)
           if (g.solved.includes(q.id)) {
-            await say(q.thanks)
+            await say(lines.thanks)
             break
           }
-          const i = await say(q.intro, ['たすける', 'またこんど'])
+          const i = await say(lines.intro, ['たすける', 'またこんど'])
           if (i === 0) {
             setQuestId(q.id)
             setScene('quest')
@@ -860,7 +862,7 @@ export default function App() {
     setScene('field')
     const allDone = townQuests(q.town).every((x) => g2.solved.includes(x.id))
     run(async () => {
-      await talk(q.npc, q.thanks)
+      await talk(q.npc, questLines(q, g2.solved).thanks)
       if (lv.length) await talk(undefined, lv)
       if (allDone)
         await talk(undefined, [
