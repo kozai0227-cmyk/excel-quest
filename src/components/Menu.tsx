@@ -12,6 +12,7 @@ import { isTouchDevice } from '../game/layout'
 import { isNative } from '../game/native'
 import { DocView } from './DocView'
 import { totalPercent } from '../data/chapters'
+import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
 const VOL_ROWS: [keyof Volume, string][] = [
@@ -54,6 +55,8 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
   }
   /** 設定：プライバシーポリシーを 開いているか */
   const [privacy, setPrivacy] = useState(false)
+  const unlocked = useUnlocked()
+  const unlockOpen = useUnlockScreen()
   useEffect(() => {
     if (open !== '設定') {
       setLic(null)
@@ -116,12 +119,14 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
   }
 
   useKeys((k) => {
+    // 購入画面は それ自身で キーを 受ける
+    if (unlockOpen) return
     if (k === 'up' || k === 'down') sfx('cursor')
     else if (k === 'ok') sfx('select')
     else if (k === 'cancel') sfx('cancel')
     if (open === '設定') {
-      // 行：BGM・効果音・ライセンス表記・プライバシーポリシー
-      const rows = VOL_ROWS.length + 2
+      // 行：BGM・効果音・ライセンス表記・プライバシーポリシー・全章解放
+      const rows = VOL_ROWS.length + 3
       if (lic !== null || privacy) {
         if (k === 'ok' || k === 'cancel') {
           setLic(null)
@@ -134,6 +139,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
       else if ((k === 'left' || k === 'right') && icur < VOL_ROWS.length) changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
       else if (k === 'ok' && icur === VOL_ROWS.length) openLicenses()
       else if (k === 'ok' && icur === VOL_ROWS.length + 1) setPrivacy(true)
+      else if (k === 'ok' && icur === VOL_ROWS.length + 2) openUnlock()
       else if (k === 'ok' || k === 'cancel') setOpen(null)
       return
     }
@@ -260,6 +266,9 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
               </div>
               <div className={`opt lic-row ${icur === VOL_ROWS.length + 1 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 1); setPrivacy(true) }}>
                 プライバシーポリシー
+              </div>
+              <div className={`opt lic-row ${icur === VOL_ROWS.length + 2 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 2); openUnlock() }}>
+                全章解放<small>：{unlocked ? '購入ずみ' : isNative ? `購入・復元（第${FREE_CHAPTERS + 1}章〜）` : 'アプリ版で 遊べます'}</small>
               </div>
               {privacy && <DocView src="privacy.html" onClose={() => setPrivacy(false)} />}
               {lic !== null && (

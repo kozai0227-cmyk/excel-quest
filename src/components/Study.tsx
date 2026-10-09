@@ -6,6 +6,7 @@ import type { GameState } from '../game/types'
 import { useInputMode } from '../game/inputMode'
 import { judgeFormula } from '../game/judge'
 import { getWeak, markWeak } from '../game/weak'
+import { chapterAllowed, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { FormulaQuestion } from './FormulaQuestion'
 import {
   CHAPTERS,
@@ -141,21 +142,35 @@ function CourseMenu({
   onStart(c: Course): void
   onClose(): void
 }) {
-  const rows = CHAPTERS.map((ch) => ({ ch, open: fromTitle || !gs || chapterOpen(ch, gs), p: gs ? chapterProgress(ch, gs) : null }))
-  const openChs = rows.filter((r) => r.open).map((r) => r.ch)
+  useUnlocked()
+  const unlockOpen = useUnlockScreen()
+  // locked：たどりついているが、全章解放の 前（第3章から 先）
+  const rows = CHAPTERS.map((ch) => ({
+    ch,
+    open: fromTitle || !gs || chapterOpen(ch, gs),
+    locked: !chapterAllowed(ch.no),
+    p: gs ? chapterProgress(ch, gs) : null,
+  }))
+  const openChs = rows.filter((r) => r.open && !r.locked).map((r) => r.ch)
   const total = gs ? percent(rows.map((r) => r.p!)) : null
 
-  type Opt = { id: string; course?: Course; disabled?: boolean }
+  type Opt = { id: string; course?: Course; disabled?: boolean; unlock?: boolean }
   const opts: Opt[] = [
     { id: 'weak', course: { title: '苦手克服コース', make: () => weakCourse(getWeak()) }, disabled: !weak.length },
     { id: 'all', course: { title: '全章まとめコース', make: () => allCourse(openChs) } },
-    ...rows.filter((r) => r.open).map((r) => ({ id: `ch${r.ch.no}`, course: { title: r.ch.title, make: () => chapterCourse(r.ch) } })),
+    ...rows
+      .filter((r) => r.open)
+      .map((r) => (r.locked ? { id: `ch${r.ch.no}`, unlock: true } : { id: `ch${r.ch.no}`, course: { title: r.ch.title, make: () => chapterCourse(r.ch) } })),
     { id: 'close' },
   ]
   const live = opts.filter((o) => !o.disabled)
   const [cursor, setCursor] = useState(live[0].id)
   const pick = (o: Opt) => {
     if (o.disabled) return
+    if (o.unlock) {
+      sfx('select')
+      return openUnlock()
+    }
     if (!o.course) return onClose()
     onStart(o.course)
   }
@@ -170,7 +185,7 @@ function CourseMenu({
       sfx('cancel')
       onClose()
     }
-  })
+  }, !unlockOpen)
 
   // 選んだ 行が 見えるように
   useEffect(() => {
@@ -220,7 +235,7 @@ function CourseMenu({
           'all',
         )}
         <div className="course-sep">章を えらんで 復習（5問）</div>
-        {rows.map(({ ch, open, p }) => {
+        {rows.map(({ ch, open, locked, p }) => {
           if (!open)
             return (
               <div key={ch.no} className="course locked">
@@ -229,6 +244,18 @@ function CourseMenu({
               </div>
             )
           const o = opts.find((x) => x.id === `ch${ch.no}`)!
+          if (locked)
+            return row(
+              o,
+              <>
+                <b>
+                  🔒 {chapterTag(ch)}　{short(ch.title)}
+                </b>
+                <span className="course-topic">{ch.topic}</span>
+                <span className="course-unlock">全章解放で 遊べる</span>
+              </>,
+              'chapter paywall',
+            )
           return row(
             o,
             <>

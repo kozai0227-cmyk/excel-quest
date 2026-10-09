@@ -8,6 +8,7 @@ import { Battle } from './components/Battle'
 import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
 import { EPILOGUE_STEPS, Prologue } from './components/Prologue'
 import { Gallery, SoundTest } from './components/Gallery'
+import { Unlock } from './components/Unlock'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
 import { QUESTS, townQuests } from './data/quests'
@@ -20,6 +21,8 @@ import { WALKABLE } from './game/tiles'
 import { isTouchDevice, usePhoneLayout } from './game/layout'
 import { bgm, jingle, sfx, useBgm } from './game/sound'
 import type { SongName } from './data/music'
+import { isNative } from './game/native'
+import { isUnlocked, openUnlock, useUnlockScreen, useUnlocked } from './game/store'
 
 type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epilogue' | 'ending' | 'study'
 interface BattleReq {
@@ -33,6 +36,8 @@ const bossScene = (id: string): BattleReq['scene'] =>
   id === 'mirage' ? 'temple' : id === 'captain' ? 'ship' : id === 'mitsukaranu' ? 'library' : id === 'barabaran' ? 'treasury' : id === 'mojibake' ? 'printing' : id === 'shimekiris' ? 'clock' : id === 'refera' ? 'castle' : ENEMIES[id]?.boss ? 'boss' : 'forest'
 
 const INN_PRICE = 10
+/** 開発用の URL（?quest= など）は 手元の ブラウザで だけ 使える（公開中の Web 版や アプリでは 無効） */
+const DEV_URL = !isNative && (import.meta.env.DEV || ['localhost', '127.0.0.1'].includes(location.hostname))
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export default function App() {
@@ -58,6 +63,9 @@ export default function App() {
   const [flash, setFlash] = useState(false)
   const [chapter, setChapter] = useState(1)
   const phone = usePhoneLayout()
+  // 全章解放：買ったら 峠の 見張りが いなくなるよう 描きなおす
+  useUnlocked()
+  const unlockOpen = useUnlockScreen()
   const dialogId = useRef(0)
   const fieldRef = useRef<FieldHandle>(null)
 
@@ -152,6 +160,7 @@ export default function App() {
 
   // 開発用：?quest=ID / ?boss=ID / ?prologue / ?at=マップ,x,y / ?ending=章
   useEffect(() => {
+    if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
     if (p.has('prologue')) return setScene('prologue')
     if (p.has('epilogue')) return setScene('epilogue')
@@ -200,6 +209,11 @@ export default function App() {
         case 'talk':
         case 'guard': {
           await say(npc.linesAfter?.when(g) ? npc.linesAfter.lines : (npc.lines ?? []))
+          break
+        }
+        case 'unlock': {
+          await say(npc.lines ?? [])
+          await offerUnlock()
           break
         }
         case 'quest': {
@@ -984,6 +998,21 @@ export default function App() {
     })
   }
 
+  /** 第3章から 先を 遊ぶには 全章解放が 要る、と 伝えて 購入画面へ */
+  const offerUnlock = async () => {
+    const i = await talk(
+      undefined,
+      [
+        '無料で 遊べるのは ここ（第2章）まで です。',
+        isNative
+          ? '「全章解放」を 購入すると、第3章から 最終章までの 冒険と、ふくしゅうの書の すべての 章が 遊べます。'
+          : 'この 先の 冒険（第3章〜最終章）は、iPhone アプリ版で 遊べます。',
+      ],
+      ['くわしく 見る', 'あとで'],
+    )
+    if (i === 0) openUnlock()
+  }
+
   const onLose = () => {
     const req = battle!
     setBattle(null)
@@ -1046,7 +1075,7 @@ export default function App() {
                 ? 'dungeon'
                 : 'field'
   useBgm(/gallery|soundtest/.test(location.search) ? null : music)
-  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash
+  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen
 
   if (location.search.includes('gallery')) return <Gallery />
   if (location.search.includes('soundtest')) return <SoundTest />
@@ -1078,7 +1107,21 @@ export default function App() {
             }}
           />
         )}
-        {scene === 'ending' && <Ending chapter={chapter} name={gs.name} onDone={() => setScene('field')} />}
+        {scene === 'ending' && (
+          <Ending
+            chapter={chapter}
+            name={gs.name}
+            onDone={() => {
+              setScene('field')
+              // 無料で 遊べるのは 第2章まで。続きの 案内を 出す
+              if (chapter === 2 && !isUnlocked())
+                run(async () => {
+                  await sleep(700)
+                  await offerUnlock()
+                })
+            }}
+          />
+        )}
 
         {inWorld && (
           <>
@@ -1158,6 +1201,7 @@ export default function App() {
           </>
         )}
         {dialog && scene !== 'prologue' && scene !== 'epilogue' && <DialogBox key={dialog.id} req={dialog} />}
+        {unlockOpen && <Unlock />}
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
       {isTouchDevice && inWorld && scene !== 'quest' && !review && !(phone && scene === 'battle') && <TouchPad />}

@@ -1,5 +1,6 @@
 import type { CharSpec } from '../game/sprites'
 import type { MapDef, NpcDef } from '../game/types'
+import { isUnlocked } from '../game/store'
 
 // ================================================================ マップ組み立て
 type M = string[][]
@@ -1275,6 +1276,12 @@ const world: MapDef = {
       id: 'fog_guard', x: 54, y: 21, name: '霧の見張り', look: C.kiri, kind: 'guard', dir: 'up',
       lines: ['この 峠の 先は、港町 イフポート……', 'だが 今は「鏡の霧」が 立ちこめ、進んでも 進んでも 元の場所に 戻されてしまう。', 'サンショウの 神殿に 巣くう ミラージュの しわざ らしいが……。'],
       hideIf: (s) => s.bosses.includes('mirage'),
+    },
+    {
+      // 無料で 遊べるのは 第2章まで。全章解放の 前は ここで 止まる
+      id: 'pass_guard', x: 54, y: 21, name: '峠の見張り', look: C.kiri, kind: 'unlock', dir: 'up',
+      lines: ['おお、霧が 晴れたぞ！ あんたの おかげだ。', 'この 峠を 越えれば 港町 イフポート。その 先には、もっと 手強い 呪いが 待っている……。'],
+      hideIf: (s) => !s.bosses.includes('mirage') || isUnlocked(),
     },
   ],
   encounter: (x, y) =>

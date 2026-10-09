@@ -30,7 +30,7 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 ## プロモーションテキスト（170字まで・いつでも 変更できる）
 
 ```
-手作業に追われる新人社員が、表計算の魔法で世界を救う！ SUMからVLOOKUP・SUMIFS・日付・文字列・エラー対処まで、町の人の悩みを解決しながら楽しく身につくレトロRPG。通信不要・広告なし。
+手作業に追われる新人社員が、表計算の魔法で世界を救う！ SUMからVLOOKUP・SUMIFS・日付・文字列・エラー対処まで、町の人の悩みを解決しながら楽しく身につくレトロRPG。第2章まで無料・広告なし。
 ```
 
 ## 説明（4000字まで）
@@ -47,6 +47,9 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 ・町の人の「依頼」は、本物の表計算と同じ操作で解決。数式を組み立てて、答えが合えばクリア！
 ・モンスターとの戦闘は、表計算のクイズと数式問題。答えるたびに数値が変わるので、丸暗記では勝てません
 ・ボスの塔や神殿では、石版の謎を数式で解き明かす
+
+■ 第2章まで無料で遊べる
+・第1章・第2章は無料。気に入ったら「全章解放」（買い切り）で、最終章まで遊べます
 
 ■ 全8章・81の依頼と謎
 第1章　セルの選択・オートフィル・四則演算・SUM／AVERAGE
@@ -73,8 +76,8 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 ・レトロRPGが好きな人
 
 ■ 安心して遊べる
-・インターネット接続は不要。どこでも遊べます
-・広告なし・アプリ内課金なし
+・インターネット接続は不要。どこでも遊べます（購入・復元のときだけ通信します）
+・広告なし。課金は「全章解放」1回だけで、追加の支払いはありません
 ・個人情報を集めません
 
 ※ 本アプリで学ぶ関数や数式は、一般的な表計算ソフトで広く使われているものです。
@@ -95,6 +98,7 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 - 「データを収集していますか？」→ **いいえ（データを収集しません）**
 - これで ストアの 表示は「データの収集なし」に なります
 - アプリ本体の 申告ファイル（`ios/App/App/PrivacyInfo.xcprivacy`）とも 一致しています
+- App 内課金は Apple が 処理し、開発者は 購入の 情報を 受け取らない ので、「購入」の 項目も 申告不要です
 
 ## 年齢制限指定（アンケートの 答え）
 
@@ -115,8 +119,33 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 
 ## 価格
 
-- 買い切り（アプリ内課金なし）。価格帯は お好みで 決めてください
+- アプリ本体：**無料**（「価格および配信状況」で 0 円を 選ぶ）
+- 第3章から 先は、下の App 内課金「全章解放」で 売る
 - 配信地域：はじめは **日本のみ** が おすすめ（本文が 日本語だけのため）
+
+## App 内課金「全章解放」
+
+App Store Connect の アプリの ページ → 左の **収益化 → App 内課金** → **＋** で 作ります。
+
+| 欄 | 入れる 内容 |
+|---|---|
+| 種類 | **非消耗型**（1回 買えば ずっと 使える） |
+| 参照名 | `全章解放`（自分用。ストアには 出ない） |
+| 製品 ID | `com.kozai0227.equalquest.full`（**アプリの コードと 同じに する。1文字でも 違うと 買えない**） |
+| 価格 | お好みで（例：600〜1,000円） |
+| ファミリー共有 | オン（家族も 追加の 支払いなしで 遊べる。おすすめ） |
+| 表示名（日本語） | `全章解放` |
+| 説明（日本語・45字まで） | `第3章〜最終章と、ふくしゅうの書の全章が遊べます` |
+| 審査用スクリーンショット | アプリの 購入画面を 撮った もの（TestFlight で 開いて 撮る） |
+| 審査メモ | 下の 英文 |
+
+```
+Unlocks chapters 3 to 8 (the final chapter) and all chapters of the review book. Chapters 1 and 2 are free.
+To open the purchase screen quickly: Title screen > "ふくしゅう" (Review) > tap any chapter with a lock (🔒).
+"購入を 復元" (Restore Purchases) is on the same screen and in Menu (B) > 設定 (Settings) > 全章解放.
+```
+
+> 最初の App 内課金は、アプリの 審査と いっしょに 出します。バージョンの ページの「App 内課金と サブスクリプション」で この 商品を 選んでから「審査に 提出」してください。
 
 ---
 
@@ -130,10 +159,13 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 
 ```
 This is an offline educational RPG (Japanese only) that teaches spreadsheet functions and formulas such as SUM, IF, VLOOKUP, SUMIFS, date and text functions, and error handling.
-No account, network connection, ads, or in-app purchases. All progress is saved on the device only.
+No account, ads, or tracking. All progress is saved on the device only. The app works offline except when purchasing or restoring.
+
+Chapters 1 and 2 are free. A one-time non-consumable in-app purchase, "全章解放" (com.kozai0227.equalquest.full), unlocks chapters 3 to 8.
 
 Quick tour for review:
-- Title screen > "ふくしゅう" (Review): answer quiz questions immediately, no time limit.
+- Title screen > "ふくしゅう" (Review): answer quiz questions immediately, no time limit. Chapters with a lock (🔒) open the purchase screen.
+- The purchase screen has "購入する" (Buy) and "購入を 復元" (Restore Purchases). It is also in Menu (B) > 設定 (Settings) > 全章解放.
 - Title screen > "はじめから" (New game): enter a name, watch the short prologue (or tap SKIP), and the first battle starts within about a minute.
 - In formula questions, tap the buttons or tap table cells to build a formula. Long-press a cell and drag to insert a range; swipe to scroll the table.
 - The privacy policy is available from the title screen and from Menu (B) > 設定 (Settings).

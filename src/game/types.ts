@@ -37,7 +37,7 @@ export interface NpcDef {
   /** 時々出る吹き出し（note / heart / sweat / dots / question / bang） */
   emote?: string
   dir?: Dir
-  kind: 'talk' | 'quest' | 'inn' | 'shop' | 'church' | 'boss' | 'guard' | 'gear' | 'chest' | 'heal' | 'ferry'
+  kind: 'talk' | 'quest' | 'inn' | 'shop' | 'church' | 'boss' | 'guard' | 'gear' | 'chest' | 'heal' | 'ferry' | 'unlock'
   /** 船乗り：乗ると 別の 港へ 渡る */
   ferry?: { to: string; x: number; y: number; dir: Dir; place: string; /** 「渡る」以外の 言い方（馬車なら「向かう」） */ verb?: string }
   /** 宝箱の中身 */

@@ -51,6 +51,23 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 - 機内モードでも 遊べる（ネットを 使わない）
 - メニュー → 設定 →「ライセンス表記」「プライバシーポリシー」が 表示される
 - タイトル画面 下の「プライバシーポリシー」も 開ける
+- ふくしゅう で 第3章から 先に 🔒 が 付き、押すと 購入画面が 出る（シミュレーターでは 価格が 出ず「App Store に つながりません」と なる。実際の 購入は 次の TestFlight で 試す）
+
+## 3.5 App 内課金を TestFlight で 試す
+
+課金は App Store Connect の 商品と つながって はじめて 動くので、TestFlight（テスト配信）で 試します。
+TestFlight での 購入は **テスト用で、お金は かかりません**。
+
+1. App Store Connect で App 内課金「全章解放」を 作る（[`docs/app-store-metadata.md`](app-store-metadata.md) の「App 内課金」の 表どおり）。
+   状態が「メタデータが不足」でなければ（「提出準備完了」なら）テストで 買える
+2. 下の「4. 提出」の 2〜3 で アップロードする（Build の 番号は 前より 大きく）
+3. App Store Connect →「TestFlight」タブ → 内部テスト の グループを 作り、自分を 追加
+4. iPhone に「TestFlight」アプリを 入れ、届いた 招待から イコールクエストを 入れる
+5. 確かめる こと
+   - 購入画面に 価格（例：¥610）が 出る
+   - 「購入する」→ テスト用の 購入画面 → 第3章から 先が 遊べる（峠の 見張りが いなくなる）
+   - アプリを 消して 入れ直し →「購入を 復元」で 戻る
+6. 購入画面を スクリーンショット（電源ボタン＋音量を上げる ボタン）して、App 内課金の「審査用スクリーンショット」に 使う
 
 ## 4. App Store に 提出する
 
@@ -67,7 +84,9 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
    - バンドルID：`com.kozai0227.equalquest`、SKU：`equalquest`（自分用の 管理番号。何でも よい）
 2. Xcode で 端末を **Any iOS Device (arm64)** に して、メニュー **Product → Archive**
 3. できあがった アーカイブで **Distribute App → App Store Connect → Upload**
-4. App Store Connect に、下の「入れる 内容」を 貼り付けて、ビルドを 選び「審査に 提出」
+4. App Store Connect に、下の「入れる 内容」を 貼り付けて、ビルドを 選ぶ
+5. 同じ ページの「App 内課金と サブスクリプション」で「全章解放」を 選ぶ（最初の 課金は アプリと いっしょに 審査される）
+6. 「審査に 提出」
 
 > 「輸出コンプライアンス（暗号化）」の 質問は、`Info.plist` に「独自の 暗号化を 使っていない」と 書いてあるので 出ません。
 
@@ -78,6 +97,7 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 | もの | 場所 |
 |---|---|
 | 名前・サブタイトル・説明文・キーワード・年齢制限・プライバシー・審査メモ | [`docs/app-store-metadata.md`](app-store-metadata.md)（そのまま 貼れる 形） |
+| 価格・App 内課金「全章解放」の 設定 | 同じく [`docs/app-store-metadata.md`](app-store-metadata.md) の「価格」「App 内課金」 |
 | スクリーンショット（6.9インチ・1320×2868・6枚） | `store/screenshots/`（01〜06 の 順に 入れる） |
 | プライバシーポリシーの URL | `https://excel-quest-nine.vercel.app/privacy.html`（アプリ内でも 同じ 内容を 表示） |
 | サポート URL | `https://excel-quest-nine.vercel.app/support.html` |
@@ -102,3 +122,6 @@ Xcode 上部で 端末（例：iPhone 16 シミュレーター、または USB �
 | アイコン・起動画面 | `ios/App/App/Assets.xcassets`（アイコンは 1024×1024・透明なし） |
 | ライセンス表記 | `public/licenses.txt`。部品を 足したら `npm run licenses` で 作り直す |
 | プライバシー・サポート | `public/privacy.html`・`public/support.html`（Web で 公開、アプリ内では `DocView` で 表示。通信なし） |
+| App 内課金 | `ios/App/App/StorePlugin.swift`（StoreKit 2。`MainViewController` で 登録）と `src/game/store.ts`。製品 ID `com.kozai0227.equalquest.full`、無料は 第2章まで（`FREE_CHAPTERS`） |
+| 鍵の 場所 | 第3章への 峠の 見張り（`maps.ts` の `pass_guard`）、第2章 クリア後の 案内、ふくしゅうの 書の 章、設定 →「全章解放」 |
+| Web 版 | 第2章までの 体験版（買えない）。`npm run dev` の ときだけ 全章 遊べる。開発用 URL（`?quest=` など）は 手元（localhost）でだけ 効く |

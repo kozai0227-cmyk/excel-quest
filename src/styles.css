@@ -2859,6 +2859,13 @@ kbd {
   align-items: center;
   padding-left: 0.9em;
 }
+.course.paywall b {
+  color: #c9cfdb;
+}
+.course .course-unlock {
+  color: #ffd76a;
+  opacity: 1;
+}
 .course-sep {
   margin: 0.6em 0 0;
   font-size: 0.85em;
@@ -3169,4 +3176,84 @@ kbd {
   text-decoration: underline;
   opacity: 0.8;
   cursor: pointer;
+}
+
+/* 全章解放（購入画面） */
+.unlock {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  display: flex;
+  background: radial-gradient(ellipse at 50% 0%, #1d2b4a, #070a14 70%);
+  color: #f2f4f8;
+  font-size: 2.1cqw;
+  line-height: 1.6;
+}
+.phone .unlock {
+  font-size: 15px;
+}
+.unlock-inner {
+  margin: auto;
+  width: min(100%, 680px);
+  padding: 1.2em 1.2em calc(1.2em + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+}
+.unlock h2 {
+  margin: 0;
+  text-align: center;
+  color: #ffd76a;
+  font-size: 1.5em;
+}
+.unlock-lead {
+  margin: 0;
+  text-align: center;
+}
+.unlock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.6em 0.8em;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  gap: 0.35em;
+}
+.unlock-list li {
+  display: flex;
+  flex-direction: column;
+}
+.unlock-list span {
+  font-size: 0.82em;
+  color: #b9c3d6;
+}
+.unlock-note,
+.unlock-msg {
+  margin: 0;
+  text-align: center;
+}
+.unlock-msg {
+  color: #ffd76a;
+}
+.unlock-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.unlock-btns .btn {
+  font: inherit;
+  padding: 0.7em 1em;
+}
+.unlock-btns .btn.on {
+  outline: 2px solid #ffd76a;
+}
+.unlock-btns .btn:disabled {
+  opacity: 0.6;
+}
+.unlock-fine {
+  margin: 0;
+  font-size: 0.75em;
+  color: #9aa6bb;
 }
