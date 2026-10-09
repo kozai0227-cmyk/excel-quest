@@ -284,8 +284,11 @@ export function Field(props: FieldProps) {
           a.t = 0
           if (a === p && !a.scripted) {
             P.current.onMove(p.x, p.y, p.dir)
-            const ex = P.current.map.exits.find((e) => e.x === p.x && e.y === p.y)
-            if (ex) {
+            const found = P.current.map.exits.find((e) => e.x === p.x && e.y === p.y)
+            if (found) {
+              // 歩いてきた 向きで 着く 場所が 変わる 出口
+              const alt = found.from?.[p.dir]
+              const ex = alt ? { ...found, ...alt } : found
               inp.held = []
               safeSteps.current = 4
               P.current.onWarp(ex)
@@ -412,7 +415,7 @@ export function Field(props: FieldProps) {
       for (let y = sy; y <= sy + Math.ceil(vh / TS); y++)
         for (let x = sx; x <= sx + Math.ceil(vw / TS); x++) {
           if (y >= H || x >= W) continue
-          drawTile(ctx, tileAt, x, y, frame, x * TS - camX, y * TS - camY)
+          drawTile(ctx, tileAt, x, y, frame, x * TS - camX, y * TS - camY, map.theme)
         }
 
       const step = (Math.floor(now / 260) % 2) + 1

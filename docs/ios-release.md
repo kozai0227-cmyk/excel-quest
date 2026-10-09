@@ -123,5 +123,7 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 | ライセンス表記 | `public/licenses.txt`。部品を 足したら `npm run licenses` で 作り直す |
 | プライバシー・サポート | `public/privacy.html`・`public/support.html`（Web で 公開、アプリ内では `DocView` で 表示。通信なし） |
 | App 内課金 | `ios/App/App/StorePlugin.swift`（StoreKit 2。`MainViewController` で 登録）と `src/game/store.ts`。製品 ID `com.kozai0227.equalquest.full`、無料は 第2章まで（`FREE_CHAPTERS`） |
+| 町の 見た目 | `src/game/tiles.ts` の `THEMES`（地面・道・屋根・壁・木・灯り）。マップの `theme` で 選ぶ。全体図は 手元で `?mapview=町のID` |
+| 町の 出入口 | 地図の 町は 入る 向きで 着く 入口が 変わる（`Exit.from`）。馬車は 門の 馬車（χ）の 前に 立ち、行った 向きの 反対側の 門に 着く（`npm run check` で 確かめる） |
 | 鍵の 場所 | 第3章への 峠の 見張り（`maps.ts` の `pass_guard`）、第2章 クリア後の 案内、ふくしゅうの 書の 章、設定 →「全章解放」 |
-| Web 版 | 第2章までの 体験版（買えない）。`npm run dev` の ときだけ 全章 遊べる。開発用 URL（`?quest=` など）は 手元（localhost）でだけ 効く |
+| Web 版 | いまは 全章 遊べる（`src/game/store.ts` の `WEB_FULL = true`）。審査が 通ったら `false` に すると 第2章までの 体験版に なる。開発用 URL（`?quest=` など）は 手元（localhost）でだけ 効く |

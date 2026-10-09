@@ -9,6 +9,7 @@ import { Ending, NameEntry, Title, TouchPad } from './components/Screens'
 import { EPILOGUE_STEPS, Prologue } from './components/Prologue'
 import { Gallery, SoundTest } from './components/Gallery'
 import { Unlock } from './components/Unlock'
+import { MapView } from './components/MapView'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
 import { QUESTS, townQuests } from './data/quests'
@@ -333,6 +334,10 @@ export default function App() {
         }
         case 'ferry': {
           const f = npc.ferry!
+          if (f.closed?.(g)) {
+            await say(f.closedLines ?? ['すまんが、いまは 出せないんだ。'])
+            break
+          }
           await say(npc.lines ?? [])
           const i = await say([`${f.place}へ ${f.verb ?? '渡る'}かい？`], ['乗る', 'やめる'])
           if (i !== 0) break
@@ -936,31 +941,31 @@ export default function App() {
         await talk(undefined, [
           '幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。',
           '港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！',
-          '（止まっていた 南の 海の 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）',
+          '（止まっていた 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）',
         ])
       if (b.id === 'mitsukaranu')
         await talk(undefined, [
           '大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。',
           '城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！',
-          '（東の 街道が 通れるように なった。馬車の 御者に 話せば、王都へ 向かえるらしい）',
+          '（東門の 街道が 通れるように なった。東門の 馬車の 御者に 話せば、王都へ 向かえるらしい）',
         ])
       if (b.id === 'barabaran')
         await talk(undefined, [
           '散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。',
           '王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！',
-          '（西の 宿場町への 馬車が 動き出した。王都の 西の はずれの 御者に 話せば 向かえるらしい）',
+          '（東の 宿場町への 馬車が 動き出した。王都の 東門の 御者に 話せば 向かえるらしい）',
         ])
       if (b.id === 'mojibake')
         await talk(undefined, [
           '化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。',
           '宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！',
-          '（東の 里への 馬車が 動き出した。宿場の 東の はずれの 御者に 話せば 向かえるらしい）',
+          '（東の 里への 馬車が 動き出した。宿場の 東の 木戸の 御者に 話せば 向かえるらしい）',
         ])
       if (b.id === 'shimekiris')
         await talk(undefined, [
           '時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。',
           '里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！',
-          '（北の 果ての 砦への 馬車が 動き出した。里の 東の はずれの 御者に 話せば 向かえるらしい）',
+          '（北の 果ての 砦への 馬車が 動き出した。里の 北東の 峠道の 御者に 話せば 向かえるらしい）',
         ])
       save()
       if (b.id === 'golem') {
@@ -1074,11 +1079,13 @@ export default function App() {
                 : map.kind === 'dungeon'
                 ? 'dungeon'
                 : 'field'
-  useBgm(/gallery|soundtest/.test(location.search) ? null : music)
+  useBgm(/gallery|soundtest|mapview/.test(location.search) ? null : music)
   const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen
 
   if (location.search.includes('gallery')) return <Gallery />
   if (location.search.includes('soundtest')) return <SoundTest />
+  const mapview = DEV_URL ? new URLSearchParams(location.search).get('mapview') : null
+  if (mapview) return <MapView id={mapview} plain={location.search.includes('plain')} />
 
   return (
     <div className={`app ${phone ? 'phone' : ''}`}>

@@ -266,7 +266,8 @@ function celunoTiles() {
   rect(m, '=', 16, 9, 7, 1)
   rect(m, '=', 5, 20, 10, 1)
   rect(m, '=', 16, 20, 8, 1)
-  rect(m, 'T', 12, 11, 7, 5)
+  // 村の 広場：土の 広場と 井戸（石畳に しない）
+  rect(m, '=', 13, 12, 5, 3)
   m[13][15] = 'P'
   put(m, 'L', [[12, 11], [18, 11], [12, 15], [18, 15]])
   rect(m, '=', 19, 13, 11, 1)
@@ -275,7 +276,8 @@ function celunoTiles() {
   m[13][8] = '='
   m[12][3] = 'h'
   m[14][3] = 'h'
-  rect(m, 'k', 1, 21, 4, 2)
+  rect(m, 'k', 1, 21, 7, 2)
+  m[21][4] = 'κ'
   rect(m, '~', 24, 21, 4, 2)
   put(m, 'S', [[14, 4], [21, 12]])
   put(m, 'x', [[21, 14]])
@@ -287,6 +289,10 @@ function celunoTiles() {
   put(m, 'Y', [[27, 5], [28, 7], [1, 10], [28, 17], [1, 20], [28, 10]])
   put(m, 'b', [[16, 17], [13, 22], [18, 22], [10, 10], [26, 10]])
   put(m, 'r', [[11, 4], [19, 4]])
+  put(m, 'ω', [[27, 9], [9, 16]])
+  // 南の 出口（はじまりの森へ 続く 道）
+  m[23][15] = '='
+  m[21][16] = 'S'
   sprinkle(m, 3, 4)
   return done(m)
 }
@@ -324,6 +330,7 @@ function calculetTiles() {
   // 運河と橋
   rect(m, '~', 1, 21, 32, 2)
   rect(m, 'B', 14, 21, 3, 2)
+  put(m, 'β', [[5, 21], [10, 22], [27, 22]])
   // 運河の南の区画
   rect(m, 'T', 14, 23, 3, 5)
   rect(m, 'T', 1, 28, 32, 1)
@@ -391,8 +398,11 @@ function sanshoTiles() {
   put(m, '#', [[13, 7], [1, 15], [31, 15], [1, 25], [31, 25], [9, 28], [23, 28]])
   put(m, 'Y', [[19, 7], [1, 17], [31, 17], [2, 28], [30, 28]])
   put(m, 'n', [[11, 20], [21, 20]])
+  put(m, 'μ', [[13, 11], [19, 11], [12, 19], [20, 19]])
   m[12][32] = '#'
   m[14][32] = '#'
+  // 南の 出口（港町への 峠道へ）
+  rect(m, 'T', 15, 29, 3, 1)
   sprinkle(m, 11, 7)
   return done(m)
 }
@@ -485,6 +495,11 @@ function ifportTiles() {
   put(m, 'b', [[14, 5], [19, 5], [14, 13], [19, 13]])
   put(m, '#', [[1, 12], [32, 12], [1, 18], [32, 17]])
   put(m, 'Y', [[1, 3], [32, 3], [7, 18]])
+  // 海辺の 板張りの 岸壁、網干し、いかり、小舟
+  rect(m, 'ψ', 1, 23, 32, 1)
+  put(m, 'ν', [[5, 21], [6, 21]])
+  put(m, 'α', [[27, 21]])
+  put(m, 'β', [[4, 25], [9, 27], [2, 28], [12, 29], [19, 30]])
   sprinkle(m, 17, 1)
   return done(m)
 }
@@ -563,6 +578,14 @@ function lookupTiles() {
   put(m, 'p', [[1, 10], [32, 10], [8, 14], [25, 14], [1, 18], [32, 18]])
   put(m, 'b', [[19, 7], [19, 8], [25, 13], [8, 13], [1, 21], [32, 21]])
   put(m, 'n', [[12, 13], [21, 13]])
+  // 城の 前の 旗
+  put(m, 'λ', [[14, 10], [18, 10], [14, 18], [18, 18]])
+  // 町を かこむ 城壁と、王都への 東門（馬車が 待っている）
+  for (let y = 5; y < 24; y++) {
+    m[y][0] = 'ι'
+    m[y][33] = 'ι'
+  }
+  m[11][33] = 'χ'
   sprinkle(m, 23, 7)
   return done(m)
 }
@@ -637,6 +660,24 @@ function pivoriaTiles() {
   put(m, 'p', [[1, 10], [32, 10], [8, 14], [25, 14], [1, 18], [32, 18], [13, 21], [19, 21]])
   put(m, 'b', [[18, 7], [25, 13], [8, 13], [1, 21], [32, 21], [12, 26], [20, 26]])
   put(m, 'n', [[13, 17], [19, 17]])
+  // 噴水の 両わきの 像
+  put(m, 'θ', [[12, 13], [20, 13]])
+  // 南は 王家の 庭園（大通りは ここまで）
+  rect(m, '.', 15, 24, 3, 5)
+  rect(m, 'η', 3, 25, 11, 1)
+  rect(m, 'η', 19, 25, 12, 1)
+  rect(m, 'η', 3, 27, 11, 1)
+  rect(m, 'η', 19, 27, 12, 1)
+  put(m, ',', [[4, 26], [7, 26], [10, 26], [13, 26], [19, 26], [22, 26], [25, 26], [28, 26], [15, 27], [17, 27]])
+  m[26][16] = 'θ'
+  // 町を かこむ 生け垣、西門（ルックアップ行き）と 東門（テキストリア行き）
+  for (let y = 6; y < 29; y++) {
+    m[y][0] = 'η'
+    m[y][33] = 'η'
+  }
+  rect(m, 'η', 0, 29, 34, 1)
+  m[19][0] = 'χ'
+  m[19][33] = 'χ'
   sprinkle(m, 29, 7)
   return done(m)
 }
@@ -695,10 +736,10 @@ function textriaTiles() {
   building(m, 19, 7, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
   building(m, 26, 7, 6, { roof: 'Q', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
   // 南の並び
-  building(m, 2, 16, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 2, 16, 5, { roof: 'U', cross: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
   building(m, 8, 16, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
-  building(m, 20, 16, 6, { roof: 'R', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
-  building(m, 27, 16, 5, { roof: 'E', stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 20, 16, 6, { roof: 'R', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
+  building(m, 27, 16, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
   // 市場と 飾り
   put(m, 'A', [[8, 24], [9, 24], [10, 24], [22, 24], [23, 24], [24, 24]])
   put(m, 'S', [[14, 7]])
@@ -706,6 +747,14 @@ function textriaTiles() {
   put(m, 'p', [[1, 11], [32, 11], [1, 15], [32, 15], [13, 23], [19, 23]])
   put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [12, 26], [20, 26]])
   put(m, 'n', [[11, 15], [22, 15]])
+  // 南は 柳の 並ぶ 川（大通りは ここまで）
+  rect(m, '.', 15, 23, 3, 4)
+  rect(m, '~', 1, 26, 32, 1)
+  put(m, 'υ', [[3, 25], [9, 25], [23, 25], [29, 25]])
+  put(m, 'ζ', [[14, 25], [18, 25]])
+  // 宿場の 街道：西の 木戸（ピボリア行き）と 東の 木戸（コヨミノ行き）
+  m[13][0] = 'χ'
+  m[13][33] = 'χ'
   sprinkle(m, 41, 7)
   return done(m)
 }
@@ -754,22 +803,22 @@ function koyomiTiles() {
   m[4][16] = 'd'
   rect(m, '.', 15, 5, 3, 1)
   rect(m, 'Z', 15, 6, 3, 1)
-  // 道と 広場
-  rect(m, 'T', 15, 7, 3, 20)
-  rect(m, 'T', 1, 12, 32, 2)
-  rect(m, 'T', 1, 21, 32, 2)
+  // 土の 道と、日時計の ある 石の 広場
+  rect(m, '=', 15, 7, 3, 17)
+  rect(m, '=', 1, 12, 32, 2)
+  rect(m, '=', 1, 21, 32, 2)
   rect(m, 'T', 12, 14, 9, 5)
-  rect(m, 'u', 15, 15, 3, 3)
-  m[16][16] = 'f'
+  m[16][16] = 'ξ'
+  put(m, 'ζ', [[13, 15], [19, 15]])
   // 北の並び
-  building(m, 2, 7, 6, { roof: 'Q', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
+  building(m, 2, 7, 6, { roof: 'Q', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '6'] })
   building(m, 9, 7, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '3'] })
   building(m, 19, 7, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [0], door: 2, sign: [3, '8'] })
   building(m, 26, 7, 6, { roof: 'N', upper: true, winUpper: [1, 4], winLower: [0, 5], door: 3, sign: [2, '1'] })
   // 南の並び
-  building(m, 2, 16, 5, { roof: 'U', cross: true, stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
+  building(m, 2, 16, 5, { roof: 'U', cross: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
   building(m, 7, 16, 5, { roof: 'R', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
-  building(m, 22, 16, 5, { roof: 'Q', stone: true, upper: true, winUpper: [1, 3], winLower: [0, 4], door: 2, sign: [3, '5'] })
+  building(m, 22, 16, 5, { roof: 'Q', upper: true, winUpper: [1, 3], winLower: [0, 4], door: 2, sign: [3, '5'] })
   building(m, 28, 16, 5, { roof: 'E', upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
   // 市場と 飾り
   put(m, 'A', [[5, 24], [6, 24], [7, 24], [25, 24], [26, 24], [27, 24]])
@@ -778,6 +827,12 @@ function koyomiTiles() {
   put(m, 'p', [[1, 11], [32, 11], [12, 19], [20, 19], [13, 23], [19, 23]])
   put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [11, 26], [21, 26]])
   put(m, 'n', [[13, 18], [19, 18]])
+  // 南の 田んぼ
+  rect(m, 'ρ', 2, 24, 30, 3)
+  // 西の 木戸（テキストリア行き）と、北東の 峠道（ホープ行き）
+  m[12][0] = 'χ'
+  for (let y = 1; y < 12; y++) m[y][32] = '='
+  m[0][32] = 'χ'
   sprinkle(m, 53, 7)
   return done(m)
 }
@@ -840,13 +895,21 @@ function hopeTiles() {
   building(m, 8, 16, 5, { roof: 'N', upper: true, winUpper: [1, 3], winLower: [4], door: 2, sign: [1, '2'] })
   building(m, 20, 16, 6, { roof: 'R', stone: true, upper: true, winUpper: [1, 4], winLower: [0, 5], door: 2, sign: [3, '5'] })
   building(m, 27, 16, 5, { roof: 'Q', stone: true, upper: true, winUpper: [1, 3], winLower: [1, 3], door: 2 })
-  // 野営と 飾り
-  put(m, 'A', [[7, 24], [8, 24], [24, 24], [25, 24]])
+  // 野営の テントと たき火
+  put(m, 'τ', [[3, 25], [5, 25], [27, 25], [29, 25]])
+  put(m, 'φ', [[8, 25], [24, 25]])
   put(m, 'S', [[14, 7]])
   put(m, 'L', [[14, 11], [18, 11], [7, 14], [26, 14], [14, 20], [18, 20], [14, 24], [18, 24]])
   put(m, 'p', [[1, 11], [32, 11], [12, 23], [20, 23]])
   put(m, 'b', [[18, 7], [8, 11], [25, 11], [1, 24], [32, 24], [11, 26], [21, 26]])
   put(m, 'n', [[11, 14], [22, 14]])
+  // 砦を かこむ 丸太の 柵と、南門（コヨミノ行きの 馬車）
+  for (let y = 5; y < 27; y++) {
+    m[y][0] = 'π'
+    m[y][33] = 'π'
+  }
+  rect(m, 'π', 0, 27, 34, 1)
+  m[27][16] = 'χ'
   sprinkle(m, 67, 7)
   return done(m)
 }
@@ -1157,6 +1220,7 @@ function link(town: MapDef, doorX: number, doorY: number, r: MapDef) {
 // ================================================================ マップ定義
 const celuno: MapDef = {
   id: 'celuno',
+  theme: 'village',
   name: 'はじまりの村 セルノ',
   kind: 'town',
   town: 'celuno',
@@ -1166,9 +1230,11 @@ const celuno: MapDef = {
   respawn: { map: 'celuno_church', x: 5, y: 4 },
   exits: [
     { x: 29, y: 13, to: 'world', tx: 10, ty: 14, dir: 'right' },
+    { x: 15, y: 23, to: 'world', tx: 9, ty: 15, dir: 'down' },
     { x: 15, y: 1, to: 'cave', tx: 14, ty: 21, dir: 'up' },
   ],
   signs: [
+    { x: 16, y: 21, lines: ['↓ 南：はじまりの森', '→ 東：橋を 渡って 計算の町 カルキュレ'] },
     { x: 14, y: 4, lines: ['北のどうくつ ― 散らかりセルイムの すみか。', '奥へ進むには、石版の扉の 謎を 解かねば ならぬという。', '村の悩みを すべて解決すれば、入口の 呪いの結界は とけるだろう。'] },
     { x: 21, y: 12, lines: ['「ボルド看板店」', '見出しは太く、看板は目立て！ ― 店主'] },
   ],
@@ -1193,6 +1259,7 @@ const celuno: MapDef = {
 
 const calculet: MapDef = {
   id: 'calculet',
+  theme: 'canal',
   name: '計算の町 カルキュレ',
   kind: 'town',
   town: 'calculet',
@@ -1255,9 +1322,10 @@ const world: MapDef = {
   spawn: { x: 8, y: 24, dir: 'right' },
   exits: [
     { x: 7, y: 24, to: 'forest', tx: 20, ty: 9, dir: 'left' },
-    { x: 9, y: 14, to: 'celuno', tx: 28, ty: 13, dir: 'left' },
-    { x: 36, y: 12, to: 'calculet', tx: 1, ty: 12, dir: 'right' },
-    { x: 54, y: 12, to: 'sansho', tx: 1, ty: 13, dir: 'right' },
+    // 町に 入る 向きで 着く 入口が 変わる（南の 道から 来たら 南の 入口）
+    { x: 9, y: 14, to: 'celuno', tx: 28, ty: 13, dir: 'left', from: { up: { tx: 15, ty: 22, dir: 'up' } } },
+    { x: 36, y: 12, to: 'calculet', tx: 1, ty: 12, dir: 'right', from: { left: { tx: 31, ty: 12, dir: 'left' } } },
+    { x: 54, y: 12, to: 'sansho', tx: 1, ty: 13, dir: 'right', from: { up: { tx: 16, ty: 28, dir: 'up' } } },
     { x: 54, y: 29, to: 'ifport', tx: 16, ty: 1, dir: 'down' },
   ],
   signs: [],
@@ -1291,6 +1359,7 @@ const world: MapDef = {
 // ---------------------------------------------------------------- 第3章
 const ifport: MapDef = {
   id: 'ifport',
+  theme: 'port',
   name: '条件の港町 イフポート',
   kind: 'town',
   town: 'ifport',
@@ -1330,7 +1399,7 @@ const ifport: MapDef = {
     { id: 'dog2', x: 23, y: 8, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（海の においを かいで しっぽを ふっている）'] },
     {
       id: 'port_ferry', x: 21, y: 25, name: '定期船の船乗り', look: C.ferryman, kind: 'ferry', dir: 'up',
-      lines: ['幽霊船が 消えて、南の 海の 定期船が また 出せるように なった！', '行き先は 海の 向こうの「検索の城下町 ルックアップ」。お城の 大書庫で 有名な 町さ。'],
+      lines: ['幽霊船が 消えて、港の 定期船が また 出せるように なった！', '行き先は 海の 向こうの「検索の城下町 ルックアップ」。お城の 大書庫で 有名な 町さ。'],
       ferry: { to: 'lookup', x: 16, y: 23, dir: 'up', place: '検索の城下町 ルックアップ' },
       hideIf: (s) => !s.bosses.includes('captain'),
     },
@@ -1385,6 +1454,7 @@ const ship2: MapDef = {
 // ---------------------------------------------------------------- 第2章
 const sansho: MapDef = {
   id: 'sansho',
+  theme: 'mirror',
   name: '鏡の町 サンショウ',
   kind: 'town',
   town: 'sansho',
@@ -1396,6 +1466,9 @@ const sansho: MapDef = {
     { x: 0, y: 12, to: 'world', tx: 53, ty: 12, dir: 'left' },
     { x: 0, y: 13, to: 'world', tx: 53, ty: 12, dir: 'left' },
     { x: 0, y: 14, to: 'world', tx: 53, ty: 12, dir: 'left' },
+    { x: 15, y: 29, to: 'world', tx: 54, ty: 13, dir: 'down' },
+    { x: 16, y: 29, to: 'world', tx: 54, ty: 13, dir: 'down' },
+    { x: 17, y: 29, to: 'world', tx: 54, ty: 13, dir: 'down' },
     { x: 16, y: 4, to: 'temple1', tx: 11, ty: 14, dir: 'up' },
   ],
   signs: [
@@ -1481,6 +1554,7 @@ const temple2: MapDef = {
 // ---------------------------------------------------------------- 第4章
 const lookup: MapDef = {
   id: 'lookup',
+  theme: 'castle',
   name: '検索の城下町 ルックアップ',
   kind: 'town',
   town: 'lookup',
@@ -1501,10 +1575,13 @@ const lookup: MapDef = {
       ferry: { to: 'ifport', x: 21, y: 23, dir: 'up', place: '条件の港町 イフポート' },
     },
     {
-      id: 'lookup_coach', x: 32, y: 11, name: '馬車の御者', look: C.coachman, kind: 'ferry', dir: 'left',
-      lines: ['書庫の 呪いが 解けて、王都への 街道も 通れるように なったぞ！', '行き先は「集計の王都 ピボリア」。国じゅうの 記録が 集まる 都さ。'],
-      ferry: { to: 'pivoria', x: 16, y: 26, dir: 'up', place: '集計の王都 ピボリア', verb: '向かう' },
-      hideIf: (s) => !s.bosses.includes('mitsukaranu'),
+      id: 'lookup_coach', x: 32, y: 11, name: '東門の御者', look: C.coachman, kind: 'ferry', dir: 'left',
+      lines: ['書庫の 呪いが 解けて、王都への 街道も 通れるように なったぞ！', '行き先は 東の「集計の王都 ピボリア」。国じゅうの 記録が 集まる 都さ。'],
+      ferry: {
+        to: 'pivoria', x: 2, y: 20, dir: 'right', place: '集計の王都 ピボリア', verb: '向かう',
+        closed: (s) => !s.bosses.includes('mitsukaranu'),
+        closedLines: ['すまんな、東の 王都への 街道は いま 通れないんだ。', '城の 大書庫が 呪われてから、道の 地図まで 見つからなくなってな……。', '書庫の 主を 何とかしてくれたら、すぐに 馬車を 出すぜ。'],
+      },
     },
     {
       id: 'quill', x: 25, y: 21, name: '古本屋のクイル', look: C.quill, kind: 'talk', dir: 'down',
@@ -1572,12 +1649,13 @@ const library2: MapDef = {
 // ---------------------------------------------------------------- 第5章
 const pivoria: MapDef = {
   id: 'pivoria',
+  theme: 'royal',
   name: '集計の王都 ピボリア',
   kind: 'town',
   town: 'pivoria',
   bossId: 'barabaran',
   tiles: pivoriaTiles(),
-  spawn: { x: 16, y: 26, dir: 'up' },
+  spawn: { x: 2, y: 20, dir: 'right' },
   respawn: { map: 'pivo_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'treasury1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
@@ -1587,9 +1665,9 @@ const pivoria: MapDef = {
     { id: 'kazoe', x: 18, y: 9, name: '衛兵長カゾエ', look: C.kazoe, kind: 'quest', questId: 'pivo_countifs', dir: 'left' },
     { id: 'akina', x: 12, y: 21, name: '市場頭アキナ', look: C.akina, kind: 'quest', questId: 'pivo_sumifs', dir: 'down' },
     {
-      id: 'pivo_coach', x: 17, y: 27, name: '馬車の御者', look: C.coachman, kind: 'ferry', dir: 'up',
-      lines: ['ルックアップ行きの 馬車だ。いつでも 乗せて やるぞ。'],
-      ferry: { to: 'lookup', x: 31, y: 11, dir: 'right', place: '検索の城下町 ルックアップ', verb: '向かう' },
+      id: 'pivo_coach', x: 1, y: 19, name: '西門の御者', look: C.coachman, kind: 'ferry', dir: 'right',
+      lines: ['西の ルックアップ行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'lookup', x: 31, y: 12, dir: 'left', place: '検索の城下町 ルックアップ', verb: '向かう' },
     },
     {
       id: 'noble', x: 21, y: 14, name: '王都の貴婦人', look: C.noble, kind: 'talk', wander: true, emote: 'sweat',
@@ -1606,10 +1684,13 @@ const pivoria: MapDef = {
       linesAfter: { when: (s) => s.bosses.includes('barabaran'), lines: ['宝物庫の 記録が、1冊の 帳簿に まとまった！', '王都の 者 一同、感謝して おるぞ。'] },
     },
     {
-      id: 'pivo_coach2', x: 1, y: 20, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
-      lines: ['王都の 帳簿が 戻って、西の 宿場町への 便も 再開だ！', '行き先は「文字の宿場町 テキストリア」。手紙と 書物の 町さ。……最近は 文字が 化けて 読めないって 噂だがね。'],
-      ferry: { to: 'textria', x: 16, y: 25, dir: 'up', place: '文字の宿場町 テキストリア', verb: '向かう' },
-      hideIf: (s) => !s.bosses.includes('barabaran'),
+      id: 'pivo_coach2', x: 32, y: 19, name: '東門の御者', look: C.coachman, kind: 'ferry', dir: 'left',
+      lines: ['王都の 帳簿が 戻って、東の 宿場町への 便も 再開だ！', '行き先は「文字の宿場町 テキストリア」。手紙と 書物の 町さ。……最近は 文字が 化けて 読めないって 噂だがね。'],
+      ferry: {
+        to: 'textria', x: 2, y: 14, dir: 'right', place: '文字の宿場町 テキストリア', verb: '向かう',
+        closed: (s) => !s.bosses.includes('barabaran'),
+        closedLines: ['東の 宿場町への 便は 止まってるよ。', '王都の 帳簿が バラバラで、運賃の 計算すら できないんだ。'],
+      },
     },
     { id: 'cat4', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャー。', '（市場の 魚屋の 前から 動かない）'] },
     { id: 'dog3', x: 6, y: 23, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（馬車の 車輪を じっと 見ている）'] },
@@ -1664,12 +1745,13 @@ const treasury2: MapDef = {
 // ---------------------------------------------------------------- 第6章
 const textria: MapDef = {
   id: 'textria',
+  theme: 'edo',
   name: '文字の宿場町 テキストリア',
   kind: 'town',
   town: 'textria',
   bossId: 'mojibake',
   tiles: textriaTiles(),
-  spawn: { x: 16, y: 25, dir: 'up' },
+  spawn: { x: 2, y: 14, dir: 'right' },
   respawn: { map: 'text_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'print1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
@@ -1678,9 +1760,9 @@ const textria: MapDef = {
   npcs: [
     { id: 'kodo', x: 25, y: 23, name: '倉庫番コード', look: C.kodo, kind: 'quest', questId: 'text_leftright', dir: 'down' },
     {
-      id: 'text_coach', x: 17, y: 26, name: '王都行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
-      lines: ['ピボリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
-      ferry: { to: 'pivoria', x: 2, y: 20, dir: 'left', place: '集計の王都 ピボリア', verb: '向かう' },
+      id: 'text_coach', x: 1, y: 13, name: '王都行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
+      lines: ['西の ピボリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'pivoria', x: 31, y: 20, dir: 'left', place: '集計の王都 ピボリア', verb: '向かう' },
     },
     {
       id: 'printer', x: 18, y: 8, name: '印刷工のハンコ', look: C.printer, kind: 'guard', dir: 'left',
@@ -1700,8 +1782,11 @@ const textria: MapDef = {
     {
       id: 'text_coach2', x: 32, y: 13, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'left',
       lines: ['宿場の 文字が 戻って、東の 里への 便も 出せるように なった！', '行き先は「暦の里 コヨミノ」。時計塔の ある 静かな 里さ。……もっとも 最近は、日付が 狂って 大騒ぎらしいがね。'],
-      ferry: { to: 'koyomi', x: 16, y: 25, dir: 'up', place: '暦の里 コヨミノ', verb: '向かう' },
-      hideIf: (s) => !s.bosses.includes('mojibake'),
+      ferry: {
+        to: 'koyomi', x: 2, y: 13, dir: 'right', place: '暦の里 コヨミノ', verb: '向かう',
+        closed: (s) => !s.bosses.includes('mojibake'),
+        closedLines: ['東の 里への 便は お休みだよ。', '行き先の 札の 文字が 化けて、どこ行きか わからなく なっちまってね。'],
+      },
     },
     { id: 'cat5', x: 6, y: 23, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ……ニ繝｣……？', '（ネコの 鳴き声まで 化けている……）'] },
   ],
@@ -1755,12 +1840,13 @@ const print2: MapDef = {
 // ---------------------------------------------------------------- 第7章
 const koyomi: MapDef = {
   id: 'koyomi',
+  theme: 'satoyama',
   name: '暦の里 コヨミノ',
   kind: 'town',
   town: 'koyomi',
   bossId: 'shimekiris',
   tiles: koyomiTiles(),
-  spawn: { x: 16, y: 25, dir: 'up' },
+  spawn: { x: 2, y: 13, dir: 'right' },
   respawn: { map: 'koyo_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'clock1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
@@ -1770,9 +1856,9 @@ const koyomi: MapDef = {
     { id: 'nokori', x: 10, y: 22, name: '鍛冶屋の弟子ノコリ', look: C.nokori, kind: 'quest', questId: 'date_diff', dir: 'down' },
     { id: 'youbi', x: 26, y: 23, name: '市場番ヨウビ', look: C.youbi, kind: 'quest', questId: 'date_weekday', dir: 'down' },
     {
-      id: 'koyo_coach', x: 17, y: 26, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
-      lines: ['テキストリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
-      ferry: { to: 'textria', x: 31, y: 13, dir: 'right', place: '文字の宿場町 テキストリア', verb: '向かう' },
+      id: 'koyo_coach', x: 1, y: 12, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
+      lines: ['西の テキストリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      ferry: { to: 'textria', x: 31, y: 14, dir: 'left', place: '文字の宿場町 テキストリア', verb: '向かう' },
     },
     {
       id: 'clockman', x: 18, y: 8, name: '時計守りのゼンマイ', look: C.clockman, kind: 'guard', dir: 'left',
@@ -1785,10 +1871,13 @@ const koyomi: MapDef = {
       linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['誕生日まで あと 12日！ 引き算で すぐ わかったよ！'] },
     },
     {
-      id: 'koyo_coach2', x: 32, y: 12, name: '砦行きの御者', look: C.coachman, kind: 'ferry', dir: 'left',
-      lines: ['時計塔の 鐘が 鳴って、北の 果てへの 道が 開けた……。', '行き先は「最果ての砦 ホープ」。魔王レフエラーの 城を 見張る 最後の 砦さ。……覚悟は いいかい？'],
-      ferry: { to: 'hope', x: 16, y: 25, dir: 'up', place: '最果ての砦 ホープ', verb: '向かう' },
-      hideIf: (s) => !s.bosses.includes('shimekiris'),
+      id: 'koyo_coach2', x: 32, y: 1, name: '砦行きの御者', look: C.coachman, kind: 'ferry', dir: 'down',
+      lines: ['時計塔の 鐘が 鳴って、北の 果てへの 峠道が 開けた……。', '行き先は「最果ての砦 ホープ」。魔王レフエラーの 城を 見張る 最後の 砦さ。……覚悟は いいかい？'],
+      ferry: {
+        to: 'hope', x: 16, y: 25, dir: 'up', place: '最果ての砦 ホープ', verb: '向かう',
+        closed: (s) => !s.bosses.includes('shimekiris'),
+        closedLines: ['北の 果てへの 峠道は 閉ざされている。', '時計塔の 鐘が 鳴らないかぎり、いつ 出発すれば いいかも わからん……。'],
+      },
     },
     { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
     { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）'] },
@@ -1843,6 +1932,7 @@ const clock2: MapDef = {
 // ---------------------------------------------------------------- 最終章
 const hope: MapDef = {
   id: 'hope',
+  theme: 'snow',
   name: '最果ての砦 ホープ',
   kind: 'town',
   town: 'hope',
@@ -1858,8 +1948,8 @@ const hope: MapDef = {
     { id: 'miharu', x: 23, y: 13, name: '見張り番ミハル', look: C.miharu, kind: 'quest', questId: 'err_value', dir: 'up' },
     {
       id: 'hope_coach', x: 17, y: 26, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
-      lines: ['コヨミノ行きの 馬車だ。準備が 足りなければ、いつでも 戻れるぞ。'],
-      ferry: { to: 'koyomi', x: 31, y: 12, dir: 'right', place: '暦の里 コヨミノ', verb: '向かう' },
+      lines: ['南の コヨミノ行きの 馬車だ。準備が 足りなければ、いつでも 戻れるぞ。'],
+      ferry: { to: 'koyomi', x: 32, y: 3, dir: 'down', place: '暦の里 コヨミノ', verb: '向かう' },
     },
     {
       id: 'gatekeeper', x: 18, y: 8, name: '城門の見張り', look: C.soldier9, kind: 'guard', dir: 'left',

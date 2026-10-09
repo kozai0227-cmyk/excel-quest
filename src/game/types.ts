@@ -1,3 +1,4 @@
+import type { ThemeName } from './tiles'
 import type { CharSpec, Creature } from './sprites'
 
 export type Dir = 'up' | 'down' | 'left' | 'right'
@@ -39,7 +40,18 @@ export interface NpcDef {
   dir?: Dir
   kind: 'talk' | 'quest' | 'inn' | 'shop' | 'church' | 'boss' | 'guard' | 'gear' | 'chest' | 'heal' | 'ferry' | 'unlock'
   /** 船乗り：乗ると 別の 港へ 渡る */
-  ferry?: { to: string; x: number; y: number; dir: Dir; place: string; /** 「渡る」以外の 言い方（馬車なら「向かう」） */ verb?: string }
+  ferry?: {
+    to: string
+    x: number
+    y: number
+    dir: Dir
+    place: string
+    /** 「渡る」以外の 言い方（馬車なら「向かう」） */
+    verb?: string
+    /** まだ 出せない（ボスを 倒す 前）。そのあいだは closedLines を 話す */
+    closed?: (s: GameState) => boolean
+    closedLines?: string[]
+  }
   /** 宝箱の中身 */
   loot?: { item?: ItemId; gold?: number; equip?: string }
   /** 武器屋・防具屋の品ぞろえ（装備ID） */
@@ -60,6 +72,8 @@ export interface Exit {
   tx: number
   ty: number
   dir: Dir
+  /** 歩いてきた 向きで 着く 場所を 変える（地図の 町：南から 来たら 南の 入口へ） */
+  from?: Partial<Record<Dir, { tx: number; ty: number; dir: Dir }>>
 }
 
 export interface SignDef {
@@ -72,6 +86,8 @@ export interface MapDef {
   id: string
   name: string
   kind: 'town' | 'interior' | 'world' | 'field' | 'dungeon'
+  /** 町の 見た目（地面・屋根・壁・木 など） */
+  theme?: ThemeName
   /** 所属する町（室内は親の町） */
   town?: string
   bossId?: string

@@ -6,6 +6,11 @@ import { isNative } from './native'
 export const FREE_CHAPTERS = 2
 /** App Store Connect で 作る 商品（非消耗型）の ID */
 export const PRODUCT_ID = 'com.kozai0227.equalquest.full'
+/**
+ * Web 版も 全章 遊べるか。App Store の 審査が 通るまでは テスト用に true のまま。
+ * false に すると Web 版は 第2章までの 体験版に なる（アプリ版は 関係なし）
+ */
+export const WEB_FULL = true
 
 /** アプリ本体の 課金部品（ios/App/App/StorePlugin.swift） */
 interface StorePlugin {
@@ -27,8 +32,8 @@ const readCache = () => {
   }
 }
 
-/** ブラウザ版は 体験版（開発中の npm run dev だけ すべて 遊べる） */
-let unlocked = isNative ? readCache() : !!import.meta.env?.DEV
+/** アプリ版は 購入の 記録しだい。Web 版は WEB_FULL（か 開発中の npm run dev）なら すべて 遊べる */
+let unlocked = isNative ? readCache() : WEB_FULL || !!import.meta.env?.DEV
 /** 購入画面を 開いているか */
 let screenOpen = false
 const subs = new Set<() => void>()

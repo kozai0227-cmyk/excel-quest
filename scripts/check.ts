@@ -13,6 +13,8 @@ import { GUIDES } from '../src/data/guides'
 import { ENEMIES } from '../src/data/bosses'
 import { MAPS } from '../src/data/maps'
 import { COUNTER, WALKABLE } from '../src/game/tiles'
+// 馬車の 御者（見た目で 見分ける）
+const C_COACH = MAPS.lookup.npcs.find((n) => n.id === 'lookup_coach')?.look
 import { evaluate, formatValue, makeGrid, normalizeInput, parseAddr, shiftFormula, usesFn } from '../src/game/formula'
 import { answerChips, guideChips, tryFormula } from '../src/game/guide'
 import { ALL_FUNCS, battlePad, formulaChips } from '../src/game/formulaTokens'
@@ -135,7 +137,39 @@ for (const m of Object.values(MAPS)) {
     if (!ok) bad(`${m.id}: ${npc.name} (${npc.x},${npc.y}) に 話しかけられない`)
     if (npc.ferry && !WALKABLE.has(MAPS[npc.ferry.to]?.tiles[npc.ferry.y]?.[npc.ferry.x] ?? '#')) bad(`${m.id}: ${npc.name} の 行き先が 歩けない`)
   }
+  // 来た 向きで 変わる 着き場所も 歩ける
+  for (const ex of m.exits)
+    for (const alt of Object.values(ex.from ?? {}))
+      if (alt && !WALKABLE.has(MAPS[ex.to]?.tiles[alt.ty]?.[alt.tx] ?? '#')) bad(`${m.id} → ${ex.to}: 向きで 変わる 着く場所 (${alt.tx},${alt.ty}) が 歩けない`)
+  // 町の 端に 通れる すき間が あるのに 出口が ない（行き止まりの 道）
+  if (m.kind === 'town')
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        if (x > 0 && y > 0 && x < W - 1 && y < H - 1) continue
+        if (WALKABLE.has(m.tiles[y][x]) && !m.exits.some((e) => e.x === x && e.y === y)) bad(`${m.id}: 端 (${x},${y}) が 通れるのに 出口が ない`)
+      }
 }
+
+// 町と 町の 行き来：乗り場と 着き場所の 向きを そろえる
+const edgeDist = (m: (typeof MAPS)[string], x: number, y: number) => ({ N: y, S: m.tiles.length - 1 - y, W: x, E: m.tiles[0].length - 1 - x })
+const OPP = { N: 'S', S: 'N', W: 'E', E: 'W' } as const
+for (const m of Object.values(MAPS))
+  for (const npc of m.npcs) {
+    const f = npc.ferry
+    if (!f) continue
+    const dest = MAPS[f.to]
+    // 着いた すぐ そばに、元の 町へ 戻る 乗り場が ある
+    const back = dest.npcs.find((n) => n.ferry?.to === m.id)
+    if (!back) bad(`${dest.id}: ${m.id} へ 戻る 乗り場が ない`)
+    else if (Math.abs(back.x - f.x) + Math.abs(back.y - f.y) > 3) bad(`${m.id} → ${dest.id}: 着く場所 (${f.x},${f.y}) が 戻りの 乗り場 (${back.x},${back.y}) から 遠い`)
+    // 馬車：門（端）の 馬車の そばに 立ち、行った 向きの 反対側に 着く
+    if (npc.look !== C_COACH) continue
+    const near = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => m.tiles[npc.y + dy]?.[npc.x + dx] === 'χ'))
+    if (!near) bad(`${m.id}: ${npc.name} の そばに 馬車が ない`)
+    const d = edgeDist(m, npc.x, npc.y)
+    const side = (Object.keys(d) as (keyof typeof d)[]).reduce((a, b) => (d[b] < d[a] ? b : a))
+    if (edgeDist(dest, f.x, f.y)[OPP[side]] > 4) bad(`${m.id} → ${dest.id}: ${side} の 門から 出たのに、${OPP[side]} 側に 着かない (${f.x},${f.y})`)
+  }
 console.log(`マップ：${Object.keys(MAPS).length} 枚`)
 
 // ---------------------------------------------------------------- 5. BGM

@@ -268,7 +268,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
                 プライバシーポリシー
               </div>
               <div className={`opt lic-row ${icur === VOL_ROWS.length + 2 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 2); openUnlock() }}>
-                全章解放<small>：{unlocked ? '購入ずみ' : isNative ? `購入・復元（第${FREE_CHAPTERS + 1}章〜）` : 'アプリ版で 遊べます'}</small>
+                全章解放<small>：{!isNative ? (unlocked ? 'Web版は 全章 遊べます' : 'アプリ版で 遊べます') : unlocked ? '購入ずみ' : `購入・復元（第${FREE_CHAPTERS + 1}章〜）`}</small>
               </div>
               {privacy && <DocView src="privacy.html" onClose={() => setPrivacy(false)} />}
               {lic !== null && (
