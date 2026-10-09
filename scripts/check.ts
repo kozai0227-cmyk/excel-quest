@@ -12,6 +12,8 @@ import { QUESTS, makeCtx } from '../src/data/quests'
 import { GUIDES } from '../src/data/guides'
 import { ENEMIES } from '../src/data/bosses'
 import { MAPS } from '../src/data/maps'
+import { SKILLS } from '../src/data/skills'
+import { FUNC_GUIDES } from '../src/data/funcGuides'
 import { COUNTER, WALKABLE } from '../src/game/tiles'
 // 馬車の 御者（見た目で 見分ける）
 const C_COACH = MAPS.lookup.npcs.find((n) => n.id === 'lookup_coach')?.look
@@ -177,6 +179,10 @@ for (const q of Object.values(QUESTS)) {
   if (lastLike && !q.notLast) bad(`${q.id}: 「最後の 悩み」の 言い方だが、ほかが 残っている ときの notLast が ない`)
   if (q.notLast && (q.notLast.introHead.length > q.intro.length || q.notLast.thanksTail.length > q.thanks.length)) bad(`${q.id}: notLast が 長すぎる`)
 }
+// 教会の 関数の 相談：すべての 関数・技に 解説が あり、どの 町にも 相談できる 関数が ある
+for (const id of Object.keys(SKILLS)) if (!FUNC_GUIDES[id]) bad(`関数の 解説が ない：${id}`)
+for (const m of Object.values(MAPS))
+  if (m.kind === 'town' && !Object.values(SKILLS).some((sk) => m.name.endsWith(sk.town))) bad(`${m.id}: 教会で 相談できる 関数が ない`)
 console.log(`マップ：${Object.keys(MAPS).length} 枚`)
 
 // ---------------------------------------------------------------- 5. BGM

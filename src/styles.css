@@ -3257,3 +3257,89 @@ kbd {
   font-size: 0.75em;
   color: #9aa6bb;
 }
+
+/* 教会：関数の 解説カード */
+.func-card-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 3%;
+}
+.win.func-card {
+  position: relative;
+  width: min(100%, 720px);
+  max-height: 100%;
+  overflow: auto;
+  font-size: 2.3cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+.phone .win.func-card {
+  font-size: 15px;
+  padding: 12px 14px;
+}
+.func-card .fc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+.func-card h3 {
+  margin: 0;
+  color: #ffd76a;
+  font-size: 1.35em;
+}
+.func-card .fc-badge {
+  font-size: 0.75em;
+  padding: 0.1em 0.5em;
+  border: 1px solid #8a94a6;
+  border-radius: 0.4em;
+  color: #c8cfdb;
+  white-space: nowrap;
+}
+.func-card .fc-badge.on {
+  border-color: #7fd38a;
+  color: #9ff0aa;
+}
+.func-card h4 {
+  margin: 0.4em 0 0;
+  font-size: 0.85em;
+  color: #9fd2ff;
+}
+.func-card p {
+  margin: 0;
+}
+.func-card code {
+  font-family: 'DotGothic16', ui-monospace, monospace;
+  color: #ffe9a8;
+  word-break: break-all;
+}
+.func-card .fc-form {
+  display: block;
+  padding: 0.35em 0.6em;
+  border-radius: 0.4em;
+  background: rgba(255, 255, 255, 0.08);
+}
+.func-card .fc-ex {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 0.25em;
+}
+.func-card .fc-arrow {
+  color: #dfe5ee;
+}
+.func-card .fc-tip {
+  color: #f2f4f8;
+}
+.func-card .btn {
+  align-self: center;
+  margin-top: 0.5em;
+  font: inherit;
+  min-width: 8em;
+}

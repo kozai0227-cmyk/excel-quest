@@ -2029,7 +2029,7 @@ const rooms: MapDef[] = [
   ]),
   room('celuno_church', 'セルノの教会', 'celuno', 'church', [
     church('church1', 5, 2),
-    { id: 'prayer', x: 2, y: 6, name: '祈る村人', look: C.prayer, kind: 'talk', lines: ['どうか 表の呪いが とけますように……。', '神父さまに 話せば、冒険の記録を 残してくださいますよ。'] },
+    { id: 'prayer', x: 2, y: 6, name: '祈る村人', look: C.prayer, kind: 'talk', lines: ['どうか 表の呪いが とけますように……。', '神父さまは、表計算の 魔法の ことなら 何でも 教えてくださいますよ。'] },
   ]),
   room('celuno_shop', 'リコ商店', 'celuno', 'shop', [
     shop('shop1', 2, 2, C.shop),

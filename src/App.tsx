@@ -10,6 +10,8 @@ import { EPILOGUE_STEPS, Prologue } from './components/Prologue'
 import { Gallery, SoundTest } from './components/Gallery'
 import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
+import { FuncCard } from './components/FuncCard'
+import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
@@ -63,6 +65,14 @@ export default function App() {
   const [whiteIn, setWhiteIn] = useState(false)
   const [flash, setFlash] = useState(false)
   const [chapter, setChapter] = useState(1)
+  /** 教会で 見ている 関数の 解説（閉じると guideDone で 続きへ） */
+  const [guide, setGuide] = useState<string | null>(null)
+  const guideDone = useRef<(() => void) | null>(null)
+  const showGuide = (id: string) =>
+    new Promise<void>((resolve) => {
+      guideDone.current = resolve
+      setGuide(id)
+    })
   const phone = usePhoneLayout()
   // 全章解放：買ったら 峠の 見張りが いなくなるよう 描きなおす
   useUnlocked()
@@ -358,10 +368,22 @@ export default function App() {
           break
         }
         case 'church': {
-          const i = await say(['ようこそ、旅人さん。ここでは 旅の 記録を 残せますよ。'], ['セーブする', 'やめる'])
-          if (i === 0) {
-            save()
-            await say(['旅の 記録を 書きのこしました。', 'あなたの 旅に 光が ありますように。'])
+          // 関数の 相談：その町で 学ぶ 関数・技を 選ぶと 解説を 見せる
+          const town = MAPS[gsRef.current.mapId]?.town
+          const townName = town ? MAPS[town].name : ''
+          const ids = Object.keys(SKILLS).filter((id) => townName.endsWith(SKILLS[id].town))
+          let first = true
+          for (;;) {
+            const i = await say(
+              [first ? 'ようこそ、迷える 旅人よ。何か 困っている ことは ありますか？' : 'ほかにも 困っている ことは ありますか？'],
+              [...ids.map((id) => SKILLS[id].name), 'いいえ、だいじょうぶです'],
+            )
+            first = false
+            if (i < 0 || i >= ids.length) {
+              await say(['あなたの 旅に 光が ありますように。'])
+              break
+            }
+            await showGuide(ids[i])
           }
           break
         }
@@ -441,7 +463,7 @@ export default function App() {
           void f.walkTo('elder_event', 5, 8, 200).then(() => f.remove('elder_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で セーブもできるぞ）', isTouchDevice ? '（十字ボタン：移動　A：話す・決定　B：メニュー）' : '（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）'])
+        await talk(undefined, ['（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で 関数の ことを 相談したり できるぞ。セーブは メニューから）', isTouchDevice ? '（十字ボタン：移動　A：話す・決定　B：メニュー）' : '（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）'])
         save()
       })
     if (ex.to === 'cave')
@@ -1043,7 +1065,7 @@ export default function App() {
         '……気が ついたようですね。ここは 町の 教会です。',
         '無理は いけません。学びに 近道は ありませんから。',
         '（所持金が 半分に なった）',
-        'メニューの「スキル」で 復習するか、宿屋で 休んでから また いどみなさい。',
+        '関数で 迷ったら、わたしに 相談なさい。宿屋で 休んでから、また いどむのも よいでしょう。',
       ])
       save()
     })
@@ -1082,7 +1104,7 @@ export default function App() {
                 ? 'dungeon'
                 : 'field'
   useBgm(/gallery|soundtest|mapview/.test(location.search) ? null : music)
-  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen
+  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen || !!guide
 
   if (location.search.includes('gallery')) return <Gallery />
   if (location.search.includes('soundtest')) return <SoundTest />
@@ -1210,6 +1232,16 @@ export default function App() {
           </>
         )}
         {dialog && scene !== 'prologue' && scene !== 'epilogue' && <DialogBox key={dialog.id} req={dialog} />}
+        {guide && (
+          <FuncCard
+            id={guide}
+            learned={gs.skills.includes(guide)}
+            onClose={() => {
+              setGuide(null)
+              guideDone.current?.()
+            }}
+          />
+        )}
         {unlockOpen && <Unlock />}
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
