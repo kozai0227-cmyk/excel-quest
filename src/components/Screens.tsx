@@ -271,38 +271,76 @@ export function Ending({ chapter, name, onDone }: { chapter: number; name: strin
   )
 }
 
+/** 十字キーの 矢印（文字の ▶ は iPhone で 絵文字に なるので 図形で 描く） */
+const Arrow = () => (
+  <svg className="tp-arrow" viewBox="0 0 12 12" aria-hidden>
+    <path d="M6 2.2 L10.4 9 H1.6 Z" />
+  </svg>
+)
+
+/** 画面下の 操作ボタン（十字キーと A・B）。押すと キー入力として ゲームに 送る */
 export function TouchPad() {
-  const send = (type: 'keydown' | 'keyup', key: string, code = '') =>
-    window.dispatchEvent(new KeyboardEvent(type, { key, code, bubbles: true }))
-  const btn = (label: string, key: string, cls: string) => (
+  const [held, setHeld] = useState<ReadonlySet<string>>(new Set())
+  const press = (key: string, down: boolean) => {
+    window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { key, bubbles: true }))
+    setHeld((h) => {
+      if (h.has(key) === down) return h
+      const n = new Set(h)
+      if (down) n.add(key)
+      else n.delete(key)
+      return n
+    })
+  }
+  const btn = (key: string, cls: string, label: string, face: ReactNode) => (
     <button
-      className={`tp ${cls}`}
+      type="button"
+      aria-label={label}
+      className={`tp ${cls} ${held.has(key) ? 'on' : ''}`}
       onPointerDown={(e) => {
         e.preventDefault()
-        send('keydown', key)
+        press(key, true)
       }}
-      onPointerUp={() => send('keyup', key)}
-      onPointerLeave={() => send('keyup', key)}
+      onPointerUp={() => press(key, false)}
+      onPointerLeave={() => press(key, false)}
+      onPointerCancel={() => press(key, false)}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {label}
+      {face}
     </button>
   )
   return (
     <div className="touchpad">
       <div className="dpad">
-        {btn('▲', 'ArrowUp', 'u')}
-        {btn('◀', 'ArrowLeft', 'l')}
-        {btn('▶', 'ArrowRight', 'r')}
-        {btn('▼', 'ArrowDown', 'd')}
+        <svg className="dpad-body" viewBox="0 0 150 150" aria-hidden>
+          <defs>
+            <linearGradient id="dpad-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#363c4b" />
+              <stop offset="1" stopColor="#1f232d" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M60,0 H90 Q100,0 100,10 V50 H140 Q150,50 150,60 V90 Q150,100 140,100 H100 V140 Q100,150 90,150 H60 Q50,150 50,140 V100 H10 Q0,100 0,90 V60 Q0,50 10,50 H50 V10 Q50,0 60,0 Z"
+            fill="url(#dpad-grad)"
+            stroke="rgba(255,255,255,0.09)"
+            strokeWidth="1.5"
+          />
+        </svg>
+        <span className="dpad-center" aria-hidden />
+        {btn('ArrowUp', 'u', '上', <Arrow />)}
+        {btn('ArrowLeft', 'l', '左', <Arrow />)}
+        {btn('ArrowRight', 'r', '右', <Arrow />)}
+        {btn('ArrowDown', 'd', '下', <Arrow />)}
+      </div>
+      <div className="pad-mark" aria-hidden>
+        ＝
       </div>
       <div className="ab">
-        <div className="ab-btn">
-          {btn('B', 'Escape', 'b')}
+        <div className="ab-btn b">
+          {btn('Escape', 'round b', 'メニュー', 'B')}
           <span>メニュー</span>
         </div>
-        <div className="ab-btn">
-          {btn('A', 'Enter', 'a')}
+        <div className="ab-btn a">
+          {btn('Enter', 'round a', '決定', 'A')}
           <span>決定</span>
         </div>
       </div>
