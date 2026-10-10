@@ -63,6 +63,9 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
       <div className="logo" ref={logoRef}>
         <div className="logo-main" data-text="イコール・クエスト">イコール・クエスト</div>
         <div className="logo-sub">〜 表計算で世界を救うRPG 〜</div>
+        <i className="logo-spark s1" />
+        <i className="logo-spark s2" />
+        <i className="logo-spark s3" />
       </div>
       <div className="title-bottom">
         <div className="win title-menu" ref={menuRef}>

@@ -3403,38 +3403,126 @@ kbd {
   padding: 12cqw 0 4.6cqw;
   background: #060d26;
 }
+.title-main .logo::before {
+  content: '';
+  position: absolute;
+  inset: -30% -8%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(3, 8, 30, 0.7), rgba(3, 8, 30, 0) 68%);
+}
 .title-main .logo-main {
   position: relative;
-  font-size: 8.2cqw;
+  font-size: 9.2cqw;
   line-height: 1.15;
-  letter-spacing: 0.04em;
-  color: #fff;
-  -webkit-text-stroke: 0.3cqw #fff;
+  letter-spacing: 0.02em;
+  color: #ffe14f;
+  -webkit-text-stroke: 0.4cqw #ffe14f;
   text-shadow:
-    0.55cqw 0 0 #0a1848,
-    -0.55cqw 0 0 #0a1848,
-    0 0.55cqw 0 #0a1848,
-    0 -0.55cqw 0 #0a1848,
-    0.4cqw 0.4cqw 0 #0a1848,
-    -0.4cqw 0.4cqw 0 #0a1848,
-    0.4cqw -0.4cqw 0 #0a1848,
-    -0.4cqw -0.4cqw 0 #0a1848,
-    0 1.1cqw 0 #040a24;
+    0.6cqw 0 0 #0a1848,
+    0.52cqw 0.3cqw 0 #0a1848,
+    0.3cqw 0.52cqw 0 #0a1848,
+    0 0.6cqw 0 #0a1848,
+    -0.3cqw 0.52cqw 0 #0a1848,
+    -0.52cqw 0.3cqw 0 #0a1848,
+    -0.6cqw 0 0 #0a1848,
+    -0.52cqw -0.3cqw 0 #0a1848,
+    -0.3cqw -0.52cqw 0 #0a1848,
+    -0 -0.6cqw 0 #0a1848,
+    0.3cqw -0.52cqw 0 #0a1848,
+    0.52cqw -0.3cqw 0 #0a1848,
+    1.05cqw 0 0 #ffffff,
+    0.97cqw 0.4cqw 0 #ffffff,
+    0.74cqw 0.74cqw 0 #ffffff,
+    0.4cqw 0.97cqw 0 #ffffff,
+    0 1.05cqw 0 #ffffff,
+    -0.4cqw 0.97cqw 0 #ffffff,
+    -0.74cqw 0.74cqw 0 #ffffff,
+    -0.97cqw 0.4cqw 0 #ffffff,
+    -1.05cqw 0 0 #ffffff,
+    -0.97cqw -0.4cqw 0 #ffffff,
+    -0.74cqw -0.74cqw 0 #ffffff,
+    -0.4cqw -0.97cqw 0 #ffffff,
+    -0 -1.05cqw 0 #ffffff,
+    0.4cqw -0.97cqw 0 #ffffff,
+    0.74cqw -0.74cqw 0 #ffffff,
+    0.97cqw -0.4cqw 0 #ffffff,
+    0 1.6cqw 0 #040a24;
 }
-/* 文字の 下半分を 水色に（グラデーションの かわり） */
+/* 文字の 上を 明るく、下を だいだいに（金の グラデーションの かわり） */
+.title-main .logo-main::before,
 .title-main .logo-main::after {
   content: attr(data-text);
   position: absolute;
   inset: 0;
-  color: #a6efff;
-  -webkit-text-stroke-color: #a6efff;
   text-shadow: none;
-  clip-path: inset(56% 0 0 0);
   pointer-events: none;
 }
+.title-main .logo-main::before {
+  color: #fff8cf;
+  -webkit-text-stroke-color: #fff8cf;
+  clip-path: inset(0 0 68% 0);
+}
+.title-main .logo-main::after {
+  color: #ff9f1c;
+  -webkit-text-stroke-color: #ff9f1c;
+  clip-path: inset(60% 0 0 0);
+}
+/* ロゴの まわりの きらめき */
+.logo-spark {
+  position: absolute;
+  width: 2.6cqw;
+  height: 2.6cqw;
+  background: #fff8cf;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  animation: logo-twinkle 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.logo-spark.s1 {
+  left: -1.5%;
+  top: 4%;
+}
+.logo-spark.s2 {
+  right: -2.5%;
+  top: 30%;
+  animation-delay: 0.9s;
+}
+.logo-spark.s3 {
+  left: 60%;
+  top: -6%;
+  width: 1.8cqw;
+  height: 1.8cqw;
+  animation-delay: 1.7s;
+}
+.phone .logo-spark {
+  width: 18px;
+  height: 18px;
+}
+.phone .logo-spark.s3 {
+  width: 13px;
+  height: 13px;
+}
+@keyframes logo-twinkle {
+  0%,
+  100% {
+    transform: scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  45%,
+  55% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-spark {
+    animation: none;
+    opacity: 0.9;
+  }
+}
 .title-main .logo-sub {
-  margin-top: 1.4cqw;
-  font-size: 2.5cqw;
+  margin-top: 2cqw;
+  font-size: 2.8cqw;
+  letter-spacing: 0.06em;
   color: #fff;
   text-shadow:
     0 0.25cqw 0 #0a1848,
@@ -3482,22 +3570,42 @@ kbd {
   padding: calc(env(safe-area-inset-top) + 76px) 12px calc(env(safe-area-inset-bottom) + 34px);
 }
 .phone .title-main .logo-main {
-  font-size: min(36px, 9.4vw);
-  -webkit-text-stroke-width: 2px;
+  font-size: min(40px, 10vw);
+  -webkit-text-stroke-width: 2.5px;
   text-shadow:
-    4px 0 0 #0a1848,
-    -4px 0 0 #0a1848,
-    0 4px 0 #0a1848,
-    0 -4px 0 #0a1848,
-    3px 3px 0 #0a1848,
-    -3px 3px 0 #0a1848,
-    3px -3px 0 #0a1848,
-    -3px -3px 0 #0a1848,
-    0 7px 0 #040a24;
+    3.5px 0 0 #0a1848,
+    3.03px 1.75px 0 #0a1848,
+    1.75px 3.03px 0 #0a1848,
+    0 3.5px 0 #0a1848,
+    -1.75px 3.03px 0 #0a1848,
+    -3.03px 1.75px 0 #0a1848,
+    -3.5px 0 0 #0a1848,
+    -3.03px -1.75px 0 #0a1848,
+    -1.75px -3.03px 0 #0a1848,
+    -0 -3.5px 0 #0a1848,
+    1.75px -3.03px 0 #0a1848,
+    3.03px -1.75px 0 #0a1848,
+    6.5px 0 0 #ffffff,
+    6.01px 2.49px 0 #ffffff,
+    4.6px 4.6px 0 #ffffff,
+    2.49px 6.01px 0 #ffffff,
+    0 6.5px 0 #ffffff,
+    -2.49px 6.01px 0 #ffffff,
+    -4.6px 4.6px 0 #ffffff,
+    -6.01px 2.49px 0 #ffffff,
+    -6.5px 0 0 #ffffff,
+    -6.01px -2.49px 0 #ffffff,
+    -4.6px -4.6px 0 #ffffff,
+    -2.49px -6.01px 0 #ffffff,
+    -0 -6.5px 0 #ffffff,
+    2.49px -6.01px 0 #ffffff,
+    4.6px -4.6px 0 #ffffff,
+    6.01px -2.49px 0 #ffffff,
+    0 10px 0 #040a24;
 }
 .phone .title-main .logo-sub {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 14px;
+  font-size: 15px;
   text-shadow:
     0 2px 0 #0a1848,
     2px 0 0 #0a1848,
@@ -3521,6 +3629,6 @@ kbd {
     padding-top: calc(env(safe-area-inset-top) + 80px);
   }
   .phone .title-main .logo-main {
-    font-size: min(32px, 8.6vw);
+    font-size: min(36px, 9.4vw);
   }
 }
