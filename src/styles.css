@@ -260,21 +260,6 @@ button {
     0 0.5cqw 0 var(--brand),
     0 1cqw 0 #06302f;
 }
-.logo-grid {
-  display: inline-flex;
-  margin-top: 2cqw;
-  border: 0.3cqw solid #cde8e7;
-}
-.logo-grid span {
-  width: 3.6cqw;
-  height: 4.4cqw;
-  display: grid;
-  place-items: center;
-  font-size: 2.6cqw;
-  background: #fff;
-  color: var(--brand);
-  border-right: 0.15cqw solid #cde8e7;
-}
 .title-menu {
   font-size: 3cqw;
   min-width: 30%;
@@ -1188,15 +1173,6 @@ kbd {
   width: 9cqw;
   image-rendering: pixelated;
 }
-.title-cast {
-  display: flex;
-  gap: 3cqw;
-  align-items: flex-end;
-  margin-top: -2cqw;
-}
-.title-cast .sprite-view:last-child {
-  width: 7cqw;
-}
 
 /* 現代パートの会話ウィンドウ */
 .vn-win {
@@ -2055,25 +2031,8 @@ kbd {
     0 3px 0 var(--brand),
     0 6px 0 #06302f;
 }
-.phone .logo-grid {
-  margin-top: 12px;
-  border-width: 2px;
-}
-.phone .logo-grid span {
-  width: 28px;
-  height: 34px;
-  font-size: 17px;
-  border-right-width: 1px;
-}
 .phone .sprite-view {
   width: 72px;
-}
-.phone .title-cast {
-  gap: 18px;
-  margin-top: 0;
-}
-.phone .title-cast .sprite-view:last-child {
-  width: 56px;
 }
 .phone .screen .title-menu {
   font-size: 20px;
@@ -3217,13 +3176,6 @@ kbd {
   .phone .logo-main {
     font-size: 28px;
   }
-  .phone .logo-grid {
-    margin-top: 6px;
-  }
-  .phone .title-cast {
-    transform: scale(0.75);
-    margin: -10px 0;
-  }
   .question-win.touch-q {
     max-height: 90dvh;
   }
@@ -3251,6 +3203,7 @@ kbd {
 }
 .title-privacy {
   position: absolute;
+  z-index: 2;
   bottom: calc(10px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
@@ -3428,4 +3381,146 @@ kbd {
   margin-top: 0.5em;
   font: inherit;
   min-width: 8em;
+}
+
+/* タイトル：ドット絵の 背景と、その上の ロゴ・メニュー */
+.title-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.title-screen .logo,
+.title-bottom,
+.title-screen .name-win {
+  position: relative;
+  z-index: 1;
+}
+.title-screen.title-main {
+  justify-content: space-between;
+  gap: 0;
+  padding: 12cqw 0 4.6cqw;
+  background: #060d26;
+}
+.title-main .logo-main {
+  position: relative;
+  font-size: 8.2cqw;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  color: #fff;
+  -webkit-text-stroke: 0.3cqw #fff;
+  text-shadow:
+    0.55cqw 0 0 #0a1848,
+    -0.55cqw 0 0 #0a1848,
+    0 0.55cqw 0 #0a1848,
+    0 -0.55cqw 0 #0a1848,
+    0.4cqw 0.4cqw 0 #0a1848,
+    -0.4cqw 0.4cqw 0 #0a1848,
+    0.4cqw -0.4cqw 0 #0a1848,
+    -0.4cqw -0.4cqw 0 #0a1848,
+    0 1.1cqw 0 #040a24;
+}
+/* 文字の 下半分を 水色に（グラデーションの かわり） */
+.title-main .logo-main::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: #a6efff;
+  -webkit-text-stroke-color: #a6efff;
+  text-shadow: none;
+  clip-path: inset(56% 0 0 0);
+  pointer-events: none;
+}
+.title-main .logo-sub {
+  margin-top: 1.4cqw;
+  font-size: 2.5cqw;
+  color: #fff;
+  text-shadow:
+    0 0.25cqw 0 #0a1848,
+    0.25cqw 0 0 #0a1848,
+    -0.25cqw 0 0 #0a1848,
+    0 -0.25cqw 0 #0a1848;
+}
+.title-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.title-main .title-menu {
+  min-width: 32%;
+  background: rgba(0, 0, 0, 0.9);
+}
+.title-main .title-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-top: 1.6cqw;
+  padding: 0.5em 1.1em;
+  font-size: 1.8cqw;
+  opacity: 1;
+  color: #eef1f7;
+  background: rgba(4, 8, 22, 0.85);
+  border: 0.3cqw solid #d6dcea;
+  border-radius: 0.6cqw;
+}
+.dpad-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  color: #e8ecf4;
+}
+.title-main .title-ios {
+  margin-top: 6px;
+  white-space: nowrap;
+  font-size: min(12px, 3.1vw);
+  text-shadow: 0 1px 0 #000;
+}
+.phone .title-screen.title-main {
+  gap: 0;
+  padding: calc(env(safe-area-inset-top) + 76px) 12px calc(env(safe-area-inset-bottom) + 34px);
+}
+.phone .title-main .logo-main {
+  font-size: min(36px, 9.4vw);
+  -webkit-text-stroke-width: 2px;
+  text-shadow:
+    4px 0 0 #0a1848,
+    -4px 0 0 #0a1848,
+    0 4px 0 #0a1848,
+    0 -4px 0 #0a1848,
+    3px 3px 0 #0a1848,
+    -3px 3px 0 #0a1848,
+    3px -3px 0 #0a1848,
+    -3px -3px 0 #0a1848,
+    0 7px 0 #040a24;
+}
+.phone .title-main .logo-sub {
+  margin-top: 8px;
+  font-size: 14px;
+  text-shadow:
+    0 2px 0 #0a1848,
+    2px 0 0 #0a1848,
+    -2px 0 0 #0a1848,
+    0 -2px 0 #0a1848;
+}
+.phone .title-main .title-menu {
+  min-width: 62%;
+}
+.phone .title-main .title-help {
+  white-space: nowrap;
+  margin-top: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-width: 2px;
+  border-radius: 4px;
+}
+@media (max-height: 700px) {
+  .phone .title-screen.title-main {
+    justify-content: space-between;
+    padding-top: calc(env(safe-area-inset-top) + 80px);
+  }
+  .phone .title-main .logo-main {
+    font-size: min(32px, 8.6vw);
+  }
 }

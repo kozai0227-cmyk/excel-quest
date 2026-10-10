@@ -1,7 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useKeys } from '../game/keys'
-import { SpriteView } from './SpriteView'
-import { PLAYER_SPEC } from '../data/maps'
+import { TitleScene } from './TitleScene'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 import { DocView } from './DocView'
@@ -15,6 +14,8 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
   const [privacy, setPrivacy] = useState(false)
   const phone = usePhoneLayout()
   const soundOn = useSoundOn()
+  const logoRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const pick = (i: number) => {
     // スマホは ここで 全画面に する（ボタンを 押したときにしか 切り替えられないため）
     enterFullscreen()
@@ -54,29 +55,34 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
     }
   })
   return (
-    <div className="title-screen">
+    <div className="title-screen title-main">
+      <TitleScene logo={logoRef} menu={menuRef} />
       <button className="sound-toggle" onClick={() => setSoundOn(!soundOn)} aria-label="音の ON/OFF">
         {soundOn ? '🔊 おと ON' : '🔇 おと OFF'}
       </button>
-      <div className="logo">
-        <div className="logo-main">イコール・クエスト</div>
+      <div className="logo" ref={logoRef}>
+        <div className="logo-main" data-text="イコール・クエスト">イコール・クエスト</div>
         <div className="logo-sub">〜 表計算で世界を救うRPG 〜</div>
-        <div className="logo-grid">
-          {'=SUM(勇気)'.split('').map((ch, i) => (
-            <span key={i}>{ch}</span>
+      </div>
+      <div className="title-bottom">
+        <div className="win title-menu" ref={menuRef}>
+          {opts.map((o, i) => (
+            <div key={o} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => pick(i)}>
+              {o}
+            </div>
           ))}
         </div>
-      </div>
-      <div className="title-cast">
-        <SpriteView spec={PLAYER_SPEC} />
-        <SpriteView creature="celime" />
-      </div>
-      <div className="win title-menu">
-        {opts.map((o, i) => (
-          <div key={o} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => pick(i)}>
-            {o}
-          </div>
-        ))}
+        <div className="title-help">
+          {isTouchDevice ? (
+            <>
+              <DpadIcon />
+              十字ボタン：移動　A：決定　B：メニュー・もどる
+            </>
+          ) : (
+            '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'
+          )}
+        </div>
+        {phone && isIosBrowser() && <div className="title-ios">共有ボタン →「ホーム画面に追加」で、全画面で 遊べます</div>}
       </div>
       {confirm !== null && (
         <div className="win title-confirm">
@@ -92,10 +98,6 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
           ))}
         </div>
       )}
-      <div className="title-help">
-        {isTouchDevice ? '十字ボタン：移動　A：話す・決定　B：メニュー・もどる' : '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'}
-      </div>
-      {phone && isIosBrowser() && <div className="title-ios">共有ボタン →「ホーム画面に追加」で、全画面で 遊べます</div>}
       <button type="button" className="title-privacy" onClick={() => setPrivacy(true)}>
         プライバシーポリシー
       </button>
@@ -104,10 +106,21 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
   )
 }
 
+/** 操作説明の 十字ボタンの しるし */
+function DpadIcon() {
+  return (
+    <svg className="dpad-icon" viewBox="0 0 12 12" aria-hidden>
+      <path d="M4 0h4v4h4v4H8v4H4V8H0V4h4z" fill="currentColor" />
+      <rect x="5" y="5" width="2" height="2" fill="#0b1430" />
+    </svg>
+  )
+}
+
 export function NameEntry({ onDone }: { onDone(name: string): void }) {
   const [name, setName] = useState('サトウ')
   return (
     <div className="title-screen">
+      <TitleScene cast={false} />
       <form
         className="win name-win"
         onSubmit={(e) => {
