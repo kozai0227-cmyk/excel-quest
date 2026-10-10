@@ -31,6 +31,8 @@ interface Actor {
   stepMs: number
   /** イベントで歩かせるときの残りの道のり */
   path?: [number, number][]
+  /** 道を ふさがれて 待ちはじめた 時刻 */
+  waitSince?: number
   onArrive?: () => void
   scripted?: boolean
   emote?: { name: string; until: number }
@@ -123,8 +125,12 @@ export function Field(props: FieldProps) {
   }
   const find = (id: string) => (id === 'player' ? player.current : all().find((a) => a.def?.id === id))
 
-  /** 歩けるマスだけを通る最短経路（幅優先探索） */
-  const route = (sx: number, sy: number, tx: number, ty: number): [number, number][] => {
+  /** ほかの キャラ（主人公も 含む）が 立っている、または 向かっている マス */
+  const takenBy = (x: number, y: number, self: Actor) =>
+    [player.current, ...all()].find((a) => a !== self && ((a.x === x && a.y === y) || (a.tx === x && a.ty === y)))
+
+  /** 歩けるマスだけを通る最短経路（幅優先探索）。self を 渡すと、ほかの キャラが いる マスも よける */
+  const route = (sx: number, sy: number, tx: number, ty: number, self?: Actor): [number, number][] => {
     const key = (x: number, y: number) => `${x},${y}`
     const prev = new Map<string, string | null>([[key(sx, sy), null]])
     const q: [number, number][] = [[sx, sy]]
@@ -136,6 +142,7 @@ export function Field(props: FieldProps) {
         const ny = y + dy
         const k = key(nx, ny)
         if (prev.has(k) || !WALKABLE.has(tileAt(nx, ny))) continue
+        if (self && !(nx === tx && ny === ty) && takenBy(nx, ny, self)) continue
         prev.set(k, key(x, y))
         q.push([nx, ny])
       }
@@ -161,7 +168,9 @@ export function Field(props: FieldProps) {
     walkTo(id, x, y, stepMs = STEP_MS) {
       const a = find(id)
       if (!a) return Promise.resolve()
-      const path = route(a.x, a.y, x, y)
+      // 村人を よけて 通る。囲まれて 道が ないときだけ マスの 形だけで 決める
+      const around = route(a.x, a.y, x, y, a)
+      const path = around.length ? around : route(a.x, a.y, x, y)
       if (!path.length) return Promise.resolve()
       a.scripted = true
       a.stepMs = stepMs
@@ -313,15 +322,27 @@ export function Field(props: FieldProps) {
       // イベントで歩かせているキャラ（一時停止中も動く）
       for (const a of [p, ...all()]) {
         if (!a.path || a.moving) continue
-        const next = a.path.shift()
-        if (!next) {
+        if (!a.path.length) {
           a.path = undefined
+          a.waitSince = undefined
           const done = a.onArrive
           a.onArrive = undefined
           if (a === p) a.scripted = false
           done?.()
           continue
         }
+        if (takenBy(a.path[0][0], a.path[0][1], a)) {
+          // 次の マスに だれか いる：よけ道を さがす。なければ 少し 待ち、長く ふさがれたら そのまま 進む（動けなく ならないように）
+          const [gx, gy] = a.path[a.path.length - 1]
+          const detour = route(a.x, a.y, gx, gy, a)
+          if (detour.length && !takenBy(detour[0][0], detour[0][1], a)) a.path = detour
+          else {
+            a.waitSince ??= now
+            if (now - a.waitSince < 1500) continue
+          }
+        }
+        a.waitSince = undefined
+        const next = a.path.shift()!
         a.dir = dirTo(a.x, a.y, next[0], next[1])
         a.tx = next[0]
         a.ty = next[1]
