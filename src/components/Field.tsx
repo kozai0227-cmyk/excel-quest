@@ -90,6 +90,13 @@ export function Field(props: FieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const P = useRef(props)
   P.current = props
+  /** 描きなおしが 必要か（地図・進み具合・結界・画面の 大きさが 変わった） */
+  const dirty = useRef(true)
+  const seen = useRef({ map: props.map, gs: props.gs, barrier: props.barrierOpen })
+  if (seen.current.map !== props.map || seen.current.gs !== props.gs || seen.current.barrier !== props.barrierOpen) {
+    seen.current = { map: props.map, gs: props.gs, barrier: props.barrierOpen }
+    dirty.current = true
+  }
   const player = useRef<Actor>(actor(props.spawn.x, props.spawn.y, props.spawn.dir))
   const npcs = useRef<Actor[]>([])
   /** イベントで一時的に出しているキャラ */
@@ -260,6 +267,7 @@ export function Field(props: FieldProps) {
       cv.height = h
       // 大きさを 変えると 設定が 戻るので、ドット絵が ぼやけないよう もう一度
       cv.getContext('2d')!.imageSmoothingEnabled = false
+      dirty.current = true
     }
     fit()
     const ro = new ResizeObserver(fit)
@@ -489,11 +497,34 @@ export function Field(props: FieldProps) {
       overlays.forEach((f) => f())
     }
 
+    /**
+     * 見た目が 変わる ときだけ 描く（電池の ため）。止まっている 間は 足ぶみ・水・吹き出しの
+     * 切りかわり（1秒に 数回）だけ 描き、歩いている 間は 毎コマ 描く
+     */
+    let shown = ''
+    const look = (now: number) => {
+      let k = `${Math.floor(now / 450)}|${Math.floor(now / 260) % 2}|${Math.floor(now / 300) % 2}`
+      for (const a of [player.current, ...all()]) {
+        k += `|${a.x},${a.y},${a.tx},${a.ty},${a.moving ? a.t : 0},${a.dir}`
+        if (a.emote && now < a.emote.until) k += 'e'
+        if (a.def && (now + a.phase) % 6000 < 1400) k += 'b'
+      }
+      return k
+    }
+    let drawnAt = 0
     const tick = (now: number) => {
       const dt = Math.min(50, now - last)
       last = now
       update(dt, now)
-      draw(now)
+      const k = look(now)
+      // 主人公が 止まっている ときは 30コマ／秒まで（村人の ゆっくりした 動きは これで 十分 なめらか）
+      const calm = !player.current.moving && now - drawnAt < 30
+      if ((k !== shown || dirty.current) && !calm) {
+        draw(now)
+        shown = k
+        drawnAt = now
+        dirty.current = false
+      }
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)

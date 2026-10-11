@@ -75,7 +75,24 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 
 - [x] `public/privacy.html` と `public/support.html` の 問い合わせ先を `mita333.support@gmail.com` に した
 - [ ] main に 入れて、Vercel の 公開ページ（下の URL）に 反映された
-- [ ] （任意）Vercel の **Settings → Domains** で `excel` を 含まない URL（例：`equal-quest.vercel.app`）を 追加した
+- [ ] （おすすめ）Vercel の **Settings → Domains** で `excel` を 含まない URL（例：`equal-quest.vercel.app`）を 追加し、App Store Connect の プライバシー・サポート URL を そちらに した
+
+**審査で 引っかかりやすい ところ（確認ずみ／あなたの 作業）**
+
+| 項目 | 状態 |
+|---|---|
+| 商標（4.1・5.2）：名前・サブタイトル・キーワード・説明に「Excel」「エクセル」「Microsoft」を 入れない。ゲーム内の 表示も 一般名の「表計算」だけ | 確認ずみ |
+| 課金（3.1.1）：第3章〜は App 内課金だけで 解放。「購入を 復元」あり。アプリ内に Web 版・外部の 支払い への 案内や リンクは 出ない | 確認ずみ |
+| 正確な 説明（2.3）：説明文の「全8章・81の依頼と謎」は 実際の 数と 一致。無料は 第2章までと 明記 | 確認ずみ |
+| スクリーンショット（2.3）：今の 画面で 撮り直した もの（`store/screenshots/`）を 使う | 確認ずみ |
+| 完成度（2.1）：開発用の 画面（`?gallery` など）は アプリでは 開けない。「準備中」「テスト」などの 表示なし | 確認ずみ |
+| プライバシー（5.1）：アプリ内と URL に プライバシーポリシー。データ収集なし（申告ファイル `PrivacyInfo.xcprivacy` と 一致） | 確認ずみ |
+| 暗号化の 質問：`Info.plist` で「独自の 暗号化なし」と 申告ずみ | 確認ずみ |
+| 対応端末：iPhone のみ・縦のみ。iPad でも iPhone 用 画面として 動く（小さい 画面でも 崩れない ことを 確認） | 確認ずみ |
+| **Xcode → Signing & Capabilities →「＋ Capability」→ In-App Purchase を 追加** | あなたの 作業 |
+| **App 内課金「全章解放」を バージョンの ページで 選んでから 提出**（いっしょに 出さないと「課金が 見つからない」で 却下されやすい） | あなたの 作業 |
+| **年齢制限の アンケート**：`docs/app-store-metadata.md` の 答えで 回答 | あなたの 作業 |
+| **審査メモ**：`docs/app-store-metadata.md` の 英文を 貼る（課金画面への 行き方を 書いてある） | あなたの 作業 |
 
 **手順**
 
@@ -119,7 +136,7 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 | ステータスバー | 非表示（ゲーム画面を 全面に） |
 | セーブデータ | localStorage に 加えて、アプリ本体の 保存領域（`@capacitor/preferences`）にも 写す（`src/game/native.ts`）。iOS が Web の データを 消しても 起動時に 戻る |
 | フォント | DotGothic16 を アプリに 同梱（`@fontsource/dotgothic16`）。日本語の 本文は iPhone 内蔵の ヒラギノ |
-| アイコン・起動画面 | `ios/App/App/Assets.xcassets`（アイコンは 1024×1024・透明なし） |
+| アイコン・起動画面 | `ios/App/App/Assets.xcassets`（アイコンは 1024×1024・透明なし。起動画面は タイトルと 同じ 昼の 空） |
 | ライセンス表記 | `public/licenses.txt`。部品を 足したら `npm run licenses` で 作り直す |
 | プライバシー・サポート | `public/privacy.html`・`public/support.html`（Web で 公開、アプリ内では `DocView` で 表示。通信なし） |
 | App 内課金 | `ios/App/App/StorePlugin.swift`（StoreKit 2。`MainViewController` で 登録）と `src/game/store.ts`。製品 ID `com.kozai0227.equalquest.full`、無料は 第2章まで（`FREE_CHAPTERS`） |

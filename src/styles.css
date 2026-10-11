@@ -511,9 +511,17 @@ button {
 .timer-fill {
   height: 100%;
   border-radius: 0.3cqw;
-  transition:
-    width 0.1s linear,
-    background 0.3s;
+  transform-origin: left center;
+  animation-name: timer-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  transition: background 0.3s;
+}
+/* 残り時間：画面の 合成だけで 縮める（JavaScript で 毎回 描きなおさない） */
+@keyframes timer-drain {
+  to {
+    transform: scaleX(0);
+  }
 }
 .timer.quick .timer-fill {
   background: linear-gradient(90deg, #22c07e, #7cffc8);
@@ -3401,14 +3409,14 @@ kbd {
   justify-content: space-between;
   gap: 0;
   padding: 12cqw 0 4.6cqw;
-  background: #060d26;
+  background: #2a74da;
 }
 .title-main .logo::before {
   content: '';
   position: absolute;
   inset: -30% -8%;
   z-index: -1;
-  background: radial-gradient(ellipse at center, rgba(3, 8, 30, 0.7), rgba(3, 8, 30, 0) 68%);
+  background: radial-gradient(ellipse at center, rgba(16, 52, 128, 0.42), rgba(16, 52, 128, 0) 68%);
 }
 .title-main .logo-main {
   position: relative;
@@ -3561,6 +3569,7 @@ kbd {
 }
 .title-main .title-ios {
   margin-top: 6px;
+  color: #f2fff0;
   white-space: nowrap;
   font-size: min(12px, 3.1vw);
   text-shadow: 0 1px 0 #000;
@@ -3631,4 +3640,13 @@ kbd {
   .phone .title-main .logo-main {
     font-size: min(36px, 9.4vw);
   }
+}
+
+.title-main .title-privacy {
+  color: #eaf6ea;
+  opacity: 1;
+  text-shadow: 0 1px 0 #10301a;
+}
+.title-main .title-ios {
+  text-shadow: 0 1px 0 #10301a;
 }

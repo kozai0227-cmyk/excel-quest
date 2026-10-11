@@ -3,7 +3,7 @@ import { PLAYER_SPEC } from '../data/maps'
 import { charSprite, creatureSprite } from '../game/sprites'
 
 /**
- * タイトル画面の 背景（ドット絵）。夜空・雲・城・町・川・道と、主人公・セルイム・光る 表を 描く。
+ * タイトル画面の 背景（ドット絵）。昼の 青空・雲・城・町・川・道と、主人公・セルイム・光る 表を 描く。
  * ロゴと メニューの 位置を 読んで、空いている ところに 絵を 合わせる（スマホの 縦画面でも PC でも）
  */
 export function TitleScene({ logo, menu, cast = true }: { logo?: RefObject<HTMLElement | null>; menu?: RefObject<HTMLElement | null>; cast?: boolean }) {
@@ -64,15 +64,14 @@ interface Scene {
   sky: HTMLCanvasElement
   land: HTMLCanvasElement
   clouds: { img: HTMLCanvasElement; x: number; y: number; v: number }[]
-  stars: { x: number; y: number; p: number }[]
   flags: { x: number; y: number }[]
   river: { y: number; h: number }
   sign: { x: number; y: number } | null
   emblem: { x: number; y: number } | null
   hero: { x: number; y: number } | null
   slime: { x: number; y: number } | null
-  bats: { y: number; off: number; v: number }[]
-  moon: { x: number; y: number }
+  birds: { y: number; off: number; v: number }[]
+  sun: { x: number; y: number }
 }
 
 const rnd = (a: number, b = 0) => {
@@ -132,8 +131,7 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
 
   // ---------- 空
   const [sky, sg] = layer(W, H)
-  dither(sg, W, 0, horizon, ['#060d26', '#0b1a44', '#13306c', '#1e4a92', '#2f66b0'])
-  const stars = Array.from({ length: Math.round((W * horizon) / 260) }, (_, i) => ({ x: Math.floor(rnd(i, 1) * W), y: Math.floor(rnd(i, 2) * horizon * 0.62), p: rnd(i, 3) * 6 }))
+  dither(sg, W, 0, horizon, ['#2a74da', '#3a8ae6', '#58a4f0', '#86c2f6', '#bfe2fb'])
 
   // ---------- 雲
   const clouds = Array.from({ length: portrait ? 5 : 6 }, (_, i) => {
@@ -145,7 +143,7 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
       const r = Math.round(ch * (0.35 + rnd(i, k + 9) * 0.25))
       const cx = 2 + r + Math.round((k / Math.max(1, parts - 1)) * (cw - 2 * r))
       const cy = ch + 2 - r - Math.round(rnd(i, k + 20) * ch * 0.25)
-      blob(cg, cx, cy, r, (_dx, dy) => (dy < -r * 0.45 ? '#9cb8e6' : dy < r * 0.25 ? '#6788c8' : '#45629f'))
+      blob(cg, cx, cy, r, (_dx, dy) => (dy < -r * 0.45 ? '#ffffff' : dy < r * 0.25 ? '#eef6ff' : '#c4d9f0'))
     }
     // 下を 平らに
     cg.clearRect(0, ch + 1, cw + 4, 3)
@@ -165,8 +163,8 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
       px(g, x, top, 1, 1, hi)
     }
   }
-  ridge(horizon - (portrait ? 16 : 16), portrait ? 16 : 14, '#162e5c', '#2a4c86', 1.3)
-  ridge(horizon - 4, portrait ? 6 : 8, '#1b3d63', '#2e5f86', 4.1)
+  ridge(horizon - (portrait ? 16 : 16), portrait ? 16 : 14, '#8db6e2', '#acd0f0', 1.3)
+  ridge(horizon - 4, portrait ? 6 : 8, '#6fa7b8', '#8cc2c8', 4.1)
 
   // 城の 丘と 城（右）
   const cx = Math.round(portrait ? W * 0.66 : W * 0.72)
@@ -202,7 +200,7 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
       stone(x, top, w, h)
       for (let k = 0; k < w; k += 2) px(g, x + k, top - 1, 1, 1, '#c8b48c')
       if (h > 10) px(g, x + Math.floor(w / 2) - 1, top + Math.round(h * 0.25), 2, 3, '#22283c')
-      if (h > 22) px(g, x + Math.floor(w / 2) - 1, top + Math.round(h * 0.55), 2, 3, '#ffd86a')
+      if (h > 22) px(g, x + Math.floor(w / 2) - 1, top + Math.round(h * 0.55), 2, 3, '#3a4058')
       const rh = Math.max(4, Math.round(w * 1.3))
       roof(x - 1, top - rh, w + 2, rh)
       flags.push({ x: x + Math.floor(w / 2), y: top - rh - 4 })
@@ -210,14 +208,14 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
     // 城壁と 門
     stone(cx - wallW / 2, base - wallH, wallW, wallH)
     for (let k = 0; k < wallW; k += 3) px(g, cx - wallW / 2 + k, base - wallH - 1, 2, 1, '#c8b48c')
-    px(g, cx - 2, base - Math.round(wallH * 0.6), 4, Math.round(wallH * 0.6), '#1d2236')
+    px(g, cx - 2, base - Math.round(wallH * 0.6), 4, Math.round(wallH * 0.6), '#4a3a2c')
     const tw = Math.max(4, Math.round(ch * 0.16))
     tower(Math.round(cx - wallW / 2 - tw / 2), tw, Math.round(ch * 0.62))
     tower(Math.round(cx + wallW / 2 - tw / 2), tw, Math.round(ch * 0.58))
     tower(Math.round(cx - wallW * 0.22 - tw / 2), tw, Math.round(ch * 0.78))
     tower(Math.round(cx + wallW * 0.2 - tw / 2), tw + 1, Math.round(ch * 0.9))
-    // 窓の あかり
-    for (let k = 0; k < 4; k++) px(g, cx - wallW / 2 + 3 + k * Math.round(wallW / 4), base - Math.round(wallH * 0.75), 1, 2, '#ffd86a')
+    // 窓
+    for (let k = 0; k < 4; k++) px(g, cx - wallW / 2 + 3 + k * Math.round(wallW / 4), base - Math.round(wallH * 0.75), 1, 2, '#3a4058')
   }
 
   // 町と 石の 橋（左）
@@ -226,7 +224,7 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
     const top = horizon - h
     px(g, x, top, w, h, '#d6c6a0')
     px(g, x + w - 1, top, 1, h, '#b0a07a')
-    px(g, x + 1, top + 2, 1, 1, '#ffd86a')
+    px(g, x + 1, top + 2, 1, 1, '#4a5a78')
     for (let k = 0; k < 3; k++) px(g, x - 1 + k, top - 1 - k, w + 2 - 2 * k, 1, k === 2 ? '#e08a5a' : roofCol)
   }
   house(tx - 10, 6, 6, '#b0583a')
@@ -241,13 +239,13 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
   for (let x = bx; x < bx + bw; x++) {
     const k = (x - bx) % 9
     const open = k >= 2 && k <= 6
-    px(g, x, by - 1, 1, 4, open ? '#0f2240' : '#8a7a60')
+    px(g, x, by - 1, 1, 4, open ? '#5e8fc0' : '#8a7a60')
     if (open && (k === 2 || k === 6)) px(g, x, by - 1, 1, 1, '#8a7a60')
   }
 
   // 川
-  dither(g, W, river.y, river.y + river.h, ['#2d6fd0', '#1f58b4', '#184a9a'])
-  px(g, 0, river.y, W, 1, '#6fb4f2')
+  dither(g, W, river.y, river.y + river.h, ['#4aa6f0', '#348ee0', '#2a7ccc'])
+  px(g, 0, river.y, W, 1, '#b2e2ff')
 
   // 向こう岸の 木（川の 上）と、手前の 草地
   const tree = (x: number, y: number, r: number, dark: string, mid: string, hi: string) => {
@@ -256,13 +254,13 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
   }
   for (let x = -2; x < W + 4; x += 5) {
     if (Math.abs(x - cx) < hillW * 0.55 || Math.abs(x - tx) < 9) continue
-    tree(x + Math.round(rnd(x, 31) * 3), horizon - 2 - Math.round(rnd(x, 32) * 2), 2 + Math.round(rnd(x, 33)), '#173f2c', '#22573a', '#2f7448')
+    tree(x + Math.round(rnd(x, 31) * 3), horizon - 2 - Math.round(rnd(x, 32) * 2), 2 + Math.round(rnd(x, 33)), '#2a6a3c', '#3a8a4c', '#58aa5e')
   }
-  dither(g, W, river.y + river.h, H, ['#2c7a3a', '#22612f', '#163f22', '#0b2414', '#06140c'])
+  dither(g, W, river.y + river.h, H, ['#5cb24e', '#4a9e44', '#3a8638', '#2c6a2e', '#1f4e22'])
   // 手前の 草むら（すき間に 小さな 茂み）
   for (let x = 0; x < W; x += 3) {
     const y = river.y + river.h + 1 + Math.round(rnd(x, 41) * Math.max(2, ground - river.y - river.h - 10))
-    if (y < ground - 8) px(g, x, y, 2, 1, rnd(x, 42) > 0.5 ? '#3f9a46' : '#5ab84c')
+    if (y < ground - 8) px(g, x, y, 2, 1, rnd(x, 42) > 0.5 ? '#7ccc5a' : '#9ade6a')
   }
   // 道（主人公と セルイムが 立つ）
   for (let x = 0; x < W; x++) {
@@ -273,7 +271,7 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
       const edge = y === top || y === bot
       px(g, x, y, 1, 1, edge ? '#6e4e2e' : rnd(x, y) > 0.86 ? '#d2aa70' : rnd(x, y + 1) > 0.8 ? '#94703f' : '#b08850')
     }
-    if (rnd(x, 51) > 0.7) px(g, x, top - 1, 1, 1, '#5ab84c')
+    if (rnd(x, 51) > 0.7) px(g, x, top - 1, 1, 1, '#7ccc5a')
   }
   // 道の 両はしの 大きな 木（画面の ふち）
   for (const [x, s] of [
@@ -281,14 +279,14 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
     [W - 3, -1],
   ] as const) {
     const r = portrait ? 9 : 12
-    tree(x, ground - r - 6, r, '#123824', '#1d5232', '#2f7a46')
-    tree(x + s * 7, ground - r, r - 3, '#14402a', '#21603a', '#3a8a4e')
+    tree(x, ground - r - 6, r, '#1f5a30', '#2f7a40', '#4c9e54')
+    tree(x + s * 7, ground - r, r - 3, '#245e34', '#358446', '#58ae5e')
   }
 
   // ---------- 動く もの の 位置
   const sign = W > 100 ? { x: Math.round(Math.min(W - 24, portrait ? W - 24 : cx + hillW + 2)), y: Math.round(horizon - 12) } : null
   const emblem = logoTop > 24 ? { x: Math.round(W / 2), y: Math.round(logoTop - 15) } : null
-  const moon = { x: Math.round(W * (portrait ? 0.2 : 0.14)), y: Math.round(Math.min(horizon - 40, logoBottom + (portrait ? 22 : 14))) }
+  const sun = { x: Math.round(W * (portrait ? 0.2 : 0.14)), y: Math.round(Math.min(horizon - 40, logoBottom + (portrait ? 22 : 14))) }
   let hero: Scene['hero'] = null
   let slime: Scene['slime'] = null
   if (menu) {
@@ -300,8 +298,8 @@ function build(W: number, H: number, logo: Box | null, menu: Box | null): Scene 
       slime = { x: Math.round(Math.min(W - 18, menu.r + 18)), y: ground }
     }
   }
-  const bats = Array.from({ length: portrait ? 1 : 2 }, (_, i) => ({ y: Math.round(horizon * (0.42 + i * 0.12)), off: i * 97, v: 9 + i * 3 }))
-  return { W, H, sky, land, clouds, stars, flags, river, sign, emblem, hero, slime, bats, moon }
+  const birds = Array.from({ length: portrait ? 3 : 4 }, (_, i) => ({ y: Math.round(logoBottom + 8 + rnd(i, 61) * Math.max(10, horizon * 0.5 - logoBottom)), off: i * 53, v: 7 + i * 2 }))
+  return { W, H, sky, land, clouds, flags, river, sign, emblem, hero, slime, birds, sun }
 }
 
 // ---------------------------------------------------------------- 毎コマ 描く
@@ -311,15 +309,9 @@ const cached = (key: string, make: () => HTMLCanvasElement) => {
   if (!c) sprites.set(key, (c = make()))
   return c
 }
-/** 色を 1色に 塗りつぶした 影絵（遠くの コウモリ） */
-const silhouette = (src: HTMLCanvasElement, col: string) => {
-  const [c, x] = layer(src.width, src.height)
-  x.drawImage(src, 0, 0)
-  x.globalCompositeOperation = 'source-in'
-  x.fillStyle = col
-  x.fillRect(0, 0, c.width, c.height)
-  return c
-}
+/** 遠くの 鳥（羽を 上げた 形と 下げた 形） */
+const BIRD_UP: [number, number][] = [[0, 0], [1, 1], [2, 2], [3, 1], [4, 0]]
+const BIRD_DOWN: [number, number][] = [[0, 2], [1, 1], [2, 2], [3, 1], [4, 2]]
 /** 光る 表（ヘッダーと マス目、まん中に 金の「＝」） */
 const sheet = () => {
   const [c, x] = layer(26, 20)
@@ -381,21 +373,19 @@ function render(g: CanvasRenderingContext2D, s: Scene, t: number) {
   const { W, H } = s
   g.clearRect(0, 0, W, H)
   g.drawImage(s.sky, 0, 0)
-  // 星（またたく）
-  for (const st of s.stars) {
-    const a = 0.5 + 0.5 * Math.sin(t * 2.2 + st.p)
-    if (a < 0.25) continue
-    px(g, st.x, st.y, 1, 1, a > 0.85 ? '#ffffff' : a > 0.55 ? '#bcd2ff' : '#6a86c8')
-  }
-  // 三日月
+  // お日さま（光が ゆっくり 回る）
   {
-    const { x, y } = s.moon
-    const glow = g.createRadialGradient(x, y, 2, x, y, 16)
-    glow.addColorStop(0, 'rgba(255,240,190,0.35)')
-    glow.addColorStop(1, 'rgba(255,240,190,0)')
+    const { x, y } = s.sun
+    const glow = g.createRadialGradient(x, y, 3, x, y, 22)
+    glow.addColorStop(0, 'rgba(255,248,200,0.7)')
+    glow.addColorStop(1, 'rgba(255,248,200,0)')
     g.fillStyle = glow
-    g.fillRect(x - 16, y - 16, 32, 32)
-    blob(g, x, y, 6, (dx, dy) => ((dx - 3) * (dx - 3) + (dy + 2) * (dy + 2) < 26 ? null : dx + dy < -3 ? '#fff6d0' : '#f4dc8a'))
+    g.fillRect(x - 22, y - 22, 44, 44)
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + t * 0.25
+      for (let r = 10; r < 13; r++) px(g, x + Math.cos(a) * r, y + Math.sin(a) * r, 1, 1, '#fff2a0')
+    }
+    blob(g, x, y, 7, (dx, dy) => (dx * dx + dy * dy > 36 ? '#ffd23c' : dx + dy < -4 ? '#fffbe0' : '#fff09a'))
   }
   // 雲（ゆっくり 流れる）
   for (const c of s.clouds) {
@@ -403,12 +393,13 @@ function render(g: CanvasRenderingContext2D, s: Scene, t: number) {
     const x = (((c.x + t * c.v) % span) + span) % span - c.img.width
     g.drawImage(c.img, Math.round(x), Math.round(c.y))
   }
-  // コウモリ（遠くを 飛ぶ）
-  for (const b of s.bats) {
-    const img = cached(`bat${Math.floor(t * 5) % 2}`, () => silhouette(creatureSprite('bat', 'right', Math.floor(t * 5) % 2), '#1a1238'))
-    const span = W + 40
-    const x = ((b.off + t * b.v) % span) - 20
-    g.drawImage(img, Math.round(x), Math.round(b.y + Math.sin(t * 2 + b.off) * 3), 12, 12)
+  // 鳥（遠くを 飛ぶ）
+  for (const b of s.birds) {
+    const span = W + 20
+    const x = ((b.off + t * b.v) % span) - 10
+    const y = b.y + Math.sin(t * 1.5 + b.off) * 3
+    const up = Math.floor(t * 4 + b.off) % 2 === 0
+    for (const [dx, dy] of up ? BIRD_UP : BIRD_DOWN) px(g, x + dx, y + dy, 1, 1, '#2c3c5c')
   }
   g.drawImage(s.land, 0, 0)
   // 城の 旗（はためく）
@@ -435,7 +426,7 @@ function render(g: CanvasRenderingContext2D, s: Scene, t: number) {
     g.strokeStyle = '#7ff6ff'
     g.lineWidth = 1
     g.strokeRect(x + 0.5, y + 0.5, 20, 9)
-    g.fillStyle = 'rgba(40,180,220,0.18)'
+    g.fillStyle = 'rgba(8,40,80,0.7)'
     g.fillRect(x + 1, y + 1, 19, 8)
     let cx = x + 2
     for (const ch of '=SUM') {

@@ -289,14 +289,15 @@ function startTrack(name: SongName, at: number, out: AudioNode): Track {
   gain.connect(out)
   const t: Track = { name, song, gain, byStep, total, stepDur: 60 / song.bpm / 4, start: at, next: 0, done: false }
   tracks.push(t)
-  if (!timer) timer = window.setInterval(pump, 25)
+  // 少し 先まで まとめて 予約し、起きる 回数を へらす（音の ずれは 出ない）
+  if (!timer) timer = window.setInterval(pump, 80)
   pump()
   return t
 }
 
 function pump() {
   if (!ctx) return
-  const until = ctx.currentTime + 0.15
+  const until = ctx.currentTime + 0.3
   for (const t of tracks) {
     while (!t.done && t.start + t.next * t.stepDur < until) {
       const at = t.start + t.next * t.stepDur

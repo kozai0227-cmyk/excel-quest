@@ -105,7 +105,6 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [mode, setMode] = useState<'attack' | 'defense'>('attack')
   const guardHinted = useRef(false)
   const [deadline, setDeadline] = useState(0)
-  const [now, setNow] = useState(Date.now())
   const [combo, setCombo] = useState(0)
   const [buff, setBuff] = useState<{ scroll: boolean; sand: boolean }>({ scroll: false, sand: false })
   const [hit, setHit] = useState(0)
@@ -156,15 +155,13 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     setPhase('question')
   }
 
-  // タイマー
+  // 時間切れ（バーの 動きは TimerBar が CSS で 描くので、ここでは 1回だけ 時計を かける）
+  const answerRef = useRef<(ok: boolean, note?: string) => void>(() => {})
   useEffect(() => {
     if (phase !== 'question') return
-    const t = setInterval(() => setNow(Date.now()), 100)
-    return () => clearInterval(t)
-  }, [phase])
-  useEffect(() => {
-    if (phase === 'question' && now >= deadline) answer(false, '時間切れ！')
-  }, [now]) // eslint-disable-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => answerRef.current(false, '時間切れ！'), Math.max(0, deadline - Date.now()))
+    return () => clearTimeout(t)
+  }, [phase, deadline])
 
   const correctText = (x: Question) => (x.type === 'choice' ? x.answer : x.hint)
 
@@ -284,6 +281,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       else say(lines, () => setPhase('command'))
     }
   }
+  answerRef.current = answer
 
   const submitFormula = (input: string) => {
     if (!q || q.type !== 'formula') return
@@ -380,11 +378,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  const remain = Math.max(0, deadline - now)
-  const limit = Math.max(1, deadline - startedAt.current)
   // 即答ボーナスは こちらの攻撃のときだけ（チュートリアルは固定ダメージなので出さない）
   const showQuick = mode === 'attack' && !boss.hits
-  const quickZone = showQuick && 1 - remain / limit < QUICK
 
   // スマホの 数式ボタンは 画面の下いっぱいに 出す（ゲーム画面の中だと 小さすぎる）
   const touchFormula = touch && q?.type === 'formula'
@@ -427,11 +422,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           {boss.boss && (
             <div className="q-mode">{mode === 'defense' ? `🛡 ${boss.name}の 攻撃！ 正解で ダメージを へらせ！` : '⚔ こちらの 攻撃！'}</div>
           )}
-          <div className={`timer ${quickZone ? 'quick' : remain / limit < 0.2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
-            <div className="timer-fill" style={{ width: `${(remain / limit) * 100}%` }} />
-            {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
-            {quickZone && <span className="timer-label">即答ボーナス！</span>}
-          </div>
+          <TimerBar key={deadline} start={startedAt.current} deadline={deadline} mode={mode} showQuick={showQuick} />
           <div className="q-text">{q.q}</div>
           {q.type === 'choice' ? (
             <div className="q-choices">
@@ -495,6 +486,35 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * 残り時間の バー。縮む 動きは CSS に まかせ、色が 変わる 2回だけ 描きなおす
+ * （以前は 0.1秒ごとに 戦闘画面 全体を 描きなおしていた）
+ */
+function TimerBar({ start, deadline, mode, showQuick }: { start: number; deadline: number; mode: string; showQuick: boolean }) {
+  const limit = Math.max(1, deadline - start)
+  // 表示した 時点で もう 進んでいる 分（途中から 縮みはじめる）
+  const [elapsed] = useState(() => Math.max(0, Date.now() - start))
+  /** 0：即答ボーナスの 間　1：ふつう　2：残りわずか */
+  const [stage, setStage] = useState(() => (elapsed >= limit * 0.8 ? 2 : elapsed >= limit * QUICK ? 1 : 0))
+  useEffect(() => {
+    const at = (ratio: number) => Math.max(0, start + limit * ratio - Date.now())
+    const a = setTimeout(() => setStage((v) => Math.max(v, 1)), at(QUICK))
+    const b = setTimeout(() => setStage(2), at(0.8))
+    return () => {
+      clearTimeout(a)
+      clearTimeout(b)
+    }
+  }, [start, limit])
+  const quickZone = showQuick && stage === 0
+  return (
+    <div className={`timer ${quickZone ? 'quick' : stage === 2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
+      <div className="timer-fill" style={{ animationDuration: `${limit}ms`, animationDelay: `${-elapsed}ms` }} />
+      {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
+      {quickZone && <span className="timer-label">即答ボーナス！</span>}
     </div>
   )
 }

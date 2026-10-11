@@ -1106,8 +1106,8 @@ export default function App() {
   useBgm(/gallery|soundtest|mapview/.test(location.search) ? null : music)
   const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen || !!guide
 
-  if (location.search.includes('gallery')) return <Gallery />
-  if (location.search.includes('soundtest')) return <SoundTest />
+  if (DEV_URL && location.search.includes('gallery')) return <Gallery />
+  if (DEV_URL && location.search.includes('soundtest')) return <SoundTest />
   const mapview = DEV_URL ? new URLSearchParams(location.search).get('mapview') : null
   if (mapview) return <MapView id={mapview} plain={location.search.includes('plain')} />
 
