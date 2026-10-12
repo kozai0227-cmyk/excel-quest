@@ -176,6 +176,10 @@ The formula engine is our own implementation. The app is not affiliated with, an
 
 ## スクリーンショット
 
-`store/screenshots/` に、6.9インチ（1320×2868 ピクセル）用の 画像を 用意しています。
-App Store Connect の「iPhone 6.9インチ ディスプレイ」に 順番どおり ドラッグして ください
-（6.9インチを 入れれば、ほかの 大きさは 自動で 縮小して 使われます）。
+| App Store Connect の 欄 | 画像（6枚・01〜06 の 順） |
+|---|---|
+| **Dynamic Island 搭載 iPhone（中型ディスプレイ）**（6.1〜6.3インチ） | `store/screenshots-6.3/`（1206×2622） |
+| 6.9インチ（大型）の 欄が ある 場合 | `store/screenshots/`（1320×2868） |
+
+画面の 一番上に 出ている iPhone の 欄に 入れれば、ほかの 大きさにも 自動で 使われます。
+iPad・Apple Watch の 欄は 空の ままで よい（iPhone 専用の ため）。
