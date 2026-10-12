@@ -75,7 +75,7 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 
 - [x] `public/privacy.html` と `public/support.html` の 問い合わせ先を `mita333.support@gmail.com` に した
 - [ ] main に 入れて、Vercel の 公開ページ（下の URL）に 反映された
-- [ ] （おすすめ）Vercel の **Settings → Domains** で `excel` を 含まない URL（例：`equal-quest.vercel.app`）を 追加し、App Store Connect の プライバシー・サポート URL を そちらに した
+- [x] Vercel の **Settings → Domains** に `equal-quest.vercel.app`（`excel` を 含まない URL）を 追加した。App Store Connect の プライバシー・サポート URL は こちらを 使う
 
 **審査で 引っかかりやすい ところ（確認ずみ／あなたの 作業）**
 
@@ -116,8 +116,8 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 | 名前・サブタイトル・説明文・キーワード・年齢制限・プライバシー・審査メモ | [`docs/app-store-metadata.md`](app-store-metadata.md)（そのまま 貼れる 形） |
 | 価格・App 内課金「全章解放」の 設定 | 同じく [`docs/app-store-metadata.md`](app-store-metadata.md) の「価格」「App 内課金」 |
 | スクリーンショット（6.9インチ・1320×2868・6枚） | `store/screenshots/`（01〜06 の 順に 入れる） |
-| プライバシーポリシーの URL | `https://excel-quest-nine.vercel.app/privacy.html`（アプリ内でも 同じ 内容を 表示） |
-| サポート URL | `https://excel-quest-nine.vercel.app/support.html` |
+| プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html`（アプリ内でも 同じ 内容を 表示） |
+| サポート URL | `https://equal-quest.vercel.app/support.html` |
 
 > スクリーンショットは Web 版の 開発用 URL（`?quest=…`・`?boss=…`・`?at=…` など）で 場面を 呼び出し、6.9インチの 大きさで 撮った ものです。
 > ゲームの 見た目を 変えたら 撮り直してください。

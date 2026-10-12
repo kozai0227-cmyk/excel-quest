@@ -15,13 +15,12 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 | プライマリカテゴリ | 教育 | |
 | セカンダリカテゴリ | ゲーム（ロールプレイング） | |
 | 著作権 | `2026 kozai0227-cmyk`（本名や 屋号に しても よい） | |
-| プライバシーポリシーの URL | `https://excel-quest-nine.vercel.app/privacy.html` ※1 | |
-| サポート URL | `https://excel-quest-nine.vercel.app/support.html` ※1 | |
+| プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html` | |
+| サポート URL | `https://equal-quest.vercel.app/support.html` | |
 | マーケティング URL | 空欄で よい | |
 
-※1 いまの URL には「excel」の 文字が 入っています。気になる 場合は、Vercel の
-プロジェクト → **Settings → Domains** で `equal-quest.vercel.app` などの 名前を 追加すると、
-同じ ページが その URL でも 開けるように なります（無料）。追加したら、こちらの URL を 使ってください。
+※ 前の URL（`excel-quest-nine.vercel.app`）でも 同じ ページが 開けますが、「excel」が 入らない 上の URL を 使います。
+前の URL は Web 版の セーブデータを 守るため 消さずに 残しています（Vercel → Settings → Domains に 両方 登録ずみ）。
 
 > ページ内の 問い合わせ先は `mita333.support@gmail.com`。
 
