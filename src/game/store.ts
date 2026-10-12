@@ -82,7 +82,7 @@ if (isNative) {
   void Store.addListener('owned', (e) => e.id === PRODUCT_ID && setUnlocked(e.owned)).catch(() => {})
 }
 
-/** 価格（例：¥610）。読めなければ null */
+/** 価格（例：¥500）。App Store の 設定から 読む。読めなければ null */
 export async function loadPrice(): Promise<string | null> {
   if (!isNative) return null
   try {
