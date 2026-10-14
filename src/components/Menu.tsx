@@ -294,15 +294,8 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
               <div className={`opt lic-row ${icur === VOL_ROWS.length + 2 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 2); openUnlock() }}>
                 全章解放<small>：{!isNative ? (unlocked ? 'Web版は 全章 遊べます' : 'アプリ版で 遊べます') : unlocked ? '購入ずみ' : `購入・復元（第${FREE_CHAPTERS + 1}章〜）`}</small>
               </div>
-              {privacy && <DocView src="privacy.html" onClose={() => setPrivacy(false)} />}
-              {lic !== null && (
-                <div className="lic-view">
-                  <pre>{lic}</pre>
-                  <button type="button" className="btn" onClick={() => setLic(null)}>
-                    とじる
-                  </button>
-                </div>
-              )}
+              {privacy && <DocView src="privacy.html" title="プライバシーポリシー" onClose={() => setPrivacy(false)} />}
+              {lic !== null && <DocView text={lic} title="ライセンス表記" onClose={() => setLic(null)} />}
             </div>
           )}
           {open === 'タイトルへ' && (
