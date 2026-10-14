@@ -1213,6 +1213,11 @@ export default function App() {
                   setMenu(false)
                   setReview(true)
                 }}
+                onTitle={() => {
+                  setMenu(false)
+                  setReview(false)
+                  setScene('title')
+                }}
               />
             )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}

@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { SONGS, type Song, type SongName, type Voice, type Wave } from '../data/music'
+import { isNative } from './native'
 
 /**
  * BGM と 効果音（Web Audio で その場で 合成する。音声ファイルは 使わない）。
@@ -526,16 +527,42 @@ export function cue(text: string) {
 
 /** 音を 出せる 状態に もどし、待たせていた BGM を 流す */
 function resume() {
-  void ctx?.resume().then(() => {
-    const w = wanted
-    wanted = undefined
-    if (w) bgm(w)
-  })
+  if (!ctx) return
+  ctx
+    .resume()
+    .then(() => {
+      const w = wanted
+      wanted = undefined
+      if (w) bgm(w)
+    })
+    // 画面に ふれる 前などで 断られたら、次の タップや 画面の 復帰で やりなおす
+    .catch(() => {})
+}
+
+/**
+ * 止まった 音を 立てなおす。電話・通知・購入画面・ほかの アプリの 音などで
+ * iPhone が 音を 止めた（suspended / interrupted）あと、自分では 戻らないことが あるため、
+ * 画面に 戻ったときや 状態が 変わったときに 何度か 試す
+ */
+let retry = 0
+let retries = 0
+function recover() {
+  clearTimeout(retry)
+  if (!ctx || !enabled || document.hidden) return
+  if (ctx.state !== 'running') {
+    resume()
+    // 1秒ごとに 数回だけ 試す（だめなら 次の タップで 戻る）
+    if (retries++ < 5) retry = window.setTimeout(recover, 1000)
+    return
+  }
+  retries = 0
+  // 動いているのに 流れるはずの BGM が 止まっている
+  if (wanted && current?.name !== wanted) resume()
 }
 
 // ---------------------------------------------------------------- はじめの タップで 音を 出せるように する
 function unlock() {
-  if (!ctx) setup()
+  if (!ctx) start()
   if (!ctx || !enabled) return
   // タップの 中で 作った ときは すぐ 音が 出せる。待たせていた BGM を 流す
   if (ctx.state === 'running' && wanted && !current) resume()
@@ -575,10 +602,39 @@ export function initSound() {
     },
     true,
   )
-  // 別の アプリに 切りかえたら 止める
+  // 別の アプリに 切りかえたら 止め、戻ったら 再開する
   document.addEventListener('visibilitychange', () => {
     if (!ctx) return
-    if (document.hidden) void ctx.suspend()
-    else if (enabled) resume()
+    if (document.hidden) {
+      clearTimeout(retry)
+      void ctx.suspend()
+    } else {
+      retries = 0
+      recover()
+    }
   })
+  window.addEventListener('pageshow', () => recover())
+  window.addEventListener('focus', () => recover())
+  // アプリ版は タップを 待たずに 音を 出せる（起動した ときから タイトルの BGM が 流れる）
+  if (isNative) {
+    start()
+    resume()
+  }
+}
+
+/** 音の 部品を 作り、止められた ときに 立てなおす 見張りを つける */
+function start() {
+  setup()
+  if (!ctx) return
+  ctx.onstatechange = () => {
+    if (!ctx || document.hidden) return
+    if (ctx.state === 'running') {
+      retries = 0
+      if (wanted && current?.name !== wanted) resume()
+    } else if (enabled) {
+      // iPhone が 割りこみで 止めた（interrupted）
+      retries = 0
+      recover()
+    }
+  }
 }

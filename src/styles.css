@@ -3650,3 +3650,11 @@ kbd {
 .title-main .title-ios {
   text-shadow: 0 1px 0 #10301a;
 }
+
+/* メニュー：タイトルへ もどる 確認 */
+.to-title p {
+  margin: 0 0 0.5em;
+}
+.to-title .item-list {
+  margin-top: 0.6em;
+}

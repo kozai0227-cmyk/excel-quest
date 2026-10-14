@@ -20,7 +20,9 @@ const VOL_ROWS: [keyof Volume, string][] = [
   ['sfx', '効果音'],
 ]
 
-const ALL_CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'とじる'] as const
+const ALL_CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'タイトルへ', 'とじる'] as const
+/** タイトルへ もどる ときの 選択肢 */
+const TITLE_OPTS = ['セーブして もどる', 'セーブせずに もどる', 'やめる'] as const
 /** iPhone アプリでは 入力方式の 切り替えを 出さない（ボタン入力 だけ） */
 const CMDS = ALL_CMDS.filter((c) => !(isNative && c === 'にゅうりょく'))
 
@@ -31,9 +33,11 @@ interface Props {
   onClose(): void
   /** ふくしゅうの書を ひらく */
   onReview(): void
+  /** タイトル画面へ もどる */
+  onTitle(): void
 }
 
-export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
+export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
   const [cursor, setCursor] = useState(0)
   const [open, setOpen] = useState<(typeof ALL_CMDS)[number] | null>(null)
   const [icur, setIcur] = useState(0)
@@ -108,6 +112,11 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
       )
       return
     }
+    if (c === 'タイトルへ') {
+      setOpen(c)
+      setIcur(0)
+      return
+    }
     if (c === 'セーブ') {
       onSave()
       jingle('save')
@@ -116,6 +125,13 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
     }
     setOpen(c)
     setIcur(0)
+  }
+
+  /** タイトルへ：0 セーブして もどる　1 セーブせずに もどる　2 やめる */
+  const toTitle = (i: number) => {
+    if (i === 2) return setOpen(null)
+    if (i === 0) onSave()
+    onTitle()
   }
 
   useKeys((k) => {
@@ -141,6 +157,14 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
       else if (k === 'ok' && icur === VOL_ROWS.length + 1) setPrivacy(true)
       else if (k === 'ok' && icur === VOL_ROWS.length + 2) openUnlock()
       else if (k === 'ok' || k === 'cancel') setOpen(null)
+      return
+    }
+    if (open === 'タイトルへ') {
+      const n = TITLE_OPTS.length
+      if (k === 'up') setIcur((c) => (c + n - 1) % n)
+      else if (k === 'down') setIcur((c) => (c + 1) % n)
+      else if (k === 'ok') toTitle(icur)
+      else if (k === 'cancel') setOpen(null)
       return
     }
     if (open === 'そうび') {
@@ -279,6 +303,19 @@ export function Menu({ gs, setGs, onSave, onClose, onReview }: Props) {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+          {open === 'タイトルへ' && (
+            <div className="to-title">
+              <p>タイトル画面に もどりますか？</p>
+              <p className="muted">セーブせずに もどると、最後に セーブした ところから 続きに なります。</p>
+              <ul className="item-list">
+                {TITLE_OPTS.map((o, i) => (
+                  <li key={o} className={`opt ${i === icur ? 'on' : ''}`} onClick={() => { setIcur(i); toTitle(i) }}>
+                    <b>{o}</b>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           {open === 'スキル' &&
