@@ -4,6 +4,7 @@ import { TitleScene } from './TitleScene'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 import { DocView } from './DocView'
+import { isNative } from '../game/native'
 
 export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
   const opts = hasSave ? ['つづきから', 'はじめから', 'ふくしゅう'] : ['はじめから', 'ふくしゅう']
@@ -101,9 +102,13 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
           ))}
         </div>
       )}
-      <button type="button" className="title-privacy" onClick={() => setPrivacy(true)}>
-        プライバシーポリシー
-      </button>
+      <div className="title-links">
+        {/* Web 版だけ：関数の 解説ページ（検索から 来た 人にも、遊んでいる 人にも） */}
+        {!isNative && <a href="/learn/">関数の解説</a>}
+        <button type="button" className="title-privacy" onClick={() => setPrivacy(true)}>
+          プライバシーポリシー
+        </button>
+      </div>
       {privacy && <DocView src="privacy.html" title="プライバシーポリシー" onClose={() => setPrivacy(false)} />}
     </div>
   )

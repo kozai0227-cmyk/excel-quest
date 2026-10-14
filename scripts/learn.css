@@ -1,0 +1,174 @@
+/* 関数・操作の 解説ページ（Web 版だけ。scripts/webPages.ts が 作る） */
+:root {
+  color-scheme: light dark;
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --fg: #1d2330;
+  --muted: #5b6576;
+  --line: #dde2ea;
+  --accent: #12807f;
+  --accent-ink: #ffffff;
+  --code-bg: #eef5f4;
+  --code-fg: #0b5f5e;
+  --gold: #b7791f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1016;
+    --card: #121a24;
+    --fg: #e8edf4;
+    --muted: #9aa6b8;
+    --line: #253041;
+    --accent: #4cc3bf;
+    --accent-ink: #062625;
+    --code-bg: #10302f;
+    --code-fg: #9ff0ea;
+    --gold: #f2c440;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.8 system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+a {
+  color: var(--accent);
+}
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: #0b1430;
+  font-size: 0.9rem;
+}
+.bar a {
+  color: #e8edf4;
+  text-decoration: none;
+}
+.bar .brand {
+  font-weight: 700;
+  color: #ffe14f;
+  letter-spacing: 0.04em;
+}
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+.crumb {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.crumb a {
+  color: var(--muted);
+}
+h1 {
+  font-size: 1.55rem;
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+h2 {
+  font-size: 1.1rem;
+  margin: 28px 0 8px;
+  padding-left: 10px;
+  border-left: 4px solid var(--accent);
+}
+p {
+  margin: 0 0 10px;
+}
+.lead {
+  font-size: 1.05rem;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+.form {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-weight: 600;
+}
+.ex {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ex li {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.ex-l,
+.ex-r {
+  display: block;
+}
+.ex-r {
+  color: var(--muted);
+}
+.links {
+  padding-left: 1.2em;
+}
+.links li {
+  margin-bottom: 4px;
+}
+.play {
+  margin: 32px 0 8px;
+  padding: 16px 18px 6px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10306a, #0b1430);
+  color: #eef3ff;
+}
+.play h2 {
+  margin-top: 0;
+  border-left-color: #ffe14f;
+}
+.play b {
+  color: #ffe14f;
+}
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid #ffffff66;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+}
+.btn.primary {
+  background: #ffe14f;
+  border-color: #ffe14f;
+  color: #0b1430;
+}
+footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px 16px calc(28px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+footer a {
+  color: var(--muted);
+}
