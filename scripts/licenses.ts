@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 
 const PARTS: [string, string][] = [
   ['DotGothic16（フォント）', '@fontsource/dotgothic16'],
+  ['Jersey 10（フォント・英語表示用）', '@fontsource/jersey-10'],
   ['React', 'react'],
   ['React DOM', 'react-dom'],
   ['scheduler', 'scheduler'],

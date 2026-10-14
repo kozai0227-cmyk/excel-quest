@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { tr } from '../game/lang'
 import {
   addr,
   cloneGrid,
@@ -538,13 +539,13 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
   return (
     <div className="xl">
       <div className="xl-toolbar">
-        {btn('太字 (Ctrl+B)', toggleBold, <b>B</b>, false, !!active.bold)}
-        {btn('元に戻す (Ctrl+Z)', undo, '↶', !past.length)}
-        {btn('やり直し (Ctrl+Y)', redo, '↷', !future.length)}
+        {btn(tr('太字 (Ctrl+B)', 'Bold (Ctrl+B)'), toggleBold, <b>B</b>, false, !!active.bold)}
+        {btn(tr('元に戻す (Ctrl+Z)', 'Undo (Ctrl+Z)'), undo, '↶', !past.length)}
+        {btn(tr('やり直し (Ctrl+Y)', 'Redo (Ctrl+Y)'), redo, '↷', !future.length)}
         <span className="xl-sep" />
-        {btn('切り取り (Ctrl+X)', () => copy(true), '切り取り')}
-        {btn('コピー (Ctrl+C)', () => copy(false), 'コピー')}
-        {btn('貼り付け (Ctrl+V)', paste, '貼り付け', !clip)}
+        {btn(tr('切り取り (Ctrl+X)', 'Cut (Ctrl+X)'), () => copy(true), tr('切り取り', 'Cut'))}
+        {btn(tr('コピー (Ctrl+C)', 'Copy (Ctrl+C)'), () => copy(false), tr('コピー', 'Copy'))}
+        {btn(tr('貼り付け (Ctrl+V)', 'Paste (Ctrl+V)'), paste, tr('貼り付け', 'Paste'), !clip)}
       </div>
       <div className="xl-fbar">
         <div className="xl-namebox">{nameBox}</div>

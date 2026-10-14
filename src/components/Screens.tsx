@@ -5,9 +5,18 @@ import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '..
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 import { DocView } from './DocView'
 import { isNative } from '../game/native'
+import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
+import { EN_CHAPTERS } from '../data/en'
+
+type TitleOpt = 'continue' | 'new' | 'study'
+const TITLE_LABEL: Record<TitleOpt, () => string> = {
+  continue: () => tr('つづきから', 'Continue'),
+  new: () => tr('はじめから', 'New Game'),
+  study: () => tr('ふくしゅう', 'Review'),
+}
 
 export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
-  const opts = hasSave ? ['つづきから', 'はじめから', 'ふくしゅう'] : ['はじめから', 'ふくしゅう']
+  const opts: TitleOpt[] = hasSave ? ['continue', 'new', 'study'] : ['new', 'study']
   const [cursor, setCursor] = useState(0)
   /** セーブが あるのに「はじめから」を 選んだ：上書きの 確認（0：やめる 1：はじめから） */
   const [confirm, setConfirm] = useState<number | null>(null)
@@ -20,8 +29,8 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
   const pick = (i: number) => {
     // スマホは ここで 全画面に する（ボタンを 押したときにしか 切り替えられないため）
     enterFullscreen()
-    if (opts[i] === 'つづきから') onContinue()
-    else if (opts[i] === 'ふくしゅう') onStudy()
+    if (opts[i] === 'continue') onContinue()
+    else if (opts[i] === 'study') onStudy()
     else if (hasSave) setConfirm(0)
     else onNew()
   }
@@ -58,12 +67,21 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
   return (
     <div className="title-screen title-main">
       <TitleScene logo={logoRef} menu={menuRef} />
-      <button className="sound-toggle" onClick={() => setSoundOn(!soundOn)} aria-label="音の ON/OFF">
-        {soundOn ? '🔊 おと ON' : '🔇 おと OFF'}
-      </button>
-      <div className="logo" ref={logoRef}>
-        <div className="logo-main" data-text="イコール・クエスト">イコール・クエスト</div>
-        <div className="logo-sub">〜 表計算で世界を救うRPG 〜</div>
+      <div className="title-toggles">
+        {langSwitchVisible() && (
+          <button className="sound-toggle" onClick={() => setLang(isEn() ? 'ja' : 'en')} aria-label="Language / 言語">
+            {isEn() ? '🌐 日本語' : '🌐 English'}
+          </button>
+        )}
+        <button className="sound-toggle" onClick={() => setSoundOn(!soundOn)} aria-label={tr('音の ON/OFF', 'Sound on/off')}>
+          {soundOn ? tr('🔊 おと ON', '🔊 Sound ON') : tr('🔇 おと OFF', '🔇 Sound OFF')}
+        </button>
+      </div>
+      <div className={`logo ${isEn() ? 'en' : ''}`} ref={logoRef}>
+        <div className="logo-main" data-text={tr('イコール・クエスト', 'EQUAL QUEST')}>
+          {tr('イコール・クエスト', 'EQUAL QUEST')}
+        </div>
+        <div className="logo-sub">{tr('〜 表計算で世界を救うRPG 〜', '~ Save the World with Spreadsheets ~')}</div>
         <i className="logo-spark s1" />
         <i className="logo-spark s2" />
         <i className="logo-spark s3" />
@@ -72,7 +90,7 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
         <div className="win title-menu" ref={menuRef}>
           {opts.map((o, i) => (
             <div key={o} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => pick(i)}>
-              {o}
+              {TITLE_LABEL[o]()}
             </div>
           ))}
         </div>
@@ -80,22 +98,24 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
           {isTouchDevice ? (
             <>
               <DpadIcon />
-              十字ボタン：移動　A：決定　B：メニュー・もどる
+              {tr('十字ボタン：移動　A：決定　B：メニュー・もどる', 'D-pad: Move　A: OK　B: Menu / Back')}
             </>
           ) : (
-            '矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー'
+            tr('矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー', 'Arrows / WASD: Move　Shift: Run　Enter / Z: OK　Esc / X: Menu')
           )}
         </div>
-        {phone && isIosBrowser() && <div className="title-ios">共有ボタン →「ホーム画面に追加」で、全画面で 遊べます</div>}
+        {phone && isIosBrowser() && (
+          <div className="title-ios">{tr('共有ボタン →「ホーム画面に追加」で、全画面で 遊べます', 'Tap Share → "Add to Home Screen" to play full screen')}</div>
+        )}
       </div>
       {confirm !== null && (
         <div className="win title-confirm">
           <p>
-            セーブデータが あります。
+            {tr('セーブデータが あります。', 'You have saved data.')}
             <br />
-            はじめから 始めると、次に 記録したとき 今の データは 上書きされます。
+            {tr('はじめから 始めると、次に 記録したとき 今の データは 上書きされます。', 'If you start a new game, it will be overwritten the next time you save.')}
           </p>
-          {['やめる', 'はじめから 始める'].map((o, i) => (
+          {[tr('やめる', 'Cancel'), tr('はじめから 始める', 'Start a new game')].map((o, i) => (
             <div key={o} className={`opt ${i === confirm ? 'on' : ''}`} onPointerEnter={() => setConfirm(i)} onClick={() => answer(i === 1)}>
               {o}
             </div>
@@ -104,12 +124,12 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
       )}
       <div className="title-links">
         {/* Web 版だけ：関数の 解説ページ（検索から 来た 人にも、遊んでいる 人にも） */}
-        {!isNative && <a href="/learn/">関数の解説</a>}
+        {!isNative && <a href="/learn/">{tr('関数の解説', 'Function guide')}</a>}
         <button type="button" className="title-privacy" onClick={() => setPrivacy(true)}>
-          プライバシーポリシー
+          {tr('プライバシーポリシー', 'Privacy Policy')}
         </button>
       </div>
-      {privacy && <DocView src="/privacy.html" title="プライバシーポリシー" onClose={() => setPrivacy(false)} />}
+      {privacy && <DocView src="/privacy.html" title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
     </div>
   )
 }
@@ -125,7 +145,9 @@ function DpadIcon() {
 }
 
 export function NameEntry({ onDone }: { onDone(name: string): void }) {
-  const [name, setName] = useState('サトウ')
+  // 英語は 1文字が 小さいので 8文字まで
+  const max = isEn() ? 8 : 6
+  const [name, setName] = useState(() => tr('サトウ', 'Sato'))
   return (
     <div className="title-screen">
       <TitleScene cast={false} />
@@ -133,12 +155,12 @@ export function NameEntry({ onDone }: { onDone(name: string): void }) {
         className="win name-win"
         onSubmit={(e) => {
           e.preventDefault()
-          if (name.trim()) onDone(name.trim().slice(0, 6))
+          if (name.trim()) onDone(name.trim().slice(0, max))
         }}
       >
-        <p>主人公の なまえを いれてください（6文字まで）</p>
-        <input autoFocus maxLength={6} value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn primary">けってい</button>
+        <p>{tr(`主人公の なまえを いれてください（${max}文字まで）`, `Enter the hero's name (up to ${max} letters)`)}</p>
+        <input autoFocus maxLength={max} value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="btn primary">{tr('けってい', 'OK')}</button>
       </form>
     </div>
   )
@@ -265,6 +287,128 @@ const CHAPTERS: Record<number, { title: string; body: (name: string) => ReactNod
   },
 }
 
+/** 章の 終わりの 英語版（次章予告の 題は EN_CHAPTERS と そろえる） */
+const EN_ENDINGS: typeof CHAPTERS = {
+  1: {
+    title: 'End of Chapter 1',
+    body: (name) => (
+      <>
+        <p>Smiles have returned to Calcule, Town of Calculation.</p>
+        <p>
+          {name} was beginning to realize something:
+          <br />
+          "Skills exist to solve someone's problems."
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[2].title, 'Formulas that shift when you copy them. What is the secret of "$"? (Relative & absolute references)'],
+  },
+  2: {
+    title: 'End of Chapter 2',
+    body: (name) => (
+      <>
+        <p>The tables of Refton, Town of Mirrors, no longer shift.</p>
+        <p>
+          What may shift, and what must never shift.
+          <br />
+          {name} gained the eye to tell them apart.
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[3].title, '"If this, then that." What is the magic that changes the answer by condition? (The IF function)'],
+  },
+  3: {
+    title: 'End of Chapter 3',
+    body: (name) => (
+      <>
+        <p>Ships once again come and go in the harbor of Ifport.</p>
+        <p>
+          Decide your "what ifs" ahead of time, and you spend less time hesitating.
+          <br />
+          {name} now held the power to turn decisions into systems.
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[4].title, 'What is the magic that finds the one answer in a giant table? (VLOOKUP & XLOOKUP)'],
+  },
+  4: {
+    title: 'End of Chapter 4',
+    body: (name) => (
+      <>
+        <p>Quiet has returned to the Great Library of Lookup Castle.</p>
+        <p>
+          No more hours lost to searching.
+          <br />
+          {name} learned that if you ask the table, the table answers.
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[5].title, 'What is the magic that sums up thousands of rows by condition in an instant? (SUMIFS & COUNTIFS)'],
+  },
+  5: {
+    title: 'End of Chapter 5',
+    body: (name) => (
+      <>
+        <p>A single ledger has returned to the palace of Pivoria.</p>
+        <p>
+          Even scattered records start to speak once you choose the headings and sum them up.
+          <br />
+          {name} gained the eye to see the world in rows and columns.
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[6].title, 'Join names, split codes. What is the magic that bends text at will? (Text functions)'],
+  },
+  6: {
+    title: 'End of Chapter 6',
+    body: (name) => (
+      <>
+        <p>The presses of Textria are printing the right letters once again.</p>
+        <p>
+          Join text and it gains meaning; cut it and you take only what you need.
+          <br />
+          {name} gained the power to rearrange text freely.
+        </p>
+      </>
+    ),
+    next: [EN_CHAPTERS[7].title, 'How many days later? What weekday? How many years? What is the magic that counts time? (Date math)'],
+  },
+  7: {
+    title: 'End of Chapter 7',
+    body: (name) => (
+      <>
+        <p>The clock tower of Calendra rings true once more.</p>
+        <p>
+          Dates are just numbers. Add to see the future; subtract to see the time left.
+          <br />
+          {name} gained the power to make time an ally.
+        </p>
+      </>
+    ),
+    next: ["Final Chapter: The Castle of Demon Lord Referror", 'Do not fear errors. Read them, and fix them. Bring together the power of all seven towns! (Fixing errors & final review)'],
+  },
+  8: {
+    title: 'End of the Final Chapter',
+    body: (name) => (
+      <>
+        <p>Demon Lord Referror is gone, and the light of efficiency has returned to the continent of Cellsia.</p>
+        <p>
+          Select cells, calculate with formulas, lock with $, decide with IF,
+          <br />
+          search with XLOOKUP, total with SUMIFS, work with text and dates, and read and fix errors.
+        </p>
+        <p>
+          What {name} gained on this journey wasn't magic.
+          <br />
+          It was real spreadsheet skill, ready for work starting tomorrow.
+        </p>
+      </>
+    ),
+    label: 'Equal Quest',
+    next: ['THE END', 'Thank you so much for playing! You can talk to the townspeople or try the tablets again to review.'],
+  },
+}
+
 export function Ending({ chapter, name, onDone }: { chapter: number; name: string; onDone(): void }) {
   // 連打で読み飛ばさないよう、少し待ってから入力を受け付ける
   const [ready, setReady] = useState(false)
@@ -273,19 +417,19 @@ export function Ending({ chapter, name, onDone }: { chapter: number; name: strin
     return () => clearTimeout(t)
   }, [])
   useKeys((k) => ready && k === 'ok' && onDone())
-  const ch = CHAPTERS[chapter] ?? CHAPTERS[1]
+  const ch = (isEn() ? EN_ENDINGS[chapter] : undefined) ?? CHAPTERS[chapter] ?? CHAPTERS[1]
   return (
     <div className="ending">
       <div className="ending-inner">
         <h2>{ch.title}</h2>
         {ch.body(name)}
         <div className="next-chapter">
-          <div>{ch.label ?? '次章予告'}</div>
+          <div>{ch.label ?? tr('次章予告', 'Next Chapter')}</div>
           <strong>{ch.next[0]}</strong>
           <p>{ch.next[1]}</p>
         </div>
         <button className="btn primary" disabled={!ready} onClick={onDone}>
-          ぼうけんを つづける
+          {tr('ぼうけんを つづける', 'Continue the adventure')}
         </button>
       </div>
     </div>
@@ -347,22 +491,22 @@ export function TouchPad() {
           />
         </svg>
         <span className="dpad-center" aria-hidden />
-        {btn('ArrowUp', 'u', '上', <Arrow />)}
-        {btn('ArrowLeft', 'l', '左', <Arrow />)}
-        {btn('ArrowRight', 'r', '右', <Arrow />)}
-        {btn('ArrowDown', 'd', '下', <Arrow />)}
+        {btn('ArrowUp', 'u', tr('上', 'Up'), <Arrow />)}
+        {btn('ArrowLeft', 'l', tr('左', 'Left'), <Arrow />)}
+        {btn('ArrowRight', 'r', tr('右', 'Right'), <Arrow />)}
+        {btn('ArrowDown', 'd', tr('下', 'Down'), <Arrow />)}
       </div>
       <div className="pad-mark" aria-hidden>
         ＝
       </div>
       <div className="ab">
         <div className="ab-btn b">
-          {btn('Escape', 'round b', 'メニュー', 'B')}
-          <span>メニュー</span>
+          {btn('Escape', 'round b', tr('メニュー', 'Menu'), 'B')}
+          <span>{tr('メニュー', 'Menu')}</span>
         </div>
         <div className="ab-btn a">
-          {btn('Enter', 'round a', '決定', 'A')}
-          <span>決定</span>
+          {btn('Enter', 'round a', tr('決定', 'OK'), 'A')}
+          <span>{tr('決定', 'OK')}</span>
         </div>
       </div>
     </div>

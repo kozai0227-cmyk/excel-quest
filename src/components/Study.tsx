@@ -9,6 +9,7 @@ import { getWeak, markWeak } from '../game/weak'
 import { chapterAllowed, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { FormulaQuestion } from './FormulaQuestion'
 import { isNative } from '../game/native'
+import { tr } from '../game/lang'
 import {
   CHAPTERS,
   allCourse,
@@ -16,6 +17,10 @@ import {
   chapterOfKey,
   chapterOpen,
   chapterProgress,
+  chapterShort,
+  chapterTag as tagOf,
+  chapterTitle,
+  chapterTopic,
   percent,
   weakCourse,
   type ChapterDef,
@@ -43,15 +48,14 @@ interface Result {
   ok: boolean
 }
 
-const LABELS: [keyof Progress, string][] = [
-  ['quests', '依頼'],
-  ['puzzles', '謎'],
-  ['bosses', 'ボス'],
-  ['chests', '宝箱'],
+const LABELS: [keyof Progress, () => string][] = [
+  ['quests', () => tr('依頼', 'Requests')],
+  ['puzzles', () => tr('謎', 'Puzzles')],
+  ['bosses', () => tr('ボス', 'Bosses')],
+  ['chests', () => tr('宝箱', 'Chests')],
 ]
 
-const short = (t: string) => t.replace(/^(第\d章|最終章)　/, '')
-const chapterTag = (ch?: ChapterDef) => (ch ? ch.title.split('　')[0] : '')
+const chapterTag = (ch?: ChapterDef) => (ch ? tagOf(ch) : '')
 
 /** ふくしゅうの書：章ごと・全章まとめ・苦手克服の コースで、時間制限なしに 問題を 解く */
 export function Study({ gs, fromTitle, onClose }: Props) {
@@ -119,7 +123,7 @@ export function Study({ gs, fromTitle, onClose }: Props) {
           onRetry={() => start(course)}
           onSimilar={() => {
             const wrong = results.filter((r) => !r.ok).map((r) => r.item.key)
-            start({ title: 'まちがえた 問題の 類題', make: () => weakCourse(wrong, Math.min(10, Math.max(5, wrong.length * 2))) })
+            start({ title: tr('まちがえた 問題の 類題', 'Similar questions to the ones you missed'), make: () => weakCourse(wrong, Math.min(10, Math.max(5, wrong.length * 2))) })
           }}
           onMenu={() => setView('menu')}
           onClose={onClose}
@@ -157,11 +161,11 @@ function CourseMenu({
 
   type Opt = { id: string; course?: Course; disabled?: boolean; unlock?: boolean }
   const opts: Opt[] = [
-    { id: 'weak', course: { title: '苦手克服コース', make: () => weakCourse(getWeak()) }, disabled: !weak.length },
-    { id: 'all', course: { title: '全章まとめコース', make: () => allCourse(openChs) } },
+    { id: 'weak', course: { title: tr('苦手克服コース', 'Weak Spot Course'), make: () => weakCourse(getWeak()) }, disabled: !weak.length },
+    { id: 'all', course: { title: tr('全章まとめコース', 'All-Chapter Course'), make: () => allCourse(openChs) } },
     ...rows
       .filter((r) => r.open)
-      .map((r) => (r.locked ? { id: `ch${r.ch.no}`, unlock: true } : { id: `ch${r.ch.no}`, course: { title: r.ch.title, make: () => chapterCourse(r.ch) } })),
+      .map((r) => (r.locked ? { id: `ch${r.ch.no}`, unlock: true } : { id: `ch${r.ch.no}`, course: { title: chapterTitle(r.ch), make: () => chapterCourse(r.ch) } })),
     { id: 'close' },
   ]
   const live = opts.filter((o) => !o.disabled)
@@ -207,41 +211,60 @@ function CourseMenu({
   return (
     <div className="study-page">
       <header className="study-head">
-        <h2>📖 ふくしゅうの書</h2>
+        <h2>📖 {tr('ふくしゅうの書', 'Book of Review')}</h2>
         {total !== null && (
           <div className="study-total">
-            冒険の 達成率 <b>{total}%</b>
+            {tr('冒険の 達成率', 'Adventure completion')} <b>{total}%</b>
             <div className="pbar">
               <span style={{ width: `${total}%` }} />
             </div>
           </div>
         )}
       </header>
-      <p className="study-help">時間制限は ない。じっくり 考えて 答えよう。まちがえた 問題は「苦手」に 記録され、正解すると 消える。</p>
+      <p className="study-help">
+        {tr(
+          '時間制限は ない。じっくり 考えて 答えよう。まちがえた 問題は「苦手」に 記録され、正解すると 消える。',
+          'No time limit here, so take your time. Questions you miss are saved as weak spots and cleared when you get them right.',
+        )}
+      </p>
       <div className="course-list">
         {row(
           opts[0],
           <>
-            <b>🔥 苦手克服コース</b>
-            <span>{weak.length ? `まちがえた 問題（${weak.length}問）と その類題を 中心に 10問` : 'まだ まちがえた 問題は ない'}</span>
+            <b>🔥 {tr('苦手克服コース', 'Weak Spot Course')}</b>
+            <span>
+              {weak.length
+                ? tr(`まちがえた 問題（${weak.length}問）と その類題を 中心に 10問`, `10 questions focused on the ${weak.length} you missed and similar ones`)
+                : tr('まだ まちがえた 問題は ない', "You haven't missed any questions yet")}
+            </span>
           </>,
           'weak',
         )}
         {row(
           opts[1],
           <>
-            <b>📚 全章まとめコース</b>
-            <span>{openChs.length > 1 ? `${chapterTag(openChs[0])}〜${chapterTag(openChs[openChs.length - 1])}から まんべんなく 10問` : '第1章から 10問'}</span>
+            <b>📚 {tr('全章まとめコース', 'All-Chapter Course')}</b>
+            <span>
+              {openChs.length > 1
+                ? tr(
+                    `${chapterTag(openChs[0])}〜${chapterTag(openChs[openChs.length - 1])}から まんべんなく 10問`,
+                    `10 questions spread across ${chapterTag(openChs[0])} to ${chapterTag(openChs[openChs.length - 1])}`,
+                  )
+                : tr('第1章から 10問', '10 questions from Chapter 1')}
+            </span>
           </>,
           'all',
         )}
-        <div className="course-sep">章を えらんで 復習（5問）</div>
+        <div className="course-sep">{tr('章を えらんで 復習（5問）', 'Review by chapter (5 questions)')}</div>
         {rows.map(({ ch, open, locked, p }) => {
           if (!open)
             return (
               <div key={ch.no} className="course locked">
-                <b>{chapterTag(ch)}　？？？</b>
-                <span>まだ たどりついていない</span>
+                <b>
+                  {chapterTag(ch)}
+                  {tr('　？？？', ': ???')}
+                </b>
+                <span>{tr('まだ たどりついていない', "You haven't reached this yet")}</span>
               </div>
             )
           const o = opts.find((x) => x.id === `ch${ch.no}`)!
@@ -250,10 +273,14 @@ function CourseMenu({
               o,
               <>
                 <b>
-                  🔒 {chapterTag(ch)}　{short(ch.title)}
+                  🔒 {chapterTag(ch)}
+                  {tr('　', ': ')}
+                  {chapterShort(ch)}
                 </b>
-                <span className="course-topic">{ch.topic}</span>
-                <span className="course-unlock">{isNative ? '全章解放で 遊べる' : 'iPhone アプリ版で 遊べる'}</span>
+                <span className="course-topic">{chapterTopic(ch)}</span>
+                <span className="course-unlock">
+                  {isNative ? tr('全章解放で 遊べる', 'Play with Unlock All Chapters') : tr('iPhone アプリ版で 遊べる', 'Play in the iPhone app')}
+                </span>
               </>,
               'chapter paywall',
             )
@@ -262,11 +289,13 @@ function CourseMenu({
             <>
               <div className="course-title">
                 <b>
-                  {chapterTag(ch)}　{short(ch.title)}
+                  {chapterTag(ch)}
+                  {tr('　', ': ')}
+                  {chapterShort(ch)}
                 </b>
                 {p && <span className="course-pct">{percent([p])}%</span>}
               </div>
-              <span className="course-topic">{ch.topic}</span>
+              <span className="course-topic">{chapterTopic(ch)}</span>
               {p && (
                 <>
                   <div className="pbar">
@@ -275,7 +304,7 @@ function CourseMenu({
                   <div className="course-counts">
                     {LABELS.map(([k, label]) => (
                       <span key={k} className={p[k][0] === p[k][1] ? 'full' : ''}>
-                        {label} {p[k][0]}/{p[k][1]}
+                        {label()} {p[k][0]}/{p[k][1]}
                       </span>
                     ))}
                   </div>
@@ -285,7 +314,7 @@ function CourseMenu({
             'chapter',
           )
         })}
-        {row(opts[opts.length - 1], <b>{fromTitle ? 'タイトルに もどる' : 'とじる'}</b>, 'close')}
+        {row(opts[opts.length - 1], <b>{fromTitle ? tr('タイトルに もどる', 'Back to title') : tr('とじる', 'Close')}</b>, 'close')}
       </div>
     </div>
   )
@@ -360,7 +389,7 @@ function Quiz({
           {idx + 1} / {items.length}
         </div>
         <button className="btn ghost" onClick={onQuit}>
-          やめる
+          {tr('やめる', 'Quit')}
         </button>
       </header>
       <div className="quiz-progress">
@@ -371,8 +400,8 @@ function Quiz({
       <div className="quiz-body">
         <div className="quiz-tags">
           {ch && <span className="tag">{chapterTag(ch)}</span>}
-          {item.similar && <span className="tag similar">類題</span>}
-          <span className="tag kind">{q.type === 'choice' ? 'えらぶ' : '数式を 作る'}</span>
+          {item.similar && <span className="tag similar">{tr('類題', 'Similar')}</span>}
+          <span className="tag kind">{q.type === 'choice' ? tr('えらぶ', 'Choose') : tr('数式を 作る', 'Write a formula')}</span>
         </div>
         <div className="quiz-q">{q.q}</div>
         {q.type === 'choice' ? (
@@ -400,7 +429,7 @@ function Quiz({
               q={q}
               skills={skills}
               touch={touch}
-              label="こたえる"
+              label={tr('こたえる', 'Answer')}
               onSubmit={(input) => {
                 const r = judgeFormula(q, input)
                 answer(r.ok, r.note)
@@ -410,14 +439,15 @@ function Quiz({
         )}
         {fb && (
           <div className={`quiz-fb ${fb.ok ? 'ok' : 'ng'}`}>
-            <div className="fb-mark">{fb.ok ? '⭕ せいかい！' : '❌ ざんねん……'}</div>
+            <div className="fb-mark">{fb.ok ? tr('⭕ せいかい！', '⭕ Correct!') : tr('❌ ざんねん……', '❌ Not quite...')}</div>
             {fb.note && <p>{fb.note}</p>}
             <p>
-              こたえ：<b>{q.type === 'choice' ? q.answer : q.hint}</b>
+              {tr('こたえ：', 'Answer: ')}
+              <b>{q.type === 'choice' ? q.answer : q.hint}</b>
             </p>
             <p className="fb-explain">{q.explain}</p>
             <button className="btn primary" autoFocus data-nosfx onClick={next}>
-              {idx + 1 < items.length ? 'つぎへ ▶' : 'けっかを 見る'}
+              {idx + 1 < items.length ? tr('つぎへ ▶', 'Next ▶') : tr('けっかを 見る', 'See results')}
             </button>
           </div>
         )}
@@ -446,12 +476,18 @@ function ResultView({
   const wrong = results.length - correct
   const rate = correct / results.length
   const comment =
-    rate === 1 ? 'パーフェクト！ 完璧に 身についている！' : rate >= 0.8 ? 'すばらしい！ あと少しで 完璧だ。' : rate >= 0.5 ? 'いい調子！ まちがえた 所を 復習しよう。' : 'まずは 解説を 読んで、類題で もう一度！'
+    rate === 1
+      ? tr('パーフェクト！ 完璧に 身についている！', "Perfect! You've totally got this!")
+      : rate >= 0.8
+        ? tr('すばらしい！ あと少しで 完璧だ。', 'Great job! Almost perfect.')
+        : rate >= 0.5
+          ? tr('いい調子！ まちがえた 所を 復習しよう。', "Nice going! Let's review the ones you missed.")
+          : tr('まずは 解説を 読んで、類題で もう一度！', 'Read the explanations first, then try similar questions!')
   const btns = [
-    ...(wrong ? [{ label: `🔥 まちがえた ${wrong}問の 類題を 解く`, run: onSimilar }] : []),
-    { label: '🔁 同じコースを もう一度（新しい 問題）', run: onRetry },
-    { label: '📖 コースを 選びなおす', run: onMenu },
-    { label: 'おわる', run: onClose },
+    ...(wrong ? [{ label: tr(`🔥 まちがえた ${wrong}問の 類題を 解く`, `🔥 Try questions like the ${wrong} you missed`), run: onSimilar }] : []),
+    { label: tr('🔁 同じコースを もう一度（新しい 問題）', '🔁 Same course again (new questions)'), run: onRetry },
+    { label: tr('📖 コースを 選びなおす', '📖 Choose another course'), run: onMenu },
+    { label: tr('おわる', 'Finish'), run: onClose },
   ]
   const [cursor, setCursor] = useState(0)
   useKeys((k) => {
@@ -465,11 +501,11 @@ function ResultView({
   return (
     <div className="study-page result">
       <header className="study-head">
-        <h2>けっか</h2>
+        <h2>{tr('けっか', 'Results')}</h2>
         <div className="quiz-title">{title}</div>
       </header>
       <div className="result-score">
-        <b>{correct}</b> / {results.length} 問 正解
+        <b>{correct}</b> / {results.length} {tr('問 正解', 'correct')}
       </div>
       <p className="result-comment">{comment}</p>
       <ol className="result-list">
@@ -477,7 +513,12 @@ function ResultView({
           <li key={i} className={r.ok ? 'ok' : 'ng'}>
             <span className="mark">{r.ok ? '⭕' : '❌'}</span>
             <span className="rq">{r.q.q}</span>
-            {!r.ok && <span className="ra">こたえ：{r.q.type === 'choice' ? r.q.answer : r.q.hint}</span>}
+            {!r.ok && (
+              <span className="ra">
+                {tr('こたえ：', 'Answer: ')}
+                {r.q.type === 'choice' ? r.q.answer : r.q.hint}
+              </span>
+            )}
           </li>
         ))}
       </ol>

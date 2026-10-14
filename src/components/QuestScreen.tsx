@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from 'react'
 import { MiniExcel } from './MiniExcel'
 import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
-import { ITEMS } from '../data/items'
+import { itemName } from '../data/items'
+import { tr } from '../game/lang'
 import type { Grid, Value } from '../game/formula'
 import { getInputMode } from '../game/inputMode'
 import { isPhoneLayout } from '../game/layout'
@@ -55,16 +56,16 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
   const clearModal = cleared && (
     <div className="clear-modal">
       <div className="win clear-win">
-        <div className="clear-title">{puzzle ? '★ 謎を 解いた！ ★' : '★ 悩みを 解決した！ ★'}</div>
-        <p>{puzzle ? `「${quest.title}」の 石版が 光った` : `${quest.npc}の「${quest.title}」`}</p>
+        <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
+        <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${quest.npc}`)}</p>
         <p>
-          けいけんち +{reward.exp}
-          {reward.gold > 0 && `　／　${reward.gold} ゴールド`}
+          {tr('けいけんち', 'EXP')} +{reward.exp}
+          {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}
         </p>
-        {reward.skill && <p className="learn">スキル「{SKILLS[reward.skill].name}」を おぼえた！</p>}
-        {reward.item && <p>{ITEMS[reward.item].name}を てにいれた！</p>}
+        {reward.skill && <p className="learn">{tr(`スキル「${SKILLS[reward.skill].name}」を おぼえた！`, `Learned the skill "${SKILLS[reward.skill].name}"!`)}</p>}
+        {reward.item && <p>{tr(`${itemName(reward.item)}を てにいれた！`, `Obtained ${itemName(reward.item)}!`)}</p>}
         <button className="btn primary" autoFocus onClick={() => onClear(hints)}>
-          つづける
+          {tr('つづける', 'Continue')}
         </button>
       </div>
     </div>
@@ -79,16 +80,16 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
         <div className="quest">
           <header className="quest-head">
             <div className="quest-title">
-              <span className="tag">{puzzle ? '謎解き' : '依頼'}</span> {quest.title}
+              <span className="tag">{puzzle ? tr('謎解き', 'Puzzle') : tr('依頼', 'Request')}</span> {quest.title}
             </div>
             <button className="btn ghost" onClick={onClose}>
-              あきらめる
+              {tr('あきらめる', 'Give up')}
             </button>
           </header>
           <div className="quest-brief">
             <button className="brief-toggle" onClick={() => setBrief(!brief)}>
-              <span>{puzzle ? '石版の 謎' : `${quest.npc}の 依頼`}</span>
-              <span className="muted">{brief ? '▲ とじる' : '▼ やることを 見る'}</span>
+              <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${quest.npc}`)}</span>
+              <span className="muted">{brief ? tr('▲ とじる', '▲ Hide') : tr('▼ やることを 見る', '▼ Show the task')}</span>
             </button>
             {brief && (
               <ol>
@@ -97,7 +98,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
                 ))}
               </ol>
             )}
-            {brief && puzzle && <p className="muted">この石版に ヒントは ない。これまでに 覚えた スキルを 思い出そう。</p>}
+            {brief && puzzle && <p className="muted">{tr('この石版に ヒントは ない。これまでに 覚えた スキルを 思い出そう。', 'This tablet offers no hints. Remember the skills you have learned so far.')}</p>}
             {quest.hints.slice(0, hints).map((h, i) => (
               <p key={i} className="hint">
                 💡 {h}
@@ -109,11 +110,11 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
           <div className="quest-actions">
             {!puzzle && (
               <button className="btn" disabled={hints >= quest.hints.length} onClick={() => setHints(hints + 1)}>
-                {hints < quest.hints.length ? `💡 ヒント ${hints + 1}/${quest.hints.length}` : 'ヒントは 全部'}
+                {hints < quest.hints.length ? tr(`💡 ヒント ${hints + 1}/${quest.hints.length}`, `💡 Hint ${hints + 1}/${quest.hints.length}`) : tr('ヒントは 全部', 'No more hints')}
               </button>
             )}
             <button className="btn primary" data-nosfx onClick={judge}>
-              これで どうだ！
+              {tr('これで どうだ！', 'How about this!')}
             </button>
           </div>
         </div>
@@ -126,17 +127,17 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
       <div className="quest">
         <header className="quest-head">
           <div className="quest-title">
-            <span className="tag">{quest.kind === 'puzzle' ? '謎解き' : '依頼'}</span> {quest.title}
+            <span className="tag">{quest.kind === 'puzzle' ? tr('謎解き', 'Puzzle') : tr('依頼', 'Request')}</span> {quest.title}
             {quest.kind !== 'puzzle' && <span className="from">― {quest.npc}</span>}
           </div>
           <button className="btn ghost" onClick={onClose}>
-            あきらめる
+            {tr('あきらめる', 'Give up')}
           </button>
         </header>
         <div className="quest-body">
           <aside className="quest-side">
             <div className="panel">
-              <h3>やること</h3>
+              <h3>{tr('やること', 'Task')}</h3>
               <ol>
                 {quest.task.map((t) => (
                   <li key={t}>{t}</li>
@@ -146,11 +147,11 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
             {puzzle ? (
               // ボスステージの謎解きは ヒントなし
               <div className="panel">
-                <p className="muted">この石版に ヒントは ない。これまでに 覚えた スキルを 思い出そう。</p>
+                <p className="muted">{tr('この石版に ヒントは ない。これまでに 覚えた スキルを 思い出そう。', 'This tablet offers no hints. Remember the skills you have learned so far.')}</p>
               </div>
             ) : (
             <div className="panel">
-              <h3>ヒント</h3>
+              <h3>{tr('ヒント', 'Hints')}</h3>
               {quest.hints.slice(0, hints).map((h, i) => (
                 <p key={i} className="hint">
                   💡 {h}
@@ -158,15 +159,15 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
               ))}
               {hints < quest.hints.length ? (
                 <button className="btn" onClick={() => setHints(hints + 1)}>
-                  ヒントを見る（{hints + 1}/{quest.hints.length}）
+                  {tr(`ヒントを見る（${hints + 1}/${quest.hints.length}）`, `Show a hint (${hints + 1}/${quest.hints.length})`)}
                 </button>
               ) : (
-                <p className="muted">ヒントは これで全部だ。</p>
+                <p className="muted">{tr('ヒントは これで全部だ。', "That's all the hints.")}</p>
               )}
             </div>
             )}
             <button className="btn primary" data-nosfx onClick={judge}>
-              これで どうだ！（判定）
+              {tr('これで どうだ！（判定）', 'How about this! (Check)')}
             </button>
             {feedback && <div className="feedback">{feedback}</div>}
           </aside>
@@ -174,13 +175,13 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
             {excel}
             {!puzzle && (
             <div className="cheats">
-              <span><kbd>Enter</kbd> 確定</span>
-              <span><kbd>F2</kbd> 編集</span>
-              <span><kbd>Esc</kbd> 取消</span>
-              <span><kbd>Ctrl/⌘+C</kbd><kbd>V</kbd> コピペ</span>
-              <span><kbd>Ctrl/⌘+Z</kbd> 戻す</span>
-              <span><kbd>Ctrl/⌘+B</kbd> 太字</span>
-              <span>右下の■をドラッグでオートフィル</span>
+              <span><kbd>Enter</kbd> {tr('確定', 'Confirm')}</span>
+              <span><kbd>F2</kbd> {tr('編集', 'Edit')}</span>
+              <span><kbd>Esc</kbd> {tr('取消', 'Cancel')}</span>
+              <span><kbd>Ctrl/⌘+C</kbd><kbd>V</kbd> {tr('コピペ', 'Copy/Paste')}</span>
+              <span><kbd>Ctrl/⌘+Z</kbd> {tr('戻す', 'Undo')}</span>
+              <span><kbd>Ctrl/⌘+B</kbd> {tr('太字', 'Bold')}</span>
+              <span>{tr('右下の■をドラッグでオートフィル', 'Drag the ■ at the bottom right to AutoFill')}</span>
             </div>
             )}
           </main>

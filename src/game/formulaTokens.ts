@@ -1,4 +1,5 @@
 import { addr, parseAddr, toggleAbsAt } from './formula'
+import { tr } from './lang'
 
 /** スマホ用の「数式ボタン」の ひとまとまり */
 export interface ChipGroup {
@@ -136,9 +137,9 @@ export function battlePad(hint: string, rows: number, cols: number, target: stri
   const hasCmp = toks.some((t) => COMPARE.includes(t) || t === '=')
 
   return [
-    ...(funcs.size ? [{ label: '関数', chips: [...funcs].sort() }] : []),
-    { label: 'セル', chips: [...cells].sort(byAddr) },
-    { label: '記号', chips: [...PUNCT, ...ARITH, ...(toks.includes('&') ? ['&'] : []), ...(hasCmp ? [...COMPARE, '='] : [])] },
-    ...(values.length ? [{ label: '値', chips: values }] : []),
+    ...(funcs.size ? [{ label: tr('関数', 'Functions'), chips: [...funcs].sort() }] : []),
+    { label: tr('セル', 'Cells'), chips: [...cells].sort(byAddr) },
+    { label: tr('記号', 'Symbols'), chips: [...PUNCT, ...ARITH, ...(toks.includes('&') ? ['&'] : []), ...(hasCmp ? [...COMPARE, '='] : [])] },
+    ...(values.length ? [{ label: tr('値', 'Values'), chips: values }] : []),
   ]
 }

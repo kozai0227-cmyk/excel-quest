@@ -1,4 +1,5 @@
 import type { GameState } from './types'
+import { tr } from './lang'
 
 export const LEVEL_EXP = [0, 0, 20, 50, 90, 140, 200, 280, 380, 500, 650, 850, 1100, 1400, 1750, 2150, 2600, 3100, 3650, 4250, 4900, 5600, 6350, 7150, 8000, 8900]
 
@@ -24,7 +25,10 @@ export function gainExp(gs: GameState, exp: number): { gs: GameState; msgs: stri
   if (lv > gs.level) {
     const gain = maxHp(lv) - maxHp(gs.level)
     hp = Math.min(maxHp(lv), hp + gain)
-    msgs.push(`${gs.name}の レベルが ${lv}に あがった！`, `さいだいHPが ${gain} あがった！`)
+    msgs.push(
+      tr(`${gs.name}の レベルが ${lv}に あがった！`, `${gs.name} reached level ${lv}!`),
+      tr(`さいだいHPが ${gain} あがった！`, `Max HP went up by ${gain}!`),
+    )
   }
   return { gs: { ...gs, exp: total, level: lv, hp }, msgs }
 }

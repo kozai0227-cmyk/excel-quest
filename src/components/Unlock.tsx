@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
-import { CHAPTERS } from '../data/chapters'
+import { CHAPTERS, chapterShort, chapterTag, chapterTopic } from '../data/chapters'
 import { useKeys } from '../game/keys'
 import { isNative } from '../game/native'
 import { jingle, sfx } from '../game/sound'
 import { FREE_CHAPTERS, buyFull, closeUnlock, loadPrice, openAppStore, restoreFull, useUnlocked } from '../game/store'
-
-const short = (t: string) => t.replace(/^(第\d章|最終章)　/, '')
-const tag = (t: string) => t.split('　')[0]
+import { tr } from '../game/lang'
 
 const MESSAGES = {
-  purchased: 'ありがとう ございます！ すべての 章が 遊べるように なりました。',
-  restored: '購入を 復元しました。すべての 章が 遊べます。',
-  pending: '購入の 承認待ちです。承認されると 自動で 解放されます。',
-  error: '購入できませんでした。通信を 確かめて、もう一度 お試しください。',
-  none: 'この Apple アカウントでの 購入は 見つかりませんでした。',
-  restoreError: '復元できませんでした。通信を 確かめて、もう一度 お試しください。',
+  purchased: () => tr('ありがとう ございます！ すべての 章が 遊べるように なりました。', 'Thank you! Every chapter is now unlocked.'),
+  restored: () => tr('購入を 復元しました。すべての 章が 遊べます。', 'Your purchase was restored. Every chapter is unlocked.'),
+  pending: () => tr('購入の 承認待ちです。承認されると 自動で 解放されます。', 'Your purchase is awaiting approval. Chapters unlock automatically once it is approved.'),
+  error: () => tr('購入できませんでした。通信を 確かめて、もう一度 お試しください。', 'The purchase could not be completed. Check your connection and try again.'),
+  none: () => tr('この Apple アカウントでの 購入は 見つかりませんでした。', 'No purchase was found for this Apple Account.'),
+  restoreError: () => tr('復元できませんでした。通信を 確かめて、もう一度 お試しください。', 'Could not restore. Check your connection and try again.'),
 } as const
 
 /**
@@ -48,7 +46,7 @@ export function Unlock() {
     const r = await buyFull()
     setBusy(false)
     if (r === 'purchased') jingle('clear')
-    if (r !== 'cancelled') setMsg(MESSAGES[r])
+    if (r !== 'cancelled') setMsg(MESSAGES[r]())
   }
   const restore = async () => {
     if (busy) return
@@ -59,10 +57,10 @@ export function Unlock() {
     setBusy(false)
     if (r === 'restored') {
       jingle('clear')
-      setMsg(MESSAGES.restored)
+      setMsg(MESSAGES.restored())
     }
-    if (r === 'none') setMsg(MESSAGES.none)
-    if (r === 'error') setMsg(MESSAGES.restoreError)
+    if (r === 'none') setMsg(MESSAGES.none())
+    if (r === 'error') setMsg(MESSAGES.restoreError())
   }
 
   const toStore = () => {
@@ -70,16 +68,16 @@ export function Unlock() {
     openAppStore()
   }
   const btns = unlocked
-    ? [{ label: 'とじる', run: close }]
+    ? [{ label: tr('とじる', 'Close'), run: close }]
     : !isNative
       ? [
-          { label: 'App Store で 見る', run: toStore, primary: true },
-          { label: 'とじる', run: close },
+          { label: tr('App Store で 見る', 'View on the App Store'), run: toStore, primary: true },
+          { label: tr('とじる', 'Close'), run: close },
         ]
       : [
-          { label: busy ? '処理中……' : `購入する${price ? `（${price}）` : ''}`, run: buy, primary: true },
-          { label: '購入を 復元', run: restore },
-          { label: 'あとで', run: close },
+          { label: busy ? tr('処理中……', 'Processing...') : tr(`購入する${price ? `（${price}）` : ''}`, `Buy${price ? ` (${price})` : ''}`), run: buy, primary: true },
+          { label: tr('購入を 復元', 'Restore Purchase'), run: restore },
+          { label: tr('あとで', 'Later'), run: close },
         ]
   useKeys((k) => {
     if (busy) return
@@ -94,20 +92,26 @@ export function Unlock() {
   return (
     <div className="unlock">
       <div className="unlock-inner">
-        <h2>{unlocked ? '🔓 全章解放 ずみ' : isNative ? '🔓 全章解放' : '📱 続きは アプリ版で'}</h2>
+        <h2>
+          {unlocked
+            ? tr('🔓 全章解放 ずみ', '🔓 All Chapters Unlocked')
+            : isNative
+              ? tr('🔓 全章解放', '🔓 Unlock All Chapters')
+              : tr('📱 続きは アプリ版で', '📱 Continue in the App')}
+        </h2>
         {unlocked ? (
-          <p className="unlock-lead">{msg ?? 'すべての 章が 遊べます。最後まで 冒険を 楽しんで ください！'}</p>
+          <p className="unlock-lead">{msg ?? tr('すべての 章が 遊べます。最後まで 冒険を 楽しんで ください！', 'Every chapter is playable. Enjoy the adventure to the very end!')}</p>
         ) : isNative ? (
           <p className="unlock-lead">
-            第{FREE_CHAPTERS}章までは 無料で 遊べます。
+            {tr(`第${FREE_CHAPTERS}章までは 無料で 遊べます。`, `Chapters 1-${FREE_CHAPTERS} are free to play.`)}
             <br />
-            「全章解放」で、この 先の 冒険が すべて 遊べます。
+            {tr('「全章解放」で、この 先の 冒険が すべて 遊べます。', '"Unlock All Chapters" opens up the rest of the adventure.')}
           </p>
         ) : (
           <p className="unlock-lead">
-            ブラウザ版は 第{FREE_CHAPTERS}章までの 体験版です。
+            {tr(`ブラウザ版は 第${FREE_CHAPTERS}章までの 体験版です。`, `The browser version is a trial up to Chapter ${FREE_CHAPTERS}.`)}
             <br />
-            この 先の 冒険は、iPhone アプリ版「イコール・クエスト」で 遊べます。
+            {tr('この 先の 冒険は、iPhone アプリ版「イコール・クエスト」で 遊べます。', 'The rest of the adventure is available in the Equal Quest iPhone app.')}
           </p>
         )}
         {!unlocked && (
@@ -116,25 +120,27 @@ export function Unlock() {
               {paid.map((ch) => (
                 <li key={ch.no}>
                   <b>
-                    {tag(ch.title)}　{short(ch.title)}
+                    {chapterTag(ch)}{tr('　', ': ')}{chapterShort(ch)}
                   </b>
-                  <span>{ch.topic}</span>
+                  <span>{chapterTopic(ch)}</span>
                 </li>
               ))}
               <li>
-                <b>📖 ふくしゅうの書</b>
-                <span>すべての 章の 復習・全章まとめコース</span>
+                <b>📖 {tr('ふくしゅうの書', 'Book of Review')}</b>
+                <span>{tr('すべての 章の 復習・全章まとめコース', 'Review for every chapter, plus the All-Chapter Course')}</span>
               </li>
             </ul>
             {isNative ? (
-              <p className="unlock-note">1回 買えば ずっと 遊べます（買い切り）。</p>
+              <p className="unlock-note">{tr('1回 買えば ずっと 遊べます（買い切り）。', 'Buy once, play forever (one-time purchase).')}</p>
             ) : (
-              <p className="unlock-note">アプリ版も 第2章までは 無料。この 先は「全章解放」（買い切り）で 遊べます。</p>
+              <p className="unlock-note">
+                {tr('アプリ版も 第2章までは 無料。この 先は「全章解放」（買い切り）で 遊べます。', 'Chapters 1-2 are free in the app too. Unlock the rest with "Unlock All Chapters" (one-time purchase).')}
+              </p>
             )}
           </>
         )}
         {msg && !unlocked && <p className="unlock-msg">{msg}</p>}
-        {isNative && !unlocked && priceFailed && !msg && <p className="unlock-msg">App Store に つながりません。通信を 確かめて ください。</p>}
+        {isNative && !unlocked && priceFailed && !msg && <p className="unlock-msg">{tr('App Store に つながりません。通信を 確かめて ください。', "Can't connect to the App Store. Please check your connection.")}</p>}
         <div className="unlock-btns">
           {btns.map((b, i) => (
             <button
@@ -151,11 +157,16 @@ export function Unlock() {
           ))}
         </div>
         {!isNative && !unlocked && (
-          <p className="unlock-fine">ブラウザ版の セーブデータは アプリ版に 引き継げません（アプリ版は 第1章から 始まります）。</p>
+          <p className="unlock-fine">
+            {tr('ブラウザ版の セーブデータは アプリ版に 引き継げません（アプリ版は 第1章から 始まります）。', "Browser saves can't be transferred to the app (the app starts from Chapter 1).")}
+          </p>
         )}
         {isNative && !unlocked && (
           <p className="unlock-fine">
-            お支払いは App Store で 行われます。機種変更や 再インストールの あとは「購入を 復元」で 引き継げます（同じ Apple アカウントの 場合）。
+            {tr(
+              'お支払いは App Store で 行われます。機種変更や 再インストールの あとは「購入を 復元」で 引き継げます（同じ Apple アカウントの 場合）。',
+              'Payment is handled by the App Store. After changing devices or reinstalling, use "Restore Purchase" to get it back (with the same Apple Account).',
+            )}
           </p>
         )}
       </div>

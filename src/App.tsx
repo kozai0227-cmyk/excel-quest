@@ -13,11 +13,13 @@ import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
 import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
-import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS } from './data/maps'
+import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
-import { ITEMS, ITEM_IDS } from './data/items'
-import { EQUIP, SLOT_NAME, effectText } from './data/equipment'
+import { ITEMS, ITEM_IDS, itemDesc, itemName } from './data/items'
+import { EQUIP, effectText, equipDesc, equipName, slotName } from './data/equipment'
+import { enemyName } from './data/en'
+import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
 import type { Dir, Exit, GameState, NpcDef } from './game/types'
 import { WALKABLE } from './game/tiles'
@@ -74,6 +76,8 @@ export default function App() {
       setGuide(id)
     })
   const phone = usePhoneLayout()
+  // 言語を 切りかえたら 画面 全体を 描きなおす
+  useLang()
   // 全章解放：買ったら 峠の 見張りが いなくなるよう 描きなおす
   useUnlocked()
   const unlockOpen = useUnlockScreen()
@@ -166,7 +170,7 @@ export default function App() {
     const ok = WALKABLE.has(m.tiles[loaded.y]?.[loaded.x] ?? '#')
     const g = ok && MAPS[loaded.mapId] ? loaded : { ...loaded, mapId: m.id, x: m.spawn.x, y: m.spawn.y, dir: m.spawn.dir }
     startGame(g, 'field')
-    showBanner(MAPS[g.mapId].name)
+    showBanner(mapName(g.mapId))
   }
 
   // 開発用：?quest=ID / ?boss=ID / ?prologue / ?at=マップ,x,y / ?ending=章
@@ -176,7 +180,7 @@ export default function App() {
     if (p.has('prologue')) return setScene('prologue')
     if (p.has('epilogue')) return setScene('epilogue')
     if (p.has('study')) return setScene('study')
-    const test = { ...newGame('サトウ'), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
+    const test = { ...newGame(tr('サトウ', 'Sato')), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
     const end = Number(p.get('ending'))
@@ -235,21 +239,24 @@ export default function App() {
             await say(lines.thanks)
             break
           }
-          const i = await say(lines.intro, ['たすける', 'またこんど'])
+          const i = await say(lines.intro, [tr('たすける', 'Help'), tr('またこんど', 'Maybe later')])
           if (i === 0) {
             setQuestId(q.id)
             setScene('quest')
-          } else await say(['そっか……。気が向いたら また 声をかけてね。'])
+          } else await say([tr('そっか……。気が向いたら また 声をかけてね。', "I see... Talk to me again if you change your mind.")])
           break
         }
         case 'inn': {
-          const i = await say([`いらっしゃいませ！ ふかふかの ベッドが 1泊 ${INN_PRICE}ゴールド。泊まって いかれます？`], ['はい', 'いいえ'])
+          const i = await say(
+            [tr(`いらっしゃいませ！ ふかふかの ベッドが 1泊 ${INN_PRICE}ゴールド。泊まって いかれます？`, `Welcome! A fluffy bed is ${INN_PRICE} gold a night. Will you stay?`)],
+            [tr('はい', 'Yes'), tr('いいえ', 'No')],
+          )
           if (i !== 0) {
-            await say(['またの おこしを おまちしております。'])
+            await say([tr('またの おこしを おまちしております。', 'We hope to see you again.')])
             break
           }
           if (g.gold < INN_PRICE) {
-            await say(['おや、ゴールドが 足りないようですね……。'])
+            await say([tr('おや、ゴールドが 足りないようですね……。', "Oh dear, it seems you don't have enough gold...")])
             break
           }
           setGs((s) => ({ ...s, gold: s.gold - INN_PRICE, hp: maxHp(s.level) }))
@@ -257,27 +264,27 @@ export default function App() {
           setFade(true)
           await sleep(1200)
           setFade(false)
-          await say(['窓から 朝の 光が さしこんで、目が さめた。', '体が 軽い！ HPが まんたんに なった！'])
+          await say([tr('窓から 朝の 光が さしこんで、目が さめた。', 'Morning light streams through the window, and you wake up.'), tr('体が 軽い！ HPが まんたんに なった！', 'You feel light! HP was fully restored!')])
           break
         }
         case 'shop': {
           let first = true
           for (;;) {
             const cur = gsRef.current
-            const opts = [...ITEM_IDS.map((id) => `${ITEMS[id].name}　${ITEMS[id].price}G`), 'やめる']
-            const i = await say([`${first ? 'へい、らっしゃい！ ' : ''}何に しやしょう？（所持金 ${cur.gold}G）`], opts)
+            const opts = [...ITEM_IDS.map((id) => `${itemName(id)}　${ITEMS[id].price}G`), tr('やめる', 'Leave')]
+            const i = await say([tr(`${first ? 'へい、らっしゃい！ ' : ''}何に しやしょう？（所持金 ${cur.gold}G）`, `${first ? 'Hey, welcome! ' : ''}What can I get you? (You have ${cur.gold}G)`)], opts)
             first = false
             if (i < 0 || i >= ITEM_IDS.length) {
-              await say(['まいど！ また きてくれよ。'])
+              await say([tr('まいど！ また きてくれよ。', 'Thanks! Come again.')])
               break
             }
             const id = ITEM_IDS[i]
             if (cur.gold < ITEMS[id].price) {
-              await say(['おっと、ゴールドが 足りないみたいだ。'])
+              await say([tr('おっと、ゴールドが 足りないみたいだ。', "Whoops, looks like you're short on gold.")])
               continue
             }
             setGs((s) => ({ ...s, gold: s.gold - ITEMS[id].price, items: { ...s.items, [id]: s.items[id] + 1 } }))
-            await say([`${ITEMS[id].name}だね。まいど あり！`, `（${ITEMS[id].desc}）`])
+            await say([tr(`${itemName(id)}だね。まいど あり！`, `One ${itemName(id)}. Thank you kindly!`), `（${itemDesc(id)}）`])
           }
           break
         }
@@ -286,34 +293,44 @@ export default function App() {
           for (;;) {
             const cur = gsRef.current
             const stock = npc.stock ?? []
-            const opts = [...stock.map((id) => `${EQUIP[id].name}　${EQUIP[id].price}G`), 'やめる']
+            const opts = [...stock.map((id) => `${equipName(id)}　${EQUIP[id].price}G`), tr('やめる', 'Leave')]
             const greet = first ? [...(npc.lines ?? [])] : []
-            const i = await say([...greet, `どれに するかね？（所持金 ${cur.gold}G）`], opts)
+            const i = await say([...greet, tr(`どれに するかね？（所持金 ${cur.gold}G）`, `Which one will it be? (You have ${cur.gold}G)`)], opts)
             first = false
             if (i < 0 || i >= stock.length) {
-              await say(['また 来てくれよな！'])
+              await say([tr('また 来てくれよな！', 'Come back anytime!')])
               break
             }
             const id = stock[i]
             const e = EQUIP[id]
             const nowId = cur.equip[e.slot]
-            const now = nowId ? `${EQUIP[nowId].name}（${effectText(EQUIP[nowId])}）` : 'なし'
-            const j = await say([`${e.name}：${e.desc}`, `効果：${effectText(e)}　／　いまの${SLOT_NAME[e.slot]}：${now}`, `${e.price}ゴールドだが、かうかい？`], ['はい', 'いいえ'])
+            const now = nowId ? `${equipName(nowId)}（${effectText(EQUIP[nowId])}）` : tr('なし', 'none')
+            const j = await say(
+              [
+                `${equipName(id)}：${equipDesc(id)}`,
+                tr(`効果：${effectText(e)}　／　いまの${slotName(e.slot)}：${now}`, `Effect: ${effectText(e)}  /  Current ${slotName(e.slot).toLowerCase()}: ${now}`),
+                tr(`${e.price}ゴールドだが、かうかい？`, `That's ${e.price} gold. Want it?`),
+              ],
+              [tr('はい', 'Yes'), tr('いいえ', 'No')],
+            )
             if (j !== 0) continue
             if (cur.gear.includes(id)) {
-              await say(['おや、それは もう 持っているようだね。'])
+              await say([tr('おや、それは もう 持っているようだね。', 'Oh, looks like you already have that one.')])
               continue
             }
             if (cur.gold < e.price) {
-              await say(['おっと、ゴールドが 足りないみたいだ。'])
+              await say([tr('おっと、ゴールドが 足りないみたいだ。', "Whoops, looks like you're short on gold.")])
               continue
             }
             setGs((g) => ({ ...g, gold: g.gold - e.price, gear: [...g.gear, id] }))
-            const k = await say([`まいど あり！ ${e.name}を てにいれた！`, 'せっかくだ、いま 身に つけて 帰るかい？'], ['はい', 'いいえ'])
+            const k = await say(
+              [tr(`まいど あり！ ${equipName(id)}を てにいれた！`, `Thank you kindly! Obtained ${equipName(id)}!`), tr('せっかくだ、いま 身に つけて 帰るかい？', 'Want to put it on right now?')],
+              [tr('はい', 'Yes'), tr('いいえ', 'No')],
+            )
             if (k === 0) {
               setGs((g) => ({ ...g, equip: { ...g.equip, [e.slot]: id } }))
-              await talk(undefined, [`${gsRef.current.name}は ${e.name}を そうびした！`])
-            } else await say(['メニューの「そうび」から いつでも 装備できるぜ。'])
+              await talk(undefined, [tr(`${gsRef.current.name}は ${equipName(id)}を そうびした！`, `${gsRef.current.name} equipped the ${equipName(id)}!`)])
+            } else await say([tr('メニューの「そうび」から いつでも 装備できるぜ。', 'You can equip it anytime from "Equip" in the menu.')])
           }
           break
         }
@@ -324,34 +341,34 @@ export default function App() {
           if (loot.item) {
             const id = loot.item
             setGs((g) => ({ ...g, items: { ...g.items, [id]: g.items[id] + 1 } }))
-            got.push(`${ITEMS[id].name}を てにいれた！`)
+            got.push(tr(`${itemName(id)}を てにいれた！`, `Obtained ${itemName(id)}!`))
           }
           if (loot.gold) {
             const n = loot.gold
             setGs((g) => ({ ...g, gold: g.gold + n }))
-            got.push(`${n}ゴールドを てにいれた！`)
+            got.push(tr(`${n}ゴールドを てにいれた！`, `Found ${n} gold!`))
           }
           if (loot.equip) {
             const id = loot.equip
             if (g.gear.includes(id)) {
               setGs((s2) => ({ ...s2, gold: s2.gold + Math.floor(EQUIP[id].price / 2) }))
-              got.push(`${EQUIP[id].name}は もう 持っていたので、${Math.floor(EQUIP[id].price / 2)}ゴールドに かえた。`)
+              got.push(tr(`${EQUIP[id].name}は もう 持っていたので、${Math.floor(EQUIP[id].price / 2)}ゴールドに かえた。`, `You already had the ${equipName(id)}, so you traded it for ${Math.floor(EQUIP[id].price / 2)} gold.`))
             } else {
               setGs((s2) => ({ ...s2, gear: [...s2.gear, id] }))
-              got.push(`${EQUIP[id].name}を てにいれた！`, '（メニューの「そうび」で 装備できる）')
+              got.push(tr(`${EQUIP[id].name}を てにいれた！`, `Obtained ${equipName(id)}!`), tr('（メニューの「そうび」で 装備できる）', '(Equip it from "Equip" in the menu.)'))
             }
           }
-          await talk(undefined, [`${g.name}は 宝箱の ふたを 開けた！`, ...got])
+          await talk(undefined, [tr(`${g.name}は 宝箱の ふたを 開けた！`, `${g.name} opened the treasure chest!`), ...got])
           break
         }
         case 'ferry': {
           const f = npc.ferry!
           if (f.closed?.(g)) {
-            await say(f.closedLines ?? ['すまんが、いまは 出せないんだ。'])
+            await say(f.closedLines ?? [tr('すまんが、いまは 出せないんだ。', "Sorry, we can't depart right now.")])
             break
           }
           await say(npc.lines ?? [])
-          const i = await say([`${f.place}へ ${f.verb ?? '渡る'}かい？`], ['乗る', 'やめる'])
+          const i = await say([tr(`${f.place}へ ${f.verb ?? '渡る'}かい？`, `${f.verb ? 'Head' : 'Cross over'} to ${mapName(f.to)}?`)], [tr('乗る', 'Board'), tr('やめる', 'Not now')])
           if (i !== 0) break
           sfx('door')
           setFade(true)
@@ -363,7 +380,11 @@ export default function App() {
         }
         case 'heal': {
           setGs((s2) => ({ ...s2, hp: maxHp(s2.level) }))
-          await talk(undefined, ['ふしぎな 泉が、青白く 光っている。', '泉の光が からだを つつみこんだ……。', 'HPが まんたんに なった！'])
+          await talk(undefined, [
+            tr('ふしぎな 泉が、青白く 光っている。', 'A mysterious spring glows a pale blue.'),
+            tr('泉の光が からだを つつみこんだ……。', 'The light of the spring wraps around you...'),
+            tr('HPが まんたんに なった！', 'HP was fully restored!'),
+          ])
           save()
           break
         }
@@ -375,12 +396,16 @@ export default function App() {
           let first = true
           for (;;) {
             const i = await say(
-              [first ? 'ようこそ、迷える 旅人よ。何か 困っている ことは ありますか？' : 'ほかにも 困っている ことは ありますか？'],
-              [...ids.map((id) => SKILLS[id].name), 'いいえ、だいじょうぶです'],
+              [
+                first
+                  ? tr('ようこそ、迷える 旅人よ。何か 困っている ことは ありますか？', 'Welcome, wandering traveler. Is something troubling you?')
+                  : tr('ほかにも 困っている ことは ありますか？', 'Is anything else troubling you?'),
+              ],
+              [...ids.map((id) => SKILLS[id].name), tr('いいえ、だいじょうぶです', "No, I'm fine")],
             )
             first = false
             if (i < 0 || i >= ids.length) {
-              await say(['あなたの 旅に 光が ありますように。'])
+              await say([tr('あなたの 旅に 光が ありますように。', 'May light shine upon your journey.')])
               break
             }
             await showGuide(ids[i])
@@ -390,7 +415,7 @@ export default function App() {
         case 'boss': {
           const b = ENEMIES[npc.bossId!]
           if (b.intro.length) await say(b.intro)
-          const i = await talk(undefined, [`${b.name}と たたかいますか？`], ['たたかう', 'やめておく'])
+          const i = await talk(undefined, [tr(`${b.name}と たたかいますか？`, `Fight ${enemyName(b)}?`)], [tr('たたかう', 'Fight'), tr('やめておく', 'Not yet')])
           if (i === 0)
             startBattle({
               id: b.id,
@@ -410,7 +435,7 @@ export default function App() {
     moveTo(ex.to, ex.tx, ex.ty, ex.dir)
     setFlag(`visit_${ex.to}`)
     const dest = MAPS[ex.to]
-    if (dest.kind !== 'interior') showBanner(dest.name)
+    if (dest.kind !== 'interior') showBanner(mapName(dest.id))
     // カルキュレの東門から はじめて 出たとき（第2章の はじまり）
     if (ex.to === 'world' && ex.tx === 37 && !gsRef.current.flags.visit_east) {
       setFlag('visit_east')
@@ -848,7 +873,7 @@ export default function App() {
   const onGate = (puzzle: string) =>
     run(async () => {
       const q = QUESTS[puzzle]
-      const i = await talk(undefined, q.intro, ['謎を とく', 'やめておく'])
+      const i = await talk(undefined, q.intro, [tr('謎を とく', 'Solve it'), tr('やめておく', 'Not yet')])
       if (i === 0) {
         setQuestId(q.id)
         setScene('quest')
@@ -864,7 +889,7 @@ export default function App() {
       setQuestId(null)
       setScene('field')
       run(async () => {
-        await talk(undefined, [...q.thanks, 'ゴゴゴゴゴ……！', '石の扉が ゆっくりと 開いた！', ...lv])
+        await talk(undefined, [...q.thanks, tr('ゴゴゴゴゴ……！', 'Rumble rumble...!'), tr('石の扉が ゆっくりと 開いた！', 'The stone door slowly opened!'), ...lv])
         save()
       })
       return
@@ -888,8 +913,8 @@ export default function App() {
       if (lv.length) await talk(undefined, lv)
       if (allDone)
         await talk(undefined, [
-          `${MAPS[q.town].name}の 悩みを すべて 解決した！`,
-          'どこか遠くで、結界が とける音が した……！',
+          tr(`${MAPS[q.town].name}の 悩みを すべて 解決した！`, `You solved every request in ${mapName(q.town).split(',')[0]}!`),
+          tr('どこか遠くで、結界が とける音が した……！', 'Somewhere far away, you heard the sound of a barrier lifting...!'),
           q.town === 'celuno'
             ? '（北のどうくつに 入れるように なった。奥には 散らかりセルイムが いるらしい）'
             : q.town === 'calculet'
@@ -918,7 +943,7 @@ export default function App() {
     setScene('field')
     if (q.kind === 'puzzle') return
     run(async () => {
-      await talk(q.npc, ['そっか……。また 気が向いたら たのむよ。'])
+      await talk(q.npc, [tr('そっか……。また 気が向いたら たのむよ。', 'I see... Please help me if you change your mind.')])
     })
   }
 
@@ -930,7 +955,7 @@ export default function App() {
     setBattle(null)
     setScene('field')
     run(async () => {
-      await talk(undefined, [`${b.exp}ポイントの けいけんちを かくとく！`, `${b.gold}ゴールドを てにいれた！`, ...lv])
+      await talk(undefined, [tr(`${b.exp}ポイントの けいけんちを かくとく！`, `Gained ${b.exp} EXP!`), tr(`${b.gold}ゴールドを てにいれた！`, `Got ${b.gold} gold!`), ...lv])
       if (req.tutorial) {
         setFlag('tutorial')
         await talk(undefined, ['セルイムは ぷるぷると ふるえながら、森の奥へ 逃げていった……。'])
@@ -940,21 +965,24 @@ export default function App() {
         return
       }
       if (!b.boss) return
-      await talk(undefined, [`${b.name}は 正気を とりもどした！`, ...(b.defeatText ?? [])])
+      await talk(undefined, [tr(`${b.name}は 正気を とりもどした！`, `${enemyName(b)} came back to its senses!`), ...(b.defeatText ?? [])])
       // ダンジョンのボスを倒したら、自動で外へ出る
       const out = MAPS[gsRef.current.mapId]?.bossExit
       if (out) {
         const id = gsRef.current.mapId
         const place = id.startsWith('tower') ? '塔' : id.startsWith('temple') ? '神殿' : id.startsWith('ship') ? '船' : id.startsWith('library') ? '書庫' : id.startsWith('treasury') ? '宝物庫' : id.startsWith('print') ? '印刷所' : id.startsWith('clock') ? '時計塔' : id.startsWith('castle') ? '魔王城' : '洞窟'
-        await talk(undefined, [`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, `${gsRef.current.name}は 急いで 外へ 飛び出した！`])
+        await talk(undefined, [
+          tr(`ゴゴゴゴ……！ ${place}が ゆれはじめた！`, 'Rumble rumble...! Everything began to shake!'),
+          tr(`${gsRef.current.name}は 急いで 外へ 飛び出した！`, `${gsRef.current.name} rushed outside!`),
+        ])
         sfx('door')
         setFade(true)
         await sleep(600)
         moveTo(out.map, out.x, out.y, out.dir)
-        showBanner(MAPS[out.map].name)
+        showBanner(mapName(out.map))
         await sleep(700)
         setFade(false)
-        await me(['はぁ、はぁ……なんとか 外に 出られた……。'])
+        await me([tr('はぁ、はぁ……なんとか 外に 出られた……。', 'Huff, huff... Made it out somehow...')])
       }
       if (b.id === 'slime') await talk(undefined, ['東の橋の 見張りに 知らせが 届いた！', '（ワールドマップの 東の橋を 渡って、計算の町 カルキュレへ 行けるように なった）'])
       if (b.id === 'golem')
@@ -1032,12 +1060,15 @@ export default function App() {
     const i = await talk(
       undefined,
       [
-        '無料で 遊べるのは ここ（第2章）まで です。',
+        tr('無料で 遊べるのは ここ（第2章）まで です。', 'The free part of the game ends here (Chapter 2).'),
         isNative
-          ? '「全章解放」を 購入すると、第3章から 最終章までの 冒険と、ふくしゅうの書の すべての 章が 遊べます。'
-          : 'この 先の 冒険（第3章〜最終章）は、iPhone アプリ版で 遊べます。',
+          ? tr(
+              '「全章解放」を 購入すると、第3章から 最終章までの 冒険と、ふくしゅうの書の すべての 章が 遊べます。',
+              'Buy "Unlock All Chapters" to play Chapter 3 through the Final Chapter, plus every chapter of the Book of Review.',
+            )
+          : tr('この 先の 冒険（第3章〜最終章）は、iPhone アプリ版で 遊べます。', 'The rest of the adventure (Chapter 3 to the Final Chapter) is available in the iPhone app.'),
       ],
-      ['くわしく 見る', 'あとで'],
+      [tr('くわしく 見る', 'Learn more'), tr('あとで', 'Later')],
     )
     if (i === 0) openUnlock()
   }
@@ -1062,10 +1093,10 @@ export default function App() {
     else moveTo('forest', MAPS.forest.spawn.x, MAPS.forest.spawn.y, 'right')
     run(async () => {
       await talk(r ? '神父' : undefined, [
-        '……気が ついたようですね。ここは 町の 教会です。',
-        '無理は いけません。学びに 近道は ありませんから。',
-        '（所持金が 半分に なった）',
-        '関数で 迷ったら、わたしに 相談なさい。宿屋で 休んでから、また いどむのも よいでしょう。',
+        tr('……気が ついたようですね。ここは 町の 教会です。', "...Ah, you're awake. This is the town church."),
+        tr('無理は いけません。学びに 近道は ありませんから。', "Don't push yourself. There are no shortcuts to learning."),
+        tr('（所持金が 半分に なった）', '(You lost half your gold.)'),
+        tr('関数で 迷ったら、わたしに 相談なさい。宿屋で 休んでから、また いどむのも よいでしょう。', 'If functions confuse you, come talk to me. You might also rest at the inn before trying again.'),
       ])
       save()
     })
@@ -1124,7 +1155,7 @@ export default function App() {
               setScene('field')
               setWhiteIn(true)
               setTimeout(() => setWhiteIn(false), 2000)
-              setTimeout(() => showBanner(MAPS[gsRef.current.mapId].name), 900)
+              setTimeout(() => showBanner(mapName(gsRef.current.mapId)), 900)
             }}
           />
         )}
@@ -1193,10 +1224,10 @@ export default function App() {
                 {quests.length > 0 && (
                   <div className="win hud-quest">
                     {townBoss && gs.bosses.includes(townBoss)
-                      ? '★ この町は 平和になった'
+                      ? tr('★ この町は 平和になった', '★ Peace has returned')
                       : barrierOpen
-                        ? '⚔ 北の結界が とけた！'
-                        : `悩み解決 ${solvedHere}/${quests.length}`}
+                        ? tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')
+                        : tr(`悩み解決 ${solvedHere}/${quests.length}`, `Requests ${solvedHere}/${quests.length}`)}
                   </div>
                 )}
               </>

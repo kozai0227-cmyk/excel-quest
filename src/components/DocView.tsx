@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { tr } from '../game/lang'
 
 /**
  * アプリに 同梱した ページ（プライバシーポリシーなど、public/ の HTML）や 文章（ライセンス表記）を 全画面で 見せる。
@@ -11,13 +12,13 @@ export function DocView({ src, text, title, onClose }: { src?: string; text?: st
     <div className="doc-view" role="dialog" aria-label={title}>
       <div className="doc-head">
         <span>{title}</span>
-        <button type="button" className="doc-x" onClick={onClose} aria-label="とじる">
+        <button type="button" className="doc-x" onClick={onClose} aria-label={tr('とじる', 'Close')}>
           ✕
         </button>
       </div>
       <div className="doc-body">{src ? <iframe src={src} title={title} /> : <pre>{text}</pre>}</div>
       <button type="button" className="btn doc-close" onClick={onClose}>
-        とじる
+        {tr('とじる', 'Close')}
       </button>
     </div>,
     document.body,

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
-import { ITEMS } from '../data/items'
+import { itemName } from '../data/items'
+import { enemyName } from '../data/en'
+import { tr } from '../game/lang'
 import { useKeys } from '../game/keys'
 import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
@@ -55,11 +57,16 @@ const CRIT = 0.05
 /** ボス戦：敵の問題に正解したとき、ダメージがゼロになる確率 */
 const PERFECT_GUARD = 0.05
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
-const CRIT_LINES = ['部長の ハンコが 即日 押された！', '稟議が 一発で 通った！', '根回しが 完璧に きまった！', '社長の「いいね」が ついた！']
-const GUARD_LINES = [
-  '「前向きに 検討します」――攻撃を 見事に かわした！',
-  '「その件は 持ち帰ります」――攻撃を 華麗に スルーした！',
-  '「担当が 不在でして」――攻撃が 空を 切った！',
+const CRIT_LINES = () => [
+  tr('部長の ハンコが 即日 押された！', 'The manager stamped it the same day!'),
+  tr('稟議が 一発で 通った！', 'The proposal passed on the first try!'),
+  tr('根回しが 完璧に きまった！', 'All that groundwork paid off perfectly!'),
+  tr('社長の「いいね」が ついた！', 'The CEO gave it a "Like"!'),
+]
+const GUARD_LINES = () => [
+  tr('「前向きに 検討します」――攻撃を 見事に かわした！', '"We\'ll give it positive consideration." Dodged the attack!'),
+  tr('「その件は 持ち帰ります」――攻撃を 華麗に スルーした！', '"Let me take that back to the team." Slipped right past the attack!'),
+  tr('「担当が 不在でして」――攻撃が 空を 切った！', '"The person in charge is out today." The attack hit nothing!'),
 ]
 
 function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
@@ -74,6 +81,7 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
 
 export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
   const boss = ENEMIES[bossId]
+  const bossName = enemyName(boss)
   useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
   /** 山札（boss.questions の 番号） */
   const deck = useRef<number[]>([])
@@ -84,15 +92,17 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [bossHp, setBossHp] = useState(boss.hp)
   const [phase, setPhase] = useState<Phase>('msg')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
-    `${boss.name}が あらわれた！`,
+    tr(`${bossName}が あらわれた！`, `${bossName} appeared!`),
     ...(tutorial
       ? [
-          '（戦いは「表計算の問題」で 行われる！）',
-          '（「たたかう」を選ぶと 問題が出る。正解すると 敵に ダメージ！）',
-          '（まちがえたり 時間切れになると、敵の 反撃を うける）',
-          '（本番の戦いでは、残り時間のバーが 緑のうちに 答えると「即答ボーナス」で ダメージアップ！）',
-          '（連続正解でも 威力が上がる。ごくまれに「一発決裁」で 大ダメージも 出るぞ）',
-          isTouchDevice ? '（答えは タップで 選べるぞ）' : '（答えは クリック、または 数字キー 1〜4 でも 選べるぞ）',
+          tr('（戦いは「表計算の問題」で 行われる！）', '(Battles are fought with spreadsheet questions!)'),
+          tr('（「たたかう」を選ぶと 問題が出る。正解すると 敵に ダメージ！）', '(Choose "Fight" to get a question. Answer correctly to damage the enemy!)'),
+          tr('（まちがえたり 時間切れになると、敵の 反撃を うける）', '(If you answer wrong or run out of time, the enemy strikes back.)'),
+          tr('（本番の戦いでは、残り時間のバーが 緑のうちに 答えると「即答ボーナス」で ダメージアップ！）', '(In real battles, answer while the timer bar is green for a Quick Answer Bonus!)'),
+          tr('（連続正解でも 威力が上がる。ごくまれに「一発決裁」で 大ダメージも 出るぞ）', '(Answer streaks boost your power, too. Very rarely, an "Instant Approval" deals huge damage!)'),
+          isTouchDevice
+            ? tr('（答えは タップで 選べるぞ）', '(Tap an answer to choose it.)')
+            : tr('（答えは クリック、または 数字キー 1〜4 でも 選べるぞ）', '(Click an answer, or press the number keys 1-4.)'),
         ]
       : []),
   ])
@@ -159,7 +169,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const answerRef = useRef<(ok: boolean, note?: string) => void>(() => {})
   useEffect(() => {
     if (phase !== 'question') return
-    const t = setTimeout(() => answerRef.current(false, '時間切れ！'), Math.max(0, deadline - Date.now()))
+    const t = setTimeout(() => answerRef.current(false, tr('時間切れ！', "Time's up!")), Math.max(0, deadline - Date.now()))
     return () => clearTimeout(t)
   }, [phase, deadline])
 
@@ -167,10 +177,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
 
   /** ボス戦：こちらの攻撃のあと、ボスが問題を出して攻撃してくる */
   const enemyTurn = (pre: Msg[]) => {
-    const lines: Msg[] = [...pre, `${boss.name}の こうげき！`]
+    const lines: Msg[] = [...pre, tr(`${bossName}の こうげき！`, `${bossName} attacks!`)]
     if (boss.attackText) lines.push(boss.attackText)
     if (!guardHinted.current) {
-      lines.push('（ボスの問題に 正解すれば、ダメージを へらせる！）')
+      lines.push(tr('（ボスの問題に 正解すれば、ダメージを へらせる！）', "(Answer the boss's question correctly to reduce the damage!)"))
       guardHinted.current = true
     }
     say(lines, () => nextQuestion('defense'))
@@ -183,33 +193,33 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     const lines: Msg[] = []
     let dmg = full
     if (ok) {
-      lines.push('せいかい！')
+      lines.push(tr('せいかい！', 'Correct!'))
       if (Math.random() < PERFECT_GUARD) {
         dmg = 0
-        lines.push(pick(GUARD_LINES), `${gs.name}は ダメージを うけなかった！`)
+        lines.push(pick(GUARD_LINES()), tr(`${gs.name}は ダメージを うけなかった！`, `${gs.name} took no damage!`))
       } else {
         dmg = Math.max(1, Math.round(full * 0.3))
-        lines.push('ガード せいこう！ ダメージを おさえた！')
+        lines.push(tr('ガード せいこう！ ダメージを おさえた！', 'Guard success! Damage reduced!'))
       }
     } else {
       sfx('wrong')
-      lines.push(note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`)
+      lines.push(note ?? tr('ざんねん……。', 'Too bad...'), tr(`こたえ：${correctText(q)}`, `Answer: ${correctText(q)}`), `（${q.explain}）`)
       if (buff.sand) {
         setBuff((b) => ({ ...b, sand: false }))
         dmg = 0
-        lines.push('すなどけいが ひかった！', 'ダメージを なかったことに した！')
+        lines.push(tr('すなどけいが ひかった！', 'The hourglass glowed!'), tr('ダメージを なかったことに した！', 'The damage never happened!'))
       }
     }
     const hp = Math.max(0, gs.hp - dmg)
     if (dmg > 0)
       lines.push({
-        text: `${gs.name}は ${dmg}の ダメージを うけた！`,
+        text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
         fx: () => {
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
         },
       })
-    if (hp <= 0) say([...lines, `${gs.name}は ちからつきた……。`], onLose)
+    if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
     else say(lines, () => setPhase('command'))
   }
 
@@ -225,7 +235,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       const limit = deadline - startedAt.current
       const quick = Date.now() - startedAt.current <= limit * QUICK
       const c = combo + 1
-      const lines: Msg[] = ['せいかい！']
+      const lines: Msg[] = [tr('せいかい！', 'Correct!')]
       let dmg: number
       if (boss.hits) {
         // チュートリアル：決まった回数の正解で倒れる
@@ -236,48 +246,48 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         dmg = base * (1 + 0.15 * (c - 1))
         if (quick) {
           dmg *= 1.25
-          lines.push('そくとう ボーナス！')
+          lines.push(tr('そくとう ボーナス！', 'Quick answer bonus!'))
         }
         if (Math.random() < CRIT + gear.crit) {
           dmg *= 1.6
-          lines.push(`一発決裁！ ${pick(CRIT_LINES)}`)
+          lines.push(tr(`一発決裁！ ${pick(CRIT_LINES())}`, `Instant Approval! ${pick(CRIT_LINES())}`))
         }
         dmg = Math.round(dmg)
-        if (c >= 2) lines.push(`${c}れんぞく せいかい！`)
+        if (c >= 2) lines.push(tr(`${c}れんぞく せいかい！`, `${c} correct in a row!`))
       }
       const hp = Math.max(0, bossHp - dmg)
       lines.push({
-        text: `${boss.name}に ${dmg}の ダメージ！`,
+        text: tr(`${bossName}に ${dmg}の ダメージ！`, `${bossName} takes ${dmg} damage!`),
         fx: () => {
           setHit((h) => h + 1)
           setBossHp(hp)
         },
       })
       setCombo(c)
-      if (hp <= 0) say([...lines, `${boss.name}を やっつけた！`], onWin)
+      if (hp <= 0) say([...lines, tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`)], onWin)
       else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))
     } else {
       sfx('wrong')
       setCombo(0)
-      const lines: Msg[] = [note ?? 'ざんねん……。', `こたえ：${correctText(q)}`, `（${q.explain}）`]
+      const lines: Msg[] = [note ?? tr('ざんねん……。', 'Too bad...'), tr(`こたえ：${correctText(q)}`, `Answer: ${correctText(q)}`), `（${q.explain}）`]
       // ボス戦：まちがえると 攻撃が 空振りし、そのまま ボスの攻撃へ
-      if (boss.boss) return enemyTurn([...lines, 'こうげきは 空振りに おわった……。'])
+      if (boss.boss) return enemyTurn([...lines, tr('こうげきは 空振りに おわった……。', 'Your attack missed...')])
       if (buff.sand) {
         setBuff((b) => ({ ...b, sand: false }))
-        say([...lines, 'すなどけいが ひかった！', 'ミスが なかったことに なった！'], () => setPhase('command'))
+        say([...lines, tr('すなどけいが ひかった！', 'The hourglass glowed!'), tr('ミスが なかったことに なった！', 'Your mistake was undone!')], () => setPhase('command'))
         return
       }
       const dmg = hurt()
       const hp = Math.max(0, gs.hp - dmg)
-      lines.push(`${boss.name}の こうげき！`, {
-        text: `${gs.name}は ${dmg}の ダメージを うけた！`,
+      lines.push(tr(`${bossName}の こうげき！`, `${bossName} attacks!`), {
+        text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
         fx: () => {
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
         },
       })
-      if (hp <= 0) say([...lines, `${gs.name}は ちからつきた……。`], onLose)
+      if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
       else say(lines, () => setPhase('command'))
     }
   }
@@ -289,7 +299,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     answer(r.ok, r.note)
   }
 
-  const commands = ['たたかう', 'どうぐ', 'にげる']
+  const commands = [tr('たたかう', 'Fight'), tr('どうぐ', 'Items'), tr('にげる', 'Run')]
   const battleItems = (['herb', 'scroll', 'sandglass'] as ItemId[]).filter((id) => gs.items[id] > 0)
 
   const useItem = (id: ItemId) => {
@@ -297,13 +307,13 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     if (id === 'herb') {
       const heal = Math.min(30, mhp - gs.hp)
       setGs((g) => ({ ...g, hp: Math.min(mhp, g.hp + 30) }))
-      say([`${gs.name}は やくそうを つかった！`, `HPが ${heal} かいふくした！`], () => setPhase('command'))
+      say([tr(`${gs.name}は やくそうを つかった！`, `${gs.name} used a Herb!`), tr(`HPが ${heal} かいふくした！`, `Recovered ${heal} HP!`)], () => setPhase('command'))
     } else if (id === 'scroll') {
       setBuff((b) => ({ ...b, scroll: true }))
-      say([`${gs.name}は ヘルプのまきものを ひらいた！`, 'つぎの問題で ヒントが 出る！'], () => setPhase('command'))
+      say([tr(`${gs.name}は ヘルプのまきものを ひらいた！`, `${gs.name} opened the Scroll of Help!`), tr('つぎの問題で ヒントが 出る！', "You'll get a hint on the next question!")], () => setPhase('command'))
     } else {
       setBuff((b) => ({ ...b, sand: true }))
-      say([`${gs.name}は すなどけいを かかげた！`, 'つぎの ミスを 1回 ふせげる！'], () => setPhase('command'))
+      say([tr(`${gs.name}は すなどけいを かかげた！`, `${gs.name} raised the Ctrl+Z Hourglass!`), tr('つぎの ミスを 1回 ふせげる！', 'Your next mistake will be undone!')], () => setPhase('command'))
     }
   }
 
@@ -313,24 +323,24 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       else if (i === 1) {
         setCursor(0)
         setPhase('items')
-      } else if (tutorial) say(['（ここは 逃げずに 戦ってみよう！）'], () => setPhase('command'))
-      else if (boss.boss || Math.random() < 0.65) say([`${gs.name}は にげだした！`], onFlee)
+      } else if (tutorial) say([tr('（ここは 逃げずに 戦ってみよう！）', "(Don't run - try fighting this one!)")], () => setPhase('command'))
+      else if (boss.boss || Math.random() < 0.65) say([tr(`${gs.name}は にげだした！`, `${gs.name} ran away!`)], onFlee)
       else {
         const dmg = hurt()
         const hp = Math.max(0, gs.hp - dmg)
         say(
           [
-            `${gs.name}は にげだした！`,
-            'しかし 行く手を ふさがれた！',
-            `${boss.name}の こうげき！`,
+            tr(`${gs.name}は にげだした！`, `${gs.name} tried to run!`),
+            tr('しかし 行く手を ふさがれた！', 'But the way was blocked!'),
+            tr(`${bossName}の こうげき！`, `${bossName} attacks!`),
             {
-              text: `${gs.name}は ${dmg}の ダメージを うけた！`,
+              text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
               fx: () => {
                 setShake((sh) => sh + 1)
                 setGs((g) => ({ ...g, hp }))
               },
             },
-            ...(hp <= 0 ? [`${gs.name}は ちからつきた……。`] : []),
+            ...(hp <= 0 ? [tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)] : []),
           ],
           hp <= 0 ? onLose : () => setPhase('command'),
         )
@@ -403,7 +413,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       </div>
       <div className="boss-area">
         <div className="boss-hp">
-          <span>{boss.name}</span>
+          <span>{bossName}</span>
           <div className="bar">
             <div style={{ width: `${(bossHp / boss.hp) * 100}%` }} />
           </div>
@@ -420,7 +430,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       {phase === 'question' && q && portal(
         <div className={`win question-win ${mode} ${touchFormula ? 'touch-q' : ''}`}>
           {boss.boss && (
-            <div className="q-mode">{mode === 'defense' ? `🛡 ${boss.name}の 攻撃！ 正解で ダメージを へらせ！` : '⚔ こちらの 攻撃！'}</div>
+            <div className="q-mode">
+              {mode === 'defense'
+                ? tr(`🛡 ${bossName}の 攻撃！ 正解で ダメージを へらせ！`, `🛡 ${bossName} attacks! Answer correctly to reduce damage!`)
+                : tr('⚔ こちらの 攻撃！', '⚔ Your attack!')}
+            </div>
           )}
           <TimerBar key={deadline} start={startedAt.current} deadline={deadline} mode={mode} showQuick={showQuick} />
           <div className="q-text">{q.q}</div>
@@ -438,7 +452,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
               q={q}
               skills={gs.skills}
               touch={touch}
-              label={mode === 'defense' ? 'ふせぐ！' : 'こうげき！'}
+              label={mode === 'defense' ? tr('ふせぐ！', 'Guard!') : tr('こうげき！', 'Attack!')}
               showHint={buff.scroll}
               onSubmit={submitFormula}
             />
@@ -460,15 +474,15 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             <div className="win item-win">
               {battleItems.map((id, i) => (
                 <div key={id} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => choose(i)}>
-                  {ITEMS[id].name} ×{gs.items[id]}
+                  {itemName(id)} ×{gs.items[id]}
                 </div>
               ))}
               <div className={`opt ${cursor === battleItems.length ? 'on' : ''}`} onClick={() => choose(battleItems.length)}>
-                もどる
+                {tr('もどる', 'Back')}
               </div>
             </div>
           )}
-          <div className="win combo-win">{combo >= 2 ? `🔥 ${combo}れんぞく` : '　'}</div>
+          <div className="win combo-win">{combo >= 2 ? tr(`🔥 ${combo}れんぞく`, `🔥 ${combo} streak`) : '　'}</div>
         </div>
       )}
 
@@ -514,7 +528,7 @@ function TimerBar({ start, deadline, mode, showQuick }: { start: number; deadlin
     <div className={`timer ${quickZone ? 'quick' : stage === 2 ? 'danger' : mode === 'defense' ? 'guard' : 'normal'}`}>
       <div className="timer-fill" style={{ animationDuration: `${limit}ms`, animationDelay: `${-elapsed}ms` }} />
       {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
-      {quickZone && <span className="timer-label">即答ボーナス！</span>}
+      {quickZone && <span className="timer-label">{tr('即答ボーナス！', 'Quick bonus!')}</span>}
     </div>
   )
 }

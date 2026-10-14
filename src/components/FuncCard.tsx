@@ -2,6 +2,7 @@ import { FUNC_GUIDES } from '../data/funcGuides'
 import { SKILLS } from '../data/skills'
 import { useKeys } from '../game/keys'
 import { sfx } from '../game/sound'
+import { tr } from '../game/lang'
 
 /** 文の 中の 数式（= で 始まる 部分）を 目立たせる */
 const withCode = (text: string) =>
@@ -33,18 +34,18 @@ export function FuncCard({ id, learned, onClose }: { id: string; learned: boolea
       <div className="win func-card">
         <div className="fc-head">
           <h3>{skill.name}</h3>
-          <span className={`fc-badge ${learned ? 'on' : ''}`}>{learned ? '習得ずみ' : 'この町で 覚えられる'}</span>
+          <span className={`fc-badge ${learned ? 'on' : ''}`}>{learned ? tr('習得ずみ', 'Learned') : tr('この町で 覚えられる', 'Learn it in this town')}</span>
         </div>
         <p className="fc-use">{g.use}</p>
-        <h4>書き方</h4>
+        <h4>{tr('書き方', 'How to write it')}</h4>
         <code className="fc-form">{g.form}</code>
-        <h4>例</h4>
+        <h4>{tr('例', 'Examples')}</h4>
         <ul className="fc-ex">
           {g.ex.map((e) => (
             <Example key={e} line={e} />
           ))}
         </ul>
-        <h4>ポイント</h4>
+        <h4>{tr('ポイント', 'Key points')}</h4>
         <p className="fc-tip">{g.tip}</p>
         <button
           type="button"
@@ -55,7 +56,7 @@ export function FuncCard({ id, learned, onClose }: { id: string; learned: boolea
             onClose()
           }}
         >
-          とじる
+          {tr('とじる', 'Close')}
         </button>
       </div>
     </div>

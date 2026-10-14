@@ -5,6 +5,7 @@ import { battlePad, learnedFuncs, pickRef, toggleLastRef } from '../game/formula
 import { tableSize } from '../game/judge'
 import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
+import { tr } from '../game/lang'
 
 interface Props {
   q: Extract<Question, { type: 'formula' }>
@@ -79,7 +80,7 @@ export function FormulaQuestion({ q, skills, touch, label, showHint, onSubmit }:
               <span className="fpad-target">{q.target}</span>
               <span className="fpad-text">
                 ={chips.join('')}
-                {!chips.length && <span className="fpad-ph">ボタンか、表を タップ（長押しで 範囲）</span>}
+                {!chips.length && <span className="fpad-ph">{tr('ボタンか、表を タップ（長押しで 範囲）', 'Tap a button or the sheet (hold for a range)')}</span>}
               </span>
             </div>
             <FormulaPad
@@ -88,7 +89,7 @@ export function FormulaQuestion({ q, skills, touch, label, showHint, onSubmit }:
               actions={[
                 { label: 'F4 ($)', onClick: () => setChips(toggleLastRef) },
                 { label: '⌫', onClick: () => setChips((c) => c.slice(0, -1)) },
-                { label: 'クリア', onClick: () => setChips([]) },
+                { label: tr('クリア', 'Clear'), onClick: () => setChips([]) },
               ]}
             />
           </>
@@ -120,8 +121,8 @@ export function FormulaQuestion({ q, skills, touch, label, showHint, onSubmit }:
         <button className="btn primary" data-nosfx>
           {label}
         </button>
-        {q.copies && <div className="copy-note">⇩ の セルにも この数式を コピーして 確かめるぞ！（F4 で $ 切替）</div>}
-        {showHint && <div className="hint">📜 ヒント：{q.hint.replace(/\(.*\)/, '(…)')}</div>}
+        {q.copies && <div className="copy-note">{tr('⇩ の セルにも この数式を コピーして 確かめるぞ！（F4 で $ 切替）', 'This formula will also be copied to the ⇩ cells to check it! (F4 toggles $)')}</div>}
+        {showHint && <div className="hint">📜 {tr('ヒント：', 'Hint: ')}{q.hint.replace(/\(.*\)/, '(…)')}</div>}
       </form>
     </div>
   )

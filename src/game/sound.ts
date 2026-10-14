@@ -500,29 +500,31 @@ export function sfx(name: SfxName) {
  * メッセージを 書き足しても、決まった 言い回しなら 自動で 音が つく。
  */
 export function cue(text: string) {
-  if (/レベルが .*あがった/.test(text)) return jingle('levelup')
-  if (/てにいれた/.test(text) && !/ゴールドを てにいれた/.test(text)) return jingle('item')
-  if (/記録を 書きのこし/.test(text)) return jingle('save')
-  if (/ゴゴゴ/.test(text)) return sfx('rumble')
-  if (/結界が とける/.test(text)) return sfx('barrier')
-  if (/宝箱の ふたを 開けた/.test(text)) return sfx('chest')
-  if (/HPが .*かいふく|HPが まんたん/.test(text)) return sfx('heal')
-  if (/すなどけい|まきものを ひらいた/.test(text)) return sfx('magic')
+  // 日本語と 英語（lang.ts）の 言い回しを 並べて 書く
+  if (/レベルが .*あがった|reached level \d+/.test(text)) return jingle('levelup')
+  if ((/てにいれた/.test(text) && !/ゴールドを てにいれた/.test(text)) || /\bObtained\b/.test(text)) return jingle('item')
+  if (/記録を 書きのこし|journey has been recorded/.test(text)) return jingle('save')
+  if (/ゴゴゴ|^Rumble/.test(text)) return sfx('rumble')
+  if (/結界が とける|barrier lifting/.test(text)) return sfx('barrier')
+  if (/宝箱の ふたを 開けた|opened the treasure chest/.test(text)) return sfx('chest')
+  if (/HPが .*かいふく|HPが まんたん|Recovered \d+ HP|HP (was|is) fully restored/.test(text)) return sfx('heal')
+  if (/すなどけい|まきものを ひらいた|[Hh]ourglass|opened the Scroll/.test(text)) return sfx('magic')
   // 戦闘
-  if (/^せいかい/.test(text)) return sfx('correct')
-  if (/^一発決裁/.test(text)) return sfx('crit')
-  if (/^そくとう/.test(text)) return sfx('quick')
-  if (/に \d+の ダメージ！/.test(text)) return sfx('hit')
-  if (/の こうげき！$/.test(text)) return sfx('enemyAttack')
-  if (/ダメージを うけた！/.test(text)) return sfx('hurt')
+  if (/^せいかい|^Correct!/.test(text)) return sfx('correct')
+  if (/^一発決裁|^Instant Approval!/.test(text)) return sfx('crit')
+  if (/^そくとう|^Quick answer bonus/.test(text)) return sfx('quick')
+  if (/に \d+の ダメージ！| takes \d+ damage!/.test(text)) return sfx('hit')
+  if (/の こうげき！$| attacks!$/.test(text)) return sfx('enemyAttack')
+  if (/ダメージを うけた！| took \d+ damage!/.test(text)) return sfx('hurt')
   if (/ガード せいこう|ダメージを うけなかった|攻撃を 見事に|攻撃を 華麗に|攻撃が 空を/.test(text)) return sfx('guard')
-  if (/を やっつけた！/.test(text)) {
+  if (/Guard success|took no damage|Dodged the attack|Slipped right past|hit nothing/.test(text)) return sfx('guard')
+  if (/を やっつけた！|^Defeated .+!$/.test(text)) {
     sfx('defeat')
     return jingle('victory', { stop: true, delay: 0.45 })
   }
-  if (/ちからつきた/.test(text)) return jingle('lose', { stop: true })
-  if (/は にげだした！$/.test(text)) return sfx('flee')
-  if (/行く手を ふさがれた/.test(text)) return sfx('wrong')
+  if (/ちからつきた| collapsed\.\.\.$/.test(text)) return jingle('lose', { stop: true })
+  if (/は にげだした！$| ran away!$| tried to run!$/.test(text)) return sfx('flee')
+  if (/行く手を ふさがれた|way was blocked/.test(text)) return sfx('wrong')
 }
 
 /** 音を 出せる 状態に もどし、待たせていた BGM を 流す */

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
-import { ITEMS } from '../data/items'
+import { itemName } from '../data/items'
+import { tr } from '../game/lang'
 import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value } from '../game/formula'
 import { guideChips, pickRef, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
 import { FormulaPad } from './FormulaPad'
@@ -69,7 +70,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     if (c !== step.answer) {
       sfx('wrong')
       setPicked([...picked, c])
-      setMsg(puzzle ? '……石版は 反応しない。' : 'ちがうようだ……。もう一度 考えてみよう。')
+      setMsg(puzzle ? tr('……石版は 反応しない。', '...The tablet does not respond.') : tr('ちがうようだ……。もう一度 考えてみよう。', "That doesn't seem right... Think it over again."))
       return
     }
     sfx('correct')
@@ -153,16 +154,16 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
       <div className="quest">
         <header className="quest-head">
           <div className="quest-title">
-            <span className="tag">{puzzle ? '謎解き' : '依頼'}</span> {quest.title}
+            <span className="tag">{puzzle ? tr('謎解き', 'Puzzle') : tr('依頼', 'Request')}</span> {quest.title}
           </div>
           <button className="btn ghost" onClick={onClose}>
-            あきらめる
+            {tr('あきらめる', 'Give up')}
           </button>
         </header>
         <div className="quest-brief">
           <button className="brief-toggle" onClick={() => setBrief(!brief)}>
-            <span>{puzzle ? '石版の 謎' : `${quest.npc}の 依頼`}</span>
-            <span className="muted">{brief ? '▲ とじる' : '▼ やることを 見る'}</span>
+            <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${quest.npc}`)}</span>
+            <span className="muted">{brief ? tr('▲ とじる', '▲ Hide') : tr('▼ やることを 見る', '▼ Show the task')}</span>
           </button>
           {brief && (
             <>
@@ -171,7 +172,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
                   <li key={t}>{t}</li>
                 ))}
               </ol>
-              <p className="muted brief-note">※ 表計算ソフトでの やり方。ここでは 下の 質問に 答えて 進めよう</p>
+              <p className="muted brief-note">{tr('※ 表計算ソフトでの やり方。ここでは 下の 質問に 答えて 進めよう', '* These are the steps in a spreadsheet app. Here, answer the questions below to move ahead.')}</p>
             </>
           )}
         </div>
@@ -192,7 +193,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
         <div ref={card} className={`guide-card ${solved ? 'solved' : ''}`}>
           <div className="guide-head">
             <span className="guide-no">
-              {puzzle ? '謎' : 'ステップ'} {i + 1} / {steps.length}
+              {puzzle ? tr('謎', 'Puzzle') : tr('ステップ', 'Step')} {i + 1} / {steps.length}
             </span>
             {!puzzle && step.hint && !solved && (
               <button
@@ -202,7 +203,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
                   setHintOpen(!hintOpen)
                 }}
               >
-                💡 ヒント
+                💡 {tr('ヒント', 'Hint')}
               </button>
             )}
           </div>
@@ -229,7 +230,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
                 <span className="fpad-target">{step.target}</span>
                 <span className="fpad-text">
                   ={chips.join('')}
-                  {!chips.length && !solved && <span className="fpad-ph">ボタンか、表を タップ（長押しで 範囲）</span>}
+                  {!chips.length && !solved && <span className="fpad-ph">{tr('ボタンか、表を タップ（長押しで 範囲）', 'Tap a button or the sheet (hold for a range)')}</span>}
                 </span>
               </div>
               {!solved && (
@@ -240,11 +241,11 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
                     actions={[
                       { label: 'F4 ($)', onClick: () => editChips(toggleLastRef(chips)) },
                       { label: '⌫', onClick: () => editChips(chips.slice(0, -1)) },
-                      { label: 'クリア', onClick: () => editChips([]) },
+                      { label: tr('クリア', 'Clear'), onClick: () => editChips([]) },
                     ]}
                   />
                   <button className="btn primary guide-go" disabled={!chips.length || !!trial} onClick={submit}>
-                    {fillEnd ? `${step.target} に 入れて、${fillEnd} まで オートフィル` : `${step.target} に 入れる`}
+                    {fillEnd ? tr(`${step.target} に 入れて、${fillEnd} まで オートフィル`, `Enter in ${step.target} and AutoFill to ${fillEnd}`) : tr(`${step.target} に 入れる`, `Enter in ${step.target}`)}
                   </button>
                 </>
               )}
@@ -255,7 +256,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
             <>
               <div className="guide-explain">⭕ {step.explain}</div>
               <button className="btn primary guide-go" onClick={next}>
-                {last ? 'これで どうだ！' : 'つぎへ ▶'}
+                {last ? tr('これで どうだ！', 'How about this!') : tr('つぎへ ▶', 'Next ▶')}
               </button>
             </>
           )}
@@ -265,16 +266,16 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
       {cleared && (
         <div className="clear-modal">
           <div className="win clear-win">
-            <div className="clear-title">{puzzle ? '★ 謎を 解いた！ ★' : '★ 悩みを 解決した！ ★'}</div>
-            <p>{puzzle ? `「${quest.title}」の 石版が 光った` : `${quest.npc}の「${quest.title}」`}</p>
+            <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
+            <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${quest.npc}`)}</p>
             <p>
-              けいけんち +{reward.exp}
-              {reward.gold > 0 && `　／　${reward.gold} ゴールド`}
+              {tr('けいけんち', 'EXP')} +{reward.exp}
+              {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}
             </p>
-            {reward.skill && <p className="learn">スキル「{SKILLS[reward.skill].name}」を おぼえた！</p>}
-            {reward.item && <p>{ITEMS[reward.item].name}を てにいれた！</p>}
+            {reward.skill && <p className="learn">{tr(`スキル「${SKILLS[reward.skill].name}」を おぼえた！`, `Learned the skill "${SKILLS[reward.skill].name}"!`)}</p>}
+            {reward.item && <p>{tr(`${itemName(reward.item)}を てにいれた！`, `Obtained ${itemName(reward.item)}!`)}</p>}
             <button className="btn primary" autoFocus onClick={() => onClear(hints)}>
-              つづける
+              {tr('つづける', 'Continue')}
             </button>
           </div>
         </div>

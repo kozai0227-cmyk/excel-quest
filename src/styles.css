@@ -16,6 +16,22 @@ body {
   font-family: 'DotGothic16', 'Hiragino Sans', 'Yu Gothic', monospace;
   overscroll-behavior: none;
 }
+/*
+ * 英語：英字は Jersey 10（等幅の DotGothic16 だと i や l の 前後が あいて 読みにくい）。
+ * 日本語の 文字は DotGothic16 で 出る。小さめの 字なので size-adjust で DotGothic16 と 同じくらいに そろえる
+ */
+@font-face {
+  font-family: 'EQ Latin';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../node_modules/@fontsource/jersey-10/files/jersey-10-latin-400-normal.woff2') format('woff2');
+  size-adjust: 130%;
+}
+:root:lang(en) body,
+:root:lang(en) .question-win.touch-q {
+  font-family: 'EQ Latin', 'DotGothic16', 'Hiragino Sans', sans-serif;
+}
 button {
   font: inherit;
 }
@@ -2656,6 +2672,33 @@ kbd {
   font-size: 13px;
 }
 
+/* タイトル：言語と 音の 切りかえ（右上に 並べる） */
+.title-toggles {
+  position: absolute;
+  top: 2.5%;
+  right: 2.5%;
+  z-index: 5;
+  display: flex;
+  gap: 1cqw;
+}
+.title-toggles .sound-toggle {
+  position: static;
+}
+/* スマホは まん中の 紋章に かからないよう、言語を 左上・音を 右上に 分ける */
+.phone .title-toggles {
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 10px;
+  right: 10px;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.phone .title-toggles .sound-toggle {
+  pointer-events: auto;
+}
+.phone .title-toggles .sound-toggle:last-child {
+  margin-left: auto;
+}
+
 /* 開発用：サウンドテスト */
 .soundtest {
   display: block;
@@ -3690,6 +3733,14 @@ kbd {
   }
 }
 
+/* 英語の ロゴ（半角の 文字は 細いので 大きく） */
+.title-main .logo.en .logo-main {
+  font-size: 12.5cqw;
+  letter-spacing: 0.08em;
+}
+.phone .title-main .logo.en .logo-main {
+  font-size: min(54px, 13.6vw);
+}
 .title-main .title-privacy {
   color: #eaf6ea;
   opacity: 1;

@@ -3,6 +3,8 @@ import { QUESTS } from './quests'
 import { MAPS } from './maps'
 import type { GameState } from '../game/types'
 import { questionKey } from '../game/weak'
+import { isEn } from '../game/lang'
+import { EN_CHAPTERS, loc } from './en'
 
 /** 章ごとの まとめ（復習モード・達成率で 使う） */
 export interface ChapterDef {
@@ -31,6 +33,17 @@ export const CHAPTERS: ChapterDef[] = [
   { no: 7, title: '第7章　暦の里コヨミノ', topic: '日付の計算・WEEKDAY・EDATE・DATEDIF', towns: ['koyomi'], dungeons: ['clock'], maps: ['clock'], bosses: ['shimekiris'], enemies: ['karendaru', 'tokeidori'] },
   { no: 8, title: '最終章　最果ての砦ホープ', topic: 'エラーの読み方と直し方・総まとめ', towns: ['hope'], dungeons: ['castle'], maps: ['castle'], bosses: ['refera'], enemies: ['zerowarin', 'nanashi'] },
 ]
+
+/** 章の 題と 学ぶこと（今の 言語） */
+export const chapterTitle = (ch: ChapterDef) => loc(ch.title, EN_CHAPTERS[ch.no]?.title)
+export const chapterTopic = (ch: ChapterDef) => loc(ch.topic, EN_CHAPTERS[ch.no]?.topic)
+/** 題の 前半（「第1章」） */
+export const chapterTag = (ch: ChapterDef) => (isEn() ? (ch.no === 8 ? 'Final Chapter' : `Chapter ${ch.no}`) : ch.title.split('　')[0])
+/** 題の 後半（「セルノとカルキュレ」） */
+export const chapterShort = (ch: ChapterDef) => {
+  const t = chapterTitle(ch)
+  return isEn() ? t.replace(/^[^:]*:\s*/, '') : t.replace(/^(第\d章|最終章)　/, '')
+}
 
 /** 章を 開放したか（はじめの 町に 着いたら） */
 export const chapterOpen = (ch: ChapterDef, g: GameState) =>

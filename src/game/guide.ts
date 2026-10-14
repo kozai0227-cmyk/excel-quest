@@ -1,5 +1,6 @@
 import { addr, cloneGrid, evaluate, fillLine, formatValue, normalizeInput, parseAddr, shiftFormula, usesFn, type Grid, type Value } from './formula'
 import { formulaChips, funcsFor, isRef, type ChipGroup } from './formulaTokens'
+import { tr } from './lang'
 export { toggleLastRef, pickRef } from './formulaTokens'
 
 /**
@@ -122,14 +123,15 @@ export const stepCells = (step: FormulaStep) => (step.fill ? rangeCells(step.fil
 const same = (a: Value, b: Value) =>
   typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) < 1e-9 : formatValue(a) === formatValue(b) && typeof a === typeof b
 
-const ERROR_TIPS: Record<string, string> = {
-  '#NAME?': '関数の 名前か、文字を 囲む " を 確かめよう。',
-  '#DIV/0!': '0（空っぽの セル）で 割っている。',
-  '#CYCLE!': '答えを 出す セル 自身を 参照している（循環参照）。',
-  '#REF!': '参照が 表の 外に はみ出している。',
-  '#VALUE!': '文字と 数を 計算していないか 確かめよう。',
-  '#ERROR!': 'カッコや 記号の 並びを 確かめよう。',
+const ERROR_TIPS: Record<string, [string, string]> = {
+  '#NAME?': ['関数の 名前か、文字を 囲む " を 確かめよう。', 'Check the function name, or the " around text.'],
+  '#DIV/0!': ['0（空っぽの セル）で 割っている。', "You're dividing by 0 (an empty cell)."],
+  '#CYCLE!': ['答えを 出す セル 自身を 参照している（循環参照）。', 'The cell refers to itself (a circular reference).'],
+  '#REF!': ['参照が 表の 外に はみ出している。', 'The reference points outside the table.'],
+  '#VALUE!': ['文字と 数を 計算していないか 確かめよう。', "Check that you aren't doing math with text."],
+  '#ERROR!': ['カッコや 記号の 並びを 確かめよう。', 'Check the order of parentheses and symbols.'],
 }
+const errorTip = (e: string) => (ERROR_TIPS[e] ? tr(...ERROR_TIPS[e]) : '')
 
 export interface TryResult {
   /** 数式を 入れて（コピーして）みた 表 */
@@ -144,9 +146,9 @@ export interface TryResult {
 export function tryFormula(g: Grid, step: FormulaStep, input: string, puzzle = false): TryResult {
   const raw = normalizeInput(input)
   const fail = (msg: string): TryResult => ({ grid: g, values: evaluate(g), wrong: [], msg })
-  if (!raw.startsWith('=')) return fail('数式は「=」から 始めよう。= が ないと、ただの 文字として 入力されて しまう。')
-  if (/[×÷]/.test(raw)) return fail('掛け算は *、割り算は / を 使おう。× や ÷ は 数式では 使えない。')
-  if (/[≧≦≠]/.test(raw)) return fail('「≧ ≦ ≠」は 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。')
+  if (!raw.startsWith('=')) return fail(tr('数式は「=」から 始めよう。= が ないと、ただの 文字として 入力されて しまう。', 'Start formulas with "=". Without it, the entry is treated as plain text.'))
+  if (/[×÷]/.test(raw)) return fail(tr('掛け算は *、割り算は / を 使おう。× や ÷ は 数式では 使えない。', "Use * to multiply and / to divide. × and ÷ don't work in formulas."))
+  if (/[≧≦≠]/.test(raw)) return fail(tr('「≧ ≦ ≠」は 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。', "You can't use ≧ ≦ ≠. Write >= for at least, <= for at most, and <> for not equal."))
 
   const grid = placeFormula(g, step, raw)
   const values = evaluate(grid)
@@ -162,11 +164,15 @@ export function tryFormula(g: Grid, step: FormulaStep, input: string, puzzle = f
     const v = values[r][c]
     const shown = shiftFormula(raw, r - t.r, c - t.c)
     let msg: string
-    if (typeof v === 'object' && v !== null) msg = `${a} が エラー（${v.error}）に なった。${ERROR_TIPS[v.error] ?? ''}`
-    else if (puzzle) msg = `${a} の 答え（${formatValue(v) || '空'}）が 正しくないようだ……。`
+    const got = formatValue(v) || tr('空', 'blank')
+    if (typeof v === 'object' && v !== null) msg = tr(`${a} が エラー（${v.error}）に なった。${errorTip(v.error)}`, `${a} became an error (${v.error}). ${errorTip(v.error)}`)
+    else if (puzzle) msg = tr(`${a} の 答え（${got}）が 正しくないようだ……。`, `The answer in ${a} (${got}) doesn't seem right...`)
     else if (a !== step.target)
-      msg = `${a} に コピーされた 数式 ${shown} の 答えが ${formatValue(v) || '空'} に なった（本当は ${formatValue(model[r][c])}）。コピーで 参照が ずれて いないか 確かめよう。`
-    else msg = `${a} の 答えが ${formatValue(v) || '空'} に なった。本当は ${formatValue(model[r][c])} に なるはず。`
+      msg = tr(
+        `${a} に コピーされた 数式 ${shown} の 答えが ${got} に なった（本当は ${formatValue(model[r][c])}）。コピーで 参照が ずれて いないか 確かめよう。`,
+        `The formula copied to ${a}, ${shown}, gave ${got} (it should be ${formatValue(model[r][c])}). Check whether the reference shifted when copied.`,
+      )
+    else msg = tr(`${a} の 答えが ${got} に なった。本当は ${formatValue(model[r][c])} に なるはず。`, `${a} gave ${got}. It should be ${formatValue(model[r][c])}.`)
     return { grid, values, wrong, msg }
   }
   for (const fn of new Set([...step.answer.matchAll(/([A-Z]+)\(/g)].map((m) => m[1])))
@@ -175,7 +181,9 @@ export function tryFormula(g: Grid, step: FormulaStep, input: string, puzzle = f
         grid,
         values,
         wrong: [],
-        msg: puzzle ? '答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。' : `答えは 合っている！ でも ${fn} 関数を 使って 求めてみよう。`,
+        msg: puzzle
+          ? tr('答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。', "The answer is right, but... the door doesn't respond. There seems to be a rule about how to get it.")
+          : tr(`答えは 合っている！ でも ${fn} 関数を 使って 求めてみよう。`, `The answer is right! But try getting it with the ${fn} function.`),
       }
   return { grid, values, wrong: [], msg: null }
 }
@@ -233,9 +241,9 @@ export function guideChips(step: FormulaStep, rows: number, cols: number, town: 
   const amp = toks.includes('&') || ['textria', 'printing', 'koyomi', 'clock', 'hope', 'castle'].includes(town)
   const symbols = ['(', ')', ':', ',', '+', '-', '*', '/', ...(amp ? ['&'] : []), ...(step.extra ?? []).filter((t) => t === '×' || t === '÷'), ...(cmp ? [...COMPARE, '='] : [])]
   return [
-    ...(funcs.size ? [{ label: '関数', chips: [...funcs].sort() }] : []),
-    { label: 'セル', chips: [...cells].sort(byAddr) },
-    { label: '記号', chips: symbols },
-    ...(values.length ? [{ label: '値', chips: values }] : []),
+    ...(funcs.size ? [{ label: tr('関数', 'Functions'), chips: [...funcs].sort() }] : []),
+    { label: tr('セル', 'Cells'), chips: [...cells].sort(byAddr) },
+    { label: tr('記号', 'Symbols'), chips: symbols },
+    ...(values.length ? [{ label: tr('値', 'Values'), chips: values }] : []),
   ]
 }

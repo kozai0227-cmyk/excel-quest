@@ -1,4 +1,6 @@
 import type { GameState } from '../game/types'
+import { tr } from '../game/lang'
+import { EN_EQUIP, EN_SLOT, loc } from './en'
 
 export type Slot = 'weapon' | 'armor' | 'shield' | 'head'
 
@@ -19,6 +21,8 @@ export interface EquipDef {
 
 export const SLOT_NAME: Record<Slot, string> = { weapon: 'ぶき', armor: 'よろい', shield: 'たて', head: 'かぶと' }
 export const SLOTS: Slot[] = ['weapon', 'armor', 'shield', 'head']
+/** 部位の 名前（今の 言語） */
+export const slotName = (s: Slot) => tr(SLOT_NAME[s], EN_SLOT[s])
 
 export const EQUIP: Record<string, EquipDef> = {
   // ぶき（筆記用具・PC周辺機器）
@@ -80,12 +84,16 @@ export const EQUIP: Record<string, EquipDef> = {
   loupe: { name: 'ルーペめがね', slot: 'head', price: 880, def: 5, time: 2, crit: 0.05, desc: '細かい「$」も 見逃さない。「一発決裁」が 出やすくなる。' },
 }
 
+/** 装備の 名前・説明（今の 言語） */
+export const equipName = (id: string) => loc(EQUIP[id].name, EN_EQUIP[id]?.name)
+export const equipDesc = (id: string) => loc(EQUIP[id].desc, EN_EQUIP[id]?.desc)
+
 export function effectText(e: EquipDef) {
   const parts: string[] = []
-  if (e.atk) parts.push(`攻+${e.atk}`)
-  if (e.def) parts.push(`守+${e.def}`)
-  if (e.time) parts.push(`時間+${e.time}秒`)
-  if (e.crit) parts.push('一発決裁↑')
+  if (e.atk) parts.push(tr(`攻+${e.atk}`, `ATK+${e.atk}`))
+  if (e.def) parts.push(tr(`守+${e.def}`, `DEF+${e.def}`))
+  if (e.time) parts.push(tr(`時間+${e.time}秒`, `Time+${e.time}s`))
+  if (e.crit) parts.push(tr('一発決裁↑', 'Crit↑'))
   return parts.join(' ')
 }
 

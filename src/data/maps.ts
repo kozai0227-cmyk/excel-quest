@@ -1,6 +1,7 @@
 import type { CharSpec } from '../game/sprites'
 import type { MapDef, NpcDef } from '../game/types'
 import { isUnlocked } from '../game/store'
+import { EN_MAPS, loc } from './en'
 
 // ================================================================ マップ組み立て
 type M = string[][]
@@ -2356,6 +2357,9 @@ const rooms: MapDef[] = [
 export const MAPS: Record<string, MapDef> = Object.fromEntries(
   [celuno, calculet, forestMap, world, cave, tower1, tower2, tower3, sansho, temple1, temple2, ifport, ship1, ship2, lookup, library1, library2, pivoria, treasury1, treasury2, textria, print1, print2, koyomi, clock1, clock2, hope, castle1, castle2, ...rooms].map((m) => [m.id, m]),
 )
+
+/** 場所の 名前（今の 言語） */
+export const mapName = (id: string) => loc(MAPS[id]?.name ?? '', EN_MAPS[id])
 
 // 町のドア → 室内
 link(celuno, 5, 8, MAPS.celuno_elder)
