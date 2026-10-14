@@ -25,7 +25,7 @@ import { isTouchDevice, usePhoneLayout } from './game/layout'
 import { bgm, jingle, sfx, useBgm } from './game/sound'
 import type { SongName } from './data/music'
 import { isNative } from './game/native'
-import { isUnlocked, openUnlock, useUnlockScreen, useUnlocked } from './game/store'
+import { askReviewAfter, isUnlocked, openUnlock, useUnlockScreen, useUnlocked } from './game/store'
 
 type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epilogue' | 'ending' | 'study'
 interface BattleReq {
@@ -1150,6 +1150,8 @@ export default function App() {
                   await sleep(700)
                   await offerUnlock()
                 })
+              // 区切りの いい 章では、フィールドに 戻って ひと息 ついてから 評価を お願いする
+              else setTimeout(() => askReviewAfter(chapter), 1500)
             }}
           />
         )}

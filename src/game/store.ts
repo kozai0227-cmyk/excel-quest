@@ -18,6 +18,7 @@ interface StorePlugin {
   purchase(o: { id: string }): Promise<{ status: 'purchased' | 'cancelled' | 'pending' }>
   owned(o: { id: string }): Promise<{ owned: boolean }>
   restore(o: { id: string }): Promise<{ owned: boolean; cancelled?: boolean }>
+  requestReview(): Promise<{ requested: boolean }>
   addListener(event: 'owned', cb: (e: { id: string; owned: boolean }) => void): Promise<PluginListenerHandle>
 }
 const Store = registerPlugin<StorePlugin>('Store')
@@ -117,4 +118,32 @@ export async function restoreFull(): Promise<RestoreResult> {
   } catch {
     return 'error'
   }
+}
+
+/** 評価を お願いした 章（同じ 章で 2回 お願いしない） */
+const REVIEW_KEY = 'excel-quest-review-asked'
+/** 評価を お願いする 章の おわり（第2章は 全章解放の 案内が 出るので 外す） */
+const REVIEW_CHAPTERS = [1, 4, 8]
+
+/**
+ * 章を クリアした あとに「★で 評価」を お願いする（アプリ版だけ）。
+ * Apple 標準の ダイアログを 使う（自前の「気に入りましたか？」画面は 出さない 決まり）。
+ * 実際に 出すか どうかは Apple が 決め、1年に 3回まで
+ */
+export function askReviewAfter(chapter: number) {
+  if (!isNative || !REVIEW_CHAPTERS.includes(chapter)) return
+  let asked: number[] = []
+  try {
+    asked = JSON.parse(localStorage.getItem(REVIEW_KEY) ?? '[]')
+  } catch {
+    /* 読めなければ はじめて あつかい */
+  }
+  if (asked.includes(chapter)) return
+  try {
+    localStorage.setItem(REVIEW_KEY, JSON.stringify([...asked, chapter]))
+  } catch {
+    /* 保存できなくても お願いは する */
+  }
+  // 古い アプリ本体（この 機能が ない 版）でも 止まらないように
+  Store.requestReview().catch(() => {})
 }

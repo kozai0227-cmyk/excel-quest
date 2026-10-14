@@ -19,7 +19,8 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "product", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "purchase", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "owned", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestReview", returnType: CAPPluginReturnPromise)
     ]
 
     private var updates: Task<Void, Never>?
@@ -126,6 +127,23 @@ public class StorePlugin: CAPPlugin, CAPBridgedPlugin {
             }
             let owned = await StorePlugin.isOwned(id)
             call.resolve(["owned": owned])
+        }
+    }
+
+    /// 「★で 評価」の ダイアログを お願いする。出すか どうかと 回数は Apple が 決める（1年に 3回まで）。
+    /// テスト版（TestFlight）では 出ない。開発中に Xcode から 動かすと、毎回 出る
+    @objc func requestReview(_ call: CAPPluginCall) {
+        Task { @MainActor in
+            guard let scene = self.bridge?.viewController?.view.window?.windowScene else {
+                call.resolve(["requested": false])
+                return
+            }
+            if #available(iOS 16.0, *) {
+                AppStore.requestReview(in: scene)
+            } else {
+                SKStoreReviewController.requestReview(in: scene)
+            }
+            call.resolve(["requested": true])
         }
     }
 

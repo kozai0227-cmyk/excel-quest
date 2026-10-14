@@ -6,12 +6,58 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 
 ---
 
+## 1.0.2 で 変えるもの（検索で 見つけてもらう ための 見直し）
+
+App Store の 検索に 使われるのは **名前・サブタイトル・キーワード欄** です（説明文は 検索に 使われない）。
+いちばん 効くのは 名前なので、名前に「関数」「表計算」を 入れ、3つの 欄で 言葉が 重ならないように しました。
+
+| 欄 | 今まで | 1.0.2 から |
+|---|---|---|
+| 名前 | イコール・クエスト | `イコール・クエスト：関数が身につく表計算RPG`（23字） |
+| サブタイトル | 関数と数式が身につく表計算RPG | `VLOOKUPもIF関数も遊んで覚える勉強ゲーム`（24字） |
+| キーワード | （下の 旧案） | 下の「キーワード」（99字） |
+
+- 3つの 欄の 言葉は 組み合わせて 検索される（例：「関数 勉強」「表計算 初心者」「VLOOKUP 練習」）
+- ホーム画面の 名前（イコールクエスト）と、ゲーム内の タイトルは そのまま
+- 名前・サブタイトル・キーワードは **新しい バージョンを 出す ときにしか 変えられない**
+
+### 手順
+
+1. **1.0.1 が「配信準備完了」に なるのを 待つ**（審査中は 新しい バージョンを 作れない）
+2. Mac で 最新を 取ってきて、アプリを 組み立てる
+   ```sh
+   git pull origin main
+   npm run ios
+   npx cap open ios
+   ```
+3. Xcode の **TARGETS > App > General** で **Version を `1.0.2`、Build を `4`**（前より 大きい 数）に して、Archive → Upload
+4. App Store Connect →「配信」の **＋**（iOS App の 横）→ バージョン `1.0.2` を 作る
+5. 左の **App 情報** で、名前と サブタイトルを 上の 表の とおりに 変えて 保存
+6. 1.0.2 の ページで
+   - **キーワード** を 下の「キーワード」に 差し替え
+   - **このバージョンの 最新情報** に 下の 文を 貼る
+   - **ビルド** で 手順3の ビルドを 選ぶ
+7. 「審査に 提出」
+
+#### このバージョンの 最新情報（1.0.2）
+
+```
+・章をクリアしたあと、App Storeでの評価をお願いすることがあります（評価はいつでも任意です）
+・ストアでの紹介文を見直しました
+```
+
+> 評価の お願いは Apple 標準の 画面です。出るか どうかと 回数（1年に 3回まで）は Apple が 決めます。
+> 第1章・第4章・最終章の おわりに 1回ずつ お願いします（第2章は 全章解放の 案内が 出るので 外しています）。
+> TestFlight では 出ません。Xcode から 実機で 動かすと 毎回 出るので、そこで 確かめられます。
+
+---
+
 ## アプリの 情報
 
 | 欄 | 入れる 内容 | 上限 |
 |---|---|---|
-| 名前 | `イコール・クエスト` | 30字 |
-| サブタイトル | `関数と数式が身につく表計算RPG`（16字）<br>※ タイトル画面と そろえるなら `表計算で世界を救うRPG`（12字） | 30字 |
+| 名前 | `イコール・クエスト：関数が身につく表計算RPG`（23字・1.0.2 から） | 30字 |
+| サブタイトル | `VLOOKUPもIF関数も遊んで覚える勉強ゲーム`（24字・1.0.2 から） | 30字 |
 | プライマリカテゴリ | 教育 | |
 | セカンダリカテゴリ | ゲーム（ロールプレイング） | |
 | 著作権 | `2026 kozai0227-cmyk`（本名や 屋号に しても よい） | |
@@ -84,11 +130,63 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 
 ## キーワード（100字まで・カンマ区切り・空白なし）
 
+1.0.2 から：
+
+```
+学習,スプレッドシート,パソコン,PC,事務,社会人,新人,研修,仕事,効率化,数式,XLOOKUP,SUMIF,SUMIFS,COUNTIF,IFERROR,絶対参照,ピボット,集計,初心者,入門
+```
+
+（99字。名前・サブタイトルに ある 言葉〔関数・表計算・RPG・VLOOKUP・IF・勉強・ゲーム〕は 自動で 検索対象に なるので、ここには 入れない。
+言葉は 短く 区切る ほうが、ほかの 欄の 言葉と 組み合わさって 多くの 検索に 出る）
+
+<details><summary>1.0.1 までの キーワード</summary>
+
 ```
 スプレッドシート,勉強,学習,ゲーム,クイズ,レトロ,ドット絵,社会人,新人研修,パソコン,事務,仕事効率化,VLOOKUP,XLOOKUP,SUMIFS,COUNTIF,IF,日付,集計,資格
 ```
 
-（97字。名前・サブタイトルに 入っている 言葉は 自動で 検索対象に なるので、ここには 入れていません）
+</details>
+
+## 英語（米国）の ページ（検索の 言葉を 増やす）
+
+日本の App Store では、日本語の ページに 加えて **英語（米国）の ページの 名前・サブタイトル・キーワードも 検索に 使われる** と されています
+（Apple の 公式資料には 書かれておらず、ASO 会社の 調査に よるもの）。英語の ページを 足すと、キーワードの 枠が 増えます。
+ただし 違う 言語の ページどうしの 言葉は 組み合わせて 検索されないので、英語の ページの キーワードには「関数」「表計算」も もう一度 入れています。
+
+端末を 英語に している 人には この ページが 表示されるので、説明文には「今は 日本語のみ」と 正直に 書いています。
+
+**追加の しかた**：App Store Connect の **App 情報** → 右上の 言語（日本語）の メニュー → **英語（米国）** を 追加 →
+名前・サブタイトル・プライバシーポリシーの URL を 入れる。続けて バージョンの ページでも 言語を 英語（米国）に 切りかえて、説明・キーワード・サポート URL を 入れる。
+スクリーンショットは 入れなければ 日本語の ものが 使われます。
+
+| 欄 | 入れる 内容 |
+|---|---|
+| 名前 | `Equal Quest: Spreadsheet RPG`（28字） |
+| サブタイトル | `Learn formulas and functions`（28字） |
+| キーワード | 下の 枠（93字） |
+| プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html` |
+| サポート URL | `https://equal-quest.vercel.app/support.html` |
+
+```
+関数,表計算,練習,問題集,基礎,勉強,ビジネス,新社会人,就活,資格,脳トレ,クイズ,DATEDIF,WEEKDAY,ROUND,AVERAGE,SUM,LEFT,MID,office
+```
+
+説明（英語）：
+
+```
+Save a fantasy world with spreadsheet skills!
+
+Equal Quest is a retro RPG about a new office worker who gets pulled into a world where spreadsheet formulas work like magic. Help the townspeople with their problems, battle monsters with quick quiz questions, and master real formulas step by step.
+
+- Learn by doing: build formulas by tapping buttons and cells, then check your answer instantly
+- From the basics to practical skills: SUM, AVERAGE, absolute references ($), IF, VLOOKUP, XLOOKUP, SUMIFS, COUNTIFS, text functions, date math, and fixing errors such as #DIV/0! and #REF!
+- 8 chapters and 81 requests and puzzles
+- Book of Review: practice by chapter, or focus on the questions you missed
+- Chapters 1 and 2 are free. Unlock the rest with a one-time purchase
+- No ads, no account, works offline
+
+Note: The game is currently available in Japanese only. English support is planned for a future update.
+```
 
 ---
 
