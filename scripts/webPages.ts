@@ -1,6 +1,8 @@
 /**
  * Web 版だけに 置く、検索で 見つけて もらう ための ページを ビルドの ときに 作る（Vite の 部品）。
  *
+ * - /                  … トップページ（紹介ページ。scripts/landing.ts）
+ * - /play/             … ゲーム本体（index.html を ここへ 移す）
  * - /learn/            … 関数・操作の 解説の 一覧
  * - /learn/<スラッグ>/ … 教会の「関数の 相談」と 同じ 解説（src/data/funcGuides.ts）を 1ページずつ
  * - /sitemap.xml       … Google に 知らせる ページの 一覧
@@ -9,10 +11,11 @@
  * 「Excel」「Microsoft」は 他社の 商標なので 書かない（「表計算ソフト」と 書く）
  */
 import { readFileSync } from 'node:fs'
-import type { Plugin } from 'vite'
-import { SKILLS } from '../src/data/skills'
-import { FUNC_GUIDES, type FuncGuide } from '../src/data/funcGuides'
-import { APP_STORE_ID, APP_STORE_URL } from '../src/game/appStore'
+import type { OutputBundle, Plugin } from 'vite'
+import { landingPage } from './landing.ts'
+import { SKILLS } from '../src/data/skills.ts'
+import { FUNC_GUIDES, type FuncGuide } from '../src/data/funcGuides.ts'
+import { APP_STORE_ID, APP_STORE_URL } from '../src/game/appStore.ts'
 
 export const SITE = 'https://equal-quest.vercel.app'
 const APP_NAME = 'イコール・クエスト'
@@ -182,14 +185,14 @@ ${APP_STORE_ID ? `<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}"
 <link rel="stylesheet" href="/learn/learn.css" />
 ${o.extra ?? ''}</head>
 <body>
-<header class="bar"><a class="brand" href="/">＝ ${APP_NAME}</a><a href="/learn/">関数・操作の解説</a></header>
+<header class="bar"><a class="brand" href="/">＝ ${APP_NAME}</a><nav><a href="/play/">遊ぶ</a><a href="/learn/">関数・操作の解説</a></nav></header>
 <main>
 `
 }
 
 /** ゲームへの 案内。ブラウザ版は 第2章までの 体験版なので、第3章から 先の 内容は App Store を 先に 出す */
 const playBox = (lead: string, appFirst = false) => {
-  const web = `<a class="btn${appFirst ? '' : ' primary'}" href="/">ブラウザで遊ぶ（無料・第2章まで）</a>`
+  const web = `<a class="btn${appFirst ? '' : ' primary'}" href="/play/">ブラウザで遊ぶ（無料・第2章まで）</a>`
   const app = `<a class="btn${appFirst ? ' primary' : ''}" href="${APP_STORE_URL}">App Store で見る</a>`
   return `<section class="play">
 <h2>ゲームで練習しよう</h2>
@@ -200,7 +203,7 @@ const playBox = (lead: string, appFirst = false) => {
 }
 
 const foot = `</main>
-<footer><a href="/">${APP_NAME}</a> ・ <a href="/learn/">解説の一覧</a> ・ <a href="/support.html">サポート</a> ・ <a href="/privacy.html">プライバシーポリシー</a></footer>
+<footer><a href="/">${APP_NAME}</a> ・ <a href="/play/">ブラウザで遊ぶ</a> ・ <a href="/learn/">解説の一覧</a> ・ <a href="/support.html">サポート</a> ・ <a href="/privacy.html">プライバシーポリシー</a></footer>
 </body>
 </html>
 `
@@ -291,7 +294,7 @@ ${list.map((id) => `<li><a href="/learn/${slugOf(id)}/">${esc(PAGES[id].title)}<
 }
 
 function sitemap(today: string) {
-  const urls = [`${SITE}/`, `${SITE}/learn/`, ...ids.map(pageUrl), `${SITE}/support.html`]
+  const urls = [`${SITE}/`, `${SITE}/play/`, `${SITE}/learn/`, ...ids.map(pageUrl), `${SITE}/support.html`]
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join('\n')}
@@ -299,16 +302,29 @@ ${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).joi
 `
 }
 
+const SITE_IMAGES = ['title', 'story', 'town', 'battle', 'formula', 'review']
+
 export function webPages(): Plugin {
   return {
     name: 'equal-quest-web-pages',
     apply: 'build',
-    // Safari の「App Store で 開く」バー（番号が 決まったら）
+    // ゲームの index.html が できた あとで 動かす（/play/ へ 移すため）
+    enforce: 'post',
+    // Safari の「App Store で 開く」バー
     transformIndexHtml: () => (APP_STORE_ID && process.env.EQ_APP !== '1' ? [{ tag: 'meta', attrs: { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}` }, injectTo: 'head' }] : []),
-    generateBundle() {
+    generateBundle(_options, bundle: OutputBundle) {
       if (process.env.EQ_APP === '1') return
-      const emit = (fileName: string, source: string) => this.emitFile({ type: 'asset', fileName, source })
-      emit('learn/learn.css', readFileSync(new URL('./learn.css', import.meta.url), 'utf8'))
+      const emit = (fileName: string, source: string | Uint8Array) => this.emitFile({ type: 'asset', fileName, source })
+      // ゲーム本体は /play/ に。トップは 紹介ページ（アプリ版は ゲームが トップの まま）
+      const game = bundle['index.html']
+      if (game?.type === 'asset') {
+        delete bundle['index.html']
+        emit('play/index.html', String(game.source).replaceAll(`${SITE}/"`, `${SITE}/play/"`))
+      }
+      emit('index.html', landingPage())
+      emit('site/landing.css', readFileSync(new URL('./site/landing.css', import.meta.url), 'utf8'))
+      for (const name of SITE_IMAGES) emit(`site/${name}.jpg`, readFileSync(new URL(`./site/img/${name}.jpg`, import.meta.url)))
+      emit('learn/learn.css', readFileSync(new URL('./site/learn.css', import.meta.url), 'utf8'))
       emit('learn/index.html', indexPage())
       for (const id of ids) emit(`learn/${slugOf(id)}/index.html`, learnPage(id))
       emit('sitemap.xml', sitemap(new Date().toISOString().slice(0, 10)))

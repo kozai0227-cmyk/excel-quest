@@ -2,6 +2,17 @@
 
 Web 版（https://equal-quest.vercel.app）に 入れてある 検索対策と、あなたが 行う 作業の まとめです。
 
+## サイトの 形
+
+| URL | 中身 |
+|---|---|
+| `/` | トップページ（紹介ページ：特徴・画面・全8章・料金・よくある質問。`scripts/landing.ts`） |
+| `/play/` | ゲーム本体（ブラウザ版・第2章まで）。ホーム画面に 追加して 開いた ときは、トップから 自動で ここへ |
+| `/learn/` | 関数・操作の 解説（54ページ） |
+| `/support.html`・`/privacy.html` | サポート・プライバシーポリシー（URL は 今まで どおり） |
+
+アプリ版（`npm run ios`）は、今まで どおり ゲームが トップに 入る（紹介ページ・解説ページは 入らない）。
+
 ## 入れてある もの
 
 | もの | 中身 | 場所 |
@@ -26,7 +37,7 @@ Web 版（https://equal-quest.vercel.app）に 入れてある 検索対策と�
 2. 「プロパティを 追加」→ 右側の **URL プレフィックス** に `https://equal-quest.vercel.app/` を 入れて「続行」
 3. 確認方法の 一覧から **HTML タグ** を 開き、表示された タグ
    `<meta name="google-site-verification" content="……" />` を コピーして、こちらに 送る
-4. こちらで `index.html` に 入れて 本番に 反映したら、Search Console に 戻って「確認」を 押す
+4. こちらで トップページに 入れて 本番に 反映したら、Search Console に 戻って「確認」を 押す
 5. 確認できたら 左の **サイトマップ** で `sitemap.xml` と 入れて「送信」
 6. 左上の 検索欄（URL 検査）に `https://equal-quest.vercel.app/learn/` を 入れて「インデックス登録を リクエスト」
    （トップページ `https://equal-quest.vercel.app/` も 同じように）

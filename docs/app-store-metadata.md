@@ -37,6 +37,7 @@ App Store の 検索に 使われるのは **名前・サブタイトル・キ�
    - **キーワード** を 下の「キーワード」に 差し替え
    - **このバージョンの 最新情報** に 下の 文を 貼る
    - **ビルド** で 手順3の ビルドを 選ぶ
+   - **マーケティング URL** に `https://equal-quest.vercel.app/`（紹介ページ）を 入れる
 7. 「審査に 提出」
 
 #### このバージョンの 最新情報（1.0.2）
@@ -63,7 +64,7 @@ App Store の 検索に 使われるのは **名前・サブタイトル・キ�
 | 著作権 | `2026 kozai0227-cmyk`（本名や 屋号に しても よい） | |
 | プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html` | |
 | サポート URL | `https://equal-quest.vercel.app/support.html` | |
-| マーケティング URL | 空欄で よい | |
+| マーケティング URL | `https://equal-quest.vercel.app/`（紹介ページ。1.0.2 から 入れる） | |
 
 ※ 前の URL（`excel-quest-nine.vercel.app`）でも 同じ ページが 開けますが、「excel」が 入らない 上の URL を 使います。
 前の URL は Web 版の セーブデータを 守るため 消さずに 残しています（Vercel → Settings → Domains に 両方 登録ずみ）。

@@ -52,6 +52,11 @@ a {
   color: #e8edf4;
   text-decoration: none;
 }
+.bar nav {
+  display: flex;
+  gap: 14px;
+  white-space: nowrap;
+}
 .bar .brand {
   font-weight: 700;
   color: #ffe14f;

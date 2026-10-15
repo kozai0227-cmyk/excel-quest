@@ -52,7 +52,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
   const [lic, setLic] = useState<string | null>(null)
   const openLicenses = () => {
     setLic('よみこみ中……')
-    fetch('licenses.txt')
+    fetch('/licenses.txt')
       .then((r) => r.text())
       .then(setLic)
       .catch(() => setLic('ライセンス表記を 読みこめませんでした。'))
@@ -294,7 +294,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
               <div className={`opt lic-row ${icur === VOL_ROWS.length + 2 ? 'on' : ''}`} onClick={() => { setIcur(VOL_ROWS.length + 2); openUnlock() }}>
                 全章解放<small>：{!isNative ? (unlocked ? 'Web版は 全章 遊べます' : 'アプリ版で 遊べます') : unlocked ? '購入ずみ' : `購入・復元（第${FREE_CHAPTERS + 1}章〜）`}</small>
               </div>
-              {privacy && <DocView src="privacy.html" title="プライバシーポリシー" onClose={() => setPrivacy(false)} />}
+              {privacy && <DocView src="/privacy.html" title="プライバシーポリシー" onClose={() => setPrivacy(false)} />}
               {lic !== null && <DocView text={lic} title="ライセンス表記" onClose={() => setLic(null)} />}
             </div>
           )}
