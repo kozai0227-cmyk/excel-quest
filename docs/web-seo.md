@@ -33,9 +33,9 @@ Web 版（https://equal-quest.vercel.app）に 入れてある 検索対策と�
 
 > 反映されるまで 数日〜数週間 かかります。1〜2週間後に「検索パフォーマンス」で、表示された 回数や 検索語を 確かめましょう。
 
-## App Store の アプリ番号を 入れる（あとで）
+## App Store の アプリ番号（入れてある）
 
-App Store Connect →「App 情報」→ **Apple ID**（数字）を `scripts/webPages.ts` の `APP_STORE_ID` に 入れると、
+App Store Connect →「App 情報」→ **Apple ID**（数字：`6820981290`）を `scripts/webPages.ts` の `APP_STORE_ID` に 入れてあるので、
 
 - iPhone の Safari で Web 版や 解説ページを 開いたとき、上に「App Store で 開く」バーが 出る
 - 解説ページの「ゲームで 練習しよう」に「App Store で 見る」ボタンが 出る

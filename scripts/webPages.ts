@@ -18,7 +18,7 @@ export const SITE = 'https://equal-quest.vercel.app'
  * App Store の アプリの 番号（App Store Connect の「App 情報」→ Apple ID の 数字）。
  * 入れると、Safari の「App Store で 開く」バーと、各ページの App Store への ボタンが 出る
  */
-export const APP_STORE_ID = ''
+export const APP_STORE_ID = '6820981290'
 const APP_STORE_URL = APP_STORE_ID ? `https://apps.apple.com/jp/app/id${APP_STORE_ID}` : ''
 const APP_NAME = 'イコール・クエスト'
 
@@ -300,7 +300,7 @@ export function webPages(): Plugin {
     name: 'equal-quest-web-pages',
     apply: 'build',
     // Safari の「App Store で 開く」バー（番号が 決まったら）
-    transformIndexHtml: () => (APP_STORE_ID ? [{ tag: 'meta', attrs: { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}` }, injectTo: 'head' }] : []),
+    transformIndexHtml: () => (APP_STORE_ID && process.env.EQ_APP !== '1' ? [{ tag: 'meta', attrs: { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}` }, injectTo: 'head' }] : []),
     generateBundle() {
       if (process.env.EQ_APP === '1') return
       const emit = (fileName: string, source: string) => this.emitFile({ type: 'asset', fileName, source })
