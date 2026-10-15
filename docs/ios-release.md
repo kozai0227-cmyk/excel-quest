@@ -143,4 +143,4 @@ TestFlight での 購入は **テスト用で、お金は かかりません**�
 | 町の 見た目 | `src/game/tiles.ts` の `THEMES`（地面・道・屋根・壁・木・灯り）。マップの `theme` で 選ぶ。全体図は 手元で `?mapview=町のID` |
 | 町の 出入口 | 地図の 町は 入る 向きで 着く 入口が 変わる（`Exit.from`）。馬車は 門の 馬車（χ）の 前に 立ち、行った 向きの 反対側の 門に 着く（`npm run check` で 確かめる） |
 | 鍵の 場所 | 第3章への 峠の 見張り（`maps.ts` の `pass_guard`）、第2章 クリア後の 案内、ふくしゅうの 書の 章、設定 →「全章解放」 |
-| Web 版 | いまは 全章 遊べる（`src/game/store.ts` の `WEB_FULL = true`）。審査が 通ったら `false` に すると 第2章までの 体験版に なる。開発用 URL（`?quest=` など）は 手元（localhost）でだけ 効く |
+| Web 版 | 第2章までの 体験版（`src/game/store.ts` の `WEB_FULL = false`）。第3章から 先は「App Store で 見る」で アプリ版へ 案内する。体験版に する 前に 第3章から 先へ 進んでいた 人は、その ブラウザでは 最後まで 遊べる。開発用 URL（`?quest=` など）は 手元（localhost）でだけ 効く |

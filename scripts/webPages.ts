@@ -12,14 +12,9 @@ import { readFileSync } from 'node:fs'
 import type { Plugin } from 'vite'
 import { SKILLS } from '../src/data/skills'
 import { FUNC_GUIDES, type FuncGuide } from '../src/data/funcGuides'
+import { APP_STORE_ID, APP_STORE_URL } from '../src/game/appStore'
 
 export const SITE = 'https://equal-quest.vercel.app'
-/**
- * App Store の アプリの 番号（App Store Connect の「App 情報」→ Apple ID の 数字）。
- * 入れると、Safari の「App Store で 開く」バーと、各ページの App Store への ボタンが 出る
- */
-export const APP_STORE_ID = '6820981290'
-const APP_STORE_URL = APP_STORE_ID ? `https://apps.apple.com/jp/app/id${APP_STORE_ID}` : ''
 const APP_NAME = 'イコール・クエスト'
 
 /** 町 → 章（解説ページの「ゲームで 学べる 章」） */
@@ -192,12 +187,17 @@ ${o.extra ?? ''}</head>
 `
 }
 
-const playBox = (lead: string) => `<section class="play">
+/** ゲームへの 案内。ブラウザ版は 第2章までの 体験版なので、第3章から 先の 内容は App Store を 先に 出す */
+const playBox = (lead: string, appFirst = false) => {
+  const web = `<a class="btn${appFirst ? '' : ' primary'}" href="/">ブラウザで遊ぶ（無料・第2章まで）</a>`
+  const app = `<a class="btn${appFirst ? ' primary' : ''}" href="${APP_STORE_URL}">App Store で見る</a>`
+  return `<section class="play">
 <h2>ゲームで練習しよう</h2>
 <p>${lead}</p>
-<p class="btns"><a class="btn primary" href="/">ブラウザで遊ぶ（無料）</a>${APP_STORE_URL ? `<a class="btn" href="${APP_STORE_URL}">App Store で見る</a>` : ''}</p>
+<p class="btns">${appFirst ? app + web : web + app}</p>
 </section>
 `
+}
 
 const foot = `</main>
 <footer><a href="/">${APP_NAME}</a> ・ <a href="/learn/">解説の一覧</a> ・ <a href="/support.html">サポート</a> ・ <a href="/privacy.html">プライバシーポリシー</a></footer>
@@ -245,7 +245,11 @@ ${examples}
 <p>${withCode(plain(s.desc))}</p>
 ` +
     playBox(
-      `『${APP_NAME}』は、町の人の悩みを表計算で解決しながら、関数や数式が身につくレトロRPGです。「${esc(plain(s.name))}」は <b>${ch.title}</b> で学べます。数式はボタンと表のタップで組み立てられるので、スマホでも練習できます。`,
+      `『${APP_NAME}』は、町の人の悩みを表計算で解決しながら、関数や数式が身につくレトロRPGです。「${esc(plain(s.name))}」は <b>${ch.title}</b> で学べます。` +
+        (ch.no > 2
+          ? '第3章から先は iPhone アプリ版（全章解放・買い切り）で遊べます。第1章・第2章は無料で、ブラウザでも体験できます。'
+          : '数式はボタンと表のタップで組み立てられるので、スマホでも練習できます。'),
+      ch.no > 2,
     ) +
     (related.length
       ? `<h2>同じ章で学べること</h2>
@@ -279,7 +283,7 @@ ${list.map((id) => `<li><a href="/learn/${slugOf(id)}/">${esc(PAGES[id].title)}<
 <h1>表計算の関数・操作の解説一覧</h1>
 <p class="lead">セルの入力から、SUM・IF・VLOOKUP・SUMIFS、文字列や日付の関数、エラーの直し方まで。ゲーム『${APP_NAME}』で学べる内容を、例つきでまとめました。</p>
 ` +
-    playBox(`町の人の「表計算の悩み」を解決しながら進むレトロRPGです。第1章から順番に、関数や数式が自然に身につきます。`) +
+    playBox(`町の人の「表計算の悩み」を解決しながら進むレトロRPGです。第1章から順番に、関数や数式が自然に身につきます。第1章・第2章は無料（ブラウザでも遊べます）、第3章から先は iPhone アプリ版で遊べます。`) +
     groups.join('\n') +
     '\n' +
     foot

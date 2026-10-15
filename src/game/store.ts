@@ -1,16 +1,18 @@
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import { useSyncExternalStore } from 'react'
 import { isNative } from './native'
+import { loadGame } from './progress'
+import { APP_STORE_URL } from './appStore'
 
 /** 無料で 遊べる 章（ここまで）。この 先は「全章解放」を 買うと 遊べる */
 export const FREE_CHAPTERS = 2
 /** App Store Connect で 作る 商品（非消耗型）の ID */
 export const PRODUCT_ID = 'com.kozai0227.equalquest.full'
 /**
- * Web 版も 全章 遊べるか。App Store の 審査が 通るまでは テスト用に true のまま。
- * false に すると Web 版は 第2章までの 体験版に なる（アプリ版は 関係なし）
+ * Web 版も 全章 遊べるか。false の 今は、Web 版は 第2章までの 体験版で、
+ * 第3章から 先は App Store（アプリ版）へ 案内する（アプリ版は 関係なし）
  */
-export const WEB_FULL = true
+export const WEB_FULL = false
 
 /** アプリ本体の 課金部品（ios/App/App/StorePlugin.swift） */
 interface StorePlugin {
@@ -33,8 +35,26 @@ const readCache = () => {
   }
 }
 
-/** アプリ版は 購入の 記録しだい。Web 版は WEB_FULL（か 開発中の npm run dev）なら すべて 遊べる */
-let unlocked = isNative ? readCache() : WEB_FULL || !!import.meta.env?.DEV
+/**
+ * Web 版が 全章 無料だった ころに、もう 第3章から 先へ 進んでいた 人は、その ブラウザでは 最後まで 遊べる
+ * （体験版に 切りかえた とたんに 冒険が 止まらないように）
+ */
+const EARLY_KEY = 'excel-quest-web-early-v1'
+const PAID_TOWNS = ['ifport', 'lookup', 'pivoria', 'textria', 'koyomi', 'hope']
+function webEarlyPlayer() {
+  try {
+    if (localStorage.getItem(EARLY_KEY) === '1') return true
+    const g = loadGame()
+    const early = !!g && PAID_TOWNS.some((t) => g.flags[`visit_${t}`])
+    if (early) localStorage.setItem(EARLY_KEY, '1')
+    return early
+  } catch {
+    return false
+  }
+}
+
+/** アプリ版は 購入の 記録しだい。Web 版は WEB_FULL（か 開発中の npm run dev・前から 進んでいた 人）なら すべて 遊べる */
+let unlocked = isNative ? readCache() : WEB_FULL || !!import.meta.env?.DEV || webEarlyPlayer()
 /** 購入画面を 開いているか */
 let screenOpen = false
 const subs = new Set<() => void>()
@@ -72,6 +92,11 @@ export function closeUnlock() {
   notify()
 }
 export const useUnlockScreen = () => useSyncExternalStore(subscribe, () => screenOpen)
+
+/** Web 版から App Store の アプリの ページを 開く（ゲームは そのまま 残す） */
+export function openAppStore() {
+  window.open(APP_STORE_URL, '_blank', 'noopener')
+}
 
 if (isNative) {
   // 起動時に 端末の 購入記録で 確かめる（機種変更・再インストール後も 自動で 戻る）。

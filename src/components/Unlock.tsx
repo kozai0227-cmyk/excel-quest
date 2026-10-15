@@ -3,7 +3,7 @@ import { CHAPTERS } from '../data/chapters'
 import { useKeys } from '../game/keys'
 import { isNative } from '../game/native'
 import { jingle, sfx } from '../game/sound'
-import { FREE_CHAPTERS, buyFull, closeUnlock, loadPrice, restoreFull, useUnlocked } from '../game/store'
+import { FREE_CHAPTERS, buyFull, closeUnlock, loadPrice, openAppStore, restoreFull, useUnlocked } from '../game/store'
 
 const short = (t: string) => t.replace(/^(第\d章|最終章)　/, '')
 const tag = (t: string) => t.split('　')[0]
@@ -65,11 +65,22 @@ export function Unlock() {
     if (r === 'error') setMsg(MESSAGES.restoreError)
   }
 
-  const btns = !isNative || unlocked ? [{ label: 'とじる', run: close }] : [
-    { label: busy ? '処理中……' : `購入する${price ? `（${price}）` : ''}`, run: buy, primary: true },
-    { label: '購入を 復元', run: restore },
-    { label: 'あとで', run: close },
-  ]
+  const toStore = () => {
+    sfx('select')
+    openAppStore()
+  }
+  const btns = unlocked
+    ? [{ label: 'とじる', run: close }]
+    : !isNative
+      ? [
+          { label: 'App Store で 見る', run: toStore, primary: true },
+          { label: 'とじる', run: close },
+        ]
+      : [
+          { label: busy ? '処理中……' : `購入する${price ? `（${price}）` : ''}`, run: buy, primary: true },
+          { label: '購入を 復元', run: restore },
+          { label: 'あとで', run: close },
+        ]
   useKeys((k) => {
     if (busy) return
     if (k === 'up' || k === 'down') {
@@ -83,7 +94,7 @@ export function Unlock() {
   return (
     <div className="unlock">
       <div className="unlock-inner">
-        <h2>{unlocked ? '🔓 全章解放 ずみ' : '🔓 全章解放'}</h2>
+        <h2>{unlocked ? '🔓 全章解放 ずみ' : isNative ? '🔓 全章解放' : '📱 続きは アプリ版で'}</h2>
         {unlocked ? (
           <p className="unlock-lead">{msg ?? 'すべての 章が 遊べます。最後まで 冒険を 楽しんで ください！'}</p>
         ) : isNative ? (
@@ -115,7 +126,11 @@ export function Unlock() {
                 <span>すべての 章の 復習・全章まとめコース</span>
               </li>
             </ul>
-            {isNative && <p className="unlock-note">1回 買えば ずっと 遊べます（買い切り）。</p>}
+            {isNative ? (
+              <p className="unlock-note">1回 買えば ずっと 遊べます（買い切り）。</p>
+            ) : (
+              <p className="unlock-note">アプリ版も 第2章までは 無料。この 先は「全章解放」（買い切り）で 遊べます。</p>
+            )}
           </>
         )}
         {msg && !unlocked && <p className="unlock-msg">{msg}</p>}
@@ -135,6 +150,9 @@ export function Unlock() {
             </button>
           ))}
         </div>
+        {!isNative && !unlocked && (
+          <p className="unlock-fine">ブラウザ版の セーブデータは アプリ版に 引き継げません（アプリ版は 第1章から 始まります）。</p>
+        )}
         {isNative && !unlocked && (
           <p className="unlock-fine">
             お支払いは App Store で 行われます。機種変更や 再インストールの あとは「購入を 復元」で 引き継げます（同じ Apple アカウントの 場合）。

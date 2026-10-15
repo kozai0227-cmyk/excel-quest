@@ -8,6 +8,7 @@ import { judgeFormula } from '../game/judge'
 import { getWeak, markWeak } from '../game/weak'
 import { chapterAllowed, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { FormulaQuestion } from './FormulaQuestion'
+import { isNative } from '../game/native'
 import {
   CHAPTERS,
   allCourse,
@@ -252,7 +253,7 @@ function CourseMenu({
                   🔒 {chapterTag(ch)}　{short(ch.title)}
                 </b>
                 <span className="course-topic">{ch.topic}</span>
-                <span className="course-unlock">全章解放で 遊べる</span>
+                <span className="course-unlock">{isNative ? '全章解放で 遊べる' : 'iPhone アプリ版で 遊べる'}</span>
               </>,
               'chapter paywall',
             )
