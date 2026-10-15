@@ -35,7 +35,8 @@ Web 版（https://equal-quest.vercel.app）に 入れてある 検索対策と�
 
 ## App Store の アプリ番号（入れてある）
 
-App Store Connect →「App 情報」→ **Apple ID**（数字：`6820981290`）を `scripts/webPages.ts` の `APP_STORE_ID` に 入れてあるので、
+App Store Connect →「App 情報」→ **Apple ID**（数字：`6820981290`）を `src/game/appStore.ts` の `APP_STORE_ID` に 入れてあるので、
 
 - iPhone の Safari で Web 版や 解説ページを 開いたとき、上に「App Store で 開く」バーが 出る
 - 解説ページの「ゲームで 練習しよう」に「App Store で 見る」ボタンが 出る
+- Web 版は 第2章までの 体験版。第3章から 先の 入口（峠・第2章の おわり・ふくしゅうの書の 鍵）では「App Store で 見る」ボタンで アプリ版へ 案内する
