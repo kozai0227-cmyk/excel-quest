@@ -2,6 +2,7 @@ import type { CharSpec } from '../game/sprites'
 import type { MapDef, NpcDef } from '../game/types'
 import { isUnlocked } from '../game/store'
 import { EN_MAPS, loc } from './en'
+import { tr } from '../game/lang'
 
 // ================================================================ マップ組み立て
 type M = string[][]
@@ -1058,7 +1059,7 @@ const CAVE_TILES = [
 /** 宝箱（開けると 空の箱に 置きかわる） */
 const chest = (id: string, x: number, y: number, loot: NpcDef['loot']): NpcDef[] => [
   { id, x, y, name: 'たからばこ', creature: 'chest', kind: 'chest', loot, hideIf: (s) => !!s.flags[`chest_${id}`] },
-  { id: `${id}_open`, x, y, name: 'たからばこ', creature: 'chestOpen', kind: 'talk', lines: ['からっぽだ。'], hideIf: (s) => !s.flags[`chest_${id}`] },
+  { id: `${id}_open`, x, y, name: 'たからばこ', creature: 'chestOpen', kind: 'talk', lines: [tr('からっぽだ。', "It's empty.")], hideIf: (s) => !s.flags[`chest_${id}`] },
 ]
 
 const cave: MapDef = {
@@ -1235,25 +1236,25 @@ const celuno: MapDef = {
     { x: 15, y: 1, to: 'cave', tx: 14, ty: 21, dir: 'up' },
   ],
   signs: [
-    { x: 16, y: 21, lines: ['↓ 南：はじまりの森', '→ 東：橋を 渡って 計算の町 カルキュレ'] },
-    { x: 14, y: 4, lines: ['北のどうくつ ― 散らかりセルイムの すみか。', '奥へ進むには、石版の扉の 謎を 解かねば ならぬという。', '村の悩みを すべて解決すれば、入口の 呪いの結界は とけるだろう。'] },
-    { x: 21, y: 12, lines: ['「ボルド看板店」', '見出しは太く、看板は目立て！ ― 店主'] },
+    { x: 16, y: 21, lines: [tr('↓ 南：はじまりの森', '↓ South: Forest of Beginnings'), tr('→ 東：橋を 渡って 計算の町 カルキュレ', '→ East: across the bridge to Calcule, Town of Calculation')] },
+    { x: 14, y: 4, lines: [tr('北のどうくつ ― 散らかりセルイムの すみか。', 'Northern Cave — lair of the Messy Cellime.'), tr('奥へ進むには、石版の扉の 謎を 解かねば ならぬという。', 'They say you must solve the puzzles of its stone tablet doors to go deeper.'), tr('村の悩みを すべて解決すれば、入口の 呪いの結界は とけるだろう。', "Solve all the village's troubles, and the cursed barrier at the entrance should lift.")] },
+    { x: 21, y: 12, lines: [tr('「ボルド看板店」', '"Bold\'s Sign Shop"'), tr('見出しは太く、看板は目立て！ ― 店主', 'Make headings bold, make signs stand out! — The Owner')] },
   ],
   npcs: [
     { id: 'meel', x: 9, y: 12, name: '羊飼いのメェル', look: C.meel, kind: 'quest', questId: 'celuno_input', dir: 'left' },
-    { id: 'sheep1', x: 4, y: 13, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。'], emote: 'note' },
-    { id: 'sheep2', x: 6, y: 12, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜〜。（ヒツジは のんびりしている）'] },
-    { id: 'sheep3', x: 5, y: 14, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ？'] },
+    { id: 'sheep1', x: 4, y: 13, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.')], emote: 'note' },
+    { id: 'sheep2', x: 6, y: 12, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜〜。（ヒツジは のんびりしている）', 'Baaa. (The sheep is taking it easy.)')] },
+    { id: 'sheep3', x: 5, y: 14, name: 'ヒツジ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ？', 'Baa?')] },
     { id: 'guard1', x: 17, y: 4, name: '見張りのガード', look: C.guard, kind: 'quest', questId: 'celuno_copy', dir: 'left' },
-    { id: 'cat', x: 20, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャーン。', '（トキおばあさんの 飼いネコのようだ）'], emote: 'heart' },
+    { id: 'cat', x: 20, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: [tr('ニャーン。', 'Meow.'), tr('（トキおばあさんの 飼いネコのようだ）', "(Looks like Granny Toki's cat.)")], emote: 'heart' },
     { id: 'bold', x: 20, y: 14, name: '看板職人ボルド', look: C.bold, kind: 'quest', questId: 'celuno_bold' },
     {
       id: 'kid1', x: 14, y: 17, name: '村の子ども', look: C.kid, kind: 'talk', wander: true, emote: 'note',
-      lines: ['ねえねえ、「表計算」って 魔法なんでしょ？', 'ぼくも 大きくなったら 表の魔法使いに なるんだ！'],
+      lines: [tr('ねえねえ、「表計算」って 魔法なんでしょ？', 'Hey, hey, spreadsheets are magic, right?'), tr('ぼくも 大きくなったら 表の魔法使いに なるんだ！', "When I grow up, I'm gonna be a spreadsheet wizard!")],
     },
     {
       id: 'youth', x: 25, y: 12, name: '村の若者', look: C.youth, kind: 'talk', wander: true,
-      lines: ['村の外には セルイムや マチガエルが 出るぜ。', 'やつらは 表の知識を ためしてくる。答えられないと 痛い目を見るぞ。', 'ケガをしたら 宿屋で 休むといい。'],
+      lines: [tr('村の外には セルイムや マチガエルが 出るぜ。', "Outside the village you'll run into Cellimes and Mistoads."), tr('やつらは 表の知識を ためしてくる。答えられないと 痛い目を見るぞ。', "They'll test what you know about spreadsheets. Can't answer, and you'll get hurt."), tr('ケガをしたら 宿屋で 休むといい。', 'If you get hurt, rest at the inn.')],
     },
   ],
 }
@@ -1274,32 +1275,32 @@ const calculet: MapDef = {
     { x: 0, y: 13, to: 'world', tx: 35, ty: 12, dir: 'left' },
     { x: 33, y: 12, to: 'world', tx: 37, ty: 12, dir: 'right' },
   ],
-  signs: [{ x: 12, y: 7, lines: ['北の塔 ― 手計算ゴーレムの 見張る塔。', '塔の扉は 計算の謎で 閉ざされ、最上階に ゴーレムが いるという。', '町の悩みを すべて解決すれば、入口の 結界は とけるだろう。'] }],
+  signs: [{ x: 12, y: 7, lines: [tr('北の塔 ― 手計算ゴーレムの 見張る塔。', 'Northern Tower — guarded by the Hand-Calc Golem.'), tr('塔の扉は 計算の謎で 閉ざされ、最上階に ゴーレムが いるという。', 'Its doors are sealed by math puzzles, and the golem waits on the top floor.'), tr('町の悩みを すべて解決すれば、入口の 結界は とけるだろう。', "Solve all of the town's troubles, and the barrier at the entrance should lift.")] }],
   npcs: [
     { id: 'namio', x: 8, y: 23, name: '漁師ナミオ', look: C.namio, kind: 'quest', questId: 'calc_maxmin', dir: 'up' },
     {
       id: 'kid2', x: 24, y: 24, name: '町の子ども', look: C.kid2, kind: 'talk', wander: true, emote: 'note',
-      lines: ['大人って みんな 紙に 筆算してるんだよ。', '「すうしき」を使えば、数字を変えても 答えが勝手に 変わるんだって！'],
+      lines: [tr('大人って みんな 紙に 筆算してるんだよ。', 'All the grown-ups do math on paper by hand.'), tr('「すうしき」を使えば、数字を変えても 答えが勝手に 変わるんだって！', 'But they say with "formulas," the answer changes by itself when you change the numbers!')],
     },
-    { id: 'dog', x: 19, y: 24, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！ ワン！', '（しっぽを ぶんぶん ふっている）'] },
+    { id: 'dog', x: 19, y: 24, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: [tr('ワン！ ワン！', 'Woof! Woof!'), tr('（しっぽを ぶんぶん ふっている）', "(It's wagging its tail like crazy.)")] },
     {
       id: 'traveler', x: 30, y: 13, name: '旅人', look: C.traveler, kind: 'talk', wander: true,
-      lines: ['東の「鏡の町 サンショウ」では、数式をコピーすると 答えが ずれてしまう呪いが あるらしい。', '「$」の印が 鍵を にぎるとか……。'],
+      lines: [tr('東の「鏡の町 サンショウ」では、数式をコピーすると 答えが ずれてしまう呪いが あるらしい。', 'In Refton, the Town of Mirrors to the east, they say a curse makes answers shift when you copy formulas.'), tr('「$」の印が 鍵を にぎるとか……。', 'Rumor has it the "$" sign is the key...')],
     },
     {
       id: 'gate2', x: 32, y: 12, name: '国境の兵士', look: C.gate2, kind: 'guard', dir: 'left',
-      lines: ['この先は 鏡の町 サンショウへ 続く 海峡だ。', 'だが 橋が 工事中でな。北の塔の ゴーレムが 石材を 独り占めしているらしい。'],
+      lines: [tr('この先は 鏡の町 サンショウへ 続く 海峡だ。', 'Beyond here is the strait that leads to Refton, the Town of Mirrors.'), tr('だが 橋が 工事中でな。北の塔の ゴーレムが 石材を 独り占めしているらしい。', 'But the bridge is still under construction. The golem in the northern tower is hoarding all the stone.')],
       hideIf: (s) => s.bosses.includes('golem'),
     },
     {
       id: 'gate2_open', x: 31, y: 11, name: '国境の兵士', look: C.gate2, kind: 'talk', dir: 'down',
-      lines: ['ゴーレムが 石材を 返してくれて、海峡の 橋が 完成したぞ！', '東へ 進めば 鏡の町 サンショウだ。', 'あの町では、数式を コピーすると 答えが ずれてしまう 呪いが 広がっているらしい……。'],
+      lines: [tr('ゴーレムが 石材を 返してくれて、海峡の 橋が 完成したぞ！', 'The golem gave back the stone, and the bridge over the strait is finished!'), tr('東へ 進めば 鏡の町 サンショウだ。', "Head east and you'll reach Refton, the Town of Mirrors."), tr('あの町では、数式を コピーすると 答えが ずれてしまう 呪いが 広がっているらしい……。', 'They say a curse is spreading there that makes answers shift when you copy formulas...')],
       hideIf: (s) => !s.bosses.includes('golem'),
     },
     {
       id: 'stall_man', x: 25, y: 27, name: '屋台の おじさん', look: C.guest, kind: 'talk',
-      lines: ['いらっしゃい！ 運河の南の 市場へ ようこそ。', '売上の 計算？ ……それが 呪いのせいで 毎晩 大変なんだよ。'],
-      linesAfter: { when: (s) => s.solved.includes('calc_sum'), lines: ['パン屋の マーサさんから SUMって 魔法を 教わったよ！', '閉店後の 計算が 一瞬で 終わるように なったんだ！'] },
+      lines: [tr('いらっしゃい！ 運河の南の 市場へ ようこそ。', 'Welcome! Welcome to the market south of the canal.'), tr('売上の 計算？ ……それが 呪いのせいで 毎晩 大変なんだよ。', "Adding up sales? ...Thanks to the curse, it's a nightmare every night.")],
+      linesAfter: { when: (s) => s.solved.includes('calc_sum'), lines: [tr('パン屋の マーサさんから SUMって 魔法を 教わったよ！', 'Martha the baker taught me a magic called SUM!'), tr('閉店後の 計算が 一瞬で 終わるように なったんだ！', 'Now my after-hours math is done in an instant!')] },
     },
   ],
 }
@@ -1311,7 +1312,7 @@ const forestMap: MapDef = {
   tiles: forestTiles(),
   spawn: { x: 5, y: 9, dir: 'right' },
   exits: [{ x: 21, y: 9, to: 'world', tx: 8, ty: 24, dir: 'right' }],
-  signs: [{ x: 18, y: 8, lines: ['→ 森の出口', 'この先、北東に「はじまりの村 セルノ」'] }],
+  signs: [{ x: 18, y: 8, lines: [tr('→ 森の出口', '→ Forest exit'), tr('この先、北東に「はじまりの村 セルノ」', 'Ahead, to the northeast: Cellno, Village of Beginnings')] }],
   npcs: [{ id: 'celime_npc', x: 10, y: 9, name: 'セルイム', creature: 'celime', kind: 'boss', bossId: 'celime_tutorial', hideIf: (s) => !!s.flags.tutorial }],
 }
 
@@ -1333,23 +1334,23 @@ const world: MapDef = {
   npcs: [
     {
       id: 'bridge_guard', x: 21, y: 14, name: '橋の見張り', look: C.gate1, kind: 'guard', dir: 'left',
-      lines: ['この橋の先は 計算の町 カルキュレだ。', 'だが今は 魔王の手下が うろついていて 危険でな。', 'セルノ村の北にいる 散らかりセルイムを 何とかしてからにしな。'],
+      lines: [tr('この橋の先は 計算の町 カルキュレだ。', 'Across this bridge is Calcule, the Town of Calculation.'), tr('だが今は 魔王の手下が うろついていて 危険でな。', "But the Demon Lord's minions are prowling around, so it's dangerous right now."), tr('セルノ村の北にいる 散らかりセルイムを 何とかしてからにしな。', 'Deal with the Messy Cellime north of Cellno first.')],
       hideIf: (s) => s.bosses.includes('slime'),
     },
     {
       id: 'bridge_worker', x: 42, y: 12, name: '橋の職人', look: C.worker, kind: 'guard', dir: 'left',
-      lines: ['おっと、この橋は まだ 工事中だ！', 'カルキュレの 北の塔にいる 手計算ゴーレムが「石材ノ 数ハ 手デ 数エロ」って 言い張ってな……。', '石材が 届かなくて 工事が 進まないんだよ。'],
+      lines: [tr('おっと、この橋は まだ 工事中だ！', 'Whoa, this bridge is still under construction!'), tr('カルキュレの 北の塔にいる 手計算ゴーレムが「石材ノ 数ハ 手デ 数エロ」って 言い張ってな……。', 'The Hand-Calc Golem in the tower north of Calcule insists, "STONES. MUST. BE. COUNTED. BY. HAND"...'), tr('石材が 届かなくて 工事が 進まないんだよ。', "So the stone never arrives, and the work can't go on.")],
       hideIf: (s) => s.bosses.includes('golem'),
     },
     {
       id: 'fog_guard', x: 54, y: 21, name: '霧の見張り', look: C.kiri, kind: 'guard', dir: 'up',
-      lines: ['この 峠の 先は、港町 イフポート……', 'だが 今は「鏡の霧」が 立ちこめ、進んでも 進んでも 元の場所に 戻されてしまう。', 'サンショウの 神殿に 巣くう ミラージュの しわざ らしいが……。'],
+      lines: [tr('この 峠の 先は、港町 イフポート……', 'Beyond this pass lies the harbor town of Ifport...'), tr('だが 今は「鏡の霧」が 立ちこめ、進んでも 進んでも 元の場所に 戻されてしまう。', 'But a "mirror fog" hangs over it now. No matter how far you walk, you end up right back where you started.'), tr('サンショウの 神殿に 巣くう ミラージュの しわざ らしいが……。', "They say it's the work of the Mirage nesting in Refton's temple...")],
       hideIf: (s) => s.bosses.includes('mirage'),
     },
     {
       // 無料で 遊べるのは 第2章まで。全章解放の 前は ここで 止まる
       id: 'pass_guard', x: 54, y: 21, name: '峠の見張り', look: C.kiri, kind: 'unlock', dir: 'up',
-      lines: ['おお、霧が 晴れたぞ！ あんたの おかげだ。', 'この 峠を 越えれば 港町 イフポート。その 先には、もっと 手強い 呪いが 待っている……。'],
+      lines: [tr('おお、霧が 晴れたぞ！ あんたの おかげだ。', 'Oh, the fog has cleared! All thanks to you.'), tr('この 峠を 越えれば 港町 イフポート。その 先には、もっと 手強い 呪いが 待っている……。', 'Cross this pass and you reach the harbor town of Ifport. Even tougher curses await beyond...')],
       hideIf: (s) => !s.bosses.includes('mirage') || isUnlocked(),
     },
   ],
@@ -1473,37 +1474,37 @@ const sansho: MapDef = {
     { x: 16, y: 4, to: 'temple1', tx: 11, ty: 14, dir: 'up' },
   ],
   signs: [
-    { x: 14, y: 7, lines: ['北の 鏡の神殿 ― ズレズレ・ミラージュの 棲む ところ。', '神殿の扉は 参照の謎で 閉ざされ、最奥の 大鏡に ミラージュが 潜むという。', '町の悩みを すべて解決すれば、入口の 結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('北の 鏡の神殿 ― ズレズレ・ミラージュの 棲む ところ。', 'Mirror Temple to the north — home of the Shifty Mirage.'), tr('神殿の扉は 参照の謎で 閉ざされ、最奥の 大鏡に ミラージュが 潜むという。', 'Its doors are sealed by reference puzzles, and the Mirage hides in the great mirror deep inside.'), tr('町の悩みを すべて解決すれば、入口の 結界は とけるだろう。', "Solve all of the town's troubles, and the barrier at the entrance should lift.")] },
   ],
   npcs: [
     { id: 'hanten', x: 12, y: 26, name: '八百屋ハンテン', look: C.hanten, kind: 'quest', questId: 'sansho_rel', dir: 'down' },
     { id: 'flora', x: 20, y: 26, name: '花屋フローラ', look: C.flora, kind: 'quest', questId: 'sansho_share', dir: 'down' },
     {
       id: 'mira', x: 7, y: 20, name: '双子のミラ', look: C.mira, kind: 'talk', dir: 'right',
-      lines: ['ねえ、知ってる？ この町の 湖は 何でも 映すんだよ！', 'わたしが ミラで、向こうに いるのが ラミ。'],
+      lines: [tr('ねえ、知ってる？ この町の 湖は 何でも 映すんだよ！', 'Hey, did you know? The lake in this town reflects anything!'), tr('わたしが ミラで、向こうに いるのが ラミ。', "I'm Mira, and that's Rami over there.")],
     },
     {
       id: 'rami', x: 25, y: 20, name: '双子のラミ', look: C.rami, kind: 'talk', dir: 'left',
-      lines: ['？よだんす 映も でん何 は 湖の 町の こ、てっ知 、えね', '……あっ、ごめん！ 呪いで ことばまで 反転しちゃった！'],
-      linesAfter: { when: (s) => s.bosses.includes('mirage'), lines: ['ミラージュが いなくなって、ことばも もとに もどったよ！', 'ありがとう、おにいさん！'] },
+      lines: [tr('？よだんす 映も でん何 は 湖の 町の こ、てっ知 、えね', '!gnihtyna stcelfer nwot siht ni ekal ehT ?wonk uoy did ,yeH'), tr('……あっ、ごめん！ 呪いで ことばまで 反転しちゃった！', '...Oops, sorry! The curse flipped even my words!')],
+      linesAfter: { when: (s) => s.bosses.includes('mirage'), lines: [tr('ミラージュが いなくなって、ことばも もとに もどったよ！', 'The Mirage is gone, and my words are back to normal!'), tr('ありがとう、おにいさん！', 'Thank you, mister!')] },
     },
     {
       id: 'keeper', x: 18, y: 7, name: '神殿の番人', look: C.keeper, kind: 'talk', dir: 'down',
-      lines: ['この神殿の 大鏡に、ズレズレ・ミラージュという 魔物が 住みついて しまった……。', 'やつが 映した 表は、コピーするたびに 参照が ずれていく。', '「ずれない 印」を 知る者だけが、奥へ 進めるであろう。'],
+      lines: [tr('この神殿の 大鏡に、ズレズレ・ミラージュという 魔物が 住みついて しまった……。', 'A monster called the Shifty Mirage has taken up residence in the great mirror of this temple...'), tr('やつが 映した 表は、コピーするたびに 参照が ずれていく。', 'Any table it reflects has its references shift every time you copy it.'), tr('「ずれない 印」を 知る者だけが、奥へ 進めるであろう。', 'Only those who know the "mark that never shifts" may go deeper.')],
       linesAfter: {
         when: (s) => s.bosses.includes('mirage'),
-        lines: ['ミラージュが 消え、南の 峠を おおっていた「鏡の霧」も 晴れたそうだ。', '峠を 越えた 先の 海辺には、港町 イフポートが ある。', 'だが あの港にも、幽霊船が 居すわって いると 聞く……。'],
+        lines: [tr('ミラージュが 消え、南の 峠を おおっていた「鏡の霧」も 晴れたそうだ。', 'With the Mirage gone, they say the "mirror fog" over the southern pass has cleared, too.'), tr('峠を 越えた 先の 海辺には、港町 イフポートが ある。', 'Past the pass, by the sea, lies the harbor town of Ifport.'), tr('だが あの港にも、幽霊船が 居すわって いると 聞く……。', 'But I hear a ghost ship has settled in at that harbor, too...')],
       },
     },
     {
       id: 'townsman', x: 26, y: 13, name: '町の男', look: C.townsman, kind: 'talk', wander: true,
-      lines: ['店の 売上表を 1行 作って、下に コピーしたら……', '全部 同じ セルを 見てたり、関係ない セルを 見てたり……。もう めちゃくちゃだよ。'],
+      lines: [tr('店の 売上表を 1行 作って、下に コピーしたら……', "I made one row of my store's sales sheet and copied it down, and..."), tr('全部 同じ セルを 見てたり、関係ない セルを 見てたり……。もう めちゃくちゃだよ。', "Some point at the same cell, some point at cells that have nothing to do with it... It's a total mess.")],
     },
     {
       id: 'kid3', x: 9, y: 12, name: '町の子ども', look: C.kid3, kind: 'talk', wander: true, emote: 'note',
-      lines: ['鏡って、右と左が 反対に なるでしょ？', 'でも 上と下は 反対に ならないんだって。ふしぎだよね〜。'],
+      lines: [tr('鏡って、右と左が 反対に なるでしょ？', 'You know how mirrors flip left and right?'), tr('でも 上と下は 反対に ならないんだって。ふしぎだよね〜。', "But they say up and down don't flip. Weird, right?")],
     },
-    { id: 'cat2', x: 14, y: 16, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ〜。', '（湖に 映った 自分を じっと 見つめている）'] },
+    { id: 'cat2', x: 14, y: 16, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: [tr('ニャ〜。', 'Meow~'), tr('（湖に 映った 自分を じっと 見つめている）', "(It's staring intently at its reflection in the lake.)")] },
   ],
 }
 
@@ -1880,7 +1881,7 @@ const koyomi: MapDef = {
         closedLines: ['北の 果てへの 峠道は 閉ざされている。', '時計塔の 鐘が 鳴らないかぎり、いつ 出発すれば いいかも わからん……。'],
       },
     },
-    { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
+    { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
     { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）'] },
   ],
 }
@@ -1966,7 +1967,7 @@ const hope: MapDef = {
       lines: ['ま、魔王の 城って、ほんとに 行くんですか……？', '自分の 作った 表が エラーだらけで……もう 何が 何だか……。'],
       linesAfter: { when: (s) => s.bosses.includes('refera'), lines: ['エラーの 意味が わかったら、怖く なくなりました！', '自分の 表は、自分で 直せます！'] },
     },
-    { id: 'horse', x: 6, y: 23, name: 'ウマ', creature: 'sheep', kind: 'talk', wander: true, lines: ['メェ〜。', '（……砦の 人いわく、ウマらしい）'] },
+    { id: 'horse', x: 6, y: 23, name: 'ウマ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), '（……砦の 人いわく、ウマらしい）'] },
   ],
 }
 
@@ -2019,18 +2020,18 @@ const rooms: MapDef[] = [
   room('celuno_elder', '長老の家', 'celuno', 'elder', [
     {
       id: 'elder', x: 5, y: 4, name: '長老', look: C.elder, kind: 'talk',
-      lines: ['村の皆の悩みを 聞いてやってくれ。頭の上に「！」が出ている者が 困っておる。', '家の中に いる者もおるぞ。ドアの上に「！」が出ておる家を 訪ねてみなされ。', '全員を助ければ、北の結界が とけるはずじゃ。'],
-      linesAfter: { when: (s) => s.bosses.includes('slime'), lines: ['セルイムを 正気に戻してくれたか！', '東の橋を 渡った先の「計算の町 カルキュレ」も 呪いで 大変らしい。行ってやってくれんか。'] },
+      lines: [tr('村の皆の悩みを 聞いてやってくれ。頭の上に「！」が出ている者が 困っておる。', 'Please listen to the villagers\' troubles. Anyone with a "!" over their head needs help.'), tr('家の中に いる者もおるぞ。ドアの上に「！」が出ておる家を 訪ねてみなされ。', 'Some are indoors, too. Visit any house with a "!" above its door.'), tr('全員を助ければ、北の結界が とけるはずじゃ。', 'Help them all, and the northern barrier should lift.')],
+      linesAfter: { when: (s) => s.bosses.includes('slime'), lines: [tr('セルイムを 正気に戻してくれたか！', 'You brought the Cellime back to its senses!'), tr('東の橋を 渡った先の「計算の町 カルキュレ」も 呪いで 大変らしい。行ってやってくれんか。', 'I hear Calcule, the Town of Calculation, across the east bridge, is suffering from the curse too. Would you go help them?')] },
     },
-    { id: 'elder_wife', x: 8, y: 2, name: '長老の妻', look: C.elderWife, kind: 'talk', lines: ['あらあら、お客さんかい。', 'うちの人ったら、魔王の話になると 止まらなくてねぇ。お茶でも 飲んでいきなさいな。'] },
+    { id: 'elder_wife', x: 8, y: 2, name: '長老の妻', look: C.elderWife, kind: 'talk', lines: [tr('あらあら、お客さんかい。', 'Oh my, we have a guest.'), tr('うちの人ったら、魔王の話になると 止まらなくてねぇ。お茶でも 飲んでいきなさいな。', "Once my husband starts on about the Demon Lord, there's no stopping him. Stay for some tea, dear.")] },
   ]),
   room('celuno_inn', 'セルノの宿屋', 'celuno', 'inn', [
     inn('inn1', 8, 2, C.inn),
-    { id: 'guest1', x: 5, y: 5, name: '旅の商人', look: C.guest, kind: 'talk', lines: ['東の カルキュレじゃ、みんな 手計算で ヘトヘトらしい。', 'わしも 帳簿つけで 目が しょぼしょぼだよ……。'] },
+    { id: 'guest1', x: 5, y: 5, name: '旅の商人', look: C.guest, kind: 'talk', lines: [tr('東の カルキュレじゃ、みんな 手計算で ヘトヘトらしい。', 'Over in Calcule to the east, they say everyone is worn out from calculating by hand.'), tr('わしも 帳簿つけで 目が しょぼしょぼだよ……。', 'My eyes are bleary from keeping my own books, too...')] },
   ]),
   room('celuno_church', 'セルノの教会', 'celuno', 'church', [
     church('church1', 5, 2),
-    { id: 'prayer', x: 2, y: 6, name: '祈る村人', look: C.prayer, kind: 'talk', lines: ['どうか 表の呪いが とけますように……。', '神父さまは、表計算の 魔法の ことなら 何でも 教えてくださいますよ。'] },
+    { id: 'prayer', x: 2, y: 6, name: '祈る村人', look: C.prayer, kind: 'talk', lines: [tr('どうか 表の呪いが とけますように……。', 'Please, let the curse on the tables be lifted...'), tr('神父さまは、表計算の 魔法の ことなら 何でも 教えてくださいますよ。', 'The priest can teach you anything about spreadsheet magic.')] },
   ]),
   room('celuno_shop', 'リコ商店', 'celuno', 'shop', [
     shop('shop1', 2, 2, C.shop),
@@ -2040,14 +2041,14 @@ const rooms: MapDef[] = [
     {
       id: 'ken', x: 2, y: 2, name: '武器屋ケン', look: C.ken, kind: 'gear',
       stock: ['hinoki_pen', 'copper_pencil', 'marker_sword'],
-      lines: ['へいらっしゃい！ ここは 武器の店だ。', 'この世界じゃ ペン1本が 立派な 武器になるんだぜ。'],
+      lines: [tr('へいらっしゃい！ ここは 武器の店だ。', 'Hey, welcome! This is the weapon shop.'), tr('この世界じゃ ペン1本が 立派な 武器になるんだぜ。', 'In this world, a single pen makes a fine weapon.')],
     },
   ]),
   room('celuno_armor', 'マモル防具店', 'celuno', 'armor', [
     {
       id: 'mamoru', x: 2, y: 2, name: '防具屋マモル', look: C.mamoru, kind: 'gear',
       stock: ['coolbiz', 'business_vest', 'clipboard', 'hachimaki'],
-      lines: ['ようこそ、防具の店へ。', '守りを かためれば、まちがえても 痛くないぞ。'],
+      lines: [tr('ようこそ、防具の店へ。', 'Welcome to the armor shop.'), tr('守りを かためれば、まちがえても 痛くないぞ。', "Shore up your defenses, and mistakes won't hurt as much.")],
     },
   ]),
   room('celuno_pen', '書記ペンの家', 'celuno', 'small', [{ id: 'pen', x: 3, y: 4, name: '書記のペン', look: C.pen, kind: 'quest', questId: 'celuno_undo' }]),
@@ -2056,7 +2057,7 @@ const rooms: MapDef[] = [
     {
       id: 'hanma', x: 2, y: 2, name: '見習いのハンマ', look: C.hanma, kind: 'gear',
       stock: ['copper_pencil', 'marker_sword', 'iron_mouse', 'steel_keyboard', 'shortcut_sword'],
-      lines: ['いらっしゃいませ！ 親方の 自慢の品ばかりっす！'],
+      lines: [tr('いらっしゃいませ！ 親方の 自慢の品ばかりっす！', "Welcome! Everything here is the boss's pride and joy!")],
     },
     { id: 'gantetsu', x: 7, y: 4, name: '武器屋ガンテツ', look: C.gantetsu, kind: 'quest', questId: 'calc_arith' },
   ]),
@@ -2064,24 +2065,24 @@ const rooms: MapDef[] = [
     {
       id: 'yoroida', x: 2, y: 2, name: '防具屋ヨロイダ', look: C.yoroida, kind: 'gear',
       stock: ['business_vest', 'new_suit', 'order_suit', 'iron_binder', 'laptop_shield', 'bluelight', 'headphones'],
-      lines: ['いらっしゃい。「身だしなみ」は 最強の 防具よ。'],
+      lines: [tr('いらっしゃい。「身だしなみ」は 最強の 防具よ。', 'Welcome. Looking sharp is the strongest armor there is.')],
     },
   ]),
   room('calc_bakery', 'マーサのパン屋', 'calculet', 'bakery', [
     { id: 'martha', x: 2, y: 2, name: 'パン屋のマーサ', look: C.martha, kind: 'quest', questId: 'calc_sum' },
-    { id: 'bread_kid', x: 7, y: 4, name: 'パン好きの少年', look: C.student, kind: 'talk', wander: true, lines: ['ここの クロワッサン、世界一なんだ！', 'でも マーサさん、最近 計算ばっかりで 元気ないんだよね。'] },
+    { id: 'bread_kid', x: 7, y: 4, name: 'パン好きの少年', look: C.student, kind: 'talk', wander: true, lines: [tr('ここの クロワッサン、世界一なんだ！', 'The croissants here are the best in the world!'), tr('でも マーサさん、最近 計算ばっかりで 元気ないんだよね。', "But Martha's been doing so much math lately, she seems worn out.")] },
   ]),
   room('calc_school', 'モンスター学校', 'calculet', 'school', [
     { id: 'minerva', x: 7, y: 3, name: '先生ミネルバ', look: C.minerva, kind: 'quest', questId: 'calc_average' },
-    { id: 'surao', x: 3, y: 5, name: 'プルお', creature: 'celime', kind: 'talk', lines: ['ぼく 72点だったよ。', '平均点より 上かなぁ？ 下かなぁ？ ぷるぷる……。'] },
-    { id: 'student', x: 6, y: 5, name: 'タケ吉', look: C.student, kind: 'talk', lines: ['ピカ坊は 100点なんだって！ ずるいよ〜。', '平均点が わかれば、自分が どのへんか わかるのになぁ。'] },
+    { id: 'surao', x: 3, y: 5, name: 'プルお', creature: 'celime', kind: 'talk', lines: [tr('ぼく 72点だったよ。', 'I got a 72.'), tr('平均点より 上かなぁ？ 下かなぁ？ ぷるぷる……。', 'Is that above average? Or below? *wobble wobble*...')] },
+    { id: 'student', x: 6, y: 5, name: 'タケ吉', look: C.student, kind: 'talk', lines: [tr('ピカ坊は 100点なんだって！ ずるいよ〜。', 'Pikabo got a 100! No fair!'), tr('平均点が わかれば、自分が どのへんか わかるのになぁ。', "If I knew the average, I'd know where I stand.")] },
   ]),
   room('calc_hall', 'カルキュレ町役場', 'calculet', 'hall', [
     { id: 'calk', x: 6, y: 2, name: '町長カルク', look: C.calk, kind: 'quest', questId: 'calc_report' },
     {
       id: 'official', x: 10, y: 4, name: 'つかれた役人', look: C.official, kind: 'talk', emote: 'sweat',
-      lines: ['うう……月報の 足し算が……終わらない……。', 'たし……たし……くりあがり……。'],
-      linesAfter: { when: (s) => s.solved.includes('calc_report'), lines: ['町長から 聞きました！ SUMという魔法で 月報が一瞬で……！', '今日は 定時で 帰れそうです！'] },
+      lines: [tr('うう……月報の 足し算が……終わらない……。', "Ugh... the monthly report's sums... never... end..."), tr('たし……たし……くりあがり……。', 'Add... add... carry the one...')],
+      linesAfter: { when: (s) => s.solved.includes('calc_report'), lines: [tr('町長から 聞きました！ SUMという魔法で 月報が一瞬で……！', 'The mayor told me! With a magic called SUM, the monthly report takes no time at all...!'), tr('今日は 定時で 帰れそうです！', 'I might actually get to go home on time today!')] },
     },
   ]),
   room('calc_inn', 'カルキュレの宿屋', 'calculet', 'inn', [
@@ -2094,40 +2095,40 @@ const rooms: MapDef[] = [
     { id: 'kagami', x: 6, y: 2, name: '町長カガミ', look: C.kagami, kind: 'quest', questId: 'sansho_round' },
     {
       id: 'secretary', x: 2, y: 5, name: '町長の秘書', look: C.official, kind: 'talk', wander: true,
-      lines: ['町の 予算表が ずれたせいで、税金の 計算が 合わないんです……。', '1円でも ずれると、監査の人に 怒られちゃうんですよ……。'],
+      lines: [tr('町の 予算表が ずれたせいで、税金の 計算が 合わないんです……。', "The town's budget sheet shifted, so the tax calculations don't add up..."), tr('1円でも ずれると、監査の人に 怒られちゃうんですよ……。', "If it's off by even one coin, the auditors will be furious...")],
     },
   ]),
   room('sansho_weapon', 'ウツシ鏡工房', 'sansho', 'weapon', [
     {
       id: 'utsushi', x: 2, y: 2, name: '鏡職人ウツシ', look: C.utsushi, kind: 'gear',
       stock: ['marker_sword', 'shortcut_sword', 'mirror_rapier', 'dollar_lance'],
-      lines: ['……鏡を 磨くように、武器も 磨く。', 'ブレない 刃は、ブレない 心に 宿るものだ。'],
+      lines: [tr('……鏡を 磨くように、武器も 磨く。', '...As I polish mirrors, so I polish weapons.'), tr('ブレない 刃は、ブレない 心に 宿るものだ。', 'A blade that never wavers lives in a heart that never wavers.')],
     },
   ]),
   room('sansho_armor', 'ギンジ防具店', 'sansho', 'armor', [
     {
       id: 'ginji', x: 2, y: 2, name: '防具屋ギンジ', look: C.ginji, kind: 'gear',
       stock: ['order_suit', 'silver_suit', 'laptop_shield', 'mirror_shield', 'loupe'],
-      lines: ['いらっしゃい！ 銀の防具は 呪いを はね返すぜ。', 'ルーペめがねは おすすめだ。細かい「$」も 見逃さない！'],
+      lines: [tr('いらっしゃい！ 銀の防具は 呪いを はね返すぜ。', 'Welcome! Silver armor bounces curses right back.'), tr('ルーペめがねは おすすめだ。細かい「$」も 見逃さない！', 'I recommend the Loupe Glasses. You won\'t miss even the tiniest "$"!')],
     },
   ]),
   room('sansho_inn', 'サンショウの宿屋', 'sansho', 'inn', [
     inn('inn3', 8, 2, C.inn3),
-    { id: 'guest3', x: 5, y: 5, name: '旅の会計士', look: C.guest, kind: 'talk', lines: ['この町の 呪いは やっかいだ。', '数式を 1つ 作って コピーすれば 済むはずが、全部 ずれて 手で 直す はめになる。', '……まるで 手計算に 逆もどりだよ。'] },
+    { id: 'guest3', x: 5, y: 5, name: '旅の会計士', look: C.guest, kind: 'talk', lines: [tr('この町の 呪いは やっかいだ。', "This town's curse is a nasty one."), tr('数式を 1つ 作って コピーすれば 済むはずが、全部 ずれて 手で 直す はめになる。', 'You should be able to write one formula and copy it, but everything shifts and you end up fixing it by hand.'), tr('……まるで 手計算に 逆もどりだよ。', "...It's like we're back to doing math by hand.")] },
   ]),
   room('sansho_church', 'サンショウの教会', 'sansho', 'church', [church('church3', 5, 2)]),
   room('sansho_shop', 'サンショウ道具店', 'sansho', 'shop', [shop('shop3', 2, 2, C.shop3)]),
   room('sansho_bank', 'ドルマ両替所', 'sansho', 'bank', [
     { id: 'dolma', x: 2, y: 2, name: '両替商ドルマ', look: C.dolma, kind: 'quest', questId: 'sansho_abs' },
-    { id: 'bank_guest', x: 7, y: 5, name: '両替に来た客', look: C.traveler, kind: 'talk', lines: ['両替してもらったら、計算が おかしいんだ。', '金貨 100枚が 0枚に なったって 言われたよ……。'] },
+    { id: 'bank_guest', x: 7, y: 5, name: '両替に来た客', look: C.traveler, kind: 'talk', lines: [tr('両替してもらったら、計算が おかしいんだ。', 'I exchanged some money, but the math is all wrong.'), tr('金貨 100枚が 0枚に なったって 言われたよ……。', 'They told me my 100 gold coins turned into 0...')] },
   ]),
   room('sansho_tailor', 'ヌイ仕立て屋', 'sansho', 'tailor', [{ id: 'nui', x: 6, y: 2, name: '仕立て屋ヌイ', look: C.nui, kind: 'quest', questId: 'sansho_f4', dir: 'down' }]),
   room('sansho_school', 'カケル寺子屋', 'sansho', 'school', [
     { id: 'kakeru', x: 7, y: 3, name: 'カケル先生', look: C.kakeru, kind: 'quest', questId: 'sansho_mix' },
-    { id: 'pupil', x: 3, y: 5, name: '寺子屋の子', look: C.kid3, kind: 'talk', lines: ['九九の表を 作ってるんだけど、81マス 全部 手で 計算するの……？', 'もう 手が 痛いよ〜。'] },
+    { id: 'pupil', x: 3, y: 5, name: '寺子屋の子', look: C.kid3, kind: 'talk', lines: [tr('九九の表を 作ってるんだけど、81マス 全部 手で 計算するの……？', "I'm making a times table... Do I really have to work out all 81 squares by hand...?"), tr('もう 手が 痛いよ〜。', 'My hand hurts already...')] },
   ]),
   room('sansho_house', 'ウツシの家', 'sansho', 'home', [
-    { id: 'utsushi_wife', x: 6, y: 4, name: 'ウツシの妻', look: C.elderWife, kind: 'talk', lines: ['うちの人は 無口だけど、腕は 確かよ。', '神殿の 大鏡も、昔 うちの人が 磨いていたの。あんな 魔物が 住みつくなんてねぇ……。'] },
+    { id: 'utsushi_wife', x: 6, y: 4, name: 'ウツシの妻', look: C.elderWife, kind: 'talk', lines: [tr('うちの人は 無口だけど、腕は 確かよ。', "My husband doesn't say much, but his skills are the real deal."), tr('神殿の 大鏡も、昔 うちの人が 磨いていたの。あんな 魔物が 住みつくなんてねぇ……。', 'He used to polish the great mirror in the temple, you know. To think a monster would move in there...')] },
   ]),
   room('port_office', '港長の事務所', 'ifport', 'hall', [
     { id: 'minato', x: 6, y: 2, name: '港長ミナト', look: C.minato, kind: 'quest', questId: 'port_countif' },
@@ -2350,7 +2351,7 @@ const rooms: MapDef[] = [
     { id: 'scout9', x: 7, y: 5, name: '斥候', look: C.traveler, kind: 'talk', lines: ['魔王城の 中は、扉の 謎だらけだ。', 'これまで 覚えた 魔法を、組み合わせないと 開かない らしい。'] },
   ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
-    { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: ['うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', '表にすれば 一番多い日も すぐ わかるのにねぇ。'] },
+    { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: [tr('うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', 'My husband writes down how many fish he caught on paper every day.'), tr('表にすれば 一番多い日も すぐ わかるのにねぇ。', "If he put it in a table, he'd see his best day right away.")] },
   ]),
 ]
 

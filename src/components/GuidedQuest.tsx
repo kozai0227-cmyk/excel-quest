@@ -3,6 +3,7 @@ import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
 import { itemName } from '../data/items'
 import { tr } from '../game/lang'
+import { npcName } from '../data/en'
 import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value } from '../game/formula'
 import { guideChips, pickRef, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
 import { FormulaPad } from './FormulaPad'
@@ -162,7 +163,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
         </header>
         <div className="quest-brief">
           <button className="brief-toggle" onClick={() => setBrief(!brief)}>
-            <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${quest.npc}`)}</span>
+            <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${npcName(quest.npc)}`)}</span>
             <span className="muted">{brief ? tr('▲ とじる', '▲ Hide') : tr('▼ やることを 見る', '▼ Show the task')}</span>
           </button>
           {brief && (
@@ -267,7 +268,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
         <div className="clear-modal">
           <div className="win clear-win">
             <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
-            <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${quest.npc}`)}</p>
+            <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${npcName(quest.npc)}`)}</p>
             <p>
               {tr('けいけんち', 'EXP')} +{reward.exp}
               {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}

@@ -4,6 +4,7 @@ import { makeCtx, type QuestDef } from '../data/quests'
 import { SKILLS } from '../data/skills'
 import { itemName } from '../data/items'
 import { tr } from '../game/lang'
+import { npcName } from '../data/en'
 import type { Grid, Value } from '../game/formula'
 import { getInputMode } from '../game/inputMode'
 import { isPhoneLayout } from '../game/layout'
@@ -57,7 +58,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
     <div className="clear-modal">
       <div className="win clear-win">
         <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
-        <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${quest.npc}`)}</p>
+        <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${npcName(quest.npc)}`)}</p>
         <p>
           {tr('けいけんち', 'EXP')} +{reward.exp}
           {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}
@@ -88,7 +89,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
           </header>
           <div className="quest-brief">
             <button className="brief-toggle" onClick={() => setBrief(!brief)}>
-              <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${quest.npc}`)}</span>
+              <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${npcName(quest.npc)}`)}</span>
               <span className="muted">{brief ? tr('▲ とじる', '▲ Hide') : tr('▼ やることを 見る', '▼ Show the task')}</span>
             </button>
             {brief && (
@@ -128,7 +129,7 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
         <header className="quest-head">
           <div className="quest-title">
             <span className="tag">{quest.kind === 'puzzle' ? tr('謎解き', 'Puzzle') : tr('依頼', 'Request')}</span> {quest.title}
-            {quest.kind !== 'puzzle' && <span className="from">― {quest.npc}</span>}
+            {quest.kind !== 'puzzle' && <span className="from">― {npcName(quest.npc)}</span>}
           </div>
           <button className="btn ghost" onClick={onClose}>
             {tr('あきらめる', 'Give up')}

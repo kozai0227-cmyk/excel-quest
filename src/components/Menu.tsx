@@ -110,6 +110,12 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
     setNote(tr('やくそうを つかった！ HPが かいふくした。', 'Used a Herb! HP was restored.'))
   }
 
+  /** 言語を 切りかえる（ページを 読みなおすので、先に セーブする） */
+  const switchLang = () => {
+    onSave()
+    setLang(isEn() ? 'ja' : 'en')
+  }
+
   /** 音量を 変えて、効果音なら 新しい 大きさで 鳴らして みせる */
   const changeVolume = (kind: keyof Volume, v: number) => {
     setVolume(kind, v)
@@ -179,7 +185,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
       if (k === 'up') setIcur((c) => (c + rows - 1) % rows)
       else if (k === 'down') setIcur((c) => (c + 1) % rows)
       else if ((k === 'left' || k === 'right') && icur < VOL_ROWS.length) changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
-      else if ((k === 'ok' || k === 'left' || k === 'right') && row === 'lang') setLang(isEn() ? 'ja' : 'en')
+      else if ((k === 'ok' || k === 'left' || k === 'right') && row === 'lang') switchLang()
       else if (k === 'ok' && row === 'lic') openLicenses()
       else if (k === 'ok' && row === 'privacy') setPrivacy(true)
       else if (k === 'ok' && row === 'unlock') openUnlock()
@@ -329,9 +335,9 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
                   return (
                     <div key={row}>
                       <h4>{tr('言語', 'Language')}</h4>
-                      <div className={`opt lic-row ${on}`} onClick={pick(() => setLang(isEn() ? 'ja' : 'en'))}>
+                      <div className={`opt lic-row ${on}`} onClick={pick(switchLang)}>
                         🌐 {isEn() ? 'English' : '日本語'}
-                        <small>{tr('：選ぶと English に 切りかえ', ': select to switch to 日本語')}</small>
+                        <small>{tr('：選ぶと セーブして English に', ': select to save and switch to 日本語')}</small>
                       </div>
                     </div>
                   )

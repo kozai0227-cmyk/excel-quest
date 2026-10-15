@@ -205,11 +205,11 @@ export default function App() {
     setFlag('forest_intro')
     run(async () => {
       await sleep(1900)
-      await me(['……う、うーん……。', 'ここは……森？ さっきまで オフィスに いたはずなのに……。'])
-      await me(['（スーツのまま……。ネクタイも、ちゃんと 締めてる）'])
-      await talk(undefined, ['ガサガサッ！', '茂みの中から 緑色の 何かが 飛び出してきた！'])
-      await talk('セルイム', ['ぷるるっ！ 見たことない ニンゲンだぷる！', 'セルの 基本も 知らないやつは、この森を 通さないぷる〜！'])
-      await me(['な、なんだこいつ！？ 四角い……ゼリー……？'])
+      await me([tr('……う、うーん……。', 'Ugh... mmh...'), tr('ここは……森？ さっきまで オフィスに いたはずなのに……。', 'Where... a forest? I was in the office just a moment ago...')])
+      await me([tr('（スーツのまま……。ネクタイも、ちゃんと 締めてる）', "(Still in my suit... My tie's even still on.)")])
+      await talk(undefined, [tr('ガサガサッ！', 'Rustle rustle!'), tr('茂みの中から 緑色の 何かが 飛び出してきた！', 'Something green leaped out of the bushes!')])
+      await talk('セルイム', [tr('ぷるるっ！ 見たことない ニンゲンだぷる！', "Wobble wobble! A human I've never seen before, wob!"), tr('セルの 基本も 知らないやつは、この森を 通さないぷる〜！', 'Nobody gets through this forest without knowing the basics of cells, wob!')])
+      await me([tr('な、なんだこいつ！？ 四角い……ゼリー……？', 'Wh-what is this thing?! A... square... jelly...?')])
       startBattle({ id: 'celime_tutorial', tutorial: true, scene: 'forest' })
     })
   }, [scene, gs.mapId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -441,22 +441,22 @@ export default function App() {
       setFlag('visit_east')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['東門を 出ると、完成したばかりの 橋が 海峡に かかっていた。', '海の 向こうの 大地は、鏡のような 水たまりが 空を 映して きらきらと 光っている……。'])
-        await me(['（あの先に 鏡の町 サンショウが あるのか）'])
+        await talk(undefined, [tr('東門を 出ると、完成したばかりの 橋が 海峡に かかっていた。', 'Outside the east gate, a newly finished bridge spanned the strait.'), tr('海の 向こうの 大地は、鏡のような 水たまりが 空を 映して きらきらと 光っている……。', 'Across the sea, puddles like mirrors reflected the sky and sparkled...')])
+        await me([tr('（あの先に 鏡の町 サンショウが あるのか）', '(So Refton, the Town of Mirrors, is out there.)')])
       })
     }
     if (!firstVisit) return
     if (ex.to === 'world')
       run(async () => {
         await sleep(1000)
-        await talk(undefined, ['森を 抜けると、見渡すかぎりの 大地が 広がっていた。', '（北の方に 村が 見える。あそこを 目指そう）', isTouchDevice ? '（外では モンスターが 出る。気をつけて 進もう）' : '（外では モンスターが 出る。Shiftキーを 押しながら 移動すると 走れるぞ）'])
+        await talk(undefined, [tr('森を 抜けると、見渡すかぎりの 大地が 広がっていた。', 'Past the forest, wide-open land stretched as far as the eye could see.'), tr('（北の方に 村が 見える。あそこを 目指そう）', "(I can see a village to the north. Let's head there.)"), isTouchDevice ? tr('（外では モンスターが 出る。気をつけて 進もう）', '(Monsters appear outside towns. Be careful.)') : tr('（外では モンスターが 出る。Shiftキーを 押しながら 移動すると 走れるぞ）', '(Monsters appear outside towns. Hold Shift while moving to run.)')])
       })
     if (ex.to === 'celuno')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
         f?.emote('player', 'bang', 1200)
-        await talk('長老', ['おーい！ おーい、旅の人ーっ！'])
+        await talk('長老', [tr('おーい！ おーい、旅の人ーっ！', 'Hey! Hey there, traveler!')])
         if (f) {
           // 長老が 家から 走ってくる
           f.spawn({ id: 'elder_event', x: 5, y: 8, name: '長老', look: SPEAKER_LOOKS['長老'], kind: 'talk', dir: 'down' })
@@ -465,49 +465,49 @@ export default function App() {
           f.face('player', 'left')
           f.emote('elder_event', 'sweat', 2600)
         }
-        await talk('長老', ['ぜぇ、ぜぇ……。年寄りに 全力疾走は こたえるわい……。'])
+        await talk('長老', [tr('ぜぇ、ぜぇ……。年寄りに 全力疾走は こたえるわい……。', "Huff, huff... An old man shouldn't be sprinting like that...")])
         await talk('長老', [
-          'おお、旅の人！ まさか 南の森から 来たのか？ セルイムに 襲われなかったかの？',
-          '……なんと、問題に 答えて 退けたとな！ おぬし、「表の理（ことわり）」が 見える目を 持っておるのじゃな。',
-          'わしは この はじまりの村 セルノの 長老じゃ。',
-          'いま この セルシア大陸は、魔王レフエラーの 呪いに おかされておる。',
-          '魔王は 人々の「効率化」を 邪魔しておるのじゃ。表は 壊れ、数式は 消え、みな 手作業に 追われて……。',
-          '一日が 雑用で 終わり、本当に やりたいことが 何もできん。',
-          '魔王の 狙いは、人々から「時間」を 奪うことなのじゃ。',
+          tr('おお、旅の人！ まさか 南の森から 来たのか？ セルイムに 襲われなかったかの？', "Ah, traveler! Did you really come from the southern forest? Weren't you attacked by a Cellime?"),
+          tr('……なんと、問題に 答えて 退けたとな！ おぬし、「表の理（ことわり）」が 見える目を 持っておるのじゃな。', '...What?! You drove it off by answering its question? Then you have the eyes to see the "Law of the Sheet."'),
+          tr('わしは この はじまりの村 セルノの 長老じゃ。', 'I am the Elder of Cellno, the Village of Beginnings.'),
+          tr('いま この セルシア大陸は、魔王レフエラーの 呪いに おかされておる。', 'The continent of Cellsia now suffers under the curse of Demon Lord Referror.'),
+          tr('魔王は 人々の「効率化」を 邪魔しておるのじゃ。表は 壊れ、数式は 消え、みな 手作業に 追われて……。', 'The Demon Lord stands in the way of efficiency. Tables break, formulas vanish, and everyone is buried in work done by hand...'),
+          tr('一日が 雑用で 終わり、本当に やりたいことが 何もできん。', 'Whole days end in busywork, with no time left for what truly matters.'),
+          tr('魔王の 狙いは、人々から「時間」を 奪うことなのじゃ。', "The Demon Lord's true aim is to steal people's time."),
         ])
-        await me(['（時間を 奪う……）', '（「お前の時間が、もったいない」……先輩の言葉が、頭をよぎった）'])
+        await me([tr('（時間を 奪う……）', '(Steal their time...)'), tr('（「お前の時間が、もったいない」……先輩の言葉が、頭をよぎった）', '("Your time is too valuable to waste." Kanzaki\'s words came back to me.)')])
         await talk('長老', [
-          'どうか 村の者たちの 悩みを 聞いてやってくれんか。',
-          '頭の上に「！」が 出ている者が 困っておる。家の中に いる者も おるぞ。',
-          '全員を 助ければ、北のどうくつの 結界も とけるはずじゃ。',
-          '村には 武器屋と 防具屋も ある。旅の支度を ととのえるとよいぞ。',
-          'わしは 自分の家に 戻っておる。困ったら いつでも 来なされ。では、たのんだぞ！',
+          tr('どうか 村の者たちの 悩みを 聞いてやってくれんか。', "Would you please listen to the villagers' troubles?"),
+          tr('頭の上に「！」が 出ている者が 困っておる。家の中に いる者も おるぞ。', 'Anyone with a "!" over their head needs help. Some of them are inside their houses, too.'),
+          tr('全員を 助ければ、北のどうくつの 結界も とけるはずじゃ。', 'Help them all, and the barrier on the northern cave should lift.'),
+          tr('村には 武器屋と 防具屋も ある。旅の支度を ととのえるとよいぞ。', 'The village also has a weapon shop and an armor shop. Get yourself ready for the journey.'),
+          tr('わしは 自分の家に 戻っておる。困ったら いつでも 来なされ。では、たのんだぞ！', "I'll be back at my house. Come see me anytime you need help. I'm counting on you!"),
         ])
         if (f) {
           // 話し終わったら 家へ 帰っていく
           void f.walkTo('elder_event', 5, 8, 200).then(() => f.remove('elder_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で 関数の ことを 相談したり できるぞ。セーブは メニューから）', isTouchDevice ? '（十字ボタン：移動　A：話す・決定　B：メニュー）' : '（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）'])
+        await talk(undefined, [tr('（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で 関数の ことを 相談したり できるぞ。セーブは メニューから）', '(You can enter buildings through their doors. Rest at the inn, or ask about functions at the church. Save from the menu.)'), isTouchDevice ? tr('（十字ボタン：移動　A：話す・決定　B：メニュー）', '(D-pad: Move　A: Talk / OK　B: Menu)') : tr('（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）', '(Enter / Z: Talk / OK　Esc / X: Menu　Shift: Run)')])
         save()
       })
     if (ex.to === 'cave')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['ひんやりとした 空気が ただよっている……。', '洞窟の奥から、ぷるぷると 何かが ふるえる音が 聞こえる。'])
-        await me(['（奥へ進むには、石版の扉の 謎を 解かないと いけないみたいだ）'])
-        await talk(undefined, ['（扉の前で 話すボタンを押すと 謎解きが 始まる。洞窟の中でも モンスターが 出るぞ）'])
+        await talk(undefined, [tr('ひんやりとした 空気が ただよっている……。', 'A chilly breeze drifts through the air...'), tr('洞窟の奥から、ぷるぷると 何かが ふるえる音が 聞こえる。', 'From deep in the cave comes the sound of something wobbling.')])
+        await me([tr('（奥へ進むには、石版の扉の 謎を 解かないと いけないみたいだ）', '(Looks like I have to solve the stone tablet doors to go deeper.)')])
+        await talk(undefined, [tr('（扉の前で 話すボタンを押すと 謎解きが 始まる。洞窟の中でも モンスターが 出るぞ）', '(Press the talk button in front of a door to start its puzzle. Monsters appear in caves, too.)')])
       })
     if (ex.to === 'tower1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['石造りの 塔の中は、筆算の 書き損じが 床いっぱいに 散らばっている……。'])
-        await me(['（扉の 計算の謎を 解きながら、最上階を 目指そう）'])
+        await talk(undefined, [tr('石造りの 塔の中は、筆算の 書き損じが 床いっぱいに 散らばっている……。', 'Inside the stone tower, scraps of botched longhand math cover the floor...')])
+        await me([tr('（扉の 計算の謎を 解きながら、最上階を 目指そう）', "(Let's solve the doors' math puzzles and head for the top floor.)")])
       })
     if (ex.to === 'tower3')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['塔の 屋上に 出た。冷たい 夜風が 吹きつける……。', '石の扉の 向こうから、ゴリゴリと 筆算を する音が 聞こえる。'])
+        await talk(undefined, [tr('塔の 屋上に 出た。冷たい 夜風が 吹きつける……。', 'You came out on the tower roof. A cold night wind blows...'), tr('石の扉の 向こうから、ゴリゴリと 筆算を する音が 聞こえる。', 'Beyond the stone door, you hear the scratch-scratch of someone doing longhand math.')])
       })
     if (ex.to === 'ship1')
       run(async () => {
@@ -794,22 +794,22 @@ export default function App() {
     if (ex.to === 'temple1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['神殿の 中は、床も 壁も 鏡のように 磨きあげられている。', '自分の 姿が いくつも 映って、どちらが 本物か わからなくなりそうだ……。'])
-        await me(['（扉の 謎を 解きながら、奥の 大鏡を 目指そう）'])
+        await talk(undefined, [tr('神殿の 中は、床も 壁も 鏡のように 磨きあげられている。', 'Inside the temple, the floor and walls are polished like mirrors.'), tr('自分の 姿が いくつも 映って、どちらが 本物か わからなくなりそうだ……。', "So many reflections of yourself... it's hard to tell which one is real...")])
+        await me([tr('（扉の 謎を 解きながら、奥の 大鏡を 目指そう）', "(Let's solve the door puzzles and head for the great mirror inside.)")])
       })
     if (ex.to === 'temple2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['天井まで 届く 巨大な 鏡が、部屋の 奥に そびえている。', '鏡の 表面が、水面のように ゆらゆらと 揺れている……。'])
+        await talk(undefined, [tr('天井まで 届く 巨大な 鏡が、部屋の 奥に そびえている。', 'A giant mirror reaching the ceiling towers at the back of the room.'), tr('鏡の 表面が、水面のように ゆらゆらと 揺れている……。', 'Its surface ripples like water...')])
       })
     if (ex.to === 'sansho')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 鏡の町 サンショウ。', '町の 真ん中を 境に、建物が 左右 そっくりに 並んでいる。まるで 鏡に 映したようだ。'])
-        await talk(undefined, ['しかし 町の人々は、書類の 束を 抱えて 困りはてた 顔を している……。'])
+        await talk(undefined, [tr('ここは 鏡の町 サンショウ。', 'This is Refton, the Town of Mirrors.'), tr('町の 真ん中を 境に、建物が 左右 そっくりに 並んでいる。まるで 鏡に 映したようだ。', 'The buildings on either side of the main street match perfectly, like reflections in a mirror.')])
+        await talk(undefined, [tr('しかし 町の人々は、書類の 束を 抱えて 困りはてた 顔を している……。', 'But the townspeople are clutching stacks of papers, looking completely at a loss...')])
         f?.emote('player', 'bang', 1200)
-        await talk('町長カガミ', ['あら……？ そこの方！ 少し お待ちになって！'])
+        await talk('町長カガミ', [tr('あら……？ そこの方！ 少し お待ちになって！', 'Oh...? You there! Please wait a moment!')])
         if (f) {
           // 町長が 館から 走ってくる
           f.spawn({ id: 'kagami_event', x: 4, y: 10, name: '町長カガミ', look: SPEAKER_LOOKS['町長カガミ'], kind: 'talk', dir: 'down' })
@@ -819,33 +819,33 @@ export default function App() {
           f.emote('kagami_event', 'sweat', 2600)
         }
         await talk('町長カガミ', [
-          'はぁ、はぁ……。ごめんなさい、走るのは 苦手で……。',
-          'わたくし、この町の 町長の カガミと 申します。',
-          'カルキュレの ゴーレムを 正気に 戻した 旅人さん……ですよね？ うわさは 届いています。',
-          '実は この町も、魔王の 手下「ズレズレ・ミラージュ」の 呪いに かかっているのです。',
-          '数式を 1つ 作って コピーすると、参照が 勝手に ずれて、答えが めちゃくちゃに なってしまう……。',
-          'みんな 結局、1マスずつ 手で 直していて……手計算の 時代に 逆もどりです。',
+          tr('はぁ、はぁ……。ごめんなさい、走るのは 苦手で……。', "Huff, huff... Forgive me, I'm not much of a runner..."),
+          tr('わたくし、この町の 町長の カガミと 申します。', 'I am Kagami, the mayor of this town.'),
+          tr('カルキュレの ゴーレムを 正気に 戻した 旅人さん……ですよね？ うわさは 届いています。', "You're the traveler who brought the golem in Calcule back to its senses, aren't you? Word travels fast."),
+          tr('実は この町も、魔王の 手下「ズレズレ・ミラージュ」の 呪いに かかっているのです。', "You see, our town is under a curse too, cast by the Demon Lord's minion, the Shifty Mirage."),
+          tr('数式を 1つ 作って コピーすると、参照が 勝手に ずれて、答えが めちゃくちゃに なってしまう……。', 'Whenever we write a formula and copy it, the references shift on their own and the answers come out all wrong...'),
+          tr('みんな 結局、1マスずつ 手で 直していて……手計算の 時代に 逆もどりです。', "So everyone ends up fixing every cell by hand... We're right back in the age of hand calculation."),
         ])
-        await me(['（参照が ずれる……？ 数式を コピーしたら、ずれるのは 当たり前じゃ……？）', '（……いや。ずれて ほしくない 所まで ずれる、ってことか）'])
+        await me([tr('（参照が ずれる……？ 数式を コピーしたら、ずれるのは 当たり前じゃ……？）', "(References shift...? Don't they always shift when you copy a formula...?)"), tr('（……いや。ずれて ほしくない 所まで ずれる、ってことか）', "(...Oh. They shift even where they shouldn't.)")])
         await talk('町長カガミ', [
-          '町の者たちの 悩みを 聞いてあげて ください。',
-          'すべて 解決すれば、北の 鏡の神殿の 結界も とけるはず……。',
-          'わたくしは 館に おります。予算表の件で、あとで ご相談させて くださいね。',
+          tr('町の者たちの 悩みを 聞いてあげて ください。', "Please listen to the townspeople's troubles."),
+          tr('すべて 解決すれば、北の 鏡の神殿の 結界も とけるはず……。', 'If you solve them all, the barrier on the Mirror Temple to the north should lift...'),
+          tr('わたくしは 館に おります。予算表の件で、あとで ご相談させて くださいね。', "I'll be at my manor. I'd like to consult you about our budget sheet later."),
         ])
         if (f) {
           void f.walkTo('kagami_event', 4, 10, 200).then(() => f.remove('kagami_event'))
           await sleep(1400)
         }
-        await talk(undefined, [isTouchDevice ? '（この町では、数式を 作るとき「F4 ($)」ボタンで「$」を 付け外しできる）' : '（この町では、数式の 入力中に F4キーで「$」を 付け外しできる。Mac は fn+F4）'])
+        await talk(undefined, [isTouchDevice ? tr('（この町では、数式を 作るとき「F4 ($)」ボタンで「$」を 付け外しできる）', '(In this town, the "F4 ($)" button adds or removes "$" while you build a formula.)') : tr('（この町では、数式の 入力中に F4キーで「$」を 付け外しできる。Mac は fn+F4）', '(In this town, press F4 while typing a formula to add or remove "$". On a Mac, use fn+F4.)')])
         save()
       })
     if (ex.to === 'calculet')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 計算の町 カルキュレ。', '町の人は みんな 紙と そろばんで 手計算に追われ、つかれきっているようだ……。'])
+        await talk(undefined, [tr('ここは 計算の町 カルキュレ。', 'This is Calcule, the Town of Calculation.'), tr('町の人は みんな 紙と そろばんで 手計算に追われ、つかれきっているようだ……。', 'Everyone here is worn out from doing math by hand with paper and abacus...')])
         f?.emote('player', 'bang', 1200)
-        await talk('町長カルク', ['むむっ！ そこの 旅人ー！ 待つので あーる！'])
+        await talk('町長カルク', [tr('むむっ！ そこの 旅人ー！ 待つので あーる！', 'Hmm?! You there, traveler! Wait right there, harrumph!')])
         if (f) {
           // 町長が 役場から 走ってくる
           f.spawn({ id: 'calk_event', x: 28, y: 10, name: '町長カルク', look: SPEAKER_LOOKS['町長カルク'], kind: 'talk', dir: 'down' })
@@ -855,11 +855,11 @@ export default function App() {
           f.emote('calk_event', 'sweat', 2600)
         }
         await talk('町長カルク', [
-          'ぜぇ、ぜぇ……。ワガハイが この町の 町長、カルクで あーる。',
-          'セルノの 長老から 聞いておる。「表の理」が 見える 旅人とは、そなたのことで あるな？',
-          'この町は 魔王の呪いで 数式が 消え、みな 手計算に 追われて 仕事が 終わらぬので あーる。',
-          '町の者の 悩みを 解決すれば、北の塔の 結界も とけるはず。どうか 力を 貸してほしいので あーる！',
-          'ワガハイは 役場に おる。月報の件で 相談が あるので、あとで 寄るので あーる！',
+          tr('ぜぇ、ぜぇ……。ワガハイが この町の 町長、カルクで あーる。', 'Huff, huff... I am Kalk, mayor of this fine town, harrumph!'),
+          tr('セルノの 長老から 聞いておる。「表の理」が 見える 旅人とは、そなたのことで あるな？', 'The Elder of Cellno told me about a traveler who can see the "Law of the Sheet." That would be you, yes?'),
+          tr('この町は 魔王の呪いで 数式が 消え、みな 手計算に 追われて 仕事が 終わらぬので あーる。', "The Demon Lord's curse has erased our formulas, and everyone is so busy calculating by hand that no work ever gets done, harrumph!"),
+          tr('町の者の 悩みを 解決すれば、北の塔の 結界も とけるはず。どうか 力を 貸してほしいので あーる！', "Solve the townspeople's troubles, and the barrier on the northern tower should lift. Please lend us your strength, harrumph!"),
+          tr('ワガハイは 役場に おる。月報の件で 相談が あるので、あとで 寄るので あーる！', "I'll be at the town hall. I need your advice on my monthly report, so do stop by, harrumph!"),
         ])
         if (f) {
           void f.walkTo('calk_event', 28, 10, 200).then(() => f.remove('calk_event'))
@@ -916,11 +916,11 @@ export default function App() {
           tr(`${MAPS[q.town].name}の 悩みを すべて 解決した！`, `You solved every request in ${mapName(q.town).split(',')[0]}!`),
           tr('どこか遠くで、結界が とける音が した……！', 'Somewhere far away, you heard the sound of a barrier lifting...!'),
           q.town === 'celuno'
-            ? '（北のどうくつに 入れるように なった。奥には 散らかりセルイムが いるらしい）'
+            ? tr('（北のどうくつに 入れるように なった。奥には 散らかりセルイムが いるらしい）', '(You can now enter the northern cave. Messy Cellime is said to lurk deep inside.)')
             : q.town === 'calculet'
-              ? '（北の塔に 入れるように なった。最上階に 手計算ゴーレムが いるらしい）'
+              ? tr('（北の塔に 入れるように なった。最上階に 手計算ゴーレムが いるらしい）', '(You can now enter the northern tower. The Hand-Calc Golem is said to be on the top floor.)')
               : q.town === 'sansho'
-                ? '（北の 鏡の神殿に 入れるように なった。最奥に ズレズレ・ミラージュが いるらしい）'
+                ? tr('（北の 鏡の神殿に 入れるように なった。最奥に ズレズレ・ミラージュが いるらしい）', '(You can now enter the Mirror Temple to the north. The Shifty Mirage is said to wait in its deepest hall.)')
                 : q.town === 'lookup'
                   ? '（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）'
                   : q.town === 'pivoria'
@@ -958,9 +958,9 @@ export default function App() {
       await talk(undefined, [tr(`${b.exp}ポイントの けいけんちを かくとく！`, `Gained ${b.exp} EXP!`), tr(`${b.gold}ゴールドを てにいれた！`, `Got ${b.gold} gold!`), ...lv])
       if (req.tutorial) {
         setFlag('tutorial')
-        await talk(undefined, ['セルイムは ぷるぷると ふるえながら、森の奥へ 逃げていった……。'])
-        await me(['はぁ、はぁ……。答えが わかると……攻撃できる……？', 'どうなってるんだ、この世界は……。'])
-        await me(['（とにかく、人のいる所を 探そう。道は 東に続いている）'])
+        await talk(undefined, [tr('セルイムは ぷるぷると ふるえながら、森の奥へ 逃げていった……。', 'The Cellime wobbled and fled deeper into the forest...')])
+        await me([tr('はぁ、はぁ……。答えが わかると……攻撃できる……？', 'Huff, huff... Knowing the answer... lets me attack...?'), tr('どうなってるんだ、この世界は……。', 'What is going on with this world...?')])
+        await me([tr('（とにかく、人のいる所を 探そう。道は 東に続いている）', "(Anyway, let's find some people. The path continues east.)")])
         save()
         return
       }
@@ -984,11 +984,11 @@ export default function App() {
         setFade(false)
         await me([tr('はぁ、はぁ……なんとか 外に 出られた……。', 'Huff, huff... Made it out somehow...')])
       }
-      if (b.id === 'slime') await talk(undefined, ['東の橋の 見張りに 知らせが 届いた！', '（ワールドマップの 東の橋を 渡って、計算の町 カルキュレへ 行けるように なった）'])
+      if (b.id === 'slime') await talk(undefined, [tr('東の橋の 見張りに 知らせが 届いた！', 'Word reached the guard at the east bridge!'), tr('（ワールドマップの 東の橋を 渡って、計算の町 カルキュレへ 行けるように なった）', '(You can now cross the east bridge on the world map to Calcule, the Town of Calculation.)')])
       if (b.id === 'golem')
-        await talk(undefined, ['ゴーレムが 独り占めしていた 石材が、海峡の 工事現場へ 運ばれていった！', '（カルキュレの 東から、鏡の町 サンショウへ 行けるように なった）'])
+        await talk(undefined, [tr('ゴーレムが 独り占めしていた 石材が、海峡の 工事現場へ 運ばれていった！', 'The stone the golem had hoarded was carried off to the construction site at the strait!'), tr('（カルキュレの 東から、鏡の町 サンショウへ 行けるように なった）', '(You can now travel east from Calcule to Refton, the Town of Mirrors.)')])
       if (b.id === 'mirage')
-        await talk(undefined, ['大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', '（サンショウの 南の 峠を 越えて、港町 イフポートへ 行けるように なった）'])
+        await talk(undefined, [tr('大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', 'The moment the great mirror shattered, the "mirror fog" covering the southern pass began to clear...!'), tr('（サンショウの 南の 峠を 越えて、港町 イフポートへ 行けるように なった）', '(You can now cross the pass south of Refton to the harbor town of Ifport.)')])
       if (b.id === 'captain')
         await talk(undefined, [
           '幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。',
@@ -1080,8 +1080,8 @@ export default function App() {
     if (req.tutorial) {
       setGs((g) => ({ ...g, hp: maxHp(g.level) }))
       run(async () => {
-        await talk(undefined, ['……気がつくと、セルイムは まだ 目の前に いた。'])
-        await me(['（もう一度だ。落ち着いて 答えれば きっと 勝てる）'])
+        await talk(undefined, [tr('……気がつくと、セルイムは まだ 目の前に いた。', '...When you came to, the Cellime was still right in front of you.')])
+        await me([tr('（もう一度だ。落ち着いて 答えれば きっと 勝てる）', '(One more time. If I stay calm and answer, I can win.)')])
         startBattle({ id: 'celime_tutorial', tutorial: true, scene: 'forest' })
       })
       return

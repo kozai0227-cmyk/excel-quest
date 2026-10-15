@@ -1,4 +1,5 @@
 import type { Question } from './bosses'
+import { tr, tra } from '../game/lang'
 
 /**
  * 戦闘用の「自動生成問題」。呼ぶたびに数値やセル番地が変わるので、
@@ -9,7 +10,10 @@ export type QGen = () => Question
 const ri = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1))
 const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)]
 const COLS = 'ABCDEFGH'
-const DAYS = ['月', '火', '水', '木', '金', '土', '日']
+const DAYS = tra(['月', '火', '水', '木', '金', '土', '日'], ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+/** 「k つ下／右」の 英語（1 なら 単数） */
+const cells = (k: number) => `${k} cell${k > 1 ? 's' : ''}`
 const shuffled = <T,>(a: T[]) => [...a].sort(() => Math.random() - 0.5)
 
 /** 4択を作る（重複を除き、足りなければ近い数でうめる） */
@@ -53,7 +57,12 @@ export const genAddress: QGen = () => {
   const ci = ri(0, 6)
   const c = COLS[ci]
   const r = ri(2, 30)
-  return choice(`「${c}${r}」は どこの セル？`, `${c}列の${r}行目`, [`${r}列目の${c}行目`, `${c}行の${r}列目`, `${COLS[ci + 1]}列の${r - 1}行目`], 'アルファベットが 列（縦）、数字が 行（横）。')
+  return choice(
+    tr(`「${c}${r}」は どこの セル？`, `Where is cell "${c}${r}"?`),
+    tr(`${c}列の${r}行目`, `Column ${c}, row ${r}`),
+    tra([`${r}列目の${c}行目`, `${c}行の${r}列目`, `${COLS[ci + 1]}列の${r - 1}行目`], [`Column ${r}, row ${c}`, `Row ${c}, column ${r}`, `Column ${COLS[ci + 1]}, row ${r - 1}`]),
+    tr('アルファベットが 列（縦）、数字が 行（横）。', 'The letter is the column (vertical), and the number is the row (horizontal).'),
+  )
 }
 
 export const genNeighbor: QGen = () => {
@@ -63,7 +72,13 @@ export const genNeighbor: QGen = () => {
   const name = pick(Object.keys(dirs) as (keyof typeof dirs)[])
   const at = ([dr, dc]: readonly [number, number]) => `${COLS[ci + dc]}${r + dr}`
   const others = (Object.keys(dirs) as (keyof typeof dirs)[]).filter((k) => k !== name).map((k) => at(dirs[k]))
-  return choice(`「${COLS[ci]}${r}」の ${name}どなりの セルは？`, at(dirs[name]), others, '左右に動くと 列（アルファベット）が、上下に動くと 行（数字）が 変わる。')
+  const side = { 右: 'to the right of', 左: 'to the left of', 上: 'directly above', 下: 'directly below' }[name]
+  return choice(
+    tr(`「${COLS[ci]}${r}」の ${name}どなりの セルは？`, `Which cell is ${side} "${COLS[ci]}${r}"?`),
+    at(dirs[name]),
+    others,
+    tr('左右に動くと 列（アルファベット）が、上下に動くと 行（数字）が 変わる。', 'Moving left or right changes the column (letter). Moving up or down changes the row (number).'),
+  )
 }
 
 export const genRangeWrite: QGen = () => {
@@ -75,10 +90,10 @@ export const genRangeWrite: QGen = () => {
   const a = `${COLS[c1]}${r1}`
   const z = `${COLS[c2]}${r2}`
   return choice(
-    `${a} から ${z} までの 範囲を 数式で 指定したい。正しい 書き方は？`,
+    tr(`${a} から ${z} までの 範囲を 数式で 指定したい。正しい 書き方は？`, `You want to use the range from ${a} to ${z} in a formula. How do you write it?`),
     `${a}:${z}`,
     [`${a}-${z}`, `${a}~${z}`, `${a}→${z}`],
-    `範囲は「左上のセル:右下のセル」と「:（コロン）」で つなぐ。=SUM(${a}:${z}) のように 使う。`,
+    tr(`範囲は「左上のセル:右下のセル」と「:（コロン）」で つなぐ。=SUM(${a}:${z}) のように 使う。`, `A range joins "top-left cell:bottom-right cell" with ":" (a colon). Use it like =SUM(${a}:${z}).`),
   )
 }
 
@@ -90,17 +105,23 @@ export const genRangeComma: QGen = () => {
   return pick([
     () =>
       choice(
-        `=SUM(${c}1:${c}${n}) と 同じ 意味の 式は？`,
+        tr(`=SUM(${c}1:${c}${n}) と 同じ 意味の 式は？`, `Which formula means the same as =SUM(${c}1:${c}${n})?`),
         `=${cells.join('+')}`,
         [`=${c}1+${c}${n}`, `=SUM(${c}1,${c}${n})`, `=${c}1*${c}${n}`],
-        `「:」は ${c}1 から ${c}${n} までの すべての セル。「,」で 区切ると ${c}1 と ${c}${n} の 2つだけに なる。`,
+        tr(
+          `「:」は ${c}1 から ${c}${n} までの すべての セル。「,」で 区切ると ${c}1 と ${c}${n} の 2つだけに なる。`,
+          `":" means every cell from ${c}1 to ${c}${n}. Separating them with "," gives just the two cells ${c}1 and ${c}${n}.`,
+        ),
       ),
     () =>
       choice(
-        `=SUM(${c}1,${c}${n}) が 足すのは？`,
-        `${c}1 と ${c}${n} の 2つだけ`,
-        [`${c}1 から ${c}${n} まで すべて`, `${c}${n} だけ`, 'エラーに なる'],
-        `「,」は セルを 1つずつ 並べる 書き方。${c}1 から ${c}${n} まで まとめて 足すなら =SUM(${c}1:${c}${n})。`,
+        tr(`=SUM(${c}1,${c}${n}) が 足すのは？`, `What does =SUM(${c}1,${c}${n}) add up?`),
+        tr(`${c}1 と ${c}${n} の 2つだけ`, `Only the two cells ${c}1 and ${c}${n}`),
+        tra([`${c}1 から ${c}${n} まで すべて`, `${c}${n} だけ`, 'エラーに なる'], [`Everything from ${c}1 to ${c}${n}`, `Only ${c}${n}`, 'An error']),
+        tr(
+          `「,」は セルを 1つずつ 並べる 書き方。${c}1 から ${c}${n} まで まとめて 足すなら =SUM(${c}1:${c}${n})。`,
+          `"," lists cells one at a time. To add everything from ${c}1 to ${c}${n}, use =SUM(${c}1:${c}${n}).`,
+        ),
       ),
   ])()
 }
@@ -112,10 +133,10 @@ export const genSeriesFill: QGen = () => {
   const n = ri(4, 9)
   const v = s + (n - 1) * d
   return choice(
-    `A1に「${s}」、A2に「${s + d}」を入れ、2つ選んで 下へオートフィル。A${n} は？`,
+    tr(`A1に「${s}」、A2に「${s + d}」を入れ、2つ選んで 下へオートフィル。A${n} は？`, `Put ${s} in A1 and ${s + d} in A2, select both, and AutoFill down. What's in A${n}?`),
     v,
     [v + d, v - d, s * n, s],
-    `2つ選ぶと 差（${d}）ずつ 増える連番。${s} → ${s + d} → … → A${n} は ${v}。`,
+    tr(`2つ選ぶと 差（${d}）ずつ 増える連番。${s} → ${s + d} → … → A${n} は ${v}。`, `Select two and you get a series that grows by the difference (${d}). ${s} → ${s + d} → … → A${n} is ${v}.`),
   )
 }
 
@@ -123,24 +144,34 @@ export const genCopyFill: QGen = () => {
   const s = ri(2, 40)
   const n = ri(3, 8)
   return choice(
-    `A1に「${s}」だけ入れ、1つだけ選んで 下へオートフィル。A${n} は？`,
+    tr(`A1に「${s}」だけ入れ、1つだけ選んで 下へオートフィル。A${n} は？`, `Put just ${s} in A1, select only that cell, and AutoFill down. What's in A${n}?`),
     s,
     [s + n - 1, s + 1, s * n],
-    '数字1つだけだと「コピー」になる。連番にするなら 2つ選んでから ドラッグ。',
+    tr('数字1つだけだと「コピー」になる。連番にするなら 2つ選んでから ドラッグ。', 'A single number just gets copied. To make a series, select two cells before you drag.'),
   )
 }
 
 export const genMonthFill: QGen = () => {
   const m = ri(1, 12)
   const k = ri(1, 6)
-  const at = (x: number) => `${((x - 1) % 12) + 1}月`
-  return choice(`「${m}月」を 1つ選び、下へ オートフィル。${k}つ下の セルは？`, at(m + k), [`${m + k}月`, at(m + k + 1), at(m + k - 1), `${m}月`], '「月」は 1月〜12月を くり返す。12月の 次は 1月。')
+  const at = (x: number) => tr(`${((x - 1) % 12) + 1}月`, EN_MONTHS[(x - 1) % 12])
+  return choice(
+    tr(`「${m}月」を 1つ選び、下へ オートフィル。${k}つ下の セルは？`, `Select just "${at(m)}" and AutoFill down. What's ${cells(k)} below?`),
+    at(m + k),
+    tra([`${m + k}月`, at(m + k + 1), at(m + k - 1), `${m}月`], [at(m + k + 1), at(m + k - 1), at(m), at(m + k + 2)]),
+    tr('「月」は 1月〜12月を くり返す。12月の 次は 1月。', 'Months repeat from Jan to Dec. After Dec comes Jan.'),
+  )
 }
 
 export const genDayFill: QGen = () => {
   const i = ri(0, 6)
   const k = ri(1, 6)
-  return choice(`「${DAYS[i]}」から 右へ オートフィル。${k}つ右の セルは？`, DAYS[(i + k) % 7], [DAYS[(i + k + 1) % 7], DAYS[(i + k + 6) % 7], DAYS[i]], '曜日は 月〜日を くり返す。')
+  return choice(
+    tr(`「${DAYS[i]}」から 右へ オートフィル。${k}つ右の セルは？`, `AutoFill right from "${DAYS[i]}". What's ${cells(k)} to the right?`),
+    DAYS[(i + k) % 7],
+    [DAYS[(i + k + 1) % 7], DAYS[(i + k + 6) % 7], DAYS[i]],
+    tr('曜日は 月〜日を くり返す。', 'Weekdays repeat from Mon to Sun.'),
+  )
 }
 
 export const genRelativeRef: QGen = () => {
@@ -148,10 +179,10 @@ export const genRelativeRef: QGen = () => {
   const k = ri(1, 5)
   const t = r + k
   return choice(
-    `D${r} の =B${r}*C${r} を 下へ ${k}つ オートフィル。D${t} の 数式は？`,
+    tr(`D${r} の =B${r}*C${r} を 下へ ${k}つ オートフィル。D${t} の 数式は？`, `AutoFill =B${r}*C${r} in D${r} down ${cells(k)}. What's the formula in D${t}?`),
     `=B${t}*C${t}`,
     [`=B${r}*C${r}`, `=B${t}*C${r}`, `=C${t}*D${t}`],
-    `数式を 下へ コピーすると、行番号も いっしょに ずれる（相対参照）。`,
+    tr('数式を 下へ コピーすると、行番号も いっしょに ずれる（相対参照）。', 'Copy a formula down and its row numbers shift along with it (relative reference).'),
   )
 }
 
@@ -163,14 +194,27 @@ export const genPrecedence: QGen = () => {
   const c = ri(2, 5)
   const v = pick(['plus', 'paren', 'which'] as const)
   if (v === 'plus')
-    return choice(`=${a}+${b}*${c} の 結果は？`, a + b * c, [(a + b) * c, a * b + c, a + b + c], `掛け算が 先。${b}×${c}=${b * c}、${a}+${b * c}=${a + b * c}。`)
+    return choice(
+      tr(`=${a}+${b}*${c} の 結果は？`, `What's the result of =${a}+${b}*${c}?`),
+      a + b * c,
+      [(a + b) * c, a * b + c, a + b + c],
+      tr(`掛け算が 先。${b}×${c}=${b * c}、${a}+${b * c}=${a + b * c}。`, `Multiplication comes first. ${b}×${c}=${b * c}, then ${a}+${b * c}=${a + b * c}.`),
+    )
   if (v === 'paren')
-    return choice(`=(${a}+${b})*${c} の 結果は？`, (a + b) * c, [a + b * c, a * b * c, a + b + c], `カッコの中が 最優先。${a}+${b}=${a + b}、×${c}=${(a + b) * c}。`)
+    return choice(
+      tr(`=(${a}+${b})*${c} の 結果は？`, `What's the result of =(${a}+${b})*${c}?`),
+      (a + b) * c,
+      [a + b * c, a * b * c, a + b + c],
+      tr(`カッコの中が 最優先。${a}+${b}=${a + b}、×${c}=${(a + b) * c}。`, `Parentheses come first. ${a}+${b}=${a + b}, then ×${c}=${(a + b) * c}.`),
+    )
   return choice(
-    `=A1+B1*C1 で、最初に 計算されるのは？`,
+    tr('=A1+B1*C1 で、最初に 計算されるのは？', 'In =A1+B1*C1, what is calculated first?'),
     'B1*C1',
-    ['A1+B1', 'A1*C1', '左から 順番に'],
-    '掛け算・割り算が 足し算・引き算より 先。先に 足したいときは =(A1+B1)*C1 と カッコで 囲む。',
+    ['A1+B1', 'A1*C1', tr('左から 順番に', 'Left to right, in order')],
+    tr(
+      '掛け算・割り算が 足し算・引き算より 先。先に 足したいときは =(A1+B1)*C1 と カッコで 囲む。',
+      'Multiplication and division come before addition and subtraction. To add first, wrap it in parentheses: =(A1+B1)*C1.',
+    ),
   )
 }
 
@@ -178,7 +222,12 @@ export const genDivision: QGen = () => {
   const a = ri(2, 9)
   const b = pick([2, 5, 10])
   const c = ri(1, 9)
-  return choice(`=${a * b}/${b}+${c} の 結果は？`, a + c, [(a * b) / (b + c), a * b + c, a - c, a + c + b].map((x) => Math.round(x * 10) / 10), `割り算が 先。${a * b}÷${b}=${a}、${a}+${c}=${a + c}。`)
+  return choice(
+    tr(`=${a * b}/${b}+${c} の 結果は？`, `What's the result of =${a * b}/${b}+${c}?`),
+    a + c,
+    [(a * b) / (b + c), a * b + c, a - c, a + c + b].map((x) => Math.round(x * 10) / 10),
+    tr(`割り算が 先。${a * b}÷${b}=${a}、${a}+${c}=${a + c}。`, `Division comes first. ${a * b}÷${b}=${a}, then ${a}+${c}=${a + c}.`),
+  )
 }
 
 export const genSumValues: QGen = () => {
@@ -187,10 +236,10 @@ export const genSumValues: QGen = () => {
   const c = pick([...COLS.slice(0, 4)])
   const s = sum(vals)
   return choice(
-    `${c}1〜${c}${n} に ${vals.join('、')} が 入っている。=SUM(${c}1:${c}${n}) は？`,
+    tr(`${c}1〜${c}${n} に ${vals.join('、')} が 入っている。=SUM(${c}1:${c}${n}) は？`, `${c}1 to ${c}${n} contain ${vals.join(', ')}. What's =SUM(${c}1:${c}${n})?`),
     s,
     [s - vals[n - 1], s + vals[0], Math.max(...vals), s + 10],
-    `${vals.join(' + ')} = ${s}。`,
+    `${vals.join(' + ')} = ${s}${tr('。', '.')}`,
   )
 }
 
@@ -200,10 +249,13 @@ export const genAverageValues: QGen = () => {
   const c = pick([...COLS.slice(0, 4)])
   const r = `${c}1:${c}${n}`
   return choice(
-    `=AVERAGE(${r}) と 同じ 答えに なる 式は？（${r} は すべて 数値）`,
+    tr(`=AVERAGE(${r}) と 同じ 答えに なる 式は？（${r} は すべて 数値）`, `Which formula gives the same answer as =AVERAGE(${r})? (${r} are all numbers)`),
     `=SUM(${r})/${n}`,
     [`=SUM(${r})*${n}`, `=SUM(${r})/2`, `=MAX(${r})/${n}`],
-    `平均は「合計 ÷ 個数」。${r} は ${n}個 なので =SUM(${r})/${n} と 同じ。AVERAGE なら 個数を 数えなくて いい。`,
+    tr(
+      `平均は「合計 ÷ 個数」。${r} は ${n}個 なので =SUM(${r})/${n} と 同じ。AVERAGE なら 個数を 数えなくて いい。`,
+      `An average is "total ÷ count". ${r} has ${n} cells, so it's the same as =SUM(${r})/${n}. With AVERAGE, you don't have to count them.`,
+    ),
   )
 }
 
@@ -215,10 +267,15 @@ export const genMaxMin: QGen = () => {
   const ans = f === 'MAX' ? sorted[sorted.length - 1] : sorted[0]
   const other = f === 'MAX' ? sorted[0] : sorted[sorted.length - 1]
   const second = f === 'MAX' ? sorted[sorted.length - 2] : sorted[1]
-  return choice(`=${f}(${vals.join(',')}) の 結果は？`, ans, [other, second, sum(vals)], `${f === 'MAX' ? 'MAX は 最大値' : 'MIN は 最小値'}。この中では ${ans}。`)
+  return choice(
+    tr(`=${f}(${vals.join(',')}) の 結果は？`, `What's the result of =${f}(${vals.join(',')})?`),
+    ans,
+    [other, second, sum(vals)],
+    tr(`${f === 'MAX' ? 'MAX は 最大値' : 'MIN は 最小値'}。この中では ${ans}。`, `${f === 'MAX' ? 'MAX gives the largest value' : 'MIN gives the smallest value'}. Here, that's ${ans}.`),
+  )
 }
 
-const TEXTS = ['休み', '欠席', 'なし', '未定']
+const TEXTS = tra(['休み', '欠席', 'なし', '未定'], ['Closed', 'Absent', 'None', 'TBD'])
 function mixed() {
   const n = ri(5, 7)
   const items: (number | string)[] = []
@@ -229,14 +286,19 @@ function mixed() {
   if (!items.some((x) => typeof x === 'number')) items[0] = ri(1, 50)
   return items
 }
-const showItems = (items: (number | string)[]) => items.map((v) => (v === '' ? '（空白）' : v)).join('、')
+const showItems = (items: (number | string)[]) => items.map((v) => (v === '' ? tr('（空白）', '(blank)') : v)).join(tr('、', ', '))
 
 export const genCount: QGen = () => {
   const items = mixed()
   const n = items.length
   const cnt = items.filter((x) => typeof x === 'number').length
   const nonEmpty = items.filter((x) => x !== '').length
-  return choice(`A1〜A${n} に「${showItems(items)}」。=COUNT(A1:A${n}) は？`, cnt, [nonEmpty, n, cnt + 1], `COUNT は 数値の セルだけを 数える。文字と 空白は 数えない → ${cnt}個。`)
+  return choice(
+    tr(`A1〜A${n} に「${showItems(items)}」。=COUNT(A1:A${n}) は？`, `A1 to A${n} contain: ${showItems(items)}. What's =COUNT(A1:A${n})?`),
+    cnt,
+    [nonEmpty, n, cnt + 1],
+    tr(`COUNT は 数値の セルだけを 数える。文字と 空白は 数えない → ${cnt}個。`, `COUNT counts only cells with numbers. Text and blanks don't count → ${cnt}.`),
+  )
 }
 
 export const genCountA: QGen = () => {
@@ -244,7 +306,12 @@ export const genCountA: QGen = () => {
   const n = items.length
   const cnt = items.filter((x) => typeof x === 'number').length
   const nonEmpty = items.filter((x) => x !== '').length
-  return choice(`A1〜A${n} に「${showItems(items)}」。=COUNTA(A1:A${n}) は？`, nonEmpty, [cnt, n, nonEmpty - 1], `COUNTA は 空白以外の セルを すべて 数える（文字も数える）→ ${nonEmpty}個。`)
+  return choice(
+    tr(`A1〜A${n} に「${showItems(items)}」。=COUNTA(A1:A${n}) は？`, `A1 to A${n} contain: ${showItems(items)}. What's =COUNTA(A1:A${n})?`),
+    nonEmpty,
+    [cnt, n, nonEmpty - 1],
+    tr(`COUNTA は 空白以外の セルを すべて 数える（文字も数える）→ ${nonEmpty}個。`, `COUNTA counts every cell that isn't blank (text included) → ${nonEmpty}.`),
+  )
 }
 
 // ---------------------------------------------------------------- 数式を入力する問題
@@ -253,7 +320,7 @@ export const genFormulaSum: QGen = () => {
   const vals = nums(n, 50)
   return {
     type: 'formula',
-    q: `A${n + 1} に A1〜A${n} の 合計を出す 数式を入力せよ！`,
+    q: tr(`A${n + 1} に A1〜A${n} の 合計を出す 数式を入力せよ！`, `Enter a formula in A${n + 1} for the total of A1 to A${n}!`),
     table: vals.map((v) => [v]),
     target: `A${n + 1}`,
     expect: sum(vals),
@@ -268,7 +335,7 @@ export const genFormulaAvg: QGen = () => {
   const { vals, avg } = avgNums(n)
   return {
     type: 'formula',
-    q: `B${n + 1} に B1〜B${n} の 平均を出す 数式を入力せよ！`,
+    q: tr(`B${n + 1} に B1〜B${n} の 平均を出す 数式を入力せよ！`, `Enter a formula in B${n + 1} for the average of B1 to B${n}!`),
     table: vals.map((v) => ['', v]),
     target: `B${n + 1}`,
     expect: avg,
@@ -285,7 +352,7 @@ export const genFormulaMaxMin: QGen = () => {
   const ans = f === 'MAX' ? Math.max(...vals) : Math.min(...vals)
   return {
     type: 'formula',
-    q: `A${n + 1} に A1〜A${n} の ${f === 'MAX' ? '最大値' : '最小値'}を出せ！`,
+    q: tr(`A${n + 1} に A1〜A${n} の ${f === 'MAX' ? '最大値' : '最小値'}を出せ！`, `Get the ${f === 'MAX' ? 'largest' : 'smallest'} value of A1 to A${n} in A${n + 1}!`),
     table: vals.map((v) => [v]),
     target: `A${n + 1}`,
     expect: ans,
@@ -300,9 +367,9 @@ export const genFormulaMul: QGen = () => {
   const qty = ri(2, 9)
   return {
     type: 'formula',
-    q: 'C2 に 小計（単価×数量）を出す 数式を入力せよ！',
+    q: tr('C2 に 小計（単価×数量）を出す 数式を入力せよ！', 'Enter a formula in C2 for the subtotal (price × qty)!'),
     table: [
-      ['単価', '数量', '小計'],
+      tra(['単価', '数量', '小計'], ['Price', 'Qty', 'Subtotal']),
       [price, qty],
     ],
     target: 'C2',
@@ -319,13 +386,13 @@ export const genFormulaCount: QGen = () => {
   const cnt = items.filter((x) => typeof x === 'number').length
   return {
     type: 'formula',
-    q: `A${n + 1} に A1〜A${n} の「数値のセルの個数」を出せ！`,
+    q: tr(`A${n + 1} に A1〜A${n} の「数値のセルの個数」を出せ！`, `In A${n + 1}, get how many cells in A1 to A${n} contain numbers!`),
     table: items.map((v) => [v]),
     target: `A${n + 1}`,
     expect: cnt,
     mustUse: 'COUNT',
     hint: `=COUNT(A1:A${n})`,
-    explain: `=COUNT(A1:A${n}) → ${cnt}（文字と空白は 数えない）`,
+    explain: `=COUNT(A1:A${n}) → ${cnt}${tr('（文字と空白は 数えない）', ' (text and blanks are not counted)')}`,
   }
 }
 
@@ -340,10 +407,10 @@ export const genAbsCopy: QGen = () => {
   const fix = pick(['E1', 'F1', 'E2', 'G1'])
   const [fc, fr] = [fix[0], Number(fix.slice(1))]
   return choice(
-    `C${r} の =B${r}*$${fc}$${fr} を 下へ ${k}つ コピー。C${t} の 数式は？`,
+    tr(`C${r} の =B${r}*$${fc}$${fr} を 下へ ${k}つ コピー。C${t} の 数式は？`, `Copy =B${r}*$${fc}$${fr} in C${r} down ${cells(k)}. What's the formula in C${t}?`),
     `=B${t}*$${fc}$${fr}`,
     [`=B${t}*$${fc}$${fr + k}`, `=B${r}*$${fc}$${fr}`, `=B${t}*${fc}${fr + k}`],
-    '$ が付いた 列・行は コピーしても 動かない。付いていない B は 行が ずれる。',
+    tr('$ が付いた 列・行は コピーしても 動かない。付いていない B は 行が ずれる。', "Columns and rows with $ don't move when copied. B has no $, so its row shifts."),
   )
 }
 
@@ -356,10 +423,10 @@ export const genRelShift: QGen = () => {
   const src = `${COLS[ci]}${r}`
   const ans = dir === '下' ? `${COLS[ci]}${r + k}` : `${COLS[ci + k]}${r}`
   return choice(
-    `=${src}*2 を ${dir}へ ${k}つ コピーすると、参照は どうなる？`,
+    tr(`=${src}*2 を ${dir}へ ${k}つ コピーすると、参照は どうなる？`, `Copy =${src}*2 ${dir === '下' ? 'down' : 'to the right'} ${cells(k)}. What does the reference become?`),
     `=${ans}*2`,
     [`=${src}*2`, dir === '下' ? `=${COLS[ci + k]}${r}*2` : `=${COLS[ci]}${r + k}*2`, `=${COLS[ci + 1]}${r + 1}*2`],
-    '相対参照は コピーした方向へ、同じだけ ずれる。',
+    tr('相対参照は コピーした方向へ、同じだけ ずれる。', 'A relative reference shifts by the same amount in the direction you copy.'),
   )
 }
 
@@ -369,10 +436,10 @@ export const genF4Cycle: QGen = () => {
   const f = DOLLAR_FORMS(c, r) // F4 1回→$A$1, 2回→A$1, 3回→$A1, 4回→A1
   const n = ri(1, 4)
   return choice(
-    `数式で「${c}${r}」を 選んで F4キーを ${n}回 押すと？`,
+    tr(`数式で「${c}${r}」を 選んで F4キーを ${n}回 押すと？`, `In a formula, you select "${c}${r}" and press F4 ${n} time${n > 1 ? 's' : ''}. What do you get?`),
     f[(n - 1) % 4],
     f.filter((_, i) => i !== (n - 1) % 4),
-    'F4 を押すたびに $A$1 → A$1 → $A1 → A1 と 切り替わる。',
+    tr('F4 を押すたびに $A$1 → A$1 → $A1 → A1 と 切り替わる。', 'Each press of F4 cycles $A$1 → A$1 → $A1 → A1.'),
   )
 }
 
@@ -381,8 +448,14 @@ export const genMixedMeaning: QGen = () => {
   const r = ri(1, 9)
   const v = pick(['row', 'col', 'both'] as const)
   const ref = v === 'row' ? `${c}$${r}` : v === 'col' ? `$${c}${r}` : `$${c}$${r}`
-  const ans = v === 'row' ? '行だけ 固定' : v === 'col' ? '列だけ 固定' : '行も列も 固定'
-  return choice(`「${ref}」の 意味は？`, ans, ['行だけ 固定', '列だけ 固定', '行も列も 固定', 'どちらも 固定しない'], '$ は すぐ後ろの 列（英字）や 行（数字）を 固定する。')
+  const [row, col, both, none] = tra(['行だけ 固定', '列だけ 固定', '行も列も 固定', 'どちらも 固定しない'], ['Locks the row only', 'Locks the column only', 'Locks both row and column', 'Locks neither'])
+  const ans = v === 'row' ? row : v === 'col' ? col : both
+  return choice(
+    tr(`「${ref}」の 意味は？`, `What does "${ref}" mean?`),
+    ans,
+    [row, col, both, none],
+    tr('$ は すぐ後ろの 列（英字）や 行（数字）を 固定する。', '$ locks the column (letter) or row (number) right after it.'),
+  )
 }
 
 export const genMixedCopy: QGen = () => {
@@ -392,10 +465,10 @@ export const genMixedCopy: QGen = () => {
   const r = 2 + dr
   const c = COLS[1 + dc]
   return choice(
-    `B2 の =$A2*B$1 を ${c}${r} に コピー。${c}${r} の 数式は？`,
+    tr(`B2 の =$A2*B$1 を ${c}${r} に コピー。${c}${r} の 数式は？`, `Copy =$A2*B$1 from B2 to ${c}${r}. What's the formula in ${c}${r}?`),
     `=$A${r}*${c}$1`,
     [`=$A2*B$1`, `=$${COLS[dc]}${r}*${c}$${1 + dr}`, `=A${r}*${c}1`, `=$A${r}*B$1`],
-    '$A は 列が A のまま、$1 は 行が 1 のまま。それ以外は ずれる。',
+    tr('$A は 列が A のまま、$1 は 行が 1 のまま。それ以外は ずれる。', '$A keeps the column at A, and $1 keeps the row at 1. Everything else shifts.'),
   )
 }
 
@@ -404,10 +477,10 @@ export const genShareValue: QGen = () => {
   const pct = pick([10, 20, 25, 40, 50])
   const v = (total * pct) / 100
   return choice(
-    `B2 に ${v}、合計の B6 に ${total}。構成比 =B2/$B$6 の 結果は？（％表示）`,
+    tr(`B2 に ${v}、合計の B6 に ${total}。構成比 =B2/$B$6 の 結果は？（％表示）`, `B2 has ${v}, and the total in B6 is ${total}. What's the share =B2/$B$6? (as a percentage)`),
     `${pct}%`,
     [`${pct / 10}%`, `${100 - pct}%`, `${pct * 2}%`],
-    `${v} ÷ ${total} = ${pct / 100} → ${pct}%。`,
+    `${v} ÷ ${total} = ${pct / 100} → ${pct}%${tr('。', '.')}`,
   )
 }
 
@@ -417,10 +490,10 @@ export const genRound: QGen = () => {
   const x = base + frac / 10
   const up = frac >= 5
   return choice(
-    `=ROUND(${x}, 0) の 結果は？`,
+    tr(`=ROUND(${x}, 0) の 結果は？`, `What's the result of =ROUND(${x}, 0)?`),
     up ? base + 1 : base,
     [up ? base : base + 1, x, base * 10 + frac],
-    `ROUND(数値, 0) は 小数第1位で 四捨五入。${x} → ${up ? base + 1 : base}。`,
+    tr(`ROUND(数値, 0) は 小数第1位で 四捨五入。${x} → ${up ? base + 1 : base}。`, `ROUND(number, 0) rounds at the first decimal place. ${x} → ${up ? base + 1 : base}.`),
   )
 }
 
@@ -429,11 +502,11 @@ export const genFormulaTax: QGen = () => {
   const rate = pick([8, 10])
   const n = 3
   const prices = nums(n, 50, 5).map((x) => x * 100)
-  const table: (string | number)[][] = [['価格', '税込', '', '税率', rate / 100]]
+  const table: (string | number)[][] = [[...tra(['価格', '税込', '', '税率'], ['Price', 'With Tax', '', 'Tax Rate']), rate / 100]]
   prices.forEach((p) => table.push([p]))
   return {
     type: 'formula',
-    q: `B2 に 税込価格（価格×(1＋税率)）を出せ！ 税率は E1。B3・B4 にも コピーするぞ。`,
+    q: tr(`B2 に 税込価格（価格×(1＋税率)）を出せ！ 税率は E1。B3・B4 にも コピーするぞ。`, `Get the price with tax (price × (1 + tax rate)) in B2! The tax rate is in E1. It will be copied to B3 and B4 too.`),
     table,
     target: 'B2',
     expect: prices[0] * (1 + rate / 100),
@@ -443,7 +516,7 @@ export const genFormulaTax: QGen = () => {
     ],
     mustUse: '$',
     hint: '=A2*(1+$E$1)',
-    explain: `=A2*(1+$E$1)。E1 に $ を付けないと、コピーで E2・E3 に ずれてしまう。`,
+    explain: tr('=A2*(1+$E$1)。E1 に $ を付けないと、コピーで E2・E3 に ずれてしまう。', '=A2*(1+$E$1). Without $ on E1, copying shifts it to E2 and E3.'),
   }
 }
 
@@ -451,12 +524,12 @@ export const genFormulaShare: QGen = () => {
   const n = 3
   const vals = nums(n, 60, 10)
   const total = sum(vals)
-  const table: (string | number)[][] = [['売上', '構成比']]
+  const table: (string | number)[][] = [tra(['売上', '構成比'], ['Sales', 'Share'])]
   vals.forEach((v) => table.push([v]))
   table.push([total])
   return {
     type: 'formula',
-    q: `B2 に 構成比（売上÷合計）を出せ！ 合計は A${n + 2}。B3・B4 にも コピーするぞ。`,
+    q: tr(`B2 に 構成比（売上÷合計）を出せ！ 合計は A${n + 2}。B3・B4 にも コピーするぞ。`, `Get the share (sales ÷ total) in B2! The total is in A${n + 2}. It will be copied to B3 and B4 too.`),
     table,
     target: 'B2',
     expect: vals[0] / total,
@@ -466,7 +539,7 @@ export const genFormulaShare: QGen = () => {
     ],
     mustUse: '$',
     hint: `=A2/$A$${n + 2}`,
-    explain: `=A2/$A$${n + 2}（または A$${n + 2}）。合計の セルを 固定するのが コツ。`,
+    explain: tr(`=A2/$A$${n + 2}（または A$${n + 2}）。合計の セルを 固定するのが コツ。`, `=A2/$A$${n + 2} (or A$${n + 2}). The trick is to lock the total's cell.`),
   }
 }
 
@@ -477,7 +550,7 @@ export const genFormulaTimes: QGen = () => {
   const table: (string | number)[][] = [['', a, a + 1], [b], [b + 1]]
   return {
     type: 'formula',
-    q: 'B2 に 掛け算表の 数式を入れよ！（左の数 × 上の数） C2・B3・C3 にも コピーするぞ。',
+    q: tr('B2 に 掛け算表の 数式を入れよ！（左の数 × 上の数） C2・B3・C3 にも コピーするぞ。', 'Enter the times-table formula in B2! (left number × top number) It will be copied to C2, B3 and C3 too.'),
     table,
     target: 'B2',
     expect: a * b,
@@ -488,7 +561,7 @@ export const genFormulaTimes: QGen = () => {
     ],
     mustUse: '$',
     hint: '=$A2*B$1',
-    explain: '=$A2*B$1。列を固定した $A と、行を固定した $1 の 組み合わせ（複合参照）。',
+    explain: tr('=$A2*B$1。列を固定した $A と、行を固定した $1 の 組み合わせ（複合参照）。', '=$A2*B$1. It combines $A, which locks the column, with $1, which locks the row (mixed reference).'),
   }
 }
 
@@ -499,7 +572,7 @@ export const genFormulaRound: QGen = () => {
   const ans = Math.round(raw)
   return {
     type: 'formula',
-    q: `B1 に A1 の ${Math.round((1 - off) * 100)}% 引き（×${off}）を、四捨五入して 整数で 出せ！`,
+    q: tr(`B1 に A1 の ${Math.round((1 - off) * 100)}% 引き（×${off}）を、四捨五入して 整数で 出せ！`, `In B1, get A1 with ${Math.round((1 - off) * 100)}% off (×${off}), rounded to a whole number!`),
     table: [[price]],
     target: 'B1',
     expect: ans,

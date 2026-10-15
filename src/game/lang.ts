@@ -4,8 +4,8 @@ import { useSyncExternalStore } from 'react'
  * 表示言語（日本語／英語）。
  * はじめは 端末の 言語に 合わせ、タイトル画面と 設定から 切りかえられる（選んだ 言語は 保存する）。
  *
- * 文の 書き方：画面の 文は tr('日本語', 'English') の ように 2つ 並べて 書く。
- * 切りかえると App から 画面 全体が 描きなおされるので、各画面で 特別な ことは しなくて よい
+ * 文の 書き方：画面の 文も、データ（依頼・会話・問題）の 文も tr('日本語', 'English') の ように 2つ 並べて 書く。
+ * データは 読みこんだ ときの 言語で 作られるので、言語を 切りかえたら ページを 読みなおす
  */
 export type Lang = 'ja' | 'en'
 
@@ -19,6 +19,8 @@ const KEY = 'excel-quest-lang'
 const hasWindow = typeof window !== 'undefined'
 
 function detect(): Lang {
+  // 自動チェック（node）は EQ_LANG=en で 英語の データを 確かめる
+  if (!hasWindow) return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.EQ_LANG === 'en' ? 'en' : 'ja'
   try {
     // 試し用：URL の ?lang=en / ?lang=ja を 保存する
     const q = hasWindow ? new URLSearchParams(location.search).get('lang') : null
@@ -40,16 +42,22 @@ const subs = new Set<() => void>()
 export const getLang = () => lang
 export const isEn = () => lang === 'en'
 
+/** 言語を 切りかえる（保存して ページを 読みなおす。データの 文も 新しい 言語で 作りなおすため） */
 export function setLang(l: Lang) {
   if (l === lang) return
-  lang = l
   try {
     localStorage.setItem(KEY, l)
   } catch {
-    /* 保存できなくても 今回は 切りかわる */
+    /* 保存できない ときは この 画面だけ 切りかえる */
+    lang = l
+    document.documentElement.lang = l
+    subs.forEach((f) => f())
+    return
   }
-  document.documentElement.lang = l
-  subs.forEach((f) => f())
+  // ?lang= が 残っていると 読みなおした ときに 戻って しまうので 消す
+  const u = new URL(location.href)
+  u.searchParams.delete('lang')
+  location.replace(u.toString())
 }
 
 /** 言語の 切りかえを 画面に 出すか（英語版の 準備前でも、試し中なら 出す） */
@@ -69,3 +77,5 @@ export function useLang() {
 
 /** 今の 言語の 文を えらぶ */
 export const tr = (ja: string, en: string) => (lang === 'en' ? en : ja)
+/** 文の 並び（会話の ページ など）や 表の 中身を 言語で えらぶ */
+export const tra = <T>(ja: T, en: T): T => (lang === 'en' ? en : ja)

@@ -1,28 +1,103 @@
+import { tr } from '../game/lang'
+
 export interface SkillDef {
   name: string
+  /** 町の 名前（日本語の まま。教会の 相談で MAPS の 名前と 照らし合わせる） */
   town: string
   desc: string
 }
 
 export const SKILLS: Record<string, SkillDef> = {
-  input: { name: 'セル入力', town: 'セルノ', desc: 'セルを選んで入力 → Enterで確定（下へ移動）。Tabなら右へ。' },
-  edit: { name: 'セルの修正', town: 'セルノ', desc: 'そのまま打つと上書き。F2 かダブルクリックで一部だけ修正。' },
-  copy: { name: 'コピー＆貼り付け', town: 'セルノ', desc: 'Ctrl+C でコピー、Ctrl+V で貼り付け。（Macは ⌘）' },
-  undo: { name: '元に戻す', town: 'セルノ', desc: 'Ctrl+Z で直前の操作を取り消し。Ctrl+Y でやり直し。' },
-  autofill: { name: 'オートフィル', town: 'セルノ', desc: '右下の■をドラッグ。数字は2つ選ぶと連番、「1月」などは自動で続く。' },
-  bold: { name: '太字', town: 'セルノ', desc: 'Ctrl+B で太字のON/OFF。見出しを目立たせよう。' },
-  arith: { name: '四則演算', town: 'カルキュレ', desc: '= で始める。足す + 引く - 掛ける * 割る /' },
-  SUM: { name: 'SUM', town: 'カルキュレ', desc: '=SUM(B2:B11) 範囲の合計。' },
-  AVERAGE: { name: 'AVERAGE', town: 'カルキュレ', desc: '=AVERAGE(B2:B9) 範囲の平均。' },
-  MAXMIN: { name: 'MAX / MIN', town: 'カルキュレ', desc: '=MAX(範囲) 最大値、=MIN(範囲) 最小値。' },
-  COUNT: { name: 'COUNT', town: 'カルキュレ', desc: '=COUNT(範囲) 数値のセルを数える。空白以外すべてなら COUNTA。' },
-  report: { name: '集計表づくり', town: 'カルキュレ', desc: '合計の数式を1つ作ってオートフィル。縦と横の合計で表が完成。' },
-  relref: { name: '相対参照', town: 'サンショウ', desc: '数式をコピーすると 参照も いっしょに ずれる（=C2/B2 → =C3/B3）。' },
-  absref: { name: '絶対参照（$）', town: 'サンショウ', desc: '$E$2 のように $ を付けると、コピーしても その参照は ずれない。' },
-  f4: { name: 'F4キー', town: 'サンショウ', desc: '数式の入力中に F4 を押すと、$A$1 → A$1 → $A1 → A1 と 切り替わる。' },
-  share: { name: '構成比', town: 'サンショウ', desc: '=B2/$B$6 のように、合計を 絶対参照で 固定して 割る。' },
-  mixref: { name: '複合参照', town: 'サンショウ', desc: '$A2（列だけ固定）と B$1（行だけ固定）。九九の表を 1つの数式で 作れる。' },
-  round: { name: 'ROUND', town: 'サンショウ', desc: '=ROUND(数値, 0) で 四捨五入。端数処理に 使う。' },
+  input: {
+    name: tr('セル入力', 'Cell Input'),
+    town: 'セルノ',
+    desc: tr('セルを選んで入力 → Enterで確定（下へ移動）。Tabなら右へ。', 'Select a cell and type → Enter confirms (moves down). Tab moves right.'),
+  },
+  edit: {
+    name: tr('セルの修正', 'Editing Cells'),
+    town: 'セルノ',
+    desc: tr('そのまま打つと上書き。F2 かダブルクリックで一部だけ修正。', 'Typing overwrites. Use F2 or a double-click to fix just part of it.'),
+  },
+  copy: {
+    name: tr('コピー＆貼り付け', 'Copy & Paste'),
+    town: 'セルノ',
+    desc: tr('Ctrl+C でコピー、Ctrl+V で貼り付け。（Macは ⌘）', 'Ctrl+C copies, Ctrl+V pastes. (⌘ on a Mac)'),
+  },
+  undo: {
+    name: tr('元に戻す', 'Undo'),
+    town: 'セルノ',
+    desc: tr('Ctrl+Z で直前の操作を取り消し。Ctrl+Y でやり直し。', 'Ctrl+Z undoes the last action. Ctrl+Y redoes it.'),
+  },
+  autofill: {
+    name: tr('オートフィル', 'AutoFill'),
+    town: 'セルノ',
+    desc: tr('右下の■をドラッグ。数字は2つ選ぶと連番、「1月」などは自動で続く。', 'Drag the ■ at the bottom-right. Select two numbers for a series; things like "Jan" continue automatically.'),
+  },
+  bold: {
+    name: tr('太字', 'Bold'),
+    town: 'セルノ',
+    desc: tr('Ctrl+B で太字のON/OFF。見出しを目立たせよう。', 'Ctrl+B turns bold on and off. Make your headers stand out.'),
+  },
+  arith: {
+    name: tr('四則演算', 'Arithmetic'),
+    town: 'カルキュレ',
+    desc: tr('= で始める。足す + 引く - 掛ける * 割る /', 'Start with =. Add +, subtract -, multiply *, divide /'),
+  },
+  SUM: {
+    name: 'SUM',
+    town: 'カルキュレ',
+    desc: tr('=SUM(B2:B11) 範囲の合計。', '=SUM(B2:B11) totals a range.'),
+  },
+  AVERAGE: {
+    name: 'AVERAGE',
+    town: 'カルキュレ',
+    desc: tr('=AVERAGE(B2:B9) 範囲の平均。', '=AVERAGE(B2:B9) averages a range.'),
+  },
+  MAXMIN: {
+    name: 'MAX / MIN',
+    town: 'カルキュレ',
+    desc: tr('=MAX(範囲) 最大値、=MIN(範囲) 最小値。', '=MAX(range) gives the largest value, =MIN(range) the smallest.'),
+  },
+  COUNT: {
+    name: 'COUNT',
+    town: 'カルキュレ',
+    desc: tr('=COUNT(範囲) 数値のセルを数える。空白以外すべてなら COUNTA。', '=COUNT(range) counts cells with numbers. To count every non-blank cell, use COUNTA.'),
+  },
+  report: {
+    name: tr('集計表づくり', 'Building Reports'),
+    town: 'カルキュレ',
+    desc: tr('合計の数式を1つ作ってオートフィル。縦と横の合計で表が完成。', 'Build one total formula and AutoFill it. Row and column totals complete the table.'),
+  },
+  relref: {
+    name: tr('相対参照', 'Relative Reference'),
+    town: 'サンショウ',
+    desc: tr('数式をコピーすると 参照も いっしょに ずれる（=C2/B2 → =C3/B3）。', 'Copy a formula and its references shift along with it (=C2/B2 → =C3/B3).'),
+  },
+  absref: {
+    name: tr('絶対参照（$）', 'Absolute Reference ($)'),
+    town: 'サンショウ',
+    desc: tr('$E$2 のように $ を付けると、コピーしても その参照は ずれない。', 'Add $ like $E$2, and that reference won\'t shift when copied.'),
+  },
+  f4: {
+    name: tr('F4キー', 'F4 Key'),
+    town: 'サンショウ',
+    desc: tr('数式の入力中に F4 を押すと、$A$1 → A$1 → $A1 → A1 と 切り替わる。', 'Press F4 while typing a formula to cycle $A$1 → A$1 → $A1 → A1.'),
+  },
+  share: {
+    name: tr('構成比', 'Share of Total'),
+    town: 'サンショウ',
+    desc: tr('=B2/$B$6 のように、合計を 絶対参照で 固定して 割る。', 'Lock the total with an absolute reference and divide by it, like =B2/$B$6.'),
+  },
+  mixref: {
+    name: tr('複合参照', 'Mixed Reference'),
+    town: 'サンショウ',
+    desc: tr('$A2（列だけ固定）と B$1（行だけ固定）。九九の表を 1つの数式で 作れる。', '$A2 (column locked) and B$1 (row locked). Build a whole times table with one formula.'),
+  },
+  round: {
+    name: 'ROUND',
+    town: 'サンショウ',
+    desc: tr('=ROUND(数値, 0) で 四捨五入。端数処理に 使う。', '=ROUND(number, 0) rounds to the nearest whole number. Use it to tidy up fractions.'),
+  },
   compare: { name: '比較演算子', town: 'イフポート', desc: '>=（以上）<=（以下）>（より大きい）<（未満）=（等しい）<>（等しくない）。結果は TRUE か FALSE。' },
   if: { name: 'IF', town: 'イフポート', desc: '=IF(条件, 正しいとき, 違うとき)。文字は "大漁" のように " で囲む。' },
   ifcalc: { name: 'IF×計算', town: 'イフポート', desc: 'IF の答えに 数値や 計算式も 使える。=IF(B2>=3000, 0, 500)' },

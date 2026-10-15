@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { DialogBox, type DialogReq } from './DialogBox'
 import { usePhoneLayout } from '../game/layout'
 import { jingle, sfx, useBgm } from '../game/sound'
+import { tr, tra } from '../game/lang'
 
 type Scene = 'day' | 'night' | 'monitor'
 type Mood = 'nervous' | 'flat' | 'tired' | 'smile'
@@ -17,26 +18,26 @@ interface Step {
   auto?: number
 }
 
-const SENIOR = '神崎 先輩'
+const SENIOR = tr('神崎 先輩', 'Kanzaki')
 const SENIOR_COLOR = '#2d4f86'
 const ME_COLOR = '#c8283c'
 
 const PROLOGUE: Step[] = [
-  { scene: 'day', text: '――株式会社ミライ商事、営業企画部。月曜日の夕方。', mood: 'flat' },
-  { speaker: 'senior', text: '{name}、ちょっといいか。' },
-  { speaker: 'me', text: 'は、はいっ！', mood: 'nervous' },
-  { speaker: 'senior', text: '今朝の売上集計。これ、電卓で 手打ちしただろ。' },
-  { speaker: 'senior', text: '合計が 三か所 ずれてる。……別に、責めてるわけじゃない。' },
-  { speaker: 'senior', text: 'ただな。表計算くらい、ある程度 使えるようになれよ。' },
-  { speaker: 'senior', text: 'お前の時間が、もったいない。' },
-  { speaker: 'me', text: '（……表計算なんて、使えなくても 仕事は回るし）', mood: 'flat' },
-  { speaker: 'me', text: '（必要になったら、そのとき 覚えればいいや）' },
-  { scene: 'night', text: '――その夜。23時47分。', mood: 'tired' },
-  { text: 'フロアに残っているのは、自分ひとりだけだった。' },
-  { speaker: 'me', text: '明日の朝までに、この集計を 直さないと……。' },
-  { scene: 'monitor', text: '集計ファイルを開いた、その瞬間――' },
-  { fx: 'corrupt', speaker: 'me', text: 'え……？ 数字が、消えて……' },
-  { speaker: 'me', text: '#REF!……？ な、なんだこれ……！ 画面から、光が――！' },
+  { scene: 'day', text: tr('――株式会社ミライ商事、営業企画部。月曜日の夕方。', '— Mirai Trading Co., Sales Planning Department. Monday evening.'), mood: 'flat' },
+  { speaker: 'senior', text: tr('{name}、ちょっといいか。', '{name}, got a minute?') },
+  { speaker: 'me', text: tr('は、はいっ！', 'Y-yes!'), mood: 'nervous' },
+  { speaker: 'senior', text: tr('今朝の売上集計。これ、電卓で 手打ちしただろ。', "This morning's sales summary. You typed it all in by hand with a calculator, didn't you?") },
+  { speaker: 'senior', text: tr('合計が 三か所 ずれてる。……別に、責めてるわけじゃない。', "The totals are off in three places. ...I'm not blaming you.") },
+  { speaker: 'senior', text: tr('ただな。表計算くらい、ある程度 使えるようになれよ。', 'But listen. You should learn to use spreadsheets, at least a little.') },
+  { speaker: 'senior', text: tr('お前の時間が、もったいない。', 'Your time is too valuable to waste.') },
+  { speaker: 'me', text: tr('（……表計算なんて、使えなくても 仕事は回るし）', '(...I get by just fine without spreadsheets.)'), mood: 'flat' },
+  { speaker: 'me', text: tr('（必要になったら、そのとき 覚えればいいや）', "(I'll learn them when I actually need them.)") },
+  { scene: 'night', text: tr('――その夜。23時47分。', '— That night. 11:47 PM.'), mood: 'tired' },
+  { text: tr('フロアに残っているのは、自分ひとりだけだった。', 'I was the only one left on the floor.') },
+  { speaker: 'me', text: tr('明日の朝までに、この集計を 直さないと……。', 'I have to fix this summary before tomorrow morning...') },
+  { scene: 'monitor', text: tr('集計ファイルを開いた、その瞬間――', 'The moment I opened the summary file—') },
+  { fx: 'corrupt', speaker: 'me', text: tr('え……？ 数字が、消えて……', 'Huh...? The numbers are vanishing...') },
+  { speaker: 'me', text: tr('#REF!……？ な、なんだこれ……！ 画面から、光が――！', '#REF!...? Wh-what is this...?! Light is pouring out of the screen—!') },
   { fx: 'storm', auto: 4400 },
   { fx: 'white', auto: 1300 },
 ]
@@ -44,23 +45,23 @@ const PROLOGUE: Step[] = [
 /** エピローグ：魔王を 倒して、元の オフィスへ */
 export const EPILOGUE_STEPS: Step[] = [
   { scene: 'night', fx: 'wake', clock: [23, 48], auto: 2200, mood: 'tired' },
-  { speaker: 'me', text: '……ん……。ここは……オフィス……？' },
-  { text: '――23時48分。壁の 時計は、あの瞬間から 1分しか 進んでいなかった。' },
-  { speaker: 'me', text: '夢……？ セルシア大陸も、魔王レフエラーも……。' },
-  { scene: 'monitor', fx: 'broken', text: '画面には、#REF! だらけの 集計ファイルが 開いたままだった。' },
-  { speaker: 'me', text: '（……もう、怖くない。#REF! は「消えた セルを 参照している」って 意味だ）' },
-  { speaker: 'me', text: '（参照を 正しい 範囲に 直せば いい。合計は =SUM(F4:F15)……！）' },
-  { fx: 'repair', text: 'カタカタカタ……ッ、ターン！' },
-  { speaker: 'me', text: '……直った。たった 数分で。' },
-  { scene: 'day', clock: [9, 2], text: '――翌朝。営業企画部。', mood: 'flat' },
-  { speaker: 'senior', text: '{name}。今朝の 集計、見たぞ。' },
-  { speaker: 'senior', text: 'SUM に、SUMIFS に、XLOOKUP、エラー対策の IFERROR まで……。一晩で 何が あった。' },
-  { speaker: 'me', text: 'あ、あの……ちょっと、長い 旅を してきまして。', mood: 'nervous' },
-  { speaker: 'senior', text: '……旅？ まあ いい。合計も、ぴったり 合ってる。いい 仕事だ。' },
-  { speaker: 'senior', text: 'これで、お前の 時間が、ちゃんと お前の ものに なったな。' },
-  { speaker: 'me', text: '（……先輩の 言っていた 意味が、やっと わかった 気がする）', mood: 'smile' },
-  { speaker: 'me', text: '（浮いた 時間で、本当に やりたかった 仕事を しよう）' },
-  { speaker: 'me', text: 'はい！ ありがとうございます！' },
+  { speaker: 'me', text: tr('……ん……。ここは……オフィス……？', 'Mm... Where am I... the office...?') },
+  { text: tr('――23時48分。壁の 時計は、あの瞬間から 1分しか 進んでいなかった。', '— 11:48 PM. The clock on the wall had moved just one minute since that moment.') },
+  { speaker: 'me', text: tr('夢……？ セルシア大陸も、魔王レフエラーも……。', 'Was it a dream...? Cellsia, Demon Lord Referror, all of it...?') },
+  { scene: 'monitor', fx: 'broken', text: tr('画面には、#REF! だらけの 集計ファイルが 開いたままだった。', 'The summary file, riddled with #REF! errors, was still open on the screen.') },
+  { speaker: 'me', text: tr('（……もう、怖くない。#REF! は「消えた セルを 参照している」って 意味だ）', '(...It doesn\'t scare me anymore. #REF! means "this points to a cell that was deleted.")') },
+  { speaker: 'me', text: tr('（参照を 正しい 範囲に 直せば いい。合計は =SUM(F4:F15)……！）', '(I just need to point it at the right range. The total is =SUM(F4:F15)...!)') },
+  { fx: 'repair', text: tr('カタカタカタ……ッ、ターン！', 'Clack-clack-clack... CLACK!') },
+  { speaker: 'me', text: tr('……直った。たった 数分で。', '...Fixed. In just a few minutes.') },
+  { scene: 'day', clock: [9, 2], text: tr('――翌朝。営業企画部。', '— The next morning. Sales Planning Department.'), mood: 'flat' },
+  { speaker: 'senior', text: tr('{name}。今朝の 集計、見たぞ。', "{name}. I saw this morning's summary.") },
+  { speaker: 'senior', text: tr('SUM に、SUMIFS に、XLOOKUP、エラー対策の IFERROR まで……。一晩で 何が あった。', 'SUM, SUMIFS, XLOOKUP, even IFERROR to catch errors... What happened to you overnight?') },
+  { speaker: 'me', text: tr('あ、あの……ちょっと、長い 旅を してきまして。', 'Oh, um... I went on a bit of a long journey.'), mood: 'nervous' },
+  { speaker: 'senior', text: tr('……旅？ まあ いい。合計も、ぴったり 合ってる。いい 仕事だ。', '...A journey? Well, whatever. The totals match perfectly. Good work.') },
+  { speaker: 'senior', text: tr('これで、お前の 時間が、ちゃんと お前の ものに なったな。', 'Now your time is finally your own.') },
+  { speaker: 'me', text: tr('（……先輩の 言っていた 意味が、やっと わかった 気がする）', '(...I think I finally understand what Kanzaki meant.)'), mood: 'smile' },
+  { speaker: 'me', text: tr('（浮いた 時間で、本当に やりたかった 仕事を しよう）', "(With the time I've saved, I'll do the work I really want to do.)") },
+  { speaker: 'me', text: tr('はい！ ありがとうございます！', 'Yes! Thank you!') },
   { fx: 'black', auto: 1800 },
 ]
 
@@ -355,7 +356,7 @@ function OfficeScene({ night, senior, mood, phone, clock }: { night: boolean; se
       {!night && (
         <g>
           <text x="680" y="126" fontSize="17" fill="#2a4a8a" fontFamily="sans-serif" fontWeight="bold">
-            Q1 売上目標
+            {tr('Q1 売上目標', 'Q1 Sales Target')}
           </text>
           {[[690, 60], [718, 88], [746, 72], [774, 110], [802, 96], [830, 128]].map(([x, h], i) => (
             <rect key={x} x={x} y={262 - h} width="18" height={h} fill={i === 5 ? '#d8404c' : '#4a78c8'} opacity="0.8" />
@@ -449,7 +450,10 @@ function OfficeScene({ night, senior, mood, phone, clock }: { night: boolean; se
 }
 
 // ================================================================ モニター（Excel画面）
-const PEOPLE = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤', '吉田', '山田']
+const PEOPLE = tra(
+  ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤', '吉田', '山田'],
+  ['Sato', 'Suzuki', 'Takahashi', 'Tanaka', 'Ito', 'Watanabe', 'Yamamoto', 'Nakamura', 'Kobayashi', 'Kato', 'Yoshida', 'Yamada'],
+)
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
 
 function useSheet() {
@@ -460,7 +464,7 @@ function useSheet() {
       return [p, ...m, m[0] + m[1] + m[2], `${92 + Math.floor(r() * 20)}%`]
     })
     const tot = [1, 2, 3, 4].map((i) => rows.reduce((s, row) => s + (row[i] as number), 0))
-    return [...rows, ['合計', ...tot, '104%']]
+    return [...rows, [tr('合計', 'Total'), ...tot, '104%']]
   }, [])
 }
 
@@ -484,11 +488,11 @@ function MonitorScene({ corrupt }: { corrupt: number }) {
         <div className="xlm">
           <div className="xlm-title">
             <span className="xlm-dots">● ● ●</span>
-            <span>2025年度_第1四半期_売上集計_最終版(2) ― 表計算</span>
+            <span>{tr('2025年度_第1四半期_売上集計_最終版(2) ― 表計算', 'FY2025_Q1_Sales_Summary_FINAL(2) — Spreadsheet')}</span>
             <span />
           </div>
           <div className="xlm-tabs">
-            {['ファイル', '編集', '表示', '挿入', '書式', 'データ'].map((t) => (
+            {tra(['ファイル', '編集', '表示', '挿入', '書式', 'データ'], ['File', 'Edit', 'View', 'Insert', 'Format', 'Data']).map((t) => (
               <span key={t}>{t}</span>
             ))}
           </div>
@@ -512,8 +516,8 @@ function MonitorScene({ corrupt }: { corrupt: number }) {
             {Array.from({ length: 17 }, (_, i) => {
               const rowNo = i + 1
               const cells: (string | number)[] = Array(8).fill('')
-              if (rowNo === 1) cells[1] = '第1四半期 売上集計（営業企画部）'
-              if (rowNo === 3) ['', '担当', '4月', '5月', '6月', '合計', '前年比', ''].forEach((v, k) => (cells[k] = v))
+              if (rowNo === 1) cells[1] = tr('第1四半期 売上集計（営業企画部）', 'Q1 Sales Summary (Sales Planning)')
+              if (rowNo === 3) tra(['', '担当', '4月', '5月', '6月', '合計', '前年比', ''], ['', 'Rep', 'Apr', 'May', 'Jun', 'Total', 'YoY', '']).forEach((v, k) => (cells[k] = v))
               const di = rowNo - 4
               if (di >= 0 && di < data.length) data[di].forEach((v, k) => (cells[k + 1] = v))
               return [
@@ -542,10 +546,10 @@ function MonitorScene({ corrupt }: { corrupt: number }) {
             })}
           </div>
           <div className="xlm-sheets">
-            <span className="on">集計</span>
-            <span>明細</span>
-            <span>前年</span>
-            <span className="status">{corrupt > 0 ? '⚠ 参照が無効です' : '✓ 保存済み'}</span>
+            <span className="on">{tr('集計', 'Summary')}</span>
+            <span>{tr('明細', 'Details')}</span>
+            <span>{tr('前年', 'Last Year')}</span>
+            <span className="status">{corrupt > 0 ? tr('⚠ 参照が無効です', '⚠ Invalid reference') : tr('✓ 保存済み', '✓ Saved')}</span>
           </div>
         </div>
       </div>

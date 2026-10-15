@@ -2,6 +2,8 @@
  * 教会の「関数の 相談」で 見せる 解説（SKILLS の ID ごと）。
  * use：どんな ときに 使うか ／ form：書き方 ／ ex：例（「　→」の 右は 説明） ／ tip：ポイント
  */
+import { tr, tra } from '../game/lang'
+
 export interface FuncGuide {
   use: string
   form: string
@@ -12,114 +14,156 @@ export interface FuncGuide {
 export const FUNC_GUIDES: Record<string, FuncGuide> = {
   // ---------------------------------------------------------------- セルノ
   input: {
-    use: 'セルに 数や 文字を 入れたい とき',
-    form: 'セルを えらぶ → 打つ → Enter',
-    ex: ['A2 を えらんで「120」と 打ち、Enter　→ 120 が 入って、下の A3 へ 進む', 'Enter の かわりに Tab　→ 右の セル（B2）へ 進む'],
-    tip: '下へ 続けて 入れるなら Enter、右へ 並べるなら Tab。',
+    use: tr('セルに 数や 文字を 入れたい とき', 'When you want to put a number or text in a cell'),
+    form: tr('セルを えらぶ → 打つ → Enter', 'Select a cell → type → Enter'),
+    ex: tra(['A2 を えらんで「120」と 打ち、Enter　→ 120 が 入って、下の A3 へ 進む', 'Enter の かわりに Tab　→ 右の セル（B2）へ 進む'], [
+      'Select A2, type 120 and press Enter　→ 120 goes in and you move down to A3',
+      'Tab instead of Enter　→ you move to the cell on the right (B2)',
+    ]),
+    tip: tr('下へ 続けて 入れるなら Enter、右へ 並べるなら Tab。', 'Use Enter to keep going down, and Tab to line things up to the right.'),
   },
   edit: {
-    use: '入れた 中身を 直したい とき',
-    form: 'そのまま 打つ ＝ 上書き ／ F2 ＝ 一部だけ 直す',
-    ex: ['「りんご」の セルで「みかん」と 打つ　→ まるごと 置きかわる', 'F2（または ダブルクリック）　→ セルの 中に 入って、1文字だけ 直せる'],
-    tip: '長い 数式の 一部だけ 直したい ときは F2 が べんり。',
+    use: tr('入れた 中身を 直したい とき', 'When you want to fix what you entered'),
+    form: tr('そのまま 打つ ＝ 上書き ／ F2 ＝ 一部だけ 直す', 'Just type = overwrite / F2 = fix part of it'),
+    ex: tra(['「りんご」の セルで「みかん」と 打つ　→ まるごと 置きかわる', 'F2（または ダブルクリック）　→ セルの 中に 入って、1文字だけ 直せる'], [
+      'Type "Orange" in the "Apple" cell　→ the whole thing is replaced',
+      'F2 (or a double-click)　→ you go inside the cell and can fix a single letter',
+    ]),
+    tip: tr('長い 数式の 一部だけ 直したい ときは F2 が べんり。', 'F2 is handy when you only want to fix part of a long formula.'),
   },
   copy: {
-    use: '同じ 中身を ほかの セルにも 入れたい とき',
-    form: 'Ctrl+C（コピー）→ Ctrl+V（貼り付け）',
-    ex: ['B2 を コピーして B3〜B5 に 貼り付け　→ 同じ 値が 入る', '数式を コピー　→ 参照も いっしょに ずれる（サンショウで くわしく）'],
-    tip: 'Mac では Ctrl の かわりに ⌘（コマンド）キー。',
+    use: tr('同じ 中身を ほかの セルにも 入れたい とき', 'When you want the same content in other cells too'),
+    form: tr('Ctrl+C（コピー）→ Ctrl+V（貼り付け）', 'Ctrl+C (copy) → Ctrl+V (paste)'),
+    ex: tra(['B2 を コピーして B3〜B5 に 貼り付け　→ 同じ 値が 入る', '数式を コピー　→ 参照も いっしょに ずれる（サンショウで くわしく）'], [
+      'Copy B2 and paste it into B3 to B5　→ the same value goes in',
+      'Copy a formula　→ its references shift too (more on this in Refton)',
+    ]),
+    tip: tr('Mac では Ctrl の かわりに ⌘（コマンド）キー。', 'On a Mac, use the ⌘ (Command) key instead of Ctrl.'),
   },
   undo: {
-    use: 'まちがえた 操作を 取り消したい とき',
-    form: 'Ctrl+Z（元に 戻す）／ Ctrl+Y（やり直し）',
-    ex: ['うっかり 消した 表も、Ctrl+Z　→ 元どおり', '戻しすぎたら Ctrl+Y　→ やり直し'],
-    tip: '何回でも さかのぼれる。こわがらずに 試してみよう。',
+    use: tr('まちがえた 操作を 取り消したい とき', 'When you want to take back a mistake'),
+    form: tr('Ctrl+Z（元に 戻す）／ Ctrl+Y（やり直し）', 'Ctrl+Z (undo) / Ctrl+Y (redo)'),
+    ex: tra(['うっかり 消した 表も、Ctrl+Z　→ 元どおり', '戻しすぎたら Ctrl+Y　→ やり直し'], [
+      'Deleted a table by accident? Ctrl+Z　→ back to normal',
+      'Undid too much? Ctrl+Y　→ redo',
+    ]),
+    tip: tr('何回でも さかのぼれる。こわがらずに 試してみよう。', 'You can go back as many steps as you like. Don\'t be afraid to experiment.'),
   },
   autofill: {
-    use: '連番や 同じ 数式を 一気に 埋めたい とき',
-    form: 'セルの 右下の ■ を ドラッグ',
-    ex: ['「1」「2」の 2つを えらんで ドラッグ　→ 3, 4, 5… と 連番', '「1月」から ドラッグ　→ 2月, 3月… と 自動で 続く', '数式を ドラッグ　→ 下の 行にも 同じ 計算'],
-    tip: '■ を ダブルクリックすると、となりの 列の 最後まで 一気に 埋まる。',
+    use: tr('連番や 同じ 数式を 一気に 埋めたい とき', 'When you want to fill in a series or the same formula all at once'),
+    form: tr('セルの 右下の ■ を ドラッグ', 'Drag the ■ at the bottom-right of the cell'),
+    ex: tra(['「1」「2」の 2つを えらんで ドラッグ　→ 3, 4, 5… と 連番', '「1月」から ドラッグ　→ 2月, 3月… と 自動で 続く', '数式を ドラッグ　→ 下の 行にも 同じ 計算'], [
+      'Select both "1" and "2" and drag　→ 3, 4, 5... in order',
+      'Drag from "Jan"　→ Feb, Mar... continue automatically',
+      'Drag a formula　→ the same calculation in the rows below',
+    ]),
+    tip: tr('■ を ダブルクリックすると、となりの 列の 最後まで 一気に 埋まる。', 'Double-click the ■ to fill all the way down to the end of the neighboring column.'),
   },
   bold: {
-    use: '見出しを 目立たせたい とき',
-    form: 'Ctrl+B で 太字の ON / OFF',
-    ex: ['1行目の 見出しを えらんで Ctrl+B　→ 太字に なる'],
-    tip: '見出しが 目立つと、表が ぐっと 読みやすく なる。',
+    use: tr('見出しを 目立たせたい とき', 'When you want headers to stand out'),
+    form: tr('Ctrl+B で 太字の ON / OFF', 'Ctrl+B turns bold ON / OFF'),
+    ex: tra(['1行目の 見出しを えらんで Ctrl+B　→ 太字に なる'], ['Select the headers in row 1 and press Ctrl+B　→ they turn bold']),
+    tip: tr('見出しが 目立つと、表が ぐっと 読みやすく なる。', 'Headers that stand out make a table much easier to read.'),
   },
   // ---------------------------------------------------------------- カルキュレ
   arith: {
-    use: '足し算・引き算・掛け算・割り算を したい とき',
-    form: '= で 始めて、+ − * / を 使う',
-    ex: ['=B2+C2　→ 2つの セルを 足す', '=B2*C2　→ 単価 × 数量', '=(B2+C2)/2　→ かっこの 中が 先'],
-    tip: '掛け算は × ではなく *、割り算は ÷ ではなく / を 使う。',
+    use: tr('足し算・引き算・掛け算・割り算を したい とき', 'When you want to add, subtract, multiply or divide'),
+    form: tr('= で 始めて、+ − * / を 使う', 'Start with = and use + − * /'),
+    ex: tra(['=B2+C2　→ 2つの セルを 足す', '=B2*C2　→ 単価 × 数量', '=(B2+C2)/2　→ かっこの 中が 先'], [
+      '=B2+C2　→ adds two cells',
+      '=B2*C2　→ price × qty',
+      '=(B2+C2)/2　→ the parentheses come first',
+    ]),
+    tip: tr('掛け算は × ではなく *、割り算は ÷ ではなく / を 使う。', 'Multiply with *, not ×. Divide with /, not ÷.'),
   },
   SUM: {
-    use: 'たくさんの 数を まとめて 足したい とき',
-    form: '=SUM(範囲)',
-    ex: ['=SUM(B2:B11)　→ B2〜B11 の 合計', 'B2〜B4 が 120・80・100 なら =SUM(B2:B4)　→ 300'],
-    tip: '範囲の 中の 数を 書きかえると、合計も 自動で 変わる。',
+    use: tr('たくさんの 数を まとめて 足したい とき', 'When you want to add up lots of numbers at once'),
+    form: tr('=SUM(範囲)', '=SUM(range)'),
+    ex: tra(['=SUM(B2:B11)　→ B2〜B11 の 合計', 'B2〜B4 が 120・80・100 なら =SUM(B2:B4)　→ 300'], [
+      '=SUM(B2:B11)　→ the total of B2 to B11',
+      'If B2 to B4 are 120, 80 and 100, =SUM(B2:B4)　→ 300',
+    ]),
+    tip: tr('範囲の 中の 数を 書きかえると、合計も 自動で 変わる。', 'Change a number in the range and the total updates automatically.'),
   },
   AVERAGE: {
-    use: '平均を 出したい とき',
-    form: '=AVERAGE(範囲)',
-    ex: ['=AVERAGE(B2:B9)　→ B2〜B9 の 平均', '70・80・90 の 平均　→ 80'],
-    tip: '空白の セルは 数に 入れない。0 は 数に 入る。',
+    use: tr('平均を 出したい とき', 'When you want the average'),
+    form: tr('=AVERAGE(範囲)', '=AVERAGE(range)'),
+    ex: tra(['=AVERAGE(B2:B9)　→ B2〜B9 の 平均', '70・80・90 の 平均　→ 80'], [
+      '=AVERAGE(B2:B9)　→ the average of B2 to B9',
+      'The average of 70, 80 and 90　→ 80',
+    ]),
+    tip: tr('空白の セルは 数に 入れない。0 は 数に 入る。', 'Blank cells aren\'t counted. 0 is counted.'),
   },
   MAXMIN: {
-    use: 'いちばん 大きい・小さい 数を 知りたい とき',
-    form: '=MAX(範囲) ／ =MIN(範囲)',
-    ex: ['=MAX(B2:B8)　→ 最高の 売上', '=MIN(B2:B8)　→ 最低の 気温'],
-    tip: '=MAX(範囲)-MIN(範囲) で「差（ばらつき）」も わかる。',
+    use: tr('いちばん 大きい・小さい 数を 知りたい とき', 'When you want to know the largest or smallest number'),
+    form: tr('=MAX(範囲) ／ =MIN(範囲)', '=MAX(range) / =MIN(range)'),
+    ex: tra(['=MAX(B2:B8)　→ 最高の 売上', '=MIN(B2:B8)　→ 最低の 気温'], [
+      '=MAX(B2:B8)　→ the best sales',
+      '=MIN(B2:B8)　→ the lowest temperature',
+    ]),
+    tip: tr('=MAX(範囲)-MIN(範囲) で「差（ばらつき）」も わかる。', '=MAX(range)-MIN(range) tells you the spread.'),
   },
   COUNT: {
-    use: '入っている セルの 数を 数えたい とき',
-    form: '=COUNT(範囲) ／ =COUNTA(範囲)',
-    ex: ['=COUNT(B2:B10)　→ 数が 入った セルだけ 数える', '=COUNTA(A2:A10)　→ 空白 以外を ぜんぶ 数える（文字も）'],
-    tip: '名前の 列を 数えるなら COUNTA、点数の 列なら COUNT。',
+    use: tr('入っている セルの 数を 数えたい とき', 'When you want to count how many cells are filled in'),
+    form: tr('=COUNT(範囲) ／ =COUNTA(範囲)', '=COUNT(range) / =COUNTA(range)'),
+    ex: tra(['=COUNT(B2:B10)　→ 数が 入った セルだけ 数える', '=COUNTA(A2:A10)　→ 空白 以外を ぜんぶ 数える（文字も）'], [
+      '=COUNT(B2:B10)　→ counts only the cells with numbers',
+      '=COUNTA(A2:A10)　→ counts every non-blank cell (text too)',
+    ]),
+    tip: tr('名前の 列を 数えるなら COUNTA、点数の 列なら COUNT。', 'For a column of names, use COUNTA. For a column of scores, use COUNT.'),
   },
   report: {
-    use: '縦と 横の 合計が ある 集計表を 作りたい とき',
-    form: '合計の 数式を 1つ 作って オートフィル',
-    ex: ['E2 に =SUM(B2:D2)　→ 下へ コピーで 店ごとの 合計', 'B5 に =SUM(B2:B4)　→ 右へ コピーで 月ごとの 合計'],
-    tip: '数式は 1つ 作って コピー。手で 何個も 書かないのが コツ。',
+    use: tr('縦と 横の 合計が ある 集計表を 作りたい とき', 'When you want a summary table with row and column totals'),
+    form: tr('合計の 数式を 1つ 作って オートフィル', 'Build one total formula and AutoFill it'),
+    ex: tra(['E2 に =SUM(B2:D2)　→ 下へ コピーで 店ごとの 合計', 'B5 に =SUM(B2:B4)　→ 右へ コピーで 月ごとの 合計'], [
+      'In E2, =SUM(B2:D2)　→ copy it down for each shop\'s total',
+      'In B5, =SUM(B2:B4)　→ copy it right for each month\'s total',
+    ]),
+    tip: tr('数式は 1つ 作って コピー。手で 何個も 書かないのが コツ。', 'Build one formula and copy it. The trick is not to write lots of them by hand.'),
   },
   // ---------------------------------------------------------------- サンショウ
   relref: {
-    use: '同じ 計算を 下の 行へ コピーしたい とき',
-    form: 'A1 のような ふつうの 参照（$ なし）',
-    ex: ['D2 に =C2/B2 を 書いて 下へ コピー　→ D3 は =C3/B3 に なる'],
-    tip: 'コピーした 分だけ、参照も 同じ 向きに ずれる。これが ふつうの 動き。',
+    use: tr('同じ 計算を 下の 行へ コピーしたい とき', 'When you want to copy the same calculation to the rows below'),
+    form: tr('A1 のような ふつうの 参照（$ なし）', 'A normal reference like A1 (no $)'),
+    ex: tra(['D2 に =C2/B2 を 書いて 下へ コピー　→ D3 は =C3/B3 に なる'], ['Write =C2/B2 in D2 and copy it down　→ D3 becomes =C3/B3']),
+    tip: tr('コピーした 分だけ、参照も 同じ 向きに ずれる。これが ふつうの 動き。', 'References shift the same way, by however far you copy. That\'s the normal behavior.'),
   },
   absref: {
-    use: 'コピーしても 同じ セルを 見つづけたい とき',
-    form: '$E$2 のように $ を 付ける',
-    ex: ['=B2*$E$2　→ 下へ コピーしても E2（税率）は 動かない'],
-    tip: '税率・単価・合計など「1か所だけの 値」は $ で 固定。',
+    use: tr('コピーしても 同じ セルを 見つづけたい とき', 'When you want to keep looking at the same cell even after copying'),
+    form: tr('$E$2 のように $ を 付ける', 'Add $, like $E$2'),
+    ex: tra(['=B2*$E$2　→ 下へ コピーしても E2（税率）は 動かない'], ['=B2*$E$2　→ E2 (the tax rate) doesn\'t move when you copy it down']),
+    tip: tr('税率・単価・合計など「1か所だけの 値」は $ で 固定。', 'Lock "one-spot values" like a tax rate, unit price or total with $.'),
   },
   f4: {
-    use: '$ を すばやく 付けたい とき',
-    form: '数式の 中の 参照で F4 キー',
-    ex: ['A1　→ $A$1 → A$1 → $A1 → A1 と 押すたびに 変わる'],
-    tip: 'このゲームでは「F4 ($)」ボタンで 同じことが できる。',
+    use: tr('$ を すばやく 付けたい とき', 'When you want to add $ quickly'),
+    form: tr('数式の 中の 参照で F4 キー', 'Press F4 on a reference inside a formula'),
+    ex: tra(['A1　→ $A$1 → A$1 → $A1 → A1 と 押すたびに 変わる'], ['A1　→ changes $A$1 → A$1 → $A1 → A1 with each press']),
+    tip: tr('このゲームでは「F4 ($)」ボタンで 同じことが できる。', 'In this game, the "F4 ($)" button does the same thing.'),
   },
   share: {
-    use: '全体の うち 何割かを 出したい とき',
-    form: '=値/$合計$（合計を 固定して 割る）',
-    ex: ['=B2/$B$6　→ 下へ コピーしても 合計 B6 で 割りつづける', '書式を「%」に する　→ 0.25 が 25% と 見える'],
-    tip: '構成比を ぜんぶ 足すと 100%（＝1）に なる。',
+    use: tr('全体の うち 何割かを 出したい とき', 'When you want to know what fraction of the whole something is'),
+    form: tr('=値/$合計$（合計を 固定して 割る）', '=value/$total$ (lock the total and divide)'),
+    ex: tra(['=B2/$B$6　→ 下へ コピーしても 合計 B6 で 割りつづける', '書式を「%」に する　→ 0.25 が 25% と 見える'], [
+      '=B2/$B$6　→ keeps dividing by the total in B6 even when copied down',
+      'Set the format to "%"　→ 0.25 shows as 25%',
+    ]),
+    tip: tr('構成比を ぜんぶ 足すと 100%（＝1）に なる。', 'All the shares add up to 100% (= 1).'),
   },
   mixref: {
-    use: '縦にも 横にも コピーする 表を 1つの 式で 作りたい とき',
-    form: '$A2（列だけ 固定）／ B$1（行だけ 固定）',
-    ex: ['九九の 表：B2 に =$A2*B$1　→ 右にも 下にも コピーで 完成'],
-    tip: '$ の 付いた ほうが 固定。列を 固定するなら 英字の 前に $。',
+    use: tr('縦にも 横にも コピーする 表を 1つの 式で 作りたい とき', 'When you want one formula for a table you copy both across and down'),
+    form: tr('$A2（列だけ 固定）／ B$1（行だけ 固定）', '$A2 (lock the column only) / B$1 (lock the row only)'),
+    ex: tra(['九九の 表：B2 に =$A2*B$1　→ 右にも 下にも コピーで 完成'], ['Times table: =$A2*B$1 in B2　→ copy it right and down, and it\'s done']),
+    tip: tr('$ の 付いた ほうが 固定。列を 固定するなら 英字の 前に $。', 'The part with $ is locked. To lock the column, put $ before the letter.'),
   },
   round: {
-    use: '端数を 四捨五入したい とき',
-    form: '=ROUND(数値, けた数)',
-    ex: ['=ROUND(123.456, 0)　→ 123', '=ROUND(123.456, 1)　→ 123.5', '=ROUND(B2*1.1, 0)　→ 税込額を 整数に'],
-    tip: '切り捨ては ROUNDDOWN、切り上げは ROUNDUP。',
+    use: tr('端数を 四捨五入したい とき', 'When you want to round off fractions'),
+    form: tr('=ROUND(数値, けた数)', '=ROUND(number, digits)'),
+    ex: tra(['=ROUND(123.456, 0)　→ 123', '=ROUND(123.456, 1)　→ 123.5', '=ROUND(B2*1.1, 0)　→ 税込額を 整数に'], [
+      '=ROUND(123.456, 0)　→ 123',
+      '=ROUND(123.456, 1)　→ 123.5',
+      '=ROUND(B2*1.1, 0)　→ the price with tax as a whole number',
+    ]),
+    tip: tr('切り捨ては ROUNDDOWN、切り上げは ROUNDUP。', 'Use ROUNDDOWN to round down and ROUNDUP to round up.'),
   },
   // ---------------------------------------------------------------- イフポート
   compare: {

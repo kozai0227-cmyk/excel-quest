@@ -1,5 +1,6 @@
 import { formatValue, makeGrid, parseAddr, usesFn, type Grid, type Value } from '../game/formula'
 import type { ItemId } from '../game/types'
+import { tr, tra } from '../game/lang'
 
 export interface CheckCtx {
   v(a: string): Value
@@ -67,25 +68,25 @@ export function makeCtx(grid: Grid, values: Value[][], actions: Set<string>): Ch
 
 const isN = (v: Value, n: number) => typeof v === 'number' && Math.abs(v - n) < 1e-9
 
-const BAD_OP = '「≧ ≦ ≠」は 数式では 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。'
+const BAD_OP = tr('「≧ ≦ ≠」は 数式では 使えない。以上は >=、以下は <=、等しくないは <> と 書こう。', "You can't use ≧ ≦ ≠ in formulas. Write >= for at least, <= for at most, and <> for not equal.")
 
 /** 数値の期待値チェック。数式必須なら mustUse を指定 */
 /** vague=true は 謎解き用（解き方の名前を 出さない） */
 function expectNum(ctx: CheckCtx, a: string, n: number, mustUse?: string, label = a, vague = false): string | null {
   const v = ctx.v(a)
   const raw = ctx.raw(a)
-  if (raw === '') return `${label} がまだ空っぽだ。`
+  if (raw === '') return tr(`${label} がまだ空っぽだ。`, `${label} is still empty.`)
   if (/[≧≦≠]/.test(raw)) return BAD_OP
-  if (typeof v === 'object' && v !== null) return `${label} が エラー（${v.error}）になっている。数式を見直そう。`
-  if (!isN(v, n)) return `${label} の値（${v}）が正しくないようだ。`
+  if (typeof v === 'object' && v !== null) return tr(`${label} が エラー（${v.error}）になっている。数式を見直そう。`, `${label} shows an error (${v.error}). Check the formula.`)
+  if (!isN(v, n)) return tr(`${label} の値（${v}）が正しくないようだ。`, `The value in ${label} (${v}) doesn't look right.`)
   if (mustUse === 'formula' && !raw.startsWith('='))
     return vague
-      ? `${label} の値は 合っているが……扉は 反応しない。数字を そのまま 書いただけでは ダメなようだ。`
-      : `${label} は値は合っているけど、数式ではなく直接入力されている。数式で計算しよう。`
+      ? tr(`${label} の値は 合っているが……扉は 反応しない。数字を そのまま 書いただけでは ダメなようだ。`, `The value in ${label} is right, but... the door doesn't react. Just writing the number won't do.`)
+      : tr(`${label} は値は合っているけど、数式ではなく直接入力されている。数式で計算しよう。`, `${label} has the right value, but it was typed in directly. Calculate it with a formula.`)
   if (mustUse && mustUse !== 'formula' && !usesFn(raw, mustUse))
     return vague
-      ? `${label} の値は 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。`
-      : `${label} は値は合っている！ でも ${mustUse} 関数を使って求めてみよう。`
+      ? tr(`${label} の値は 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。`, `The value in ${label} is right, but... the door doesn't react. There seems to be a rule about how to get it.`)
+      : tr(`${label} は値は合っている！ でも ${mustUse} 関数を使って求めてみよう。`, `${label} has the right value! But try using the ${mustUse} function.`)
   return null
 }
 /** 謎解き用の判定（ヒントなし） */
@@ -95,33 +96,53 @@ const first = (...xs: (string | null)[]) => xs.find((x) => x !== null) ?? null
 
 // ---------------------------------------------------------------- セルノ
 const SALES = [1200, 980, 1540, 1320, 870, 2010, 1780, 1100, 1450, 1630]
-const SCORES: [string, number][] = [
-  ['プルお', 72],
-  ['タケ吉', 85],
-  ['ゴレム', 60],
-  ['キメリ', 94],
-  ['ベホマ', 78],
-  ['ピカ坊', 100],
-  ['ヒラリン', 66],
-  ['ぶちスラ', 81],
-]
-const FISH: [string, number][] = [
-  ['月', 23],
-  ['火', 41],
-  ['水', 17],
-  ['木', 35],
-  ['金', 52],
-  ['土', 28],
-  ['日', 39],
-]
-const GUESTS: (number | string)[] = [5, 8, '休み', 6, '', 9, '休み', 4, 7, 3]
-const TAX = [
-  ['店', '1月', '2月', '3月', '合計'],
-  ['武器屋', 320, 410, 380, ''],
-  ['パン屋', 150, 170, 160, ''],
-  ['宿屋', 240, 220, 300, ''],
-  ['合計', '', '', '', ''],
-]
+const SCORES: [string, number][] = tra<[string, number][]>(
+  [
+    ['プルお', 72],
+    ['タケ吉', 85],
+    ['ゴレム', 60],
+    ['キメリ', 94],
+    ['ベホマ', 78],
+    ['ピカ坊', 100],
+    ['ヒラリン', 66],
+    ['ぶちスラ', 81],
+  ],
+  [
+    ['Puruo', 72],
+    ['Takekichi', 85],
+    ['Golemu', 60],
+    ['Kimeri', 94],
+    ['Behoma', 78],
+    ['Pikabo', 100],
+    ['Hirarin', 66],
+    ['Buchisura', 81],
+  ],
+)
+const FISH_DAYS = tra(['月', '火', '水', '木', '金', '土', '日'], ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+const FISH: [string, number][] = [23, 41, 17, 35, 52, 28, 39].map((n, i) => [FISH_DAYS[i], n])
+const CLOSED = tr('休み', 'Closed')
+const GUESTS: (number | string)[] = [5, 8, CLOSED, 6, '', 9, CLOSED, 4, 7, 3]
+const TAX = tra<(string | number)[][]>(
+  [
+    ['店', '1月', '2月', '3月', '合計'],
+    ['武器屋', 320, 410, 380, ''],
+    ['パン屋', 150, 170, 160, ''],
+    ['宿屋', 240, 220, 300, ''],
+    ['合計', '', '', '', ''],
+  ],
+  [
+    ['Shop', 'Jan', 'Feb', 'Mar', 'Total'],
+    ['Weapons', 320, 410, 380, ''],
+    ['Bakery', 150, 170, 160, ''],
+    ['Inn', 240, 220, 300, ''],
+    ['Total', '', '', '', ''],
+  ],
+)
+/** 月の 名前（暦の 依頼） */
+const MONTHS = tra(
+  Array.from({ length: 12 }, (_, i) => `${i + 1}月`),
+  ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+)
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
 
 export const QUESTS: Record<string, QuestDef> = {
@@ -129,195 +150,326 @@ export const QUESTS: Record<string, QuestDef> = {
     id: 'celuno_input',
     town: 'celuno',
     npc: '羊飼いのメェル',
-    title: 'ヒツジの記録',
-    intro: [
+    title: tr('ヒツジの記録', 'Sheep Log'),
+    intro: tra([
       'メェ〜……あっ、ごめんなさい。ヒツジと しゃべりすぎて、口ぐせが うつっちゃって。',
       '羊飼いのメェルです。毎日 ヒツジの数を「表」に記録してるんだけど、呪いのせいで 今日の分が 書き込めないの。',
       '今日数えたのは 朝12頭、昼8頭、夕方15頭。かわりに 入力してくれる？ ……メェ。',
-    ],
-    task: ['B2 に 12、B3 に 8、B4 に 15 を入力しよう', 'セルをクリック → 数字を打つ → Enter で確定（下のセルへ移動）'],
+    ], [
+      'Baa... oh, sorry. I talk to my sheep so much that I picked up their way of talking.',
+      'I\'m Meel the shepherd. I record how many sheep I have in a table every day, but because of the curse, I can\'t enter today\'s numbers.',
+      'Today I counted 12 in the morning, 8 at noon, and 15 in the evening. Could you enter them for me? ...Baa.',
+    ]),
+    task: tra(['B2 に 12、B3 に 8、B4 に 15 を入力しよう', 'セルをクリック → 数字を打つ → Enter で確定（下のセルへ移動）'], [
+      'Enter 12 in B2, 8 in B3, and 15 in B4',
+      'Click a cell → type the number → press Enter to confirm (you move to the cell below)',
+    ]),
     grid: () =>
-      makeGrid(6, 4, [['時間帯', 'ヒツジの数'], ['朝'], ['昼'], ['夕方']]),
+      makeGrid(6, 4, tra([['時間帯', 'ヒツジの数'], ['朝'], ['昼'], ['夕方']], [['Time', 'Sheep'], ['Morning'], ['Noon'], ['Evening']])),
     colWidths: [80, 110],
-    hints: [
+    hints: tra([
       '入力したいセルを クリックして選ぼう。',
       '数字を打ったら Enter で確定。自動で1つ下のセルに移るよ。',
       'B2をクリック → 12 → Enter → 8 → Enter → 15 → Enter',
-    ],
+    ], [
+      'Click the cell you want to fill in to select it.',
+      'After typing a number, press Enter to confirm. You automatically move down one cell.',
+      'Click B2 → 12 → Enter → 8 → Enter → 15 → Enter',
+    ]),
     check: (c) => first(expectNum(c, 'B2', 12), expectNum(c, 'B3', 8), expectNum(c, 'B4', 15)),
     reward: { exp: 20, gold: 20, skill: 'input' },
-    thanks: ['わぁ、ありがとメェ〜！ ……あ、また言っちゃった。', '表に入れておけば、あとで合計も 平均も 一瞬で出せるんだって。ヒツジたちも 喜んでるよ。'],
+    thanks: tra(['わぁ、ありがとメェ〜！ ……あ、また言っちゃった。', '表に入れておけば、あとで合計も 平均も 一瞬で出せるんだって。ヒツジたちも 喜んでるよ。'], [
+      'Yay, thank you, baa~! ...Oops, there I go again.',
+      'They say once it\'s in a table, you can get the total and the average in an instant. My sheep are happy too.',
+    ]),
   },
 
   celuno_fix: {
     id: 'celuno_fix',
     town: 'celuno',
     npc: '道具屋のリコ',
-    title: '値札の修正',
-    intro: [
+    title: tr('値札の修正', 'Fix the Price List'),
+    intro: tra([
       'いらっしゃいませーっ！ ……って、お客さんじゃないの？ でも ちょうどいいわ！',
       'うちの値札表、呪いで めちゃくちゃなの！ やくそうが 80ゴールドって、ぼったくりじゃない！',
       'しかも「どうのつるぎ」が「どうのつるき」になってるし！ 正しくは やくそう 8ゴールド、名前は どうのつるぎ。直してくれる？',
-    ],
-    task: ['B3 の 80 を 8 に直そう（選んでそのまま入力＝上書き）', 'A4 を「どうのつるぎ」に直そう（F2 かダブルクリックで一部だけ修正）'],
+    ], [
+      'Welcome! ...Oh, you\'re not a customer? Well, good timing anyway!',
+      'The curse scrambled my price list! A Herb for 80 gold? That\'s highway robbery!',
+      'And "Copper Sword" is spelled "Copper Swrod"! It should be Herb for 8 gold, and the name is Copper Sword. Can you fix it?',
+    ]),
+    task: tra(['B3 の 80 を 8 に直そう（選んでそのまま入力＝上書き）', 'A4 を「どうのつるぎ」に直そう（F2 かダブルクリックで一部だけ修正）'], [
+      'Change the 80 in B3 to 8 (select it and just type = overwrite)',
+      'Fix A4 to say "Copper Sword" (press F2 or double-click to edit just part of it)',
+    ]),
     grid: () =>
-      makeGrid(7, 3, [
-        ['しなもの', 'ねだん'],
-        ['こんぼう', 30],
-        ['やくそう', 80],
-        ['どうのつるき', 100],
-        ['たびびとのふく', 70],
-      ]),
+      makeGrid(
+        7,
+        3,
+        tra<(string | number)[][]>(
+          [
+            ['しなもの', 'ねだん'],
+            ['こんぼう', 30],
+            ['やくそう', 80],
+            ['どうのつるき', 100],
+            ['たびびとのふく', 70],
+          ],
+          [
+            ['Item', 'Price'],
+            ['Club', 30],
+            ['Herb', 80],
+            ['Copper Swrod', 100],
+            ["Traveler's Clothes", 70],
+          ],
+        ),
+      ),
     colWidths: [140, 80],
-    hints: [
+    hints: tra([
       'セルを選んで そのまま入力すると、中身がまるごと上書きされるよ。',
       '文字の一部だけ直したいときは、F2キー（またはダブルクリック）で編集モードに入ろう。',
       'A4 をダブルクリック → 最後の「き」を消して「ぎ」 → Enter',
-    ],
+    ], [
+      'If you select a cell and just start typing, its contents are completely overwritten.',
+      'To fix only part of the text, press F2 (or double-click) to enter edit mode.',
+      'Double-click A4 → change "Swrod" to "Sword" → Enter',
+    ]),
     check: (c) =>
       first(
         expectNum(c, 'B3', 8),
-        c.raw('A4').trim() === 'どうのつるぎ' ? null : 'A4 がまだ「どうのつるぎ」になっていない。',
+        c.raw('A4').trim() === tr('どうのつるぎ', 'Copper Sword') ? null : tr('A4 がまだ「どうのつるぎ」になっていない。', 'A4 doesn\'t say "Copper Sword" yet.'),
       ),
     reward: { exp: 20, gold: 20, skill: 'edit' },
-    thanks: ['カンペキ！ これで「信用第一のリコ商店」に 元どおりね！', '今度 お店に来たら、ちょっとだけ おまけしちゃうかも？ ふふっ。'],
+    thanks: tra(['カンペキ！ これで「信用第一のリコ商店」に 元どおりね！', '今度 お店に来たら、ちょっとだけ おまけしちゃうかも？ ふふっ。'], [
+      'Perfect! Now "Riko\'s Shop, Where Trust Comes First" is back to normal!',
+      'Next time you visit, I might throw in a little something extra. Hehe.',
+    ]),
   },
 
   celuno_copy: {
     id: 'celuno_copy',
     town: 'celuno',
     npc: '見張りのガード',
-    title: '当番表の書き写し',
-    intro: [
+    title: tr('当番表の書き写し', 'Copy the Duty Roster'),
+    intro: tra([
       'はっ！ 見張りのガードで あります！',
       '来週分の 見張り当番表を 書き写す任務を 命じられたので あります。しかし 一字一句 手で写すのは……正直、骨が折れるで あります！',
       '左の表（A1:B4）を、そっくりそのまま D1 から始まる場所に 写してほしいで あります！',
-    ],
-    task: ['A1 から B4 までドラッグして範囲選択', 'Ctrl+C（Macは ⌘+C）でコピー', 'D1 を選んで Ctrl+V（⌘+V）で貼り付け'],
+    ], [
+      'Sir! Gard the watchman, reporting, sir!',
+      'I\'ve been ordered to copy next week\'s watch roster. But copying it word for word by hand is... honestly, backbreaking work, sir!',
+      'Please copy the table on the left (A1:B4) exactly as it is, starting at D1, sir!',
+    ]),
+    task: tra(['A1 から B4 までドラッグして範囲選択', 'Ctrl+C（Macは ⌘+C）でコピー', 'D1 を選んで Ctrl+V（⌘+V）で貼り付け'], [
+      'Drag from A1 to B4 to select the range',
+      'Press Ctrl+C (⌘+C on a Mac) to copy',
+      'Select D1 and press Ctrl+V (⌘+V) to paste',
+    ]),
     grid: () =>
-      makeGrid(6, 5, [
-        ['曜日', '当番'],
-        ['月', 'ガード'],
-        ['火', 'ラルク'],
-        ['水', 'ミナ'],
-      ]),
+      makeGrid(
+        6,
+        5,
+        tra(
+          [
+            ['曜日', '当番'],
+            ['月', 'ガード'],
+            ['火', 'ラルク'],
+            ['水', 'ミナ'],
+          ],
+          [
+            ['Day', 'On Duty'],
+            ['Mon', 'Gard'],
+            ['Tue', 'Lark'],
+            ['Wed', 'Mina'],
+          ],
+        ),
+      ),
     colWidths: [60, 80, 30, 60, 80],
-    hints: [
+    hints: tra([
       'マウスで A1 から B4 までドラッグすると、四角く選べる。',
       '選んだまま Ctrl+C。点線で囲まれたらコピー完了。',
       'D1 をクリックして Ctrl+V。左上をD1に合わせて貼り付けられる。',
-    ],
+    ], [
+      'Drag from A1 to B4 with the mouse to select a rectangle.',
+      'With it selected, press Ctrl+C. When a dotted line surrounds it, it\'s copied.',
+      'Click D1 and press Ctrl+V. It pastes with D1 as the top-left corner.',
+    ]),
     check: (c) => {
       for (const [src, dst] of [
         ['A1', 'D1'], ['B1', 'E1'], ['A2', 'D2'], ['B2', 'E2'],
         ['A3', 'D3'], ['B3', 'E3'], ['A4', 'D4'], ['B4', 'E4'],
       ])
-        if (c.raw(src) !== c.raw(dst)) return `${dst} が ${src} と同じになっていない。`
-      if (!c.actions.has('paste')) return '書き写せてはいるが……手で打ったで ありますな？ Ctrl+C → Ctrl+V で 頼むで あります！'
+        if (c.raw(src) !== c.raw(dst)) return tr(`${dst} が ${src} と同じになっていない。`, `${dst} doesn't match ${src}.`)
+      if (!c.actions.has('paste')) return tr('書き写せてはいるが……手で打ったで ありますな？ Ctrl+C → Ctrl+V で 頼むで あります！', "It's copied, but... you typed it by hand, didn't you, sir? Please use Ctrl+C → Ctrl+V, sir!")
       return null
     },
     reward: { exp: 25, gold: 25, skill: 'copy' },
-    thanks: ['おおっ……一瞬で！ これが コピー＆貼り付けの魔法で ありますか！', '任務完了で あります！ 北の結界の 見張りに 戻るで あります！'],
+    thanks: tra(['おおっ……一瞬で！ これが コピー＆貼り付けの魔法で ありますか！', '任務完了で あります！ 北の結界の 見張りに 戻るで あります！'], [
+      'Whoa... in an instant! So this is the magic of copy and paste, sir!',
+      'Mission complete, sir! Returning to my post watching the northern barrier, sir!',
+    ]),
   },
 
   celuno_undo: {
     id: 'celuno_undo',
     town: 'celuno',
     npc: '書記のペン',
-    title: '消えた税の記録',
-    intro: [
+    title: tr('消えた税の記録', 'The Lost Tax Records'),
+    intro: tra([
       'た、た、たいへんです！ む、村の 税の記録を……うっかり 消してしまいましたぁ！',
       'ちょ、長老さまに 知られたら……ぼ、ぼく、クビです……！',
       'た、旅の方！ なんとか 元に戻せませんか！？',
-    ],
-    task: ['Ctrl+Z（Macは ⌘+Z）で、直前の操作を元に戻そう'],
+    ], [
+      'Th-th-this is a disaster! I a-accidentally deleted the village tax records!',
+      'I-if the Elder finds out... I-I\'ll be fired...!',
+      'Tr-traveler! Is there any way to get them back?!',
+    ]),
+    task: tra(['Ctrl+Z（Macは ⌘+Z）で、直前の操作を元に戻そう'], ['Press Ctrl+Z (⌘+Z on a Mac) to undo the last action']),
     grid: () =>
-      makeGrid(7, 2, [['名前', '税（G）'], ['メェル'], ['リコ'], ['ガード'], ['ペン']]),
+      makeGrid(7, 2, tra([['名前', '税（G）'], ['メェル'], ['リコ'], ['ガード'], ['ペン']], [['Name', 'Tax (G)'], ['Meel'], ['Riko'], ['Gard'], ['Pen']])),
     history: () => [
-      makeGrid(7, 2, [
-        ['名前', '税（G）'],
-        ['メェル', 12],
-        ['リコ', 30],
-        ['ガード', 25],
-        ['ペン', 8],
-      ]),
+      makeGrid(
+        7,
+        2,
+        tra<(string | number)[][]>(
+          [
+            ['名前', '税（G）'],
+            ['メェル', 12],
+            ['リコ', 30],
+            ['ガード', 25],
+            ['ペン', 8],
+          ],
+          [
+            ['Name', 'Tax (G)'],
+            ['Meel', 12],
+            ['Riko', 30],
+            ['Gard', 25],
+            ['Pen', 8],
+          ],
+        ),
+      ),
     ],
     colWidths: [100, 90],
-    hints: [
+    hints: tra([
       '表計算ソフトには「さっきの操作を取り消す」魔法がある。',
       'キーボードの Ctrl を押しながら Z。Macなら ⌘ + Z。',
       'ツールバーの ↶ ボタンでも 元に戻せるよ。',
-    ],
+    ], [
+      'Spreadsheets have a magic spell that cancels your last action.',
+      'Hold Ctrl on the keyboard and press Z. On a Mac, ⌘ + Z.',
+      'You can also undo with the ↶ button on the toolbar.',
+    ]),
     check: (c) =>
       first(
         expectNum(c, 'B2', 12),
         expectNum(c, 'B3', 30),
         expectNum(c, 'B4', 25),
         expectNum(c, 'B5', 8),
-        c.actions.has('undo') ? null : '数字は合っていますが……Ctrl+Z を使えば一瞬ですよ！',
+        c.actions.has('undo') ? null : tr('数字は合っていますが……Ctrl+Z を使えば一瞬ですよ！', 'The numbers are right... but Ctrl+Z would do it in an instant!'),
       ),
     reward: { exp: 20, gold: 20, skill: 'undo', item: 'sandglass' },
-    thanks: ['も、戻った……！ い、命拾いしました……！', 'お、お礼に この「Ctrl+Zのすなどけい」を どうぞ。戦いで ミスを 1回だけ なかったことに できますよ。'],
+    thanks: tra(['も、戻った……！ い、命拾いしました……！', 'お、お礼に この「Ctrl+Zのすなどけい」を どうぞ。戦いで ミスを 1回だけ なかったことに できますよ。'], [
+      'Th-they\'re back...! You saved my life...!',
+      'P-please take this "Ctrl+Z Hourglass" as thanks. In battle, it undoes one mistake.',
+    ]),
   },
 
   celuno_fill: {
     id: 'celuno_fill',
     town: 'celuno',
     npc: '暦のおばば トキ',
-    title: '来年の暦',
-    intro: [
+    title: tr('来年の暦', 'Next Year\'s Calendar'),
+    intro: tra([
       'ふぉっふぉ。わしは この村の 暦（こよみ）係じゃ。',
       '来年の暦表を作りたいのじゃが、1月から12月まで書くのも、番号をふるのも 骨が折れてのう。',
       '「オートフィル」という魔法があれば 一瞬なんじゃが……おぬし、使えるかの？',
-    ],
-    task: [
+    ], [
+      'Ho ho. I\'m this village\'s calendar keeper.',
+      'I want to make next year\'s calendar, but writing January through December and numbering everything is such a chore.',
+      'If only I had the magic called "AutoFill," it would take no time at all... Can you use it, dearie?',
+    ]),
+    task: tra([
       'A2:A3 を選んで、右下の■（フィルハンドル）を A13 までドラッグ → 1〜12 の連番に',
       'B2 を選んで、■を B13 までドラッグ → 1月〜12月に',
-    ],
-    grid: () => makeGrid(15, 3, [['No', '月', '行事'], [1, '1月', '新年祭'], [2]]),
+    ], [
+      'Select A2:A3 and drag the ■ at the bottom right (the fill handle) down to A13 → numbers 1 to 12',
+      'Select B2 and drag the ■ down to B13 → Jan to Dec',
+    ]),
+    grid: () => makeGrid(15, 3, tra<(string | number)[][]>([['No', '月', '行事'], [1, '1月', '新年祭'], [2]], [['No', 'Month', 'Event'], [1, 'Jan', 'New Year Fest'], [2]])),
     colWidths: [50, 70, 110],
-    hints: [
+    hints: tra([
       '選んだ範囲の右下にある 小さな■が「フィルハンドル」じゃ。',
       '数字は 2つ並べて選んでからドラッグすると、差の分だけ増える連番になる。1つだけだと ただのコピーじゃ。',
       '「1月」のような文字は、1つ選んで ドラッグするだけで 2月、3月…と続いていくぞい。',
-    ],
+    ], [
+      'The little ■ at the bottom right of a selection is the "fill handle."',
+      'Select two numbers before you drag, and they count up by the difference. With just one, it only copies.',
+      'Text like "Jan" continues Feb, Mar... just by selecting it and dragging, dearie.',
+    ]),
     check: (c) => {
       for (let i = 1; i <= 12; i++) {
         const e = expectNum(c, `A${i + 1}`, i)
         if (e) return e
-        if (c.raw(`B${i + 1}`) !== `${i}月`) return `B${i + 1} が「${i}月」になっていない。`
+        if (c.raw(`B${i + 1}`) !== MONTHS[i - 1]) return tr(`B${i + 1} が「${i}月」になっていない。`, `B${i + 1} doesn't say "${MONTHS[i - 1]}" yet.`)
       }
-      if (!c.actions.has('fill')) return 'できておるが……手で打ったのう？ フィルハンドルを使ってみるのじゃ。'
+      if (!c.actions.has('fill')) return tr('できておるが……手で打ったのう？ フィルハンドルを使ってみるのじゃ。', "It's done... but you typed it by hand, didn't you? Try using the fill handle, dearie.")
       return null
     },
     reward: { exp: 30, gold: 30, skill: 'autofill' },
-    thanks: ['ほっほう！ 見事な暦じゃ。', '面倒な作業ほど、表計算に まかせるのが 賢い者のやり方じゃよ。'],
+    thanks: tra(['ほっほう！ 見事な暦じゃ。', '面倒な作業ほど、表計算に まかせるのが 賢い者のやり方じゃよ。'], [
+      'Ho ho! What a splendid calendar.',
+      'The more tedious the task, the wiser it is to leave it to the spreadsheet.',
+    ]),
   },
 
   celuno_bold: {
     id: 'celuno_bold',
     town: 'celuno',
     npc: '看板職人ボルド',
-    title: '見出しを目立たせろ',
-    intro: [
+    title: tr('見出しを目立たせろ', 'Make the Headings Stand Out'),
+    intro: tra([
       'おう、あんちゃん。オレぁ 看板職人の ボルドってんだ。',
       '看板用の 品書きを 作ったんだがよ、「どこが見出しか わからねえ」って 言われちまってな。',
       '見出しの行（A1:C1）を 太字にして、ビシッと 目立たせてくんな！',
-    ],
-    task: ['A1:C1 を範囲選択', 'Ctrl+B（⌘+B）か、ツールバーの［B］で太字に'],
+    ], [
+      'Hey there, pal. Name\'s Bold. I make signs.',
+      'I made a menu board for a sign, but folks say they can\'t tell where the headings are.',
+      'Make the heading row (A1:C1) bold so it really pops!',
+    ]),
+    task: tra(['A1:C1 を範囲選択', 'Ctrl+B（⌘+B）か、ツールバーの［B］で太字に'], [
+      'Select the range A1:C1',
+      'Make it bold with Ctrl+B (⌘+B) or the [B] button on the toolbar',
+    ]),
     grid: () =>
-      makeGrid(6, 3, [
-        ['品名', '値段', '在庫'],
-        ['やくそう', 8, 20],
-        ['どくけしそう', 10, 15],
-        ['ワープのはね', 25, 5],
-      ]),
+      makeGrid(
+        6,
+        3,
+        tra<(string | number)[][]>(
+          [
+            ['品名', '値段', '在庫'],
+            ['やくそう', 8, 20],
+            ['どくけしそう', 10, 15],
+            ['ワープのはね', 25, 5],
+          ],
+          [
+            ['Item', 'Price', 'Stock'],
+            ['Herb', 8, 20],
+            ['Antidote', 10, 15],
+            ['Warp Wing', 25, 5],
+          ],
+        ),
+      ),
     colWidths: [130, 70, 70],
-    hints: ['A1 から C1 まで ドラッグして選ぼう。', 'Ctrl を押しながら B（Bold＝太字）。もう一度押すと元に戻る。'],
+    hints: tra(['A1 から C1 まで ドラッグして選ぼう。', 'Ctrl を押しながら B（Bold＝太字）。もう一度押すと元に戻る。'], [
+      'Drag from A1 to C1 to select it.',
+      'Hold Ctrl and press B (B for Bold). Press it again to undo it.',
+    ]),
     check: (c) =>
-      ['A1', 'B1', 'C1'].every((a) => c.bold(a)) ? null : '見出し（A1:C1）が まだ全部 太字になっていない。',
+      ['A1', 'B1', 'C1'].every((a) => c.bold(a)) ? null : tr('見出し（A1:C1）が まだ全部 太字になっていない。', "The headings (A1:C1) aren't all bold yet."),
     reward: { exp: 20, gold: 20, skill: 'bold' },
-    thanks: ['てやんでえ、見違えたぜ！', '見た目も 立派な「伝わる力」よ。あんちゃん、いい仕事するじゃねえか。'],
+    thanks: tra(['てやんでえ、見違えたぜ！', '見た目も 立派な「伝わる力」よ。あんちゃん、いい仕事するじゃねえか。'], [
+      'Well, I\'ll be! Looks like a whole new board!',
+      'Looks are part of getting the message across. You do good work, pal.',
+    ]),
   },
 
   // ---------------------------------------------------------------- カルキュレ
@@ -325,27 +477,51 @@ export const QUESTS: Record<string, QuestDef> = {
     id: 'calc_arith',
     town: 'calculet',
     npc: '武器屋ガンテツ',
-    title: '注文書の小計',
-    intro: [
+    title: tr('注文書の小計', 'Order Form Subtotals'),
+    intro: tra([
       'へいらっしゃい！……と言いてえところだが、注文書の計算が 合わねえんだ。',
       '単価×数量で 小計を出したいんだが、手で計算したら 全部まちがえちまってな。',
       'D列に「=B2*C2」みてえな 数式を入れて、D5まで 出してくれ！',
-    ],
-    task: ['D2 に =B2*C2 と入力（掛け算は *）', 'D2 を選んで、フィルハンドルで D5 までオートフィル'],
+    ], [
+      'Welcome! ...is what I\'d like to say, but the math on my order form doesn\'t add up.',
+      'I want subtotals from price × quantity, but I worked them out by hand and got every one wrong.',
+      'Put a formula like "=B2*C2" in column D and fill it down to D5!',
+    ]),
+    task: tra(['D2 に =B2*C2 と入力（掛け算は *）', 'D2 を選んで、フィルハンドルで D5 までオートフィル'], [
+      'Enter =B2*C2 in D2 (multiply with *)',
+      'Select D2 and AutoFill down to D5 with the fill handle',
+    ]),
     grid: () =>
-      makeGrid(7, 4, [
-        ['品名', '単価', '数量', '小計'],
-        ['どうのつるぎ', 100, 3],
-        ['かわのたて', 70, 2],
-        ['てつのかぶと', 180, 1],
-        ['せいなるナイフ', 200, 4],
-      ]),
+      makeGrid(
+        7,
+        4,
+        tra<(string | number)[][]>(
+          [
+            ['品名', '単価', '数量', '小計'],
+            ['どうのつるぎ', 100, 3],
+            ['かわのたて', 70, 2],
+            ['てつのかぶと', 180, 1],
+            ['せいなるナイフ', 200, 4],
+          ],
+          [
+            ['Item', 'Price', 'Qty', 'Subtotal'],
+            ['Copper Sword', 100, 3],
+            ['Leather Shield', 70, 2],
+            ['Iron Helm', 180, 1],
+            ['Holy Knife', 200, 4],
+          ],
+        ),
+      ),
     colWidths: [130, 70, 60, 80],
-    hints: [
+    hints: tra([
       '数式は「=」から始めるのが ルールだ。',
       '掛け算は × じゃなくて *（アスタリスク）。割り算は /。',
       'D2 に =B2*C2 → Enter。D2を選んで 右下の■を D5 まで引っぱると、B3*C3… と自動でずれてくれる。',
-    ],
+    ], [
+      'Formulas always start with "=". That\'s the rule.',
+      'Multiply with * (an asterisk), not ×. Divide with /.',
+      'Type =B2*C2 in D2 → Enter. Select D2 and drag the ■ at its bottom right down to D5, and it shifts to B3*C3... automatically.',
+    ]),
     check: (c) =>
       first(
         expectNum(c, 'D2', 300, 'formula'),
@@ -354,126 +530,194 @@ export const QUESTS: Record<string, QuestDef> = {
         expectNum(c, 'D5', 800, 'formula'),
       ),
     reward: { exp: 30, gold: 30, skill: 'arith' },
-    thanks: ['すげえ！ 数字を変えても 小計が勝手に変わるじゃねえか！', 'これが「数式」ってやつか。もう そろばんは いらねえな。'],
+    thanks: tra(['すげえ！ 数字を変えても 小計が勝手に変わるじゃねえか！', 'これが「数式」ってやつか。もう そろばんは いらねえな。'], [
+      'Amazing! Change the numbers and the subtotals update by themselves!',
+      'So this is a "formula." Guess I don\'t need my abacus anymore.',
+    ]),
   },
 
   calc_sum: {
     id: 'calc_sum',
     town: 'calculet',
     npc: 'パン屋のマーサ',
-    title: '売上の合計',
-    intro: [
+    title: tr('売上の合計', 'Total Sales'),
+    intro: tra([
       'いらっしゃい。……ごめんね、ちょっと 疲れてて。',
       '毎晩 10日分の売上を そろばんで足してたら、腰を痛めちゃってねぇ。',
       'B12 に 売上の合計を 出してくれないかい？',
-    ],
-    task: ['B12 に =SUM(B2:B11) を入れて合計を出そう', '「=SUM(」まで打ったら、B2:B11 をドラッグで指定してもOK'],
+    ], [
+      'Welcome. ...Sorry, I\'m a little tired.',
+      'Every night I add up ten days of sales on my abacus, and I\'ve hurt my back doing it.',
+      'Could you put the sales total in B12 for me?',
+    ]),
+    task: tra(['B12 に =SUM(B2:B11) を入れて合計を出そう', '「=SUM(」まで打ったら、B2:B11 をドラッグで指定してもOK'], [
+      'Put =SUM(B2:B11) in B12 to get the total',
+      'After typing "=SUM(", you can also drag across B2:B11 to fill in the range',
+    ]),
     grid: () =>
-      makeGrid(13, 2, [['日付', '売上（G）'], ...SALES.map((s, i) => [`${i + 1}日`, s]), ['合計']]),
+      makeGrid(13, 2, [tra(['日付', '売上（G）'], ['Date', 'Sales (G)']), ...SALES.map((s, i) => [tr(`${i + 1}日`, `Day ${i + 1}`), s]), [tr('合計', 'Total')]]),
     colWidths: [70, 100],
-    hints: [
+    hints: tra([
       '「=SUM(」と打ってから、合計したい範囲を マウスでドラッグすると 自動で入るよ。',
       '範囲は「始まりのセル:終わりのセル」と書くの。例：B2:B11',
       'B12 に =SUM(B2:B11) → Enter',
-    ],
+    ], [
+      'Type "=SUM(" and then drag across the range you want to add up. It fills in automatically.',
+      'A range is written as "first cell:last cell." For example, B2:B11',
+      'Type =SUM(B2:B11) in B12 → Enter',
+    ]),
     check: (c) => expectNum(c, 'B12', sum(SALES), 'SUM'),
     reward: { exp: 30, gold: 30, skill: 'SUM' },
-    thanks: ['まあ！ 一瞬で合計が！', 'これなら 来月も 数字を入れるだけで いいのね。お礼に 焼きたてのパンを どうぞ。'],
+    thanks: tra(['まあ！ 一瞬で合計が！', 'これなら 来月も 数字を入れるだけで いいのね。お礼に 焼きたてのパンを どうぞ。'], [
+      'My! The total in an instant!',
+      'Next month I just have to enter the numbers. Please, take some freshly baked bread as thanks.',
+    ]),
   },
 
   calc_average: {
     id: 'calc_average',
     town: 'calculet',
     npc: '先生ミネルバ',
-    title: 'テストの平均点',
-    intro: [
+    title: tr('テストの平均点', 'Test Average'),
+    intro: tra([
       'ごきげんよう。わたくし、この町の モンスター学校で 教えております ミネルバですわ。',
       'テストの平均点を 出したいのですけれど、足して 人数で割って……と やっているうちに 計算ミスばかり。',
       'B10 に 平均点を 出していただけるかしら？',
-    ],
-    task: ['B10 に AVERAGE関数で 平均点を出そう（=AVERAGE(範囲)）'],
-    grid: () => makeGrid(11, 2, [['生徒', '点数'], ...SCORES, ['平均']]),
+    ], [
+      'Good day. I am Minerva, and I teach at this town\'s Monster School.',
+      'I\'d like the average test score, but adding it all up and dividing by the number of students, I keep making mistakes.',
+      'Would you be so kind as to put the average in B10?',
+    ]),
+    task: tra(['B10 に AVERAGE関数で 平均点を出そう（=AVERAGE(範囲)）'], [
+      'Find the average score in B10 with the AVERAGE function (=AVERAGE(range))',
+    ]),
+    grid: () => makeGrid(11, 2, [tra(['生徒', '点数'], ['Student', 'Score']), ...SCORES, [tr('平均', 'Average')]]),
     colWidths: [100, 70],
-    hints: [
+    hints: tra([
       '平均を出す関数は AVERAGE（アベレージ）。',
       '範囲は 点数の入っている B2:B9。',
       'B10 に =AVERAGE(B2:B9)',
-    ],
+    ], [
+      'The function for an average is AVERAGE.',
+      'The range is B2:B9, where the scores are.',
+      'Type =AVERAGE(B2:B9) in B10',
+    ]),
     check: (c) => expectNum(c, 'B10', sum(SCORES.map((s) => s[1])) / SCORES.length, 'AVERAGE'),
     reward: { exp: 30, gold: 30, skill: 'AVERAGE' },
-    thanks: ['79.5点……なるほど、ですわ。', '生徒が増えても 範囲を広げるだけ。人数で割る必要も ありませんのね。素晴らしいですわ。'],
+    thanks: tra(['79.5点……なるほど、ですわ。', '生徒が増えても 範囲を広げるだけ。人数で割る必要も ありませんのね。素晴らしいですわ。'], [
+      '79.5 points... I see.',
+      'Even with more students, I just widen the range. No need to divide by the head count myself. Marvelous.',
+    ]),
   },
 
   calc_maxmin: {
     id: 'calc_maxmin',
     town: 'calculet',
     npc: '漁師ナミオ',
-    title: '釣果の記録',
-    intro: [
+    title: tr('釣果の記録', 'Fishing Log'),
+    intro: tra([
       'おう、旅の人。オラは 漁師の ナミオだべ。',
       '今週 いちばん釣れた日と、いちばん釣れなかった日の 数を 知りてえんだ。',
       '目で探してたら 日が暮れちまうべ。なんとか ならねえか？',
-    ],
-    task: ['E2 に MAX関数で 一番多い釣果を', 'E3 に MIN関数で 一番少ない釣果を'],
+    ], [
+      'Howdy, traveler. I\'m Namio, a fisherman.',
+      'I wanna know my best day and my worst day of fishing this week.',
+      'Huntin\' for \'em by eye would take till sundown. Can ya help?',
+    ]),
+    task: tra(['E2 に MAX関数で 一番多い釣果を', 'E3 に MIN関数で 一番少ない釣果を'], [
+      'Find the biggest catch in E2 with the MAX function',
+      'Find the smallest catch in E3 with the MIN function',
+    ]),
     grid: () =>
       makeGrid(10, 5, [
-        ['曜日', '釣果（匹）'],
-        [FISH[0][0], FISH[0][1], '', '最大'],
-        [FISH[1][0], FISH[1][1], '', '最小'],
+        tra(['曜日', '釣果（匹）'], ['Day', 'Catch']),
+        [FISH[0][0], FISH[0][1], '', tr('最大', 'Max')],
+        [FISH[1][0], FISH[1][1], '', tr('最小', 'Min')],
         ...FISH.slice(2),
       ]),
     colWidths: [60, 90, 30, 60, 70],
-    hints: ['最大は MAX、最小は MIN。', '範囲は B2:B8。', 'E2 に =MAX(B2:B8)、E3 に =MIN(B2:B8)'],
+    hints: tra(['最大は MAX、最小は MIN。', '範囲は B2:B8。', 'E2 に =MAX(B2:B8)、E3 に =MIN(B2:B8)'], [
+      'MAX for the largest, MIN for the smallest.',
+      'The range is B2:B8.',
+      'Type =MAX(B2:B8) in E2 and =MIN(B2:B8) in E3',
+    ]),
     check: (c) => first(expectNum(c, 'E2', 52, 'MAX'), expectNum(c, 'E3', 17, 'MIN')),
     reward: { exp: 30, gold: 30, skill: 'MAXMIN' },
-    thanks: ['金曜が52匹、水曜が17匹だべか！', '来週は 水曜に 休むとするべ。がっはっは！'],
+    thanks: tra(['金曜が52匹、水曜が17匹だべか！', '来週は 水曜に 休むとするべ。がっはっは！'], [
+      '52 on Friday and 17 on Wednesday, huh!',
+      'Guess I\'ll take Wednesdays off next week. Ha ha ha!',
+    ]),
   },
 
   calc_count: {
     id: 'calc_count',
     town: 'calculet',
     npc: '帳簿番カウン',
-    title: '営業日数を数えよ',
-    intro: [
+    title: tr('営業日数を数えよ', 'Count the Days Open'),
+    intro: tra([
       '宿屋の帳簿番、カウンと申します。',
       'この表の「営業した日数」……つまり 宿泊客の数字が 入っている日を 数えたいのです。',
       '「休み」や 空白は 数えたくありません。B12 に お願いできますか？',
-    ],
-    task: ['B12 に COUNT関数で、数値が入っているセルの数を出そう'],
+    ], [
+      'I\'m Kaun, the inn\'s bookkeeper.',
+      'I want to count the "days we were open" in this table... in other words, the days with a number of guests entered.',
+      'I don\'t want to count "Closed" or blank days. Could you do it in B12?',
+    ]),
+    task: tra(['B12 に COUNT関数で、数値が入っているセルの数を出そう'], [
+      'In B12, use the COUNT function to count the cells that contain numbers',
+    ]),
     grid: () =>
-      makeGrid(13, 2, [['日付', '宿泊客'], ...GUESTS.map((g, i) => [`${i + 1}日`, g]), ['営業日数']]),
+      makeGrid(13, 2, [tra(['日付', '宿泊客'], ['Date', 'Guests']), ...GUESTS.map((g, i) => [tr(`${i + 1}日`, `Day ${i + 1}`), g]), [tr('営業日数', 'Days Open')]]),
     colWidths: [80, 80],
-    hints: [
+    hints: tra([
       'COUNT は「数値が入っているセル」だけを 数える関数です。',
       'ちなみに、空白以外を すべて数えるのは COUNTA です。',
       'B12 に =COUNT(B2:B11)',
-    ],
+    ], [
+      'COUNT counts only the cells that contain numbers.',
+      'By the way, COUNTA counts every cell that isn\'t blank.',
+      'Type =COUNT(B2:B11) in B12',
+    ]),
     check: (c) => expectNum(c, 'B12', 7, 'COUNT'),
     reward: { exp: 30, gold: 30, skill: 'COUNT' },
-    thanks: ['7日……ぴったりです！', '「休み」の文字を 自動で無視してくれるとは。COUNT、恐るべし。'],
+    thanks: tra(['7日……ぴったりです！', '「休み」の文字を 自動で無視してくれるとは。COUNT、恐るべし。'], [
+      '7 days... exactly right!',
+      'It ignores "Closed" automatically. COUNT is formidable.',
+    ]),
   },
 
   calc_report: {
     id: 'calc_report',
     town: 'calculet',
     npc: '町長カルク',
-    title: '町の月報',
-    intro: [
+    title: tr('町の月報', 'The Monthly Town Report'),
+    intro: tra([
       'ワガハイが 町長の カルクで あーる！',
       'この町は 昔から 何でも手計算でな……月報づくりで 役人が 毎月 倒れておるので あーる。',
       '3つの店の 3か月分の売上表で ある。店ごとの合計（E列）と、月ごとの合計（5行目）を 出すので あーる！',
-    ],
-    task: [
+    ], [
+      'I am the mayor, Kalk, harrumph!',
+      'This town has always done everything by hand... and every month my clerks collapse making the monthly report, harrumph!',
+      'Here are three months of sales for three shops. We need each shop\'s total (column E) and each month\'s total (row 5), harrumph!',
+    ]),
+    task: tra([
       'E2 に =SUM(B2:D2) を入れて、E4 までオートフィル',
       'B5 に =SUM(B2:B4) を入れて、E5 まで右にオートフィル',
-    ],
+    ], [
+      'Put =SUM(B2:D2) in E2 and AutoFill down to E4',
+      'Put =SUM(B2:B4) in B5 and AutoFill right to E5',
+    ]),
     grid: () => makeGrid(6, 5, TAX, ['A1', 'B1', 'C1', 'D1', 'E1']),
     colWidths: [80, 70, 70, 70, 80],
-    hints: [
+    hints: tra([
       '合計の数式を1つ作ったら、あとは オートフィルで コピーするのが 集計の極意じゃ。',
       '横の合計は =SUM(B2:D2)。縦の合計は =SUM(B2:B4)。',
       'フィルハンドルは 下にも 右にも 引っぱれるぞ。',
-    ],
+    ], [
+      'Make one total formula, then copy it with AutoFill. That is the secret of summary tables.',
+      'Row totals: =SUM(B2:D2). Column totals: =SUM(B2:B4).',
+      'You can drag the fill handle down or to the right.',
+    ]),
     check: (c) =>
       first(
         expectNum(c, 'E2', 1110, 'formula'),
@@ -485,12 +729,16 @@ export const QUESTS: Record<string, QuestDef> = {
         expectNum(c, 'E5', 2350, 'formula'),
       ),
     reward: { exp: 40, gold: 40, skill: 'report' },
-    thanks: ['おお……月報が 一瞬で……！ 見事で あーる！', '数字を入れかえるだけで 来月も使える。役人たちも 家に帰れるので あーる。', '北の塔の結界も、これで 弱まるはずで あーる。'],
+    thanks: tra(['おお……月報が 一瞬で……！ 見事で あーる！', '数字を入れかえるだけで 来月も使える。役人たちも 家に帰れるので あーる。', '北の塔の結界も、これで 弱まるはずで あーる。'], [
+      'Oh... the monthly report in an instant...! Splendid, harrumph!',
+      'Just swap in new numbers and it works next month too. My clerks can finally go home, harrumph!',
+      'This should weaken the barrier on the northern tower, too, harrumph!',
+    ]),
   },
 }
 
 // ---------------------------------------------------------------- 洞窟の扉（謎解き）
-const DAYS = ['月', '火', '水', '木', '金', '土', '日']
+const DAYS = tra(['月', '火', '水', '木', '金', '土', '日'], ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
 const MARK = [
   ['■', '', '■'],
   ['', '■', ''],
@@ -503,38 +751,51 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'cave',
     npc: '曜日の扉',
-    title: '曜日の扉',
-    intro: [
+    title: tr('曜日の扉', 'Door of Days'),
+    intro: tra([
       '石の扉に、升目の刻まれた 石版が はめこまれている。',
       '「月」「火」……と 刻まれているが、その先が 欠けている。',
       '石版の文字を「日」まで 並べれば、扉が 開きそうだ。',
-    ],
-    task: ['石版の升目に、曜日を「日」まで 並べよ', '※ 1つずつ 手で 打ち込んでも、石版は 反応しないようだ'],
-    grid: () => makeGrid(3, 8, [['月', '火']]),
+    ], [
+      'A stone tablet carved with a grid is set into the stone door.',
+      '"Mon" and "Tue" are carved into it, but the rest has crumbled away.',
+      'Lining the days up all the way to "Sun" looks like it would open the door.',
+    ]),
+    task: tra(['石版の升目に、曜日を「日」まで 並べよ', '※ 1つずつ 手で 打ち込んでも、石版は 反応しないようだ'], [
+      'Line up the days of the week on the tablet, all the way to "Sun"',
+      '* The tablet doesn\'t seem to react if you type them in one by one',
+    ]),
+    grid: () => makeGrid(3, 8, [[DAYS[0], DAYS[1]]]),
     colWidths: [50, 50, 50, 50, 50, 50, 50, 50],
     hints: [],
     check: (c) => {
       for (let i = 0; i < 7; i++) {
         const a = String.fromCharCode(65 + i) + '1'
-        if (c.raw(a) !== DAYS[i]) return `${a} が「${DAYS[i]}」になっていない。`
+        if (c.raw(a) !== DAYS[i]) return tr(`${a} が「${DAYS[i]}」になっていない。`, `${a} doesn't say "${DAYS[i]}".`)
       }
-      if (!c.actions.has('fill')) return '文字は そろったが……石版が 反応しない。並べ方に 何か 決まりが あるようだ。'
+      if (!c.actions.has('fill')) return tr('文字は そろったが……石版が 反応しない。並べ方に 何か 決まりが あるようだ。', "The words line up, but... the tablet doesn't react. There seems to be a rule about how to line them up.")
       return null
     },
     reward: { exp: 15, gold: 0 },
-    thanks: ['石版の升目が 緑色に 光った！'],
+    thanks: tra(['石版の升目が 緑色に 光った！'], ['The grid on the tablet glowed green!']),
   },
   cave_mirror: {
     id: 'cave_mirror',
     kind: 'puzzle',
     town: 'cave',
     npc: '鏡の扉',
-    title: '鏡の扉',
-    intro: [
+    title: tr('鏡の扉', 'Mirror Door'),
+    intro: tra([
       'この扉の石版は、左半分に 模様が 刻まれ、右半分は まっさらだ。',
       '「左の模様を、そのまま 右に 写せ」と 刻まれている。',
-    ],
-    task: ['左の模様（A1:C3）を、右の台座（E1:G3）に そっくり 写せ', '※ 手で 描き写しても、石版は 反応しないようだ'],
+    ], [
+      'This door\'s tablet has a pattern carved on its left half. The right half is blank.',
+      '"Copy the pattern on the left to the right, exactly as it is," is carved into it.',
+    ]),
+    task: tra(['左の模様（A1:C3）を、右の台座（E1:G3）に そっくり 写せ', '※ 手で 描き写しても、石版は 反応しないようだ'], [
+      'Copy the pattern on the left (A1:C3) exactly onto the pedestal on the right (E1:G3)',
+      '* The tablet doesn\'t seem to react if you draw it by hand',
+    ]),
     grid: () => makeGrid(4, 7, MARK),
     colWidths: [44, 44, 44, 24, 44, 44, 44],
     hints: [],
@@ -543,50 +804,67 @@ Object.assign(QUESTS, {
         for (let k = 0; k < 3; k++) {
           const src = String.fromCharCode(65 + k) + (r + 1)
           const dst = String.fromCharCode(69 + k) + (r + 1)
-          if (c.raw(src) !== c.raw(dst)) return `${dst} が ${src} と 同じ模様に なっていない。`
+          if (c.raw(src) !== c.raw(dst)) return tr(`${dst} が ${src} と 同じ模様に なっていない。`, `${dst} doesn't have the same pattern as ${src}.`)
         }
-      if (!c.actions.has('paste')) return '模様は 同じだが……扉は 動かない。写し方に 何か 決まりが あるようだ。'
+      if (!c.actions.has('paste')) return tr('模様は 同じだが……扉は 動かない。写し方に 何か 決まりが あるようだ。', "The patterns match... but the door won't move. There seems to be a rule about how to copy it.")
       return null
     },
     reward: { exp: 15, gold: 0 },
-    thanks: ['左右の模様が 重なり、石版が 光った！'],
+    thanks: tra(['左右の模様が 重なり、石版が 光った！'], ['The left and right patterns lined up, and the tablet glowed!']),
   },
   cave_words: {
     id: 'cave_words',
     kind: 'puzzle',
     town: 'cave',
     npc: '言霊の扉',
-    title: '言霊の扉',
-    intro: [
+    title: tr('言霊の扉', 'Door of Words'),
+    intro: tra([
       '最後の扉には、呪文が 刻まれている。',
       'しかし 呪いで 文字が 乱れ、どこが 大事な 言葉なのかも わからない。',
       '「呪文を 正しく 直し、大事な言葉を 太字にせよ」……と 読める。',
-    ],
-    task: ['乱れた呪文（A3）を、扉への 命令の形に 正しく 直せ', '呪文（A2:A3）を 力強い 文字（太字）で 刻め'],
-    grid: () => makeGrid(4, 2, [['呪文', 'メモ'], ['とびらよ', '呼びかけ'], ['ひらく', '命令のはず']]),
+    ], [
+      'A spell is carved into the last door.',
+      'But the curse has jumbled it, and you can\'t even tell which words matter.',
+      'It reads: "Correct the spell, and make the important words bold."',
+    ]),
+    task: tra(['乱れた呪文（A3）を、扉への 命令の形に 正しく 直せ', '呪文（A2:A3）を 力強い 文字（太字）で 刻め'], [
+      'Fix the jumbled spell (A3) so it becomes a command to the door',
+      'Carve the spell (A2:A3) in strong letters (bold)',
+    ]),
+    grid: () => makeGrid(4, 2, tra([['呪文', 'メモ'], ['とびらよ', '呼びかけ'], ['ひらく', '命令のはず']], [['Spell', 'Note'], ['O door,', 'calling out'], ['opens', 'should be a command']])),
     colWidths: [110, 110],
     hints: [],
     check: (c) =>
-      c.raw('A3').trim() !== 'ひらけ'
-        ? 'A3 の呪文が まだ 命令の形に なっていない。'
+      c.raw('A3').trim().toLowerCase() !== tr('ひらけ', 'open')
+        ? tr('A3 の呪文が まだ 命令の形に なっていない。', "The spell in A3 isn't a command yet.")
         : !c.bold('A2') || !c.bold('A3')
-          ? '呪文（A2:A3）が まだ 太字に なっていない。'
+          ? tr('呪文（A2:A3）が まだ 太字に なっていない。', "The spell (A2:A3) isn't bold yet.")
           : null,
     reward: { exp: 20, gold: 0 },
-    thanks: ['「とびらよ ひらけ」――呪文が 力強く 輝いた！'],
+    thanks: tra(['「とびらよ ひらけ」――呪文が 力強く 輝いた！'], ['"O door, open!" The spell shone with power!']),
   },
 } satisfies Record<string, QuestDef>)
 
 // ---------------------------------------------------------------- 計算の塔の扉（謎解き）
 const STONES = [12, 7, 23, 15, 9, 31, 18]
-const GOLEM_SCORES: [string, number | string][] = [
-  ['ゴレム', 64],
-  ['ゴレス', 88],
-  ['ゴレタ', '欠席'],
-  ['ゴレコ', 72],
-  ['ゴレノ', 96],
-  ['ゴレミ', 80],
-]
+const GOLEM_SCORES: [string, number | string][] = tra<[string, number | string][]>(
+  [
+    ['ゴレム', 64],
+    ['ゴレス', 88],
+    ['ゴレタ', '欠席'],
+    ['ゴレコ', 72],
+    ['ゴレノ', 96],
+    ['ゴレミ', 80],
+  ],
+  [
+    ['Golemu', 64],
+    ['Goless', 88],
+    ['Goleta', 'Absent'],
+    ['Goleko', 72],
+    ['Goleno', 96],
+    ['Golemi', 80],
+  ],
+)
 
 Object.assign(QUESTS, {
   tower_price: {
@@ -594,62 +872,96 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'tower',
     npc: '値札の扉',
-    title: '値札の扉',
-    intro: ['扉の石版に、道具の 値段表が 刻まれている。', '「小計」の欄だけが 空白だ。', '「単価 × 数量」を 数式で 埋めよ――と 読める。'],
-    task: ['「小計」の欄（D2:D4）を、単価と数量から 計算で 埋めよ', '※ 数字を 直接 書いても、扉は 開かないようだ'],
+    title: tr('値札の扉', 'Price Tag Door'),
+    intro: tra(['扉の石版に、道具の 値段表が 刻まれている。', '「小計」の欄だけが 空白だ。', '「単価 × 数量」を 数式で 埋めよ――と 読める。'], [
+      'A price list of items is carved into the tablet on the door.',
+      'Only the "Subtotal" column is blank.',
+      'It reads: "Fill it in with formulas: price × quantity."',
+    ]),
+    task: tra(['「小計」の欄（D2:D4）を、単価と数量から 計算で 埋めよ', '※ 数字を 直接 書いても、扉は 開かないようだ'], [
+      'Fill in the "Subtotal" column (D2:D4) by calculating from price and quantity',
+      '* Writing the numbers in directly doesn\'t seem to open the door',
+    ]),
     grid: () =>
-      makeGrid(6, 4, [
-        ['品名', '単価', '数量', '小計'],
-        ['やくそう', 8, 12],
-        ['どくけしそう', 10, 6],
-        ['ワープのはね', 25, 3],
-      ]),
+      makeGrid(
+        6,
+        4,
+        tra<(string | number)[][]>(
+          [
+            ['品名', '単価', '数量', '小計'],
+            ['やくそう', 8, 12],
+            ['どくけしそう', 10, 6],
+            ['ワープのはね', 25, 3],
+          ],
+          [
+            ['Item', 'Price', 'Qty', 'Subtotal'],
+            ['Herb', 8, 12],
+            ['Antidote', 10, 6],
+            ['Warp Wing', 25, 3],
+          ],
+        ),
+      ),
     colWidths: [130, 60, 60, 70],
     hints: [],
     check: (c) => first(pz(c, 'D2', 96, 'formula'), pz(c, 'D3', 60, 'formula'), pz(c, 'D4', 75, 'formula')),
     reward: { exp: 25, gold: 0 },
-    thanks: ['小計の欄に 数字が 浮かび上がった！'],
+    thanks: tra(['小計の欄に 数字が 浮かび上がった！'], ['Numbers rose up in the Subtotal column!']),
   },
   tower_sum: {
     id: 'tower_sum',
     kind: 'puzzle',
     town: 'tower',
     npc: '天秤の扉',
-    title: '天秤の扉',
-    intro: ['扉には 天秤の 絵と、石の 重さの 表が 刻まれている。', '「すべての 石の 重さの 合計を 示せ」――と 読める。'],
-    task: ['すべての 石の 重さの 合計を、B9 に 示せ', '※ 1つずつ 足し算を 書き並べても、天秤は 動かないようだ'],
-    grid: () => makeGrid(10, 2, [['石', '重さ（kg）'], ...STONES.map((w, i) => [`石${i + 1}`, w]), ['合計']]),
+    title: tr('天秤の扉', 'Scale Door'),
+    intro: tra(['扉には 天秤の 絵と、石の 重さの 表が 刻まれている。', '「すべての 石の 重さの 合計を 示せ」――と 読める。'], [
+      'A balance scale and a table of stone weights are carved into the door.',
+      'It reads: "Show the total weight of all the stones."',
+    ]),
+    task: tra(['すべての 石の 重さの 合計を、B9 に 示せ', '※ 1つずつ 足し算を 書き並べても、天秤は 動かないようだ'], [
+      'Show the total weight of all the stones in B9',
+      '* Writing out the additions one by one doesn\'t seem to move the scale',
+    ]),
+    grid: () => makeGrid(10, 2, [tra(['石', '重さ（kg）'], ['Stone', 'Weight (kg)']), ...STONES.map((w, i) => [tr(`石${i + 1}`, `Stone ${i + 1}`), w]), [tr('合計', 'Total')]]),
     colWidths: [80, 100],
     hints: [],
     check: (c) => pz(c, 'B9', STONES.reduce((a, b) => a + b, 0), 'SUM'),
     reward: { exp: 25, gold: 0 },
-    thanks: ['天秤が ぴたりと つりあった！'],
+    thanks: tra(['天秤が ぴたりと つりあった！'], ['The scale balanced perfectly!']),
   },
   tower_stats: {
     id: 'tower_stats',
     kind: 'puzzle',
     town: 'tower',
     npc: '成績の扉',
-    title: '成績の扉',
-    intro: [
+    title: tr('成績の扉', 'Grades Door'),
+    intro: tra([
       '最後の扉には、ゴーレムが 筆算で 書きなぐった 成績表が 刻まれている。',
       '「平均・最高点・受験者数を 示せ」――と 読める。',
       '欠席した者は 受験者に 数えぬ、と 小さく 書かれている。',
-    ],
-    task: ['E2 に 平均点、E3 に 最高点、E4 に 受験者数を 示せ', '※ 欠席した者は 受験者に 数えない'],
+    ], [
+      'On the last door is a grade sheet the golem scrawled out by hand.',
+      'It reads: "Show the average, the top score, and the number of test takers."',
+      'In small letters: "Those who were absent do not count as test takers."',
+    ]),
+    task: tra(['E2 に 平均点、E3 に 最高点、E4 に 受験者数を 示せ', '※ 欠席した者は 受験者に 数えない'], [
+      'Show the average in E2, the top score in E3, and the number of test takers in E4',
+      '* Absent students don\'t count as test takers',
+    ]),
     grid: () =>
       makeGrid(8, 5, [
-        ['名前', '点数', '', '項目', '答え'],
-        [GOLEM_SCORES[0][0], GOLEM_SCORES[0][1], '', '平均'],
-        [GOLEM_SCORES[1][0], GOLEM_SCORES[1][1], '', '最高点'],
-        [GOLEM_SCORES[2][0], GOLEM_SCORES[2][1], '', '受験者数'],
+        tra(['名前', '点数', '', '項目', '答え'], ['Name', 'Score', '', 'Item', 'Answer']),
+        [GOLEM_SCORES[0][0], GOLEM_SCORES[0][1], '', tr('平均', 'Average')],
+        [GOLEM_SCORES[1][0], GOLEM_SCORES[1][1], '', tr('最高点', 'Top Score')],
+        [GOLEM_SCORES[2][0], GOLEM_SCORES[2][1], '', tr('受験者数', 'Test Takers')],
         ...GOLEM_SCORES.slice(3),
       ]),
     colWidths: [80, 60, 24, 80, 70],
     hints: [],
     check: (c) => first(pz(c, 'E2', 80, 'AVERAGE'), pz(c, 'E3', 96, 'MAX'), pz(c, 'E4', 5, 'COUNT')),
     reward: { exp: 30, gold: 0 },
-    thanks: ['成績表が まばゆく 光り、筆算の 落書きが 消えていく！'],
+    thanks: tra(['成績表が まばゆく 光り、筆算の 落書きが 消えていく！'], [
+      'The grade sheet shone brightly, and the scribbled longhand math faded away!',
+    ]),
   },
 } satisfies Record<string, QuestDef>)
 
@@ -664,47 +976,65 @@ function expectCopy(c: CheckCtx, cells: [string, number][], o: { dollar?: boolea
     if (r) return r
     if (o.dollar && !c.raw(a).includes('$'))
       return o.vague
-        ? `${a} の 値は 合っているが……扉は 反応しない。「ずれない 印」が 足りないようだ。`
-        : `${a} は 値は 合っている！ でも $ が 付いていない。1つの 数式に $ を 付けて、コピーで 使い回そう。`
+        ? tr(`${a} の 値は 合っているが……扉は 反応しない。「ずれない 印」が 足りないようだ。`, `The value in ${a} is right, but... the door doesn't react. It seems to be missing the "mark that never shifts."`)
+        : tr(`${a} は 値は 合っている！ でも $ が 付いていない。1つの 数式に $ を 付けて、コピーで 使い回そう。`, `${a} has the right value! But there's no $. Add $ to one formula and reuse it by copying.`)
   }
   return null
 }
 
-const FRUITS: [string, number, number][] = [
-  ['リンゴ', 120, 15],
-  ['ミカン', 80, 24],
-  ['ブドウ', 350, 6],
-  ['モモ', 250, 9],
-  ['ナシ', 140, 11],
-]
-const GOLD: [string, number][] = [
-  ['ハンテン', 100],
-  ['フローラ', 45],
-  ['ヌイ', 80],
-  ['カケル', 25],
-  ['ウツシ', 150],
-]
-const CLOTHES: [string, number][] = [
-  ['ぎんのドレス', 3000],
-  ['鏡のマント', 4500],
-  ['礼服', 12000],
-  ['ハンカチ', 800],
-  ['ベスト', 2500],
-]
-const FLOWERS: [string, number][] = [
-  ['バラ', 400],
-  ['チューリップ', 250],
-  ['ヒマワリ', 150],
-  ['ユリ', 100],
-  ['カスミソウ', 100],
-]
-const BUDGET: [string, number][] = [
-  ['湖の清掃', 4321],
-  ['街灯の修理', 2468],
-  ['神殿の鏡みがき', 987],
-  ['花壇の植え替え', 1573],
-  ['寺子屋の教材', 3056],
-]
+/** 名前だけ 言語で 切りかえる 表の データ */
+const named = <T extends unknown[]>(rows: [string, ...T][], en: string[]): [string, ...T][] =>
+  rows.map(([n, ...rest], i) => [tr(n, en[i]), ...rest] as [string, ...T])
+const FRUITS: [string, number, number][] = named(
+  [
+    ['リンゴ', 120, 15],
+    ['ミカン', 80, 24],
+    ['ブドウ', 350, 6],
+    ['モモ', 250, 9],
+    ['ナシ', 140, 11],
+  ],
+  ['Apple', 'Orange', 'Grapes', 'Peach', 'Pear'],
+)
+const GOLD: [string, number][] = named(
+  [
+    ['ハンテン', 100],
+    ['フローラ', 45],
+    ['ヌイ', 80],
+    ['カケル', 25],
+    ['ウツシ', 150],
+  ],
+  ['Hanten', 'Flora', 'Nui', 'Kakeru', 'Utsushi'],
+)
+const CLOTHES: [string, number][] = named(
+  [
+    ['ぎんのドレス', 3000],
+    ['鏡のマント', 4500],
+    ['礼服', 12000],
+    ['ハンカチ', 800],
+    ['ベスト', 2500],
+  ],
+  ['Silver Dress', 'Mirror Cape', 'Formal Suit', 'Handkerchief', 'Vest'],
+)
+const FLOWERS: [string, number][] = named(
+  [
+    ['バラ', 400],
+    ['チューリップ', 250],
+    ['ヒマワリ', 150],
+    ['ユリ', 100],
+    ['カスミソウ', 100],
+  ],
+  ['Rose', 'Tulip', 'Sunflower', 'Lily', "Baby's Breath"],
+)
+const BUDGET: [string, number][] = named(
+  [
+    ['湖の清掃', 4321],
+    ['街灯の修理', 2468],
+    ['神殿の鏡みがき', 987],
+    ['花壇の植え替え', 1573],
+    ['寺子屋の教材', 3056],
+  ],
+  ['Lake Cleanup', 'Streetlight Repair', 'Temple Mirror Polishing', 'Flowerbed Replanting', 'School Supplies'],
+)
 const rows = (n: number, from = 2) => Array.from({ length: n }, (_, i) => i + from)
 
 Object.assign(QUESTS, {
@@ -712,174 +1042,260 @@ Object.assign(QUESTS, {
     id: 'sansho_rel',
     town: 'sansho',
     npc: '八百屋ハンテン',
-    title: 'くだものの売上',
-    intro: [
+    title: tr('くだものの売上', 'Fruit Sales'),
+    intro: tra([
       'へいらっしゃい！ 八百屋の ハンテンだ！ ……って、それどころじゃ ねえんだ、兄ちゃん。',
       '売上の 数式を D2 に 1個 作ってよ、下に 写したつもりが、呪いで 全部 リンゴの 計算に なっちまった！',
       'D3 を 見てみな。「=B2*C2」のまんまだ。ミカンは 3行目だってのによ、べらんめえ！',
-    ],
-    task: ['D3:D6 の 数式が、それぞれの 行を 計算するように 直そう', 'D2 の 数式を、D3:D6 に コピーし直すのが 近道'],
+    ], [
+      'Welcome! I\'m Hanten the grocer! ...But never mind that, buddy. We\'ve got trouble.',
+      'I made one sales formula in D2 and copied it down, but thanks to the curse, every row is calculating the apples!',
+      'Look at D3. It still says "=B2*C2." The oranges are on row 3, for crying out loud!',
+    ]),
+    task: tra(['D3:D6 の 数式が、それぞれの 行を 計算するように 直そう', 'D2 の 数式を、D3:D6 に コピーし直すのが 近道'], [
+      'Fix the formulas in D3:D6 so each one calculates its own row',
+      'The shortcut: copy the formula in D2 into D3:D6 again',
+    ]),
     grid: () =>
       makeGrid(8, 4, [
-        ['品名', '単価', '数量', '売上'],
+        tra(['品名', '単価', '数量', '売上'], ['Item', 'Price', 'Qty', 'Sales']),
         ...FRUITS.map(([n, p, q]) => [n, p, q, '=B2*C2']),
       ], ['A1', 'B1', 'C1', 'D1']),
     colWidths: [90, 60, 60, 80],
-    hints: [
+    hints: tra([
       'D3 の 数式は 本当は =B3*C3、D4 は =B4*C4 に なるべきだ。',
       'ふつうに コピーすれば、参照は 下へ 1行ずつ 勝手に ずれてくれる。これが「相対参照」だ！',
       'D2 を 選んで 右下の ■ を D6 まで 引っぱる。または D2 を Ctrl+C → D3:D6 を 選んで Ctrl+V。',
-    ],
+    ], [
+      'D3 should really be =B3*C3, and D4 should be =B4*C4.',
+      'Copy it normally, and the references shift down one row at a time on their own. That\'s a "relative reference"!',
+      'Select D2 and drag the ■ at its bottom right down to D6. Or press Ctrl+C on D2 → select D3:D6 → Ctrl+V.',
+    ]),
     check: (c) => expectCopy(c, FRUITS.map(([, p, q], i) => [`D${i + 2}`, p * q])),
     reward: { exp: 50, gold: 50, skill: 'relref' },
-    thanks: [
+    thanks: tra([
       'おおっ！ ミカンも ブドウも、ちゃんと 自分の 行を 計算してらぁ！',
       '数式を コピーすると、参照も いっしょに ずれる……「相対参照」ってのか。',
       'ずれるのは 呪いじゃなくて、便利な しくみ だったんだな！ ありがとよ！',
-    ],
+    ], [
+      'Whoa! The oranges and the grapes are each calculating their own row!',
+      'When you copy a formula, the references shift right along with it... A "relative reference," huh?',
+      'So the shifting wasn\'t a curse at all, it\'s a handy feature! Thanks a bunch!',
+    ]),
   },
 
   sansho_abs: {
     id: 'sansho_abs',
     town: 'sansho',
     npc: '両替商ドルマ',
-    title: '両替レート表',
-    intro: [
+    title: tr('両替レート表', 'Exchange Rate Table'),
+    intro: tra([
       'ようこそ、ドルマ両替所へ。わたくし 両替商の ドルマで ございます、ドル。',
       '1ゴールドは 12シルバー。レートは F1 に 置いて、C2 に「=B2*F1」と 書き、下へ コピーいたしました。',
       'ところが……2人目から 全員「0シルバー」。お客様に 殴られかけまして ございます、ドル……。',
-    ],
-    task: ['C3:C6 が 0 に なる 原因を 見つけて、全員の 両替額を 正しく 出そう', 'C2 の 数式を 直して、C6 まで コピー'],
+    ], [
+      'Welcome to Dolma\'s Exchange. I am Dolma, the money changer, ka-ching.',
+      '1 gold is worth 12 silver. I put the rate in F1, wrote "=B2*F1" in C2, and copied it down.',
+      'But from the second customer on, everyone got "0 silver." A customer nearly punched me, ka-ching...',
+    ]),
+    task: tra(['C3:C6 が 0 に なる 原因を 見つけて、全員の 両替額を 正しく 出そう', 'C2 の 数式を 直して、C6 まで コピー'], [
+      'Find out why C3:C6 come out as 0, and calculate everyone\'s exchange correctly',
+      'Fix the formula in C2 and copy it down to C6',
+    ]),
     grid: () =>
       makeGrid(8, 6, [
-        ['お客', 'ゴールド', 'シルバー', '', 'レート', 12],
+        tra<(string | number)[]>(['お客', 'ゴールド', 'シルバー', '', 'レート', 12], ['Customer', 'Gold', 'Silver', '', 'Rate', 12]),
         ...GOLD.map(([n, g], i) => [n, g, `=B${i + 2}*F${i + 1}`]),
       ], ['A1', 'B1', 'C1', 'E1']),
     colWidths: [90, 80, 80, 24, 60, 50],
-    hints: [
+    hints: tra([
       'C3 の 数式を 見てごらんなさいませ。=B3*F2……レートの F1 まで 下に ずれて、空っぽの F2 を 見ております。',
       'ずれて ほしくない 参照には「$」を 付けます。$F$1 と 書けば、コピーしても F1 のまま で ございます。',
       'C2 を =B2*$F$1 に 直して、C6 まで オートフィル。これで 全員 正しく 両替できます、ドル！',
-    ],
+    ], [
+      'Take a look at the formula in C3: =B3*F2... The rate in F1 shifted down too, so it\'s looking at the empty F2.',
+      'Put "$" on any reference you don\'t want to shift. Write $F$1, and it stays F1 even when copied.',
+      'Change C2 to =B2*$F$1 and AutoFill down to C6. Then everyone gets the right exchange, ka-ching!',
+    ]),
     check: (c) => expectCopy(c, GOLD.map(([, g], i) => [`C${i + 2}`, g * 12]), { dollar: true }),
     reward: { exp: 55, gold: 60, skill: 'absref' },
-    thanks: [
+    thanks: tra([
       'おお……！ 全員の 両替額が ぴたりと 合いました で ございます！',
       '$ を 付けた 参照は、どこへ コピーしても 動かない。「絶対参照」と 申すのですね。',
       'これで お客様に 殴られずに 済みます、ドル。心より 感謝 申し上げます、ドル！',
-    ],
+    ], [
+      'Oh...! Everyone\'s exchange comes out exactly right!',
+      'A reference with $ never moves, wherever you copy it. So that\'s what they call an "absolute reference."',
+      'Now no customer will punch me, ka-ching. My heartfelt thanks, ka-ching!',
+    ]),
   },
 
   sansho_f4: {
     id: 'sansho_f4',
     town: 'sansho',
     npc: '仕立て屋ヌイ',
-    title: 'セール価格の値札',
-    intro: [
+    title: tr('セール価格の値札', 'Sale Price Tags'),
+    intro: tra([
       'いらっしゃいませ。仕立て屋の ヌイですわ。',
       '明日から 全品 20% 引きの セールですの。割引率は F1 に 書いておきましたわ。',
       'でも「$」を 打つのが 苦手で……指が つりそうですの。もっと 楽に 付ける 方法は ないかしら？',
-    ],
-    task: ['C2:C6 に セール価格（定価 ×（1 − 割引率））を 出そう', 'C2 で 数式を 入力中、F1 の 後ろで F4 キーを 押すと $F$1 になる（Mac は fn+F4）'],
+    ], [
+      'Welcome. I am Nui, the tailor.',
+      'Starting tomorrow, everything is 20% off. I wrote the discount rate in F1.',
+      'But I\'m hopeless at typing "$"... my fingers are about to cramp. Isn\'t there an easier way to add it?',
+    ]),
+    task: tra(['C2:C6 に セール価格（定価 ×（1 − 割引率））を 出そう', 'C2 で 数式を 入力中、F1 の 後ろで F4 キーを 押すと $F$1 になる（Mac は fn+F4）'], [
+      'Find the sale price (list price × (1 − discount)) in C2:C6',
+      'While typing the formula in C2, press F4 right after F1 to turn it into $F$1 (fn+F4 on a Mac)',
+    ]),
     grid: () =>
-      makeGrid(8, 6, [['品名', '定価', 'セール価格', '', '割引率', 0.2], ...CLOTHES.map(([n, p]) => [n, p])], ['A1', 'B1', 'C1', 'E1']),
+      makeGrid(8, 6, [tra<(string | number)[]>(['品名', '定価', 'セール価格', '', '割引率', 0.2], ['Item', 'List Price', 'Sale Price', '', 'Discount', 0.2]), ...CLOTHES.map(([n, p]) => [n, p])], ['A1', 'B1', 'C1', 'E1']),
     colWidths: [110, 70, 90, 24, 60, 50],
-    hints: [
+    hints: tra([
       'C2 に =B2*(1-F1) と 打って……まだ Enter は 押さないで くださいまし。',
       'カーソルが F1 の すぐ 後ろに ある 状態で F4 を 押すと、$F$1 に 変わりますの。押すたびに $F$1 → F$1 → $F1 → F1 と 切り替わりますわ。',
       'C2 が =B2*(1-$F$1) に なったら、C6 まで オートフィルですわ。',
-    ],
+    ], [
+      'Type =B2*(1-F1) in C2... but don\'t press Enter just yet.',
+      'With the cursor right after F1, press F4 and it becomes $F$1. Each press cycles $F$1 → F$1 → $F1 → F1.',
+      'Once C2 says =B2*(1-$F$1), AutoFill it down to C6.',
+    ]),
     check: (c) => expectCopy(c, CLOTHES.map(([, p], i) => [`C${i + 2}`, p * 0.8]), { dollar: true }),
     reward: { exp: 55, gold: 60, skill: 'f4' },
-    thanks: [
+    thanks: tra([
       'まあ！ F4 を 押すだけで $ が 付くなんて……指が 楽ちんですわ！',
       '値札も ぜんぶ 正しく なりましたわ。セールは 大成功 まちがいなしですの。',
       'お礼に、これからも 身だしなみは ヌイに おまかせくださいまし。',
-    ],
+    ], [
+      'My! Just press F4 and the $ appears... how easy on the fingers!',
+      'And every price tag is correct now. The sale is sure to be a huge success.',
+      'As thanks, leave your wardrobe to Nui from now on.',
+    ]),
   },
 
   sansho_share: {
     id: 'sansho_share',
     town: 'sansho',
     npc: '花屋フローラ',
-    title: '花の人気ランキング',
-    intro: [
+    title: tr('花の人気ランキング', 'Flower Popularity'),
+    intro: tra([
       'こんにちは〜♪ 花屋の フローラなの！',
       'どの お花が 売上の 何割を しめているか、「構成比」を 出したいの♪',
       'でも C2 に =B2/B7 って 書いて コピーしたら、下が ぜんぶ エラーに なっちゃって……しくしく。',
-    ],
-    task: ['C2:C6 に、それぞれの 花の 構成比（売上 ÷ 合計）を 出そう', '合計は B7 に 入っている'],
+    ], [
+      'Hello~♪ I\'m Flora from the flower shop!',
+      'I want to know what share of total sales each flower makes up♪',
+      'But when I wrote =B2/B7 in C2 and copied it down, everything below turned into errors... *sniff*.',
+    ]),
+    task: tra(['C2:C6 に、それぞれの 花の 構成比（売上 ÷ 合計）を 出そう', '合計は B7 に 入っている'], [
+      'In C2:C6, find each flower\'s share of the total (sales ÷ total)',
+      'The total is in B7',
+    ]),
     grid: () =>
-      makeGrid(9, 3, [['花', '売上', '構成比'], ...FLOWERS.map(([n, v]) => [n, v]), ['合計', '=SUM(B2:B6)']], ['A1', 'B1', 'C1', 'A7']),
+      makeGrid(9, 3, [tra(['花', '売上', '構成比'], ['Flower', 'Sales', 'Share']), ...FLOWERS.map(([n, v]) => [n, v]), [tr('合計', 'Total'), '=SUM(B2:B6)']], ['A1', 'B1', 'C1', 'A7']),
     colWidths: [110, 70, 80],
-    hints: [
+    hints: tra([
       '=B2/B7 を 下に コピーすると、C3 は =B3/B8 に なるの。B8 は 空っぽだから 0 で 割って エラーなの。',
       '合計の B7 は どこに コピーしても 動いてほしくない…… $ で 固定するの♪',
       'C2 に =B2/$B$7 → C6 まで オートフィル！ （B$7 でも OK なの）',
-    ],
+    ], [
+      'When you copy =B2/B7 down, C3 becomes =B3/B8. B8 is empty, so it divides by 0 and shows an error.',
+      'The total in B7 shouldn\'t move no matter where you copy it... so lock it with $♪',
+      'Put =B2/$B$7 in C2 → AutoFill down to C6! (B$7 works too)',
+    ]),
     check: (c) => expectCopy(c, FLOWERS.map(([, v], i) => [`C${i + 2}`, v / 1000]), { dollar: true }),
     reward: { exp: 55, gold: 60, skill: 'share' },
-    thanks: [
+    thanks: tra([
       'わぁ〜い♪ バラが 0.4 で 4割、チューリップが 2割5分 なの！',
       '「構成比」って、合計を 固定するのが コツ なのね♪',
       'お礼に、お店の 前の お花、いつでも 見に来てね！',
-    ],
+    ], [
+      'Yay~♪ Roses are 0.4, so 40%, and tulips are 25%!',
+      'So the trick to "share of total" is locking the total♪',
+      'As thanks, come see the flowers in front of my shop anytime!',
+    ]),
   },
 
   sansho_mix: {
     id: 'sansho_mix',
     town: 'sansho',
     npc: 'カケル先生',
-    title: '九九の表',
-    intro: [
+    title: tr('九九の表', 'Times Table'),
+    intro: tra([
       'よく来てくれた。わしは 寺子屋の カケルじゃ。',
       '子どもらに 九九の表を 作らせておるのだが、1マスずつ 手で 計算しておって……日が 暮れてしまう。',
       '「左の数 × 上の数」を たった1つの 数式で 表ぜんぶに 広げる 方法が あると 聞いた。お主、わかるかの？',
-    ],
-    task: ['B2:F6 に「左の数（A列）× 上の数（1行目）」を 出そう', 'B2 に 1つ 数式を 作って、表 ぜんぶに コピーするのが 目標'],
+    ], [
+      'Thank you for coming. I am Kakeru, the schoolteacher.',
+      'I\'m having the children make a times table, but they work out every square by hand... it takes all day.',
+      'I hear there\'s a way to spread "left number × top number" across the whole table with a single formula. Do you know it?',
+    ]),
+    task: tra(['B2:F6 に「左の数（A列）× 上の数（1行目）」を 出そう', 'B2 に 1つ 数式を 作って、表 ぜんぶに コピーするのが 目標'], [
+      'Fill B2:F6 with "the number on the left (column A) × the number on top (row 1)"',
+      'Goal: make one formula in B2 and copy it across the whole table',
+    ]),
     grid: () =>
       makeGrid(8, 6, [['×', 5, 6, 7, 8, 9], [5], [6], [7], [8], [9]], ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'A2', 'A3', 'A4', 'A5', 'A6']),
     colWidths: [50, 50, 50, 50, 50, 50],
-    hints: [
+    hints: tra([
       '=A2*B1 を 右へ コピーすると A が B に ずれてしまう。下へ コピーすると 1 が 2 に ずれてしまう。',
       '「左の数」は いつも A列 → 列だけ 固定して $A2。「上の数」は いつも 1行目 → 行だけ 固定して B$1。',
       'B2 に =$A2*B$1。B2 を Ctrl+C → B2:F6 を 選んで Ctrl+V で 一気に 完成じゃ（右→下と オートフィルでも よい）。',
-    ],
+    ], [
+      'Copy =A2*B1 to the right and A shifts to B. Copy it down and 1 shifts to 2.',
+      'The left number is always in column A → lock only the column: $A2. The top number is always in row 1 → lock only the row: B$1.',
+      'Put =$A2*B$1 in B2. Press Ctrl+C on B2 → select B2:F6 → Ctrl+V, and it\'s done in one go (AutoFill right, then down, works too).',
+    ]),
     check: (c) => {
       const cells: [string, number][] = []
       for (const r of rows(5)) for (let k = 0; k < 5; k++) cells.push([`${'BCDEF'[k]}${r}`, (r + 3) * (k + 5)])
       return expectCopy(c, cells, { dollar: true })
     },
     reward: { exp: 60, gold: 70, skill: 'mixref' },
-    thanks: [
+    thanks: tra([
       'なんと……たった1つの 数式で、25マスが 一瞬で 埋まったぞ！',
       '列だけ・行だけを 固定する……「複合参照」とは 見事な 技じゃ。',
       'さっそく 子どもらに 教えてやろう。九九の表なら 81マスでも 一瞬じゃな！',
-    ],
+    ], [
+      'Astonishing... a single formula filled all 25 squares in an instant!',
+      'Locking only the column, or only the row... a "mixed reference" is a fine technique.',
+      'I\'ll teach the children right away. Even a full 81-square times table will take no time at all!',
+    ]),
   },
 
   sansho_round: {
     id: 'sansho_round',
     town: 'sansho',
     npc: '町長カガミ',
-    title: '町の予算表',
-    intro: [
+    title: tr('町の予算表', 'The Town Budget'),
+    intro: tra([
       'サンショウの 町長、カガミです。町の 悩みを 次々と 解決してくださって いるそうですね。',
       '最後に お願いが あります。町の 予算表に 税（F1）を 足した「税込額」を 出したいのです。',
       'ただ、1円 未満の 端数が 出てしまって……監査では 整数に 四捨五入するよう 言われているのです。',
-    ],
-    task: [
+    ], [
+      'I\'m Kagami, mayor of Refton. I hear you\'ve been solving our town\'s troubles one after another.',
+      'I have one last request. I want the "amount with tax" for our town budget, adding the tax rate in F1.',
+      'But it leaves fractions smaller than one coin... and the auditors told us to round to whole numbers.',
+    ]),
+    task: tra([
       'C2:C6 に 税込額（金額 ×（1 + 税率））を、四捨五入して 整数で 出そう',
       'C7 に 税込額の 合計を 出そう',
-    ],
+    ], [
+      'In C2:C6, find the amount with tax (amount × (1 + tax rate)), rounded to a whole number',
+      'Find the total of the amounts with tax in C7',
+    ]),
     grid: () =>
-      makeGrid(9, 6, [['事業', '金額', '税込額', '', '税率', 0.1], ...BUDGET.map(([n, v]) => [n, v]), ['合計']], ['A1', 'B1', 'C1', 'E1', 'A7']),
+      makeGrid(9, 6, [tra<(string | number)[]>(['事業', '金額', '税込額', '', '税率', 0.1], ['Project', 'Amount', 'With Tax', '', 'Tax', 0.1]), ...BUDGET.map(([n, v]) => [n, v]), [tr('合計', 'Total')]], ['A1', 'B1', 'C1', 'E1', 'A7']),
     colWidths: [130, 70, 80, 24, 50, 50],
-    hints: [
+    hints: tra([
       '四捨五入は ROUND 関数。=ROUND(数値, 0) で 小数第1位を 四捨五入して 整数に なります。',
       '税率の F1 は $ で 固定しましょう。=ROUND(B2*(1+$F$1),0) を C6 まで コピーです。',
       '合計は C7 に =SUM(C2:C6) です。',
-    ],
+    ], [
+      'Round with the ROUND function. =ROUND(number, 0) rounds to a whole number.',
+      'Lock the tax rate in F1 with $. Copy =ROUND(B2*(1+$F$1),0) down to C6.',
+      'The total goes in C7: =SUM(C2:C6).',
+    ]),
     check: (c) => {
       const vals = BUDGET.map(([, v]) => Math.round(v * 1.1))
       return first(
@@ -888,31 +1304,47 @@ Object.assign(QUESTS, {
       )
     },
     reward: { exp: 70, gold: 80, skill: 'round' },
-    thanks: [
+    thanks: tra([
       '端数も きれいに そろって、合計も ぴたり……。これなら 監査も 通ります。',
       '町の 悩みを すべて 解決して くださって、本当に ありがとうございます。',
       '北の 鏡の神殿の 結界も、これで とけるはず……。どうか、ミラージュを 止めてください。',
-    ],
+    ], [
+      'No stray fractions, and the total matches perfectly... This will pass the audit.',
+      'Thank you so much for solving every one of our town\'s troubles.',
+      'The barrier on the Mirror Temple to the north should lift now... Please, stop the Mirage.',
+    ]),
     notLast: {
-      introHead: ['サンショウの 町長、カガミです。旅の方、ようこそ。', 'お願いが あります。町の 予算表に 税（F1）を 足した「税込額」を 出したいのです。'],
-      thanksTail: ['町には まだ 困っている 者が おります。', '頭の上に「！」の 出ている 者の 話も、聞いてやって ください。'],
+      introHead: tra(['サンショウの 町長、カガミです。旅の方、ようこそ。', 'お願いが あります。町の 予算表に 税（F1）を 足した「税込額」を 出したいのです。'], [
+        'I\'m Kagami, mayor of Refton. Welcome, traveler.',
+        'I have a request. I want the "amount with tax" for our town budget, adding the tax rate in F1.',
+      ]),
+      thanksTail: tra(['町には まだ 困っている 者が おります。', '頭の上に「！」の 出ている 者の 話も、聞いてやって ください。'], [
+        'There are still townspeople in need.',
+        'Please listen to anyone with a "!" over their head, too.',
+      ]),
     },
   },
 } satisfies Record<string, QuestDef>)
 
 // ---------------------------------------------------------------- 鏡の神殿の扉（謎解き）
-const TEMPLE_GOODS: [string, number][] = [
-  ['鏡の かけら', 500],
-  ['銀の しずく', 1250],
-  ['月の 砂', 800],
-  ['星の 粉', 2000],
-]
-const TEMPLE_LIGHT: [string, number][] = [
-  ['東の 鏡', 120],
-  ['西の 鏡', 180],
-  ['南の 鏡', 60],
-  ['北の 鏡', 240],
-]
+const TEMPLE_GOODS: [string, number][] = named(
+  [
+    ['鏡の かけら', 500],
+    ['銀の しずく', 1250],
+    ['月の 砂', 800],
+    ['星の 粉', 2000],
+  ],
+  ['Mirror Shard', 'Silver Drop', 'Moon Sand', 'Star Dust'],
+)
+const TEMPLE_LIGHT: [string, number][] = named(
+  [
+    ['東の 鏡', 120],
+    ['西の 鏡', 180],
+    ['南の 鏡', 60],
+    ['北の 鏡', 240],
+  ],
+  ['East Mirror', 'West Mirror', 'South Mirror', 'North Mirror'],
+)
 
 Object.assign(QUESTS, {
   temple_tax: {
@@ -920,39 +1352,61 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'temple',
     npc: '供物の扉',
-    title: '供物の扉',
-    intro: ['扉の 石版に、供物の 値段表が 刻まれている。', '「供物には 税を 加えて 納めよ」――と 読める。', '石版の 右上には「税」の 文字と 数字が 1つ。'],
-    task: ['「納める額」（C2:C5）を、値段と 税から 計算で 埋めよ', '※ 1つの 式を すべてに 映せ、とも 書かれている'],
-    grid: () => makeGrid(7, 6, [['供物', '値段', '納める額', '', '税', 0.08], ...TEMPLE_GOODS.map(([n, v]) => [n, v])]),
+    title: tr('供物の扉', 'Offering Door'),
+    intro: tra(['扉の 石版に、供物の 値段表が 刻まれている。', '「供物には 税を 加えて 納めよ」――と 読める。', '石版の 右上には「税」の 文字と 数字が 1つ。'], [
+      'A price list of offerings is carved into the tablet on the door.',
+      'It reads: "Add tax to your offerings before you present them."',
+      'In the upper right of the tablet: the word "Tax" and a single number.',
+    ]),
+    task: tra(['「納める額」（C2:C5）を、値段と 税から 計算で 埋めよ', '※ 1つの 式を すべてに 映せ、とも 書かれている'], [
+      'Fill in "Amount Due" (C2:C5) by calculating from the price and the tax',
+      '* It also says: reflect one formula onto them all',
+    ]),
+    grid: () => makeGrid(7, 6, [tra<(string | number)[]>(['供物', '値段', '納める額', '', '税', 0.08], ['Offering', 'Price', 'Amount Due', '', 'Tax', 0.08]), ...TEMPLE_GOODS.map(([n, v]) => [n, v])]),
     colWidths: [110, 70, 80, 24, 40, 50],
     hints: [],
     check: (c) => expectCopy(c, TEMPLE_GOODS.map(([, v], i) => [`C${i + 2}`, v * 1.08]), { dollar: true, vague: true }),
     reward: { exp: 40, gold: 0 },
-    thanks: ['納める額が 浮かび上がり、扉の 鏡が 静かに 光った！'],
+    thanks: tra(['納める額が 浮かび上がり、扉の 鏡が 静かに 光った！'], ['The amounts due rose up, and the mirror on the door glowed softly!']),
   },
   temple_share: {
     id: 'temple_share',
     kind: 'puzzle',
     town: 'temple',
     npc: '光の扉',
-    title: '光の扉',
-    intro: ['扉には 4枚の 鏡と、それぞれが 集めた 光の 量が 刻まれている。', '「各々の 鏡が、すべての 光の 何割を 担うか 示せ」――と 読める。'],
-    task: ['C2:C5 に、それぞれの 鏡が 全体の 何割の 光を 担うかを 示せ（割合で）', '※ 1つの 式を すべてに 映せ'],
-    grid: () => makeGrid(8, 3, [['鏡', '光', '割合'], ...TEMPLE_LIGHT.map(([n, v]) => [n, v]), ['すべて', '=SUM(B2:B5)']]),
+    title: tr('光の扉', 'Door of Light'),
+    intro: tra(['扉には 4枚の 鏡と、それぞれが 集めた 光の 量が 刻まれている。', '「各々の 鏡が、すべての 光の 何割を 担うか 示せ」――と 読める。'], [
+      'Four mirrors are carved into the door, along with the amount of light each has gathered.',
+      'It reads: "Show what share of all the light each mirror carries."',
+    ]),
+    task: tra(['C2:C5 に、それぞれの 鏡が 全体の 何割の 光を 担うかを 示せ（割合で）', '※ 1つの 式を すべてに 映せ'], [
+      'In C2:C5, show what share of all the light each mirror carries (as a ratio)',
+      '* Reflect one formula onto them all',
+    ]),
+    grid: () => makeGrid(8, 3, [tra(['鏡', '光', '割合'], ['Mirror', 'Light', 'Share']), ...TEMPLE_LIGHT.map(([n, v]) => [n, v]), [tr('すべて', 'All'), '=SUM(B2:B5)']]),
     colWidths: [90, 60, 70],
     hints: [],
     check: (c) => expectCopy(c, TEMPLE_LIGHT.map(([, v], i) => [`C${i + 2}`, v / 600]), { dollar: true, vague: true }),
     reward: { exp: 40, gold: 0 },
-    thanks: ['4枚の 鏡が 順番に 輝き、光が 扉の 中心に 集まった！'],
+    thanks: tra(['4枚の 鏡が 順番に 輝き、光が 扉の 中心に 集まった！'], [
+      'The four mirrors shone one after another, and the light gathered at the center of the door!',
+    ]),
   },
   temple_times: {
     id: 'temple_times',
     kind: 'puzzle',
     town: 'temple',
     npc: '交差の扉',
-    title: '交差の扉',
-    intro: ['大鏡の間へ 続く 最後の扉。', '縦と 横に 数字が 並び、交わる マスは すべて 空白だ。', '「縦と 横の 交わりを、ただ 1つの 式で 満たせ」――と 読める。'],
-    task: ['B2:E5 の すべての マスに、左端の数 × 上端の数 を 示せ', '※ ただ 1つの 式を 映して 満たせ'],
+    title: tr('交差の扉', 'Crossing Door'),
+    intro: tra(['大鏡の間へ 続く 最後の扉。', '縦と 横に 数字が 並び、交わる マスは すべて 空白だ。', '「縦と 横の 交わりを、ただ 1つの 式で 満たせ」――と 読める。'], [
+      'The last door before the Hall of the Great Mirror.',
+      'Numbers run down the side and across the top, and every square where they cross is blank.',
+      'It reads: "Fill every crossing of down and across with a single formula."',
+    ]),
+    task: tra(['B2:E5 の すべての マスに、左端の数 × 上端の数 を 示せ', '※ ただ 1つの 式を 映して 満たせ'], [
+      'Fill every square in B2:E5 with the number at the left × the number at the top',
+      '* Fill them all by reflecting a single formula',
+    ]),
     grid: () => makeGrid(7, 5, [['', 2, 4, 6, 8], [3], [5], [7], [9]]),
     colWidths: [50, 50, 50, 50, 50],
     hints: [],
@@ -962,7 +1416,9 @@ Object.assign(QUESTS, {
       return expectCopy(c, cells, { dollar: true, vague: true })
     },
     reward: { exp: 50, gold: 0 },
-    thanks: ['すべての マスが 光で 満たされ、大鏡の間への 扉が 開いていく……！'],
+    thanks: tra(['すべての マスが 光で 満たされ、大鏡の間への 扉が 開いていく……！'], [
+      'Every square filled with light, and the door to the Hall of the Great Mirror began to open...!',
+    ]),
   },
 } satisfies Record<string, QuestDef>)
 

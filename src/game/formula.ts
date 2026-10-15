@@ -169,6 +169,16 @@ export function toggleAbsAt(text: string, caret: number): { text: string; caret:
 const fmtNum = (x: number) => String(Number(x.toPrecision(12)))
 const isNum = (s: string) => /^[+-]?\d+(\.\d+)?$/.test(s)
 const DAYS = ['日', '月', '火', '水', '木', '金', '土']
+const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+/** 英語の 月・曜日の 名前か（省略形「Jan」も） */
+function enName(s: string, names: string[]) {
+  const t = s.trim()
+  if (!/^[A-Za-z]{3,}$/.test(t)) return null
+  const i = names.findIndex((n) => n.toLowerCase() === t.toLowerCase() || n.slice(0, 3).toLowerCase() === t.toLowerCase())
+  if (i < 0) return null
+  return { i, short: t.length === 3 && names[i].length > 3, upper: t === t.toUpperCase(), lower: t === t.toLowerCase() }
+}
 
 /**
  * オートフィル：src の並びから、続く n 個のセルを生成する。
@@ -210,6 +220,21 @@ export function fillLine(src: Cell[], n: number, shift: (raw: string, steps: num
     for (let k = 0; k < n; k++) {
       const v = DAYS[(((idx + step * (k + 1)) % 7) + 7) % 7]
       out.push({ raw: v + (last[2] ?? ''), bold: boldAt(k) })
+    }
+    return out
+  }
+
+  // 英語の 月「Jan」「January」・曜日「Mon」「Monday」（大文字・小文字の 書き方は そのまま）
+  for (const names of [EN_MONTHS, EN_DAYS]) {
+    const hits = raws.map((s) => enName(s, names))
+    if (!hits.every((h) => h !== null)) continue
+    const idx = hits.map((h) => h!.i)
+    const step = L >= 2 ? idx[L - 1] - idx[L - 2] : 1
+    const style = hits[L - 1]!
+    for (let k = 0; k < n; k++) {
+      const v = names[(((idx[L - 1] + step * (k + 1)) % names.length) + names.length) % names.length]
+      const word = style.short ? v.slice(0, 3) : v
+      out.push({ raw: style.upper ? word.toUpperCase() : style.lower ? word.toLowerCase() : word, bold: boldAt(k) })
     }
     return out
   }

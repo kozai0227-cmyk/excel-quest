@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
 import { Portrait, type PortraitSrc } from './Portrait'
 import { cue, sfx } from '../game/sound'
+import { npcName } from '../data/en'
 
 export interface DialogReq {
   id: number
@@ -86,7 +87,7 @@ export function DialogBox({ req }: { req: DialogReq }) {
         <div className="dialog-body">
           {req.speaker && (
             <div className="speaker" style={modern && req.tagColor ? { background: req.tagColor } : undefined}>
-              {req.speaker}
+              {npcName(req.speaker)}
             </div>
           )}
           <div className="dialog-text">

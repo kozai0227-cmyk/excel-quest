@@ -1,4 +1,5 @@
 import * as G from './questionGen'
+import { isEn, tr, tra } from '../game/lang'
 
 export type Question =
   | { type: 'choice'; q: string; choices: string[]; answer: string; explain: string }
@@ -40,25 +41,40 @@ export interface BossDef {
 
 export type QuestionSrc = Question | (() => Question)
 
+/** 英語版の 4択（choices・answer を 省くと 日本語版と 同じ もの） */
+type ChoiceEn = { q: string; choices?: string[]; answer?: string; explain: string }
+
+/** 4択の 問題。en が あれば 英語版で 差し替える */
+function c(q: string, choices: string[], answer: string, explain: string, en?: ChoiceEn): Question {
+  if (en && isEn()) return { type: 'choice', q: en.q, choices: en.choices ?? choices, answer: en.answer ?? answer, explain: en.explain }
+  return { type: 'choice', q, choices, answer, explain }
+}
+
 export const BOSSES: Record<string, BossDef> = {
   slime: {
     id: 'slime',
     name: '散らかりセルイム',
     sprite: 'slime',
     boss: true,
-    attackText: '散らかったセルを 投げつけてきた！',
-    defeatText: ['「ぷるる……表は 整えたほうが 気持ちいいぷる……。」', '散らかりセルイムは 反省して、どこかへ 去っていった。'],
+    attackText: tr('散らかったセルを 投げつけてきた！', 'It hurled a pile of messy cells!'),
+    defeatText: tra(['「ぷるる……表は 整えたほうが 気持ちいいぷる……。」', '散らかりセルイムは 反省して、どこかへ 去っていった。'], [
+      '"Wobble... A tidy table does feel nicer, wob..."',
+      'The Messy Cellime thought about what it had done and wandered off somewhere.',
+    ]),
     hp: 120,
     attack: [9, 14],
     exp: 60,
     gold: 50,
-    intro: ['（どうくつの奥で、ぐちゃぐちゃの表を まとった 大きな セルイムが ぷるぷる ふるえている……）', 'ぷるる！ 表なんて 散らかってるほうが 落ちつくんだぷる！'],
+    intro: tra(['（どうくつの奥で、ぐちゃぐちゃの表を まとった 大きな セルイムが ぷるぷる ふるえている……）', 'ぷるる！ 表なんて 散らかってるほうが 落ちつくんだぷる！'], [
+      '(Deep in the cave, a big Cellime wrapped in a jumbled table is wobbling...)',
+      'Wobble! Tables are way more relaxing when they\'re a mess, wob!',
+    ]),
     questions: [
-      { type: 'choice', q: 'コピーの ショートカットは？', choices: ['Ctrl+C', 'Ctrl+V', 'Ctrl+X', 'Ctrl+Z'], answer: 'Ctrl+C', explain: 'C は Copy の C。Macは ⌘+C。' },
-      { type: 'choice', q: '直前の操作を 取り消す ショートカットは？', choices: ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+B', 'Ctrl+S'], answer: 'Ctrl+Z', explain: 'Ctrl+Z で元に戻す、Ctrl+Y でやり直し。' },
-      { type: 'choice', q: '貼り付けの ショートカットは？', choices: ['Ctrl+V', 'Ctrl+P', 'Ctrl+C', 'Ctrl+A'], answer: 'Ctrl+V', explain: 'Ctrl+P は印刷（Print）なので注意。' },
-      { type: 'choice', q: '太字の ショートカットは？', choices: ['Ctrl+B', 'Ctrl+I', 'Ctrl+U', 'Ctrl+F'], answer: 'Ctrl+B', explain: 'B は Bold。I は斜体、U は下線。' },
-      { type: 'choice', q: 'セルに入力して Enter を押すと、選択セルは どこへ動く？', choices: ['下', '右', '上', '動かない'], answer: '下', explain: 'Enter で下へ、Tab で右へ。連続入力がはかどる。' },
+      c('コピーの ショートカットは？', ['Ctrl+C', 'Ctrl+V', 'Ctrl+X', 'Ctrl+Z'], 'Ctrl+C', 'C は Copy の C。Macは ⌘+C。', { q: 'What\'s the shortcut to copy?', explain: 'C is for Copy. On a Mac, ⌘+C.' }),
+      c('直前の操作を 取り消す ショートカットは？', ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+B', 'Ctrl+S'], 'Ctrl+Z', 'Ctrl+Z で元に戻す、Ctrl+Y でやり直し。', { q: 'What\'s the shortcut to undo the last action?', explain: 'Ctrl+Z undoes, and Ctrl+Y redoes.' }),
+      c('貼り付けの ショートカットは？', ['Ctrl+V', 'Ctrl+P', 'Ctrl+C', 'Ctrl+A'], 'Ctrl+V', 'Ctrl+P は印刷（Print）なので注意。', { q: 'What\'s the shortcut to paste?', explain: 'Careful: Ctrl+P is Print.' }),
+      c('太字の ショートカットは？', ['Ctrl+B', 'Ctrl+I', 'Ctrl+U', 'Ctrl+F'], 'Ctrl+B', 'B は Bold。I は斜体、U は下線。', { q: 'What\'s the shortcut for bold?', explain: 'B is for Bold. I is Italic, U is Underline.' }),
+      c('セルに入力して Enter を押すと、選択セルは どこへ動く？', ['下', '右', '上', '動かない'], '下', 'Enter で下へ、Tab で右へ。連続入力がはかどる。', { q: 'You type in a cell and press Enter. Where does the selection move?', choices: ['Down', 'Right', 'Up', 'It doesn\'t move'], answer: 'Down', explain: 'Enter moves down, Tab moves right. Great for entering data in a row.' }),
       G.genSeriesFill,
       G.genSeriesFill,
       G.genCopyFill,
@@ -66,10 +82,10 @@ export const BOSSES: Record<string, BossDef> = {
       G.genDayFill,
       G.genAddress,
       G.genNeighbor,
-      { type: 'choice', q: 'セルの中身の 一部だけ 修正したいときに 押すキーは？', choices: ['F2', 'F4', 'F5', 'Esc'], answer: 'F2', explain: 'F2（またはダブルクリック）で 編集モードに入れる。' },
-      { type: 'choice', q: '範囲選択の右下にある 小さな■の名前は？', choices: ['フィルハンドル', '名前ボックス', '数式バー', 'セルポインタ'], answer: 'フィルハンドル', explain: 'ドラッグでオートフィルができる、便利な■。' },
-      { type: 'choice', q: '入力中に Esc を押すと？', choices: ['入力をキャンセル', '確定して右へ', 'セルを削除', 'ファイルを保存'], answer: '入力をキャンセル', explain: 'まちがえて打ち始めても Esc で元通り。' },
-      { type: 'choice', q: 'シート全体を 選択する ショートカットは？', choices: ['Ctrl+A', 'Ctrl+S', 'Ctrl+E', 'Ctrl+W'], answer: 'Ctrl+A', explain: 'A は All。' },
+      c('セルの中身の 一部だけ 修正したいときに 押すキーは？', ['F2', 'F4', 'F5', 'Esc'], 'F2', 'F2（またはダブルクリック）で 編集モードに入れる。', { q: 'Which key do you press to fix just part of a cell?', explain: 'F2 (or a double-click) puts you in edit mode.' }),
+      c('範囲選択の右下にある 小さな■の名前は？', ['フィルハンドル', '名前ボックス', '数式バー', 'セルポインタ'], 'フィルハンドル', 'ドラッグでオートフィルができる、便利な■。', { q: 'What\'s the small ■ at the bottom-right of a selection called?', choices: ['Fill handle', 'Name Box', 'Formula bar', 'Cell pointer'], answer: 'Fill handle', explain: 'The handy ■ you drag to AutoFill.' }),
+      c('入力中に Esc を押すと？', ['入力をキャンセル', '確定して右へ', 'セルを削除', 'ファイルを保存'], '入力をキャンセル', 'まちがえて打ち始めても Esc で元通り。', { q: 'What happens if you press Esc while typing?', choices: ['Cancels the entry', 'Confirms and moves right', 'Deletes the cell', 'Saves the file'], answer: 'Cancels the entry', explain: 'Started typing by mistake? Esc puts it back the way it was.' }),
+      c('シート全体を 選択する ショートカットは？', ['Ctrl+A', 'Ctrl+S', 'Ctrl+E', 'Ctrl+W'], 'Ctrl+A', 'A は All。', { q: 'What\'s the shortcut to select the whole sheet?', explain: 'A is for All.' }),
     ],
   },
   golem: {
@@ -77,18 +93,24 @@ export const BOSSES: Record<string, BossDef> = {
     name: '手計算ゴーレム',
     sprite: 'golem',
     boss: true,
-    attackText: '筆算の 石板を ふりおろしてきた！',
-    defeatText: ['「関数……ナント 便利……。ワレ、手計算ヲ 卒業スル……。」', '手計算ゴーレムは 静かに 崩れ落ち、ただの 石に もどった。'],
+    attackText: tr('筆算の 石板を ふりおろしてきた！', 'It slammed down a stone tablet full of longhand math!'),
+    defeatText: tra(['「関数……ナント 便利……。ワレ、手計算ヲ 卒業スル……。」', '手計算ゴーレムは 静かに 崩れ落ち、ただの 石に もどった。'], [
+      '"FUNCTIONS... SO CONVENIENT... I SHALL GRADUATE... FROM HAND CALCULATION..."',
+      'The Hand-Calc Golem quietly crumbled and became plain stone once more.',
+    ]),
     hp: 210,
     attack: [13, 18],
     exp: 120,
     gold: 100,
-    intro: ['（塔の頂上で、石板に びっしり筆算を 書きなぐる ゴーレムが 立ちはだかった！）', 'ゴゴゴ……計算ハ 手デ スルモノ……関数ナド 認メヌ……！'],
+    intro: tra(['（塔の頂上で、石板に びっしり筆算を 書きなぐる ゴーレムが 立ちはだかった！）', 'ゴゴゴ……計算ハ 手デ スルモノ……関数ナド 認メヌ……！'], [
+      '(At the top of the tower, a golem scribbling longhand math all over a stone tablet blocks your way!)',
+      'RUMBLE... MATH IS DONE BY HAND... I DO NOT ACCEPT... FUNCTIONS...!',
+    ]),
     questions: [
-      { type: 'choice', q: '「平均」を 求める関数は？', choices: ['AVERAGE', 'SUM', 'MEAN', 'AVG'], answer: 'AVERAGE', explain: '=AVERAGE(範囲) で平均。' },
-      { type: 'choice', q: 'COUNT関数が 数えるのは？', choices: ['数値が入ったセル', '空白でないすべてのセル', '空白のセル', '文字だけのセル'], answer: '数値が入ったセル', explain: '空白以外すべてを数えるなら COUNTA。' },
-      { type: 'choice', q: '割り算に使う 記号は？', choices: ['/', '÷', '%', '\\'], answer: '/', explain: '足す+ 引く- 掛ける* 割る/。' },
-      { type: 'choice', q: '数式の最初に 必ず付ける 記号は？', choices: ['=', '+', '#', '@'], answer: '=', explain: '= で始めると 表計算ソフトが「計算して」と理解する。' },
+      c('「平均」を 求める関数は？', ['AVERAGE', 'SUM', 'MEAN', 'AVG'], 'AVERAGE', '=AVERAGE(範囲) で平均。', { q: 'Which function finds the "average"?', explain: '=AVERAGE(range) gives the average.' }),
+      c('COUNT関数が 数えるのは？', ['数値が入ったセル', '空白でないすべてのセル', '空白のセル', '文字だけのセル'], '数値が入ったセル', '空白以外すべてを数えるなら COUNTA。', { q: 'What does the COUNT function count?', choices: ['Cells with numbers', 'Every non-blank cell', 'Blank cells', 'Cells with text only'], answer: 'Cells with numbers', explain: 'To count every non-blank cell, use COUNTA.' }),
+      c('割り算に使う 記号は？', ['/', '÷', '%', '\\'], '/', '足す+ 引く- 掛ける* 割る/。', { q: 'Which symbol is used for division?', explain: 'Add +, subtract -, multiply *, divide /.' }),
+      c('数式の最初に 必ず付ける 記号は？', ['=', '+', '#', '@'], '=', '= で始めると 表計算ソフトが「計算して」と理解する。', { q: 'Which symbol must every formula start with?', explain: 'Starting with = tells the spreadsheet "calculate this".' }),
       G.genPrecedence,
       G.genPrecedence,
       G.genMaxMin,
@@ -107,26 +129,40 @@ export const BOSSES: Record<string, BossDef> = {
     name: 'ズレズレ・ミラージュ',
     sprite: 'mirage',
     boss: true,
-    attackText: '鏡に 映った 数式を ずらして 撃ちこんできた！',
-    defeatText: [
-      '「ワタシは……ずれていたのは ワタシの ほうだった……。」',
-      '「$の印……ブレない 心……。オボエテ オコウ……。」',
-      'ズレズレ・ミラージュの 鏡が 割れ、光の粒と なって 消えていった。',
-    ],
+    attackText: tr('鏡に 映った 数式を ずらして 撃ちこんできた！', 'It fired a shifted formula from its mirror!'),
+    defeatText: tra(
+      [
+        '「ワタシは……ずれていたのは ワタシの ほうだった……。」',
+        '「$の印……ブレない 心……。オボエテ オコウ……。」',
+        'ズレズレ・ミラージュの 鏡が 割れ、光の粒と なって 消えていった。',
+      ],
+      [
+        '"So... it was I... who had shifted all along..."',
+        '"The mark of $... a heart that never wavers... I SHALL REMEMBER IT..."',
+        'The Shifty Mirage\'s mirror shattered and faded away into specks of light.',
+      ],
+    ),
     hp: 300,
     attack: [17, 23],
     exp: 220,
     gold: 180,
-    intro: [
-      '（神殿の奥。巨大な鏡の中から、ゆらゆらと 揺れる 影が あらわれた！）',
-      'フフフ……コピーするたび ずれていく 数式……美しい ずれ でしょう？',
-      'この町の 表は すべて ワタシが 映し出した「ずれた鏡像」。キミも ずらして あげる……！',
-    ],
+    intro: tra(
+      [
+        '（神殿の奥。巨大な鏡の中から、ゆらゆらと 揺れる 影が あらわれた！）',
+        'フフフ……コピーするたび ずれていく 数式……美しい ずれ でしょう？',
+        'この町の 表は すべて ワタシが 映し出した「ずれた鏡像」。キミも ずらして あげる……！',
+      ],
+      [
+        '(Deep in the temple, a wavering shadow emerges from a giant mirror!)',
+        'Hehehe... formulas that shift every time you copy them... Isn\'t the shifting beautiful?',
+        'Every table in this town is a "shifted reflection" I cast. I\'ll shift you too...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: '数式をコピーしても 参照が ずれないように するには？', choices: ['$を付ける', '#を付ける', '@を付ける', '!を付ける'], answer: '$を付ける', explain: '$A$1 のように $ を付けると 絶対参照になる。' },
-      { type: 'choice', q: '「列は ずれて、行は 固定」なのは？', choices: ['A$1', '$A1', '$A$1', 'A1'], answer: 'A$1', explain: '$ は すぐ後ろを 固定する。A$1 は 行（1）だけ 固定。' },
-      { type: 'choice', q: '数値を 四捨五入する 関数は？', choices: ['ROUND', 'INT', 'ROUNDUP', 'TRIM'], answer: 'ROUND', explain: 'ROUND は 四捨五入、ROUNDUP は 切り上げ、ROUNDDOWN は 切り捨て。' },
-      { type: 'choice', q: 'Macで F4 の代わりに $ を切り替えるキーは？', choices: ['⌘+T', '⌘+4', '⌘+$', 'fn+F2'], answer: '⌘+T', explain: 'Mac では ⌘+T（または fn+F4）で 切り替わる ソフトが 多い。' },
+      c('数式をコピーしても 参照が ずれないように するには？', ['$を付ける', '#を付ける', '@を付ける', '!を付ける'], '$を付ける', '$A$1 のように $ を付けると 絶対参照になる。', { q: 'How do you keep a reference from shifting when you copy a formula?', choices: ['Add $', 'Add #', 'Add @', 'Add !'], answer: 'Add $', explain: 'Adding $ like $A$1 makes it an absolute reference.' }),
+      c('「列は ずれて、行は 固定」なのは？', ['A$1', '$A1', '$A$1', 'A1'], 'A$1', '$ は すぐ後ろを 固定する。A$1 は 行（1）だけ 固定。', { q: 'Which one lets the column shift but locks the row?', explain: '$ locks what comes right after it. A$1 locks only the row (1).' }),
+      c('数値を 四捨五入する 関数は？', ['ROUND', 'INT', 'ROUNDUP', 'TRIM'], 'ROUND', 'ROUND は 四捨五入、ROUNDUP は 切り上げ、ROUNDDOWN は 切り捨て。', { q: 'Which function rounds a number?', explain: 'ROUND rounds to the nearest, ROUNDUP rounds up, and ROUNDDOWN rounds down.' }),
+      c('Macで F4 の代わりに $ を切り替えるキーは？', ['⌘+T', '⌘+4', '⌘+$', 'fn+F2'], '⌘+T', 'Mac では ⌘+T（または fn+F4）で 切り替わる ソフトが 多い。', { q: 'On a Mac, which keys toggle $ instead of F4?', explain: 'On a Mac, many apps use ⌘+T (or fn+F4) to toggle it.' }),
       G.genAbsCopy,
       G.genF4Cycle,
       G.genMixedMeaning,
@@ -383,14 +419,13 @@ Object.assign(BOSSES, {
 } satisfies Record<string, BossDef>)
 
 // ================================================================ フィールドの敵
-const c = (q: string, choices: string[], answer: string, explain: string): Question => ({ type: 'choice', q, choices, answer, explain })
 
 const BASICS: QuestionSrc[] = [
-  c('表計算の マス目の ひとつひとつを 何と呼ぶ？', ['セル', 'マス', 'ボックス', 'ピクセル'], 'セル', 'マス目は「セル」。セルが 集まって 表になる。'),
-  c('横方向の 並びを 何と呼ぶ？', ['行', '列', '段', '帯'], '行', '横が「行（ぎょう）」、縦が「列（れつ）」。'),
-  c('縦方向の 並びを 何と呼ぶ？', ['列', '行', '柱', '段'], '列', '列は A, B, C… のアルファベットで表す。'),
-  c('入力した内容を 確定するキーは？', ['Enter', 'Esc', 'F1', 'Alt'], 'Enter', 'Enter で確定して 下へ。Tab なら 右へ。'),
-  c('ファイルを 上書き保存する ショートカットは？', ['Ctrl+S', 'Ctrl+P', 'Ctrl+W', 'Ctrl+N'], 'Ctrl+S', 'S は Save。こまめな保存が 身を守る。'),
+  c('表計算の マス目の ひとつひとつを 何と呼ぶ？', ['セル', 'マス', 'ボックス', 'ピクセル'], 'セル', 'マス目は「セル」。セルが 集まって 表になる。', { q: 'What do you call each box in a spreadsheet grid?', choices: ['Cell', 'Square', 'Box', 'Pixel'], answer: 'Cell', explain: 'Each box is a "cell". Cells come together to make a table.' }),
+  c('横方向の 並びを 何と呼ぶ？', ['行', '列', '段', '帯'], '行', '横が「行（ぎょう）」、縦が「列（れつ）」。', { q: 'What do you call a horizontal line of cells?', choices: ['Row', 'Column', 'Tier', 'Band'], answer: 'Row', explain: 'Horizontal is a "row", vertical is a "column".' }),
+  c('縦方向の 並びを 何と呼ぶ？', ['列', '行', '柱', '段'], '列', '列は A, B, C… のアルファベットで表す。', { q: 'What do you call a vertical line of cells?', choices: ['Column', 'Row', 'Pillar', 'Tier'], answer: 'Column', explain: 'Columns are labeled with letters: A, B, C...' }),
+  c('入力した内容を 確定するキーは？', ['Enter', 'Esc', 'F1', 'Alt'], 'Enter', 'Enter で確定して 下へ。Tab なら 右へ。', { q: 'Which key confirms what you typed?', explain: 'Enter confirms and moves down. Tab moves right.' }),
+  c('ファイルを 上書き保存する ショートカットは？', ['Ctrl+S', 'Ctrl+P', 'Ctrl+W', 'Ctrl+N'], 'Ctrl+S', 'S は Save。こまめな保存が 身を守る。', { q: 'What\'s the shortcut to save the file?', explain: 'S is for Save. Saving often keeps you safe.' }),
   G.genAddress,
   G.genAddress,
   G.genNeighbor,
@@ -399,10 +434,10 @@ const BASICS: QuestionSrc[] = [
 ]
 
 const EDITS: QuestionSrc[] = [
-  c('セルの一部だけ 直したい。押すキーは？', ['F2', 'F4', 'F12', 'Delete'], 'F2', 'F2 で 編集モード。ダブルクリックでもOK。'),
-  c('まちがえて消した！ 元に戻すのは？', ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+X', 'Ctrl+Q'], 'Ctrl+Z', 'Ctrl+Z で ひとつ前に戻る。'),
-  c('切り取りの ショートカットは？', ['Ctrl+X', 'Ctrl+C', 'Ctrl+T', 'Ctrl+D'], 'Ctrl+X', '切り取って 貼り付けると「移動」になる。'),
-  c('入力中に やっぱり やめたい。押すキーは？', ['Esc', 'Enter', 'Tab', 'Shift'], 'Esc', 'Esc で 入力をキャンセル。'),
+  c('セルの一部だけ 直したい。押すキーは？', ['F2', 'F4', 'F12', 'Delete'], 'F2', 'F2 で 編集モード。ダブルクリックでもOK。', { q: 'You want to fix just part of a cell. Which key do you press?', explain: 'F2 enters edit mode. A double-click works too.' }),
+  c('まちがえて消した！ 元に戻すのは？', ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+X', 'Ctrl+Q'], 'Ctrl+Z', 'Ctrl+Z で ひとつ前に戻る。', { q: 'You deleted something by mistake! How do you undo it?', explain: 'Ctrl+Z takes you back one step.' }),
+  c('切り取りの ショートカットは？', ['Ctrl+X', 'Ctrl+C', 'Ctrl+T', 'Ctrl+D'], 'Ctrl+X', '切り取って 貼り付けると「移動」になる。', { q: 'What\'s the shortcut to cut?', explain: 'Cut and then paste to "move" something.' }),
+  c('入力中に やっぱり やめたい。押すキーは？', ['Esc', 'Enter', 'Tab', 'Shift'], 'Esc', 'Esc で 入力をキャンセル。', { q: 'You changed your mind while typing. Which key do you press?', explain: 'Esc cancels the entry.' }),
   G.genSeriesFill,
   G.genSeriesFill,
   G.genCopyFill,
@@ -412,8 +447,8 @@ const EDITS: QuestionSrc[] = [
 ]
 
 const CALCS: QuestionSrc[] = [
-  c('合計を出す関数は？', ['SUM', 'ADD', 'TOTAL', 'PLUS'], 'SUM', '=SUM(範囲) で合計。'),
-  c('「100÷4」を 数式で書くと？', ['=100/4', '=100÷4', '=100:4', '=100%4'], '=100/4', '割り算は /（スラッシュ）。'),
+  c('合計を出す関数は？', ['SUM', 'ADD', 'TOTAL', 'PLUS'], 'SUM', '=SUM(範囲) で合計。', { q: 'Which function gives the total?', explain: '=SUM(range) gives the total.' }),
+  c('「100÷4」を 数式で書くと？', ['=100/4', '=100÷4', '=100:4', '=100%4'], '=100/4', '割り算は /（スラッシュ）。', { q: 'How do you write "100 ÷ 4" as a formula?', explain: 'Division uses / (a slash).' }),
   G.genPrecedence,
   G.genPrecedence,
   G.genPrecedence,
@@ -425,8 +460,8 @@ const CALCS: QuestionSrc[] = [
 ]
 
 const FUNCS: QuestionSrc[] = [
-  c('いちばん大きい値を 求める関数は？', ['MAX', 'MIN', 'TOP', 'BIG'], 'MAX', '最大は MAX、最小は MIN。'),
-  c('数値が入った セルを 数える関数は？', ['COUNT', 'SUM', 'NUMBER', 'COUNTA'], 'COUNT', '空白以外 すべてなら COUNTA。'),
+  c('いちばん大きい値を 求める関数は？', ['MAX', 'MIN', 'TOP', 'BIG'], 'MAX', '最大は MAX、最小は MIN。', { q: 'Which function finds the largest value?', explain: 'The largest is MAX, the smallest is MIN.' }),
+  c('数値が入った セルを 数える関数は？', ['COUNT', 'SUM', 'NUMBER', 'COUNTA'], 'COUNT', '空白以外 すべてなら COUNTA。', { q: 'Which function counts cells that contain numbers?', explain: 'To count every non-blank cell, use COUNTA.' }),
   G.genMaxMin,
   G.genMaxMin,
   G.genCount,
@@ -438,9 +473,9 @@ const FUNCS: QuestionSrc[] = [
 ]
 
 const REFS: QuestionSrc[] = [
-  c('数式を コピーすると 参照が いっしょに ずれる。これを 何という？', ['相対参照', '絶対参照', '循環参照', '外部参照'], '相対参照', 'ふつうの A1 は 相対参照。コピーした分だけ ずれる。'),
-  c('「$A$1」のような 参照を 何という？', ['絶対参照', '相対参照', '複合参照', '名前参照'], '絶対参照', '$ で 固定された参照。コピーしても A1 のまま。'),
-  c('参照の $ を 切り替える キーは？', ['F4', 'F2', 'F1', 'F12'], 'F4', '数式の入力中に F4。Mac は ⌘+T。'),
+  c('数式を コピーすると 参照が いっしょに ずれる。これを 何という？', ['相対参照', '絶対参照', '循環参照', '外部参照'], '相対参照', 'ふつうの A1 は 相対参照。コピーした分だけ ずれる。', { q: 'When you copy a formula, its references shift along with it. What is this called?', choices: ['Relative reference', 'Absolute reference', 'Circular reference', 'External reference'], answer: 'Relative reference', explain: 'A plain A1 is a relative reference. It shifts by however far you copy.' }),
+  c('「$A$1」のような 参照を 何という？', ['絶対参照', '相対参照', '複合参照', '名前参照'], '絶対参照', '$ で 固定された参照。コピーしても A1 のまま。', { q: 'What do you call a reference like "$A$1"?', choices: ['Absolute reference', 'Relative reference', 'Mixed reference', 'Named reference'], answer: 'Absolute reference', explain: 'A reference locked with $. It stays A1 even when copied.' }),
+  c('参照の $ を 切り替える キーは？', ['F4', 'F2', 'F1', 'F12'], 'F4', '数式の入力中に F4。Mac は ⌘+T。', { q: 'Which key toggles the $ in a reference?', explain: 'Press F4 while typing a formula. On a Mac, ⌘+T.' }),
   G.genRelShift,
   G.genRelShift,
   G.genAbsCopy,
@@ -451,8 +486,8 @@ const REFS: QuestionSrc[] = [
 ]
 
 const MIXES: QuestionSrc[] = [
-  c('「$A1」と「A$1」のように、片方だけ 固定する参照は？', ['複合参照', '絶対参照', '相対参照', '半分参照'], '複合参照', '列だけ・行だけ 固定するのが 複合参照。'),
-  c('各商品の 売上が 合計の 何％かを 表したものは？', ['構成比', '前年比', '達成率', '平均値'], '構成比', '構成比 ＝ 個別 ÷ 合計。合計は $ で固定。'),
+  c('「$A1」と「A$1」のように、片方だけ 固定する参照は？', ['複合参照', '絶対参照', '相対参照', '半分参照'], '複合参照', '列だけ・行だけ 固定するのが 複合参照。', { q: 'What do you call a reference like "$A1" or "A$1" that locks only one part?', choices: ['Mixed reference', 'Absolute reference', 'Relative reference', 'Half reference'], answer: 'Mixed reference', explain: 'Locking only the column or only the row is a mixed reference.' }),
+  c('各商品の 売上が 合計の 何％かを 表したものは？', ['構成比', '前年比', '達成率', '平均値'], '構成比', '構成比 ＝ 個別 ÷ 合計。合計は $ で固定。', { q: 'What do you call each item\'s sales as a percentage of the total?', choices: ['Share', 'Year-over-year', 'Achievement rate', 'Average'], answer: 'Share', explain: 'Share = each value ÷ total. Lock the total with $.' }),
   G.genMixedCopy,
   G.genMixedCopy,
   G.genShareValue,
