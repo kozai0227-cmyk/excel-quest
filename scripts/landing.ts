@@ -89,6 +89,7 @@ export function landingPage() {
 <title>${TITLE}</title>
 <meta name="description" content="${esc(DESC)}" />
 <link rel="canonical" href="${SITE}/" />
+<meta name="google-site-verification" content="2k9b4SQLKXFk_rTVLkfE5fCPvWFtwv18NKUand2-dEs" />
 <meta name="theme-color" content="#0b1430" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="イコール・クエスト" />

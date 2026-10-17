@@ -24,6 +24,7 @@ Web 版（https://equal-quest.vercel.app）に 入れてある 検索対策と�
 | 関数・操作の 解説ページ | `/learn/`（一覧）と `/learn/vlookup/` など 54 ページ。教会の 解説と 同じ 内容から ビルド時に 自動で 作る | `scripts/webPages.ts` |
 | サイトマップ | Google に 知らせる ページの 一覧 | `/sitemap.xml`（自動） |
 | robots.txt | サイトマップの 場所を 知らせる | `public/robots.txt` |
+| Search Console の 確認タグ | サイトの 持ち主で あることを Google に 示す（消すと 確認が 外れる） | `scripts/landing.ts` |
 | タイトル画面の リンク | Web 版だけ「関数の解説」リンク（アプリ版には 出ない） | `src/components/Screens.tsx` |
 
 - 解説ページは アプリ版には 入れない（`npm run ios` は `EQ_APP=1` で ビルドする）
