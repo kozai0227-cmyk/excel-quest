@@ -1,12 +1,34 @@
+import type { ReactNode } from 'react'
 import { FUNC_GUIDES } from '../data/funcGuides'
 import { SKILLS } from '../data/skills'
 import { useKeys } from '../game/keys'
 import { sfx } from '../game/sound'
 import { tr } from '../game/lang'
 
-/** 文の 中の 数式（= で 始まる 部分）を 目立たせる */
-const withCode = (text: string) =>
-  text.split(/(=[^\s　「」（）]+(?:\([^　]*?\))?)/).map((part, i) => (part.startsWith('=') ? <code key={i}>{part}</code> : part))
+/** 文の 中の 数式（= で 始まる 部分）を 目立たせる。カッコと " の 中の 空白では 切らない */
+const withCode = (text: string) => {
+  const out: ReactNode[] = []
+  let last = 0
+  for (let i = text.indexOf('='); i >= 0; i = text.indexOf('=', i + 1)) {
+    let j = i + 1
+    let depth = 0
+    let quote = false
+    for (; j < text.length; j++) {
+      const ch = text[j]
+      if (ch === '"') quote = !quote
+      else if (quote) continue
+      else if (ch === '(') depth++
+      else if (ch === ')' && depth > 0) depth--
+      else if (depth === 0 && /[\s　「」（）)]/.test(ch)) break
+    }
+    if (j - i < 2) continue
+    out.push(text.slice(last, i), <code key={i}>{text.slice(i, j)}</code>)
+    last = j
+    i = j - 1
+  }
+  out.push(text.slice(last))
+  return out
+}
 
 /** 例の 1行：「　→」の 左が 数式や 操作、右が 結果の 説明 */
 function Example({ line }: { line: string }) {
