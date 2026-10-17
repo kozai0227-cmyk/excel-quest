@@ -2925,18 +2925,30 @@ Object.assign(QUESTS, {
 } satisfies Record<string, QuestDef>)
 
 // ---------------------------------------------------------------- 第6章 テキストリア（文字列）
-const GUEST_NAMES: [string, string][] = [
-  ['山田', '太郎'],
-  ['佐藤', '花子'],
-  ['鈴木', '一郎'],
-  ['田中', '美咲'],
-]
+const GUEST_NAMES: [string, string][] = tra<[string, string][]>(
+  [
+    ['山田', '太郎'],
+    ['佐藤', '花子'],
+    ['鈴木', '一郎'],
+    ['田中', '美咲'],
+  ],
+  [
+    ['John', 'Smith'],
+    ['Mary', 'Brown'],
+    ['Ken', 'Lee'],
+    ['Amy', 'Clark'],
+  ],
+)
 const ITEM_CODES = ['TX-1023', 'NB-2201', 'KS-0450', 'TX-3310']
 const PHONES = ['03-1234-5678', '03-8765-4321', '03-2468-1357', '03-5555-0001']
-const SIGNS = ['パン屋モジモジ', 'テキストリア中央市場', '宿屋ひらがな', 'カタカナ雑貨店本店']
-const SIGN_MAX = 8
-const MESSY = ['  山田 花子', '佐藤  次郎 ', ' 鈴木   一郎']
-const COMPANIES = ['株式会社モジ', '株式会社テキスト', 'ヨミカキ株式会社']
+const SIGNS = tra(['パン屋モジモジ', 'テキストリア中央市場', '宿屋ひらがな', 'カタカナ雑貨店本店'], ['Bakery Moji', 'Textria Central Market', 'Hiragana Inn', 'Katakana General Store'])
+/** 看板に 入る 文字数（英語は 1文字が 細いので 多め） */
+const SIGN_MAX = tra(8, 12)
+const MESSY = tra(['  山田 花子', '佐藤  次郎 ', ' 鈴木   一郎'], ['  Mary Brown', 'Ken  Lee ', ' Amy   Clark'])
+const COMPANIES = tra(['株式会社モジ', '株式会社テキスト', 'ヨミカキ株式会社'], ['Moji Corporation', 'Textria Corporation', 'The Corporation of Scribes'])
+/** 会社名の 略し方（SUBSTITUTE で 置きかえる 文字） */
+const [CORP, CORP_SHORT] = tra(['株式会社', '(株)'], ['Corporation', 'Corp.'])
+const LONG = tr('長い', 'Long')
 const EMAILS = ['taro@moji.jp', 'hanako@text.co', 'ichiro@kaki.ne']
 const trim = (t: string) => t.trim().replace(/ +/g, ' ')
 
@@ -2944,7 +2956,9 @@ const trim = (t: string) => t.trim().replace(/ +/g, ' ')
 const needJoin = (c: CheckCtx, cells: string[], vague = false) => {
   const a = cells.find((x) => !c.raw(x).includes('&') && !usesFn(c.raw(x), 'CONCATENATE'))
   if (!a) return null
-  return vague ? `${a} の 答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。` : `${a} は 合っている！ でも 文字を そのまま 書かずに、& で つないで 作ってみよう。`
+  return vague
+    ? tr(`${a} の 答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。`, `The answer in ${a} is right, but... the door doesn't react. There seems to be a rule about how to get it.`)
+    : tr(`${a} は 合っている！ でも 文字を そのまま 書かずに、& で つないで 作ってみよう。`, `${a} is right! But instead of typing the text, build it by joining with &.`)
 }
 
 Object.assign(QUESTS, {
@@ -2952,191 +2966,297 @@ Object.assign(QUESTS, {
     id: 'text_concat',
     town: 'textria',
     npc: '宿帳係フミ',
-    title: '宿帳の名前',
-    intro: [
+    title: tr('宿帳の名前', 'Names for the Register'),
+    intro: tra([
       'いらっしゃいませ。宿場の 宿帳係、フミと 申します。',
       '宿帳には 名字と 名前が 別の 欄に 書いてあるのですが、お部屋の 札には「山田 太郎」のように 1つに して 書きたいのです。',
       '1人ずつ 書き写していたら、文字化けの 呪いで 名前が 化けて しまって……。',
-    ],
-    task: ['C2:C5 に「名字 名前」（間に 空白）を 作ろう', '文字と 文字は「&」で つなぐ。空白は " " と 書く'],
-    grid: () => makeGrid(6, 3, [['名字', '名前', '札の名前'], ...GUEST_NAMES], ['A1', 'B1', 'C1']),
+    ], [
+      'Welcome. I\'m Fumi, keeper of the guest register.',
+      'The register has first and last names in separate columns, but I want to write them together on the room tags, like "John Smith."',
+      'When I copied them out one by one, the garbling curse scrambled the names...',
+    ]),
+    task: tra(['C2:C5 に「名字 名前」（間に 空白）を 作ろう', '文字と 文字は「&」で つなぐ。空白は " " と 書く'], [
+      'In C2:C5, make "First Last" (with a space between)',
+      'Join text with "&". Write a space as " "',
+    ]),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['名字', '名前', '札の名前'], ['First', 'Last', 'Tag Name']), ...GUEST_NAMES], ['A1', 'B1', 'C1']),
     colWidths: [60, 60, 110],
-    hints: [
+    hints: tra([
       '「&」は 文字と 文字を つなぐ 記号。=A2&B2 なら「山田太郎」。',
       '間に 空白を はさむには、空白の 文字 " " を まん中に つなぐ。',
       'C2 に =A2&" "&B2 → C5 まで オートフィル。',
-    ],
+    ], [
+      '"&" is the symbol that joins text to text. =A2&B2 gives "JohnSmith."',
+      'To put a space between them, join the space text " " in the middle.',
+      '=A2&" "&B2 in C2 → AutoFill down to C5.',
+    ]),
     check: (c) => first(eachVal(c, GUEST_NAMES.map(([a, b], i) => [`C${i + 2}`, `${a} ${b}`])), needJoin(c, GUEST_NAMES.map((_, i) => `C${i + 2}`))),
     reward: { exp: 260, gold: 260, skill: 'concat' },
-    thanks: [
+    thanks: tra([
       '「山田 太郎」「佐藤 花子」……きれいに つながりました！',
       '名字や 名前を 直せば、札の 名前も 自動で 変わるのですね。',
       'もう 書き写して 化けさせる 心配は ありません。ありがとうございます！',
-    ],
+    ], [
+      '"John Smith," "Mary Brown"... They\'re joined perfectly!',
+      'If I fix a first or last name, the tag name changes automatically too.',
+      'No more worrying about garbling them while copying. Thank you!',
+    ]),
   },
 
   text_leftright: {
     id: 'text_leftright',
     town: 'textria',
     npc: '倉庫番コード',
-    title: '商品コードの分解',
-    intro: [
+    title: tr('商品コードの分解', 'Splitting Product Codes'),
+    intro: tra([
       'おう、倉庫番の コードだ。',
       '荷物の 商品コードは「TX-1023」みたいに、左の 2文字が 産地、右の 4文字が 品番なんだ。',
       '産地ごと・品番ごとに 棚を 分けたいんだが、1つずつ 目で 読んで 書き分けるのは 骨が 折れるぜ。',
-    ],
-    task: ['B2:B5 に、コードの 左から 2文字（産地）を 取り出そう', 'C2:C5 に、コードの 右から 4文字（品番）を 取り出そう'],
-    grid: () => makeGrid(6, 3, [['コード', '産地', '品番'], ...ITEM_CODES.map((x) => [x])], ['A1', 'B1', 'C1']),
+    ], [
+      'Hey, I\'m Code, the warehouse keeper.',
+      'Product codes look like "TX-1023": the left 2 letters are the origin, and the right 4 digits are the item number.',
+      'I want to sort the shelves by origin and item number, but reading each one by eye and writing them out is backbreaking work.',
+    ]),
+    task: tra(['B2:B5 に、コードの 左から 2文字（産地）を 取り出そう', 'C2:C5 に、コードの 右から 4文字（品番）を 取り出そう'], [
+      'In B2:B5, pull out the left 2 characters of each code (origin)',
+      'In C2:C5, pull out the right 4 characters of each code (item number)',
+    ]),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['コード', '産地', '品番'], ['Code', 'Origin', 'Item No.']), ...ITEM_CODES.map((x) => [x])], ['A1', 'B1', 'C1']),
     colWidths: [90, 60, 60],
-    hints: [
+    hints: tra([
       '=LEFT(文字列, 文字数) で 左から、=RIGHT(文字列, 文字数) で 右から 取り出せる。',
       '産地は 左の 2文字 → LEFT(A2,2)。品番は 右の 4文字 → RIGHT(A2,4)。',
       'B2 に =LEFT(A2,2)、C2 に =RIGHT(A2,4)。どちらも 5行目まで オートフィル。',
-    ],
+    ], [
+      '=LEFT(text, count) takes from the left, and =RIGHT(text, count) takes from the right.',
+      'The origin is the left 2 characters → LEFT(A2,2). The item number is the right 4 → RIGHT(A2,4).',
+      '=LEFT(A2,2) in B2 and =RIGHT(A2,4) in C2. AutoFill both down to row 5.',
+    ]),
     check: (c) =>
       first(
         eachVal(c, ITEM_CODES.map((x, i) => [`B${i + 2}`, x.slice(0, 2)]), 'LEFT'),
         eachVal(c, ITEM_CODES.map((x, i) => [`C${i + 2}`, x.slice(-4)]), 'RIGHT'),
       ),
     reward: { exp: 270, gold: 270, skill: 'leftright' },
-    thanks: [
+    thanks: tra([
       'TX、NB、KS……品番も 0450 の 頭の 0 まで ちゃんと 残ってるな！',
       '左から 何文字、右から 何文字。決まった 形の コードなら 一発だ。',
       'これで 棚分けも あっという間だぜ。ありがとよ！',
-    ],
+    ], [
+      'TX, NB, KS... and the item numbers even kept the leading 0 in 0450!',
+      'So many from the left, so many from the right. For codes with a fixed shape, it\'s one shot.',
+      'Sorting the shelves will be a breeze now. Thanks!',
+    ]),
   },
 
   text_mid: {
     id: 'text_mid',
     town: 'textria',
     npc: '通信士デンワ',
-    title: '電話番号の局番',
-    intro: [
+    title: tr('電話番号の局番', 'Phone Exchange Codes'),
+    intro: tra([
       '……あ、通信所の デンワです。',
       '電話番号「03-1234-5678」の まん中の 4けた「1234」が 局番で、地区ごとに 決まって いるんです。',
       '左からでも 右からでも ない、まん中の 文字だけ 取り出す 方法って あるんでしょうか……？',
-    ],
-    task: ['B2:B5 に、電話番号の まん中の 4けた（4文字目から 4文字）を 取り出そう', '=MID(文字列, 何文字目から, 何文字) を 使う'],
-    grid: () => makeGrid(6, 2, [['電話番号', '局番'], ...PHONES.map((x) => [x])], ['A1', 'B1']),
+    ], [
+      '...Oh, I\'m Denwa from the telegraph office.',
+      'In the phone number "03-1234-5678," the middle 4 digits, "1234," are the exchange code, and it depends on the district.',
+      'Not from the left, not from the right... Is there a way to pull out just the characters in the middle...?',
+    ]),
+    task: tra(['B2:B5 に、電話番号の まん中の 4けた（4文字目から 4文字）を 取り出そう', '=MID(文字列, 何文字目から, 何文字) を 使う'], [
+      'In B2:B5, pull out the middle 4 digits of the phone number (4 characters starting at the 4th)',
+      'Use =MID(text, start position, count)',
+    ]),
+    grid: () => makeGrid(6, 2, [tra<(string | number)[]>(['電話番号', '局番'], ['Phone', 'Exchange']), ...PHONES.map((x) => [x])], ['A1', 'B1']),
     colWidths: [120, 60],
-    hints: [
+    hints: tra([
       'MID は「何文字目から」「何文字」を 指定して、まん中の 文字を 取り出す。',
       '「03-1234-5678」の 1 は 4文字目（0・3・- の 次）。そこから 4文字。',
       'B2 に =MID(A2,4,4) → B5 まで オートフィル。',
-    ],
+    ], [
+      'MID pulls out characters from the middle: you set "start at which character" and "how many."',
+      'In "03-1234-5678," the 1 is the 4th character (after 0, 3 and -). Take 4 from there.',
+      '=MID(A2,4,4) in B2 → AutoFill down to B5.',
+    ]),
     check: (c) => eachVal(c, PHONES.map((x, i) => [`B${i + 2}`, x.slice(3, 7)]), 'MID'),
     reward: { exp: 280, gold: 280, skill: 'mid' },
-    thanks: [
+    thanks: tra([
       '1234、8765、2468、5555……ぜんぶ 局番だけに なりました！',
       '「何文字目から 何文字」……数え方さえ わかれば、どこでも 切り取れるんですね。',
       '地区ごとの 集計も、SUMIFS で すぐ できそうです。',
-    ],
+    ], [
+      '1234, 8765, 2468, 5555... They\'re all just the exchange codes now!',
+      '"Start at character X, take Y"... Once you know how to count, you can cut anywhere.',
+      'Totals by district should be easy with SUMIFS now, too.',
+    ]),
   },
 
   text_len: {
     id: 'text_len',
     town: 'textria',
     npc: '看板屋カンバ',
-    title: '看板の文字数',
-    intro: [
+    title: tr('看板の文字数', 'Letters on a Sign'),
+    intro: tra([
       'いらっしゃい！ 看板屋の カンバよ。',
       'うちの 看板は 8文字までしか 入らないの。注文された 店名が 入るか どうか、文字数を 数えたいのよ。',
       '指で 1文字ずつ 数えてたら、途中で 何文字目か わからなく なっちゃって……。',
-    ],
-    task: ['B2:B5 に、店名の 文字数を 出そう（LEN）', `C2:C5 に、${SIGN_MAX}文字より 多ければ「長い」、そうでなければ「OK」と 出そう`],
-    grid: () => makeGrid(6, 3, [['店名', '文字数', '判定'], ...SIGNS.map((x) => [x])], ['A1', 'B1', 'C1']),
+    ], [
+      'Welcome! I\'m Kanba, the sign maker.',
+      'My signs only fit so many letters. I want to count the letters to see whether the shop names people order will fit.',
+      'When I count one by one on my fingers, I lose track of where I am halfway through...',
+    ]),
+    task: tra(
+      ['B2:B5 に、店名の 文字数を 出そう（LEN）', `C2:C5 に、${SIGN_MAX}文字より 多ければ「長い」、そうでなければ「OK」と 出そう`],
+      ['In B2:B5, show the number of characters in each shop name (LEN)', `In C2:C5, show "Long" if it has more than ${SIGN_MAX} characters, otherwise "OK"`],
+    ),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['店名', '文字数', '判定'], ['Shop Name', 'Length', 'Check']), ...SIGNS.map((x) => [x])], ['A1', 'B1', 'C1']),
     colWidths: [150, 60, 60],
-    hints: [
-      '=LEN(文字列) で 文字数が わかる。空白も 1文字と 数える。',
-      '判定は イフポートで 覚えた IF。条件に LEN を そのまま 使える。',
-      `B2 に =LEN(A2)。C2 に =IF(LEN(A2)>${SIGN_MAX},"長い","OK")。どちらも 5行目まで オートフィル。`,
-    ],
+    hints: tra(
+      [
+        '=LEN(文字列) で 文字数が わかる。空白も 1文字と 数える。',
+        '判定は イフポートで 覚えた IF。条件に LEN を そのまま 使える。',
+        `B2 に =LEN(A2)。C2 に =IF(LEN(A2)>${SIGN_MAX},"長い","OK")。どちらも 5行目まで オートフィル。`,
+      ],
+      [
+        '=LEN(text) tells you the number of characters. Spaces count as 1 character too.',
+        'For the check, use IF, which you learned in Ifport. You can put LEN right in the condition.',
+        `=LEN(A2) in B2. =IF(LEN(A2)>${SIGN_MAX},"Long","OK") in C2. AutoFill both down to row 5.`,
+      ],
+    ),
     check: (c) =>
       first(
         ...SIGNS.map((x, i) => expectNum(c, `B${i + 2}`, x.length, 'LEN')),
-        eachVal(c, SIGNS.map((x, i) => [`C${i + 2}`, x.length > SIGN_MAX ? '長い' : 'OK']), 'IF'),
+        eachVal(c, SIGNS.map((x, i) => [`C${i + 2}`, x.length > SIGN_MAX ? LONG : 'OK']), 'IF'),
       ),
     reward: { exp: 280, gold: 280, skill: 'len' },
-    thanks: [
+    thanks: tra([
       '中央市場は 10文字、雑貨店本店は 9文字で「長い」……お客さんに 相談しなきゃ。',
       '文字数を 数える だけなら LEN、判定まで するなら IF と 組み合わせる。覚えたわ！',
       '看板づくりが はかどるわ。ありがとう！',
-    ],
+    ], [
+      '"Textria Central Market" and "Katakana General Store" are 22 characters each: "Long"... I\'ll have to talk to those customers.',
+      'Just counting characters is LEN; to check them too, combine it with IF. Got it!',
+      'Sign making is going to go so smoothly now. Thank you!',
+    ]),
   },
 
   text_clean: {
     id: 'text_clean',
     town: 'textria',
     npc: '書記ナラベ',
-    title: '名簿の清書',
-    intro: [
+    title: tr('名簿の清書', 'Tidying the Roster'),
+    intro: tra([
       '書記の ナラベです。宿場の 名簿を 清書しているのですが……。',
       '名前の 前後や 間に、よけいな 空白が 入っていて、並べると ガタガタなのです。',
       'それに、会社名の「株式会社」は 長いので「(株)」に したい。1つずつ 消して 書き直すのは、もう うんざりです。',
-    ],
-    task: ['B2:B4 に、A列の 名前から よけいな 空白を 取り除こう（TRIM）', 'D2:D4 に、C列の「株式会社」を「(株)」に 置きかえよう（SUBSTITUTE）'],
-    grid: () => makeGrid(5, 4, [['名前（元）', '名前（清書）', '会社名（元）', '会社名（略）'], ...MESSY.map((x, i) => [x, '', COMPANIES[i]])], ['A1', 'B1', 'C1', 'D1']),
+    ], [
+      'I\'m Narabe, a scribe. I\'m making a clean copy of the town roster, but...',
+      'There are extra spaces before, after and inside the names, so they look all crooked when lined up.',
+      'And "Corporation" in the company names is long, so I want to make it "Corp." I\'m sick of erasing and rewriting them one by one.',
+    ]),
+    task: tra(['B2:B4 に、A列の 名前から よけいな 空白を 取り除こう（TRIM）', 'D2:D4 に、C列の「株式会社」を「(株)」に 置きかえよう（SUBSTITUTE）'], [
+      'In B2:B4, remove the extra spaces from the names in column A (TRIM)',
+      'In D2:D4, replace "Corporation" in column C with "Corp." (SUBSTITUTE)',
+    ]),
+    grid: () => makeGrid(5, 4, [tra<(string | number)[]>(['名前（元）', '名前（清書）', '会社名（元）', '会社名（略）'], ['Name (raw)', 'Name (clean)', 'Company (raw)', 'Company (short)']), ...MESSY.map((x, i) => [x, '', COMPANIES[i]])], ['A1', 'B1', 'C1', 'D1']),
     colWidths: [110, 100, 130, 110],
-    hints: [
+    hints: tra([
       '=TRIM(文字列) は、前後の 空白を 消し、間の 空白も 1つに そろえる。',
       '=SUBSTITUTE(文字列, 探す文字, 置きかえる文字) で 文字を 置きかえる。',
       'B2 に =TRIM(A2)、D2 に =SUBSTITUTE(C2,"株式会社","(株)")。どちらも 4行目まで オートフィル。',
-    ],
+    ], [
+      '=TRIM(text) removes the spaces at the start and end, and squeezes the spaces in between down to one.',
+      '=SUBSTITUTE(text, text to find, replacement) replaces text.',
+      '=TRIM(A2) in B2 and =SUBSTITUTE(C2,"Corporation","Corp.") in D2. AutoFill both down to row 4.',
+    ]),
     check: (c) =>
       first(
         eachVal(c, MESSY.map((x, i) => [`B${i + 2}`, trim(x)]), 'TRIM'),
-        eachVal(c, COMPANIES.map((x, i) => [`D${i + 2}`, x.replace('株式会社', '(株)')]), 'SUBSTITUTE'),
+        eachVal(c, COMPANIES.map((x, i) => [`D${i + 2}`, x.replace(CORP, CORP_SHORT)]), 'SUBSTITUTE'),
       ),
     reward: { exp: 290, gold: 290, skill: 'clean' },
-    thanks: [
+    thanks: tra([
       '名前が ぴしっと そろいました！ (株)モジ、ヨミカキ(株)……後ろに ある 株式会社も ちゃんと 置きかわって いますね。',
       '空白を 消す TRIM と、文字を 置きかえる SUBSTITUTE。清書の 二大道具です。',
       'これで 名簿も 見違えるように なりました。感謝します。',
-    ],
+    ], [
+      'The names are lined up perfectly! Moji Corp., The Corp. of Scribes... Even the one in the middle got replaced.',
+      'TRIM to remove spaces and SUBSTITUTE to replace text. The two great tools of a clean copy.',
+      'The roster looks like a different thing now. I\'m grateful.',
+    ]),
   },
 
   text_find: {
     id: 'text_find',
     town: 'textria',
     npc: '宿場長カキコ',
-    title: '手紙のあて先',
-    intro: [
+    title: tr('手紙のあて先', 'Letter Addresses'),
+    intro: tra([
       '宿場長の カキコです。町の 悩みを 次々と 解いて くださって ありがとう。',
       '最後に お願いが。伝書鳩の あて先は「taro@moji.jp」のように、@ の 前が 名前、後ろが 町の 印なの。',
       '@ の 位置は 人によって ちがうから、何文字目で 切るか 決められなくて……。',
-    ],
-    task: ['B2:B4 に、@ より 前（名前）を 取り出そう', 'C2:C4 に、@ より 後ろ（町の 印）を 取り出そう', '=FIND("@", A2) で @ が 何文字目か わかる'],
-    grid: () => makeGrid(5, 3, [['あて先', '名前', '町の印'], ...EMAILS.map((x) => [x])], ['A1', 'B1', 'C1']),
+    ], [
+      'I\'m Kakiko, the warden. Thank you for solving the town\'s troubles one after another.',
+      'One last request. Carrier pigeon addresses look like "taro@moji.jp": before the @ is the name, and after it is the town\'s mark.',
+      'The @ is in a different place for each person, so I can\'t decide which character to cut at...',
+    ]),
+    task: tra(['B2:B4 に、@ より 前（名前）を 取り出そう', 'C2:C4 に、@ より 後ろ（町の 印）を 取り出そう', '=FIND("@", A2) で @ が 何文字目か わかる'], [
+      'In B2:B4, pull out the part before the @ (the name)',
+      'In C2:C4, pull out the part after the @ (the town\'s mark)',
+      '=FIND("@", A2) tells you which character the @ is',
+    ]),
+    grid: () => makeGrid(5, 3, [tra<(string | number)[]>(['あて先', '名前', '町の印'], ['Address', 'Name', 'Town Mark']), ...EMAILS.map((x) => [x])], ['A1', 'B1', 'C1']),
     colWidths: [130, 70, 80],
-    hints: [
+    hints: tra([
       'FIND("@",A2) は @ が 何文字目かを 返す。taro@… なら 5。',
       '名前は @ の 1つ 手前まで → =LEFT(A2,FIND("@",A2)-1)',
       '町の印は 全体の 文字数から @ までを 引いた 分 → =RIGHT(A2,LEN(A2)-FIND("@",A2))。どちらも 4行目まで オートフィル。',
-    ],
+    ], [
+      'FIND("@",A2) returns which character the @ is. For taro@..., that\'s 5.',
+      'The name goes up to one before the @ → =LEFT(A2,FIND("@",A2)-1)',
+      'The town\'s mark is the total length minus everything up to the @ → =RIGHT(A2,LEN(A2)-FIND("@",A2)). AutoFill both down to row 4.',
+    ]),
     check: (c) =>
       first(
         eachVal(c, EMAILS.map((x, i) => [`B${i + 2}`, x.split('@')[0]]), 'FIND'),
         eachVal(c, EMAILS.map((x, i) => [`C${i + 2}`, x.split('@')[1]]), 'FIND'),
       ),
     reward: { exp: 310, gold: 310, skill: 'find' },
-    thanks: [
+    thanks: tra([
       'taro、hanako、ichiro……@ の 位置が ちがっても、ぴったり 切り分けられたわ！',
       '場所を 探す FIND と、切り取る LEFT・RIGHT。組み合わせれば、どんな 文字でも 自由自在ね。',
       'でも 町の 文字を 化けさせている 張本人は、北の 活版印刷所に 住みついた「モジバケーラ」。どうか、止めて ちょうだい。',
-    ],
+    ], [
+      'taro, hanako, ichiro... Even with the @ in different places, they split perfectly!',
+      'FIND to locate a position, and LEFT and RIGHT to cut. Combine them, and any text is yours to command.',
+      'But the one garbling our letters is "Mojibakera," who moved into the print shop to the north. Please, stop it.',
+    ]),
     notLast: {
-      introHead: ['宿場長の カキコです。ようこそ、テキストリアへ。', 'お願いが あるの。伝書鳩の あて先は「taro@moji.jp」のように、@ の 前が 名前、後ろが 町の 印なの。'],
-      thanksTail: ['宿場には まだ 文字の 呪いで 困っている 人が いるの。頭の上に「！」の 出ている 人の 話も、聞いてあげて。'],
+      introHead: tra(['宿場長の カキコです。ようこそ、テキストリアへ。', 'お願いが あるの。伝書鳩の あて先は「taro@moji.jp」のように、@ の 前が 名前、後ろが 町の 印なの。'], [
+        'I\'m Kakiko, the warden. Welcome to Textria.',
+        'I have a request. Carrier pigeon addresses look like "taro@moji.jp": before the @ is the name, and after it is the town\'s mark.',
+      ]),
+      thanksTail: tra(['宿場には まだ 文字の 呪いで 困っている 人が いるの。頭の上に「！」の 出ている 人の 話も、聞いてあげて。'], [
+        'There are still people in town troubled by the letter curse. Please listen to anyone with a "!" over their head, too.',
+      ]),
     },
   },
 } satisfies Record<string, QuestDef>)
 
 // ---------------------------------------------------------------- 活版印刷所の扉（謎解き）
-const SECRETS: [string, string][] = [
-  ['合言葉:ヨミ', 'ヨミ'],
-  ['鍵:カキ', 'カキ'],
-  ['ひみつの言葉:ソロバン', 'ソロバン'],
-]
+const SECRETS: [string, string][] = tra<[string, string][]>(
+  [
+    ['合言葉:ヨミ', 'ヨミ'],
+    ['鍵:カキ', 'カキ'],
+    ['ひみつの言葉:ソロバン', 'ソロバン'],
+  ],
+  [
+    ['Password:READ', 'READ'],
+    ['Key:WRITE', 'WRITE'],
+    ['Secret word:ABACUS', 'ABACUS'],
+  ],
+)
 
 Object.assign(QUESTS, {
   prt_join: {
@@ -3144,45 +3264,57 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'printing',
     npc: '活字の扉',
-    title: '活字の扉',
-    intro: ['扉に 2つの 活字が はめこまれている。', '「左の 字と 右の 字を つなぎ、扉に 命じよ」――と 読める。'],
-    task: ['C2 に、A2 と B2 の 文字を つないだ 言葉を 示せ', '※ 自分で 書き写しても、扉は 開かないようだ'],
-    grid: () => makeGrid(3, 3, [['左の字', '右の字', '命令'], ['ヒラ', 'ケ']]),
+    title: tr('活字の扉', 'Door of Type'),
+    intro: tra(['扉に 2つの 活字が はめこまれている。', '「左の 字と 右の 字を つなぎ、扉に 命じよ」――と 読める。'], [
+      'Two pieces of type are set into the door.',
+      'It reads: "Join the left letters and the right letters, and command the door."',
+    ]),
+    task: tra(['C2 に、A2 と B2 の 文字を つないだ 言葉を 示せ', '※ 自分で 書き写しても、扉は 開かないようだ'], [
+      'In C2, show the word made by joining the text in A2 and B2',
+      '* Copying it out yourself doesn\'t seem to open the door',
+    ]),
+    grid: () => makeGrid(3, 3, [tra<(string | number)[]>(['左の字', '右の字', '命令'], ['Left', 'Right', 'Command']), tra(['ヒラ', 'ケ'], ['OP', 'EN'])]),
     colWidths: [60, 60, 80],
     hints: [],
-    check: (c) => first(expectVal(c, 'C2', 'ヒラケ', undefined, true), needJoin(c, ['C2'], true)),
+    check: (c) => first(expectVal(c, 'C2', tr('ヒラケ', 'OPEN'), undefined, true), needJoin(c, ['C2'], true)),
     reward: { exp: 140, gold: 0 },
-    thanks: ['「ヒラケ」の 文字が 光り、扉が 開いた！'],
+    thanks: tra(['「ヒラケ」の 文字が 光り、扉が 開いた！'], ['The word "OPEN" glows, and the door opens!']),
   },
   prt_mid: {
     id: 'prt_mid',
     kind: 'puzzle',
     town: 'printing',
     npc: '隠し字の扉',
-    title: '隠し字の扉',
-    intro: ['扉に 意味の ない 文字の 列が 刻まれている。', '「4番目の 字より 2字、そこに 鍵は 眠る」――と 読める。'],
-    task: ['B2 に、A2 の 4文字目から 2文字を 示せ'],
-    grid: () => makeGrid(3, 2, [['文字の列', '鍵'], ['アイウカギエオ']]),
+    title: tr('隠し字の扉', 'Door of Hidden Letters'),
+    intro: tra(['扉に 意味の ない 文字の 列が 刻まれている。', '「4番目の 字より 2字、そこに 鍵は 眠る」――と 読める。'], [
+      'A meaningless string of letters is carved into the door.',
+      'It reads: "From the 4th letter, take 2. There the key sleeps."',
+    ]),
+    task: tra(['B2 に、A2 の 4文字目から 2文字を 示せ'], ['In B2, show 2 characters of A2 starting at the 4th']),
+    grid: () => makeGrid(3, 2, [tra<(string | number)[]>(['文字の列', '鍵'], ['Letters', 'Key']), [tr('アイウカギエオ', 'QZXGOWV')]]),
     colWidths: [130, 60],
     hints: [],
-    check: (c) => expectVal(c, 'B2', 'カギ', 'MID', true),
+    check: (c) => expectVal(c, 'B2', tr('カギ', 'GO'), 'MID', true),
     reward: { exp: 150, gold: 0 },
-    thanks: ['「カギ」の 文字が 浮かび、錠が はずれた！'],
+    thanks: tra(['「カギ」の 文字が 浮かび、錠が はずれた！'], ['The letters "GO" rise up, and the lock comes off!']),
   },
   prt_find: {
     id: 'prt_find',
     kind: 'puzzle',
     town: 'printing',
     npc: '合言葉の扉',
-    title: '合言葉の扉',
-    intro: ['印刷所の 最奥へ 続く 扉。', '「『:』の 後ろに 真の 言葉 あり。3つ すべてを 1つの 式で 示せ」――と 読める。'],
-    task: ['B2:B4 に、「:」より 後ろの 言葉を 示せ'],
-    grid: () => makeGrid(5, 2, [['刻まれた文', '言葉'], ...SECRETS.map(([x]) => [x])]),
+    title: tr('合言葉の扉', 'Door of Passwords'),
+    intro: tra(['印刷所の 最奥へ 続く 扉。', '「『:』の 後ろに 真の 言葉 あり。3つ すべてを 1つの 式で 示せ」――と 読める。'], [
+      'The door to the deepest part of the print shop.',
+      'It reads: "After the \':\' lies the true word. Show all three with a single formula."',
+    ]),
+    task: tra(['B2:B4 に、「:」より 後ろの 言葉を 示せ'], ['In B2:B4, show the word after the ":"']),
+    grid: () => makeGrid(5, 2, [tra<(string | number)[]>(['刻まれた文', '言葉'], ['Inscription', 'Word']), ...SECRETS.map(([x]) => [x])]),
     colWidths: [170, 80],
     hints: [],
     check: (c) => first(eachVal(c, SECRETS.map(([, w], i) => [`B${i + 2}`, w]), 'FIND', true)),
     reward: { exp: 170, gold: 0 },
-    thanks: ['3つの 言葉が 同時に 響き、最奥の 扉が 開いた……！'],
+    thanks: tra(['3つの 言葉が 同時に 響き、最奥の 扉が 開いた……！'], ['The three words ring out at once, and the deepest door opens...!']),
   },
 } satisfies Record<string, QuestDef>)
 
