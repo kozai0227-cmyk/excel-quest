@@ -1427,70 +1427,108 @@ Object.assign(QUESTS, {
 function expectVal(c: CheckCtx, a: string, want: string | boolean, fn?: string, vague = false): string | null {
   const v = c.v(a)
   const raw = c.raw(a)
-  if (raw === '') return `${a} が まだ 空っぽだ。`
+  if (raw === '') return tr(`${a} が まだ 空っぽだ。`, `${a} is still empty.`)
   if (/[≧≦≠]/.test(raw)) return BAD_OP
   if (typeof v === 'object' && v !== null)
-    return vague ? `${a} が エラー（${v.error}）に なっている。` : `${a} が エラー（${v.error}）に なっている。文字は "大漁" のように " で 囲んだかな？`
+    return vague
+      ? tr(`${a} が エラー（${v.error}）に なっている。`, `${a} shows an error (${v.error}).`)
+      : tr(`${a} が エラー（${v.error}）に なっている。文字は "大漁" のように " で 囲んだかな？`, `${a} shows an error (${v.error}). Did you wrap text in " like "Great"?`)
   if (v !== want)
     return vague
-      ? `${a} の 答え（${formatValue(v) || '空'}）が 正しくないようだ。`
-      : `${a} が「${formatValue(v) || '空'}」に なっている。ここは「${formatValue(want)}」に なるはずだ。条件を 見直そう。`
+      ? tr(`${a} の 答え（${formatValue(v) || '空'}）が 正しくないようだ。`, `The answer in ${a} (${formatValue(v) || 'blank'}) doesn't look right.`)
+      : tr(
+          `${a} が「${formatValue(v) || '空'}」に なっている。ここは「${formatValue(want)}」に なるはずだ。条件を 見直そう。`,
+          `${a} shows "${formatValue(v) || 'blank'}", but it should be "${formatValue(want)}". Check the condition.`,
+        )
   if (!raw.startsWith('='))
     return vague
-      ? `${a} の 答えは 合っているが……扉は 反応しない。手で 書いただけでは ダメなようだ。`
-      : `${a} は 合っているけど、手で 入力されている。数式で 判定させよう。`
+      ? tr(`${a} の 答えは 合っているが……扉は 反応しない。手で 書いただけでは ダメなようだ。`, `The answer in ${a} is right, but... the door doesn't react. Writing it by hand won't do.`)
+      : tr(`${a} は 合っているけど、手で 入力されている。数式で 判定させよう。`, `${a} is right, but it was typed in by hand. Let a formula decide it.`)
   if (fn && !usesFn(raw, fn))
-    return vague ? `${a} の 答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。` : `${a} は 合っている！ でも ${fn} を 使って 判定してみよう。`
+    return vague
+      ? tr(`${a} の 答えは 合っているが……扉は 反応しない。求め方に 決まりが あるようだ。`, `The answer in ${a} is right, but... the door doesn't react. There seems to be a rule about how to get it.`)
+      : tr(`${a} は 合っている！ でも ${fn} を 使って 判定してみよう。`, `${a} is right! But try deciding it with ${fn}.`)
   return null
 }
 const eachVal = (c: CheckCtx, cells: [string, string | boolean][], fn?: string, vague = false) => first(...cells.map(([a, w]) => expectVal(c, a, w, fn, vague)))
 
-const TIDE: [string, number][] = [
-  ['6時', 120],
-  ['9時', 185],
-  ['12時', 210],
-  ['15時', 180],
-  ['18時', 150],
-]
-const BOATS: [string, number][] = [
-  ['第一アミ丸', 72],
-  ['第二アミ丸', 35],
-  ['カモメ号', 50],
-  ['イルカ号', 49],
-  ['クジラ号', 88],
-]
-const ORDERS: [string, number][] = [
-  ['宿屋', 4500],
-  ['武器屋', 2800],
-  ['パン屋', 3000],
-  ['漁師', 1200],
-  ['教会', 3600],
-]
-const CADETS: [string, number][] = [
-  ['マスト', 92],
-  ['イカリ', 75],
-  ['ホバシラ', 60],
-  ['カジ', 58],
-  ['ラシン', 80],
-]
-const WEATHER: [string, number, number][] = [
-  ['月', 5, 1],
-  ['火', 12, 1],
-  ['水', 8, 2],
-  ['木', 16, 2],
-  ['金', 3, 3],
-  ['土', 9, 1],
-]
-const ARRIVALS: [string, string, number][] = [
-  ['カモメ号', '魚', 40],
-  ['イルカ号', '貝', 25],
-  ['クジラ号', '魚', 65],
-  ['サンマ丸', '海藻', 30],
-  ['タイ丸', 'カニ', 55],
-  ['アジ丸', '魚', 20],
-  ['ホタテ丸', '貝', 70],
-  ['ワカメ丸', '海藻', 50],
-]
+const TIDE: [string, number][] = named(
+  [
+    ['6時', 120],
+    ['9時', 185],
+    ['12時', 210],
+    ['15時', 180],
+    ['18時', 150],
+  ],
+  ['6:00', '9:00', '12:00', '15:00', '18:00'],
+)
+const BOATS: [string, number][] = named(
+  [
+    ['第一アミ丸', 72],
+    ['第二アミ丸', 35],
+    ['カモメ号', 50],
+    ['イルカ号', 49],
+    ['クジラ号', 88],
+  ],
+  ['Ami Maru I', 'Ami Maru II', 'Seagull', 'Dolphin', 'Whale'],
+)
+const ORDERS: [string, number][] = named(
+  [
+    ['宿屋', 4500],
+    ['武器屋', 2800],
+    ['パン屋', 3000],
+    ['漁師', 1200],
+    ['教会', 3600],
+  ],
+  ['Inn', 'Weapon Shop', 'Bakery', 'Fisher', 'Church'],
+)
+const CADETS: [string, number][] = named(
+  [
+    ['マスト', 92],
+    ['イカリ', 75],
+    ['ホバシラ', 60],
+    ['カジ', 58],
+    ['ラシン', 80],
+  ],
+  ['Mast', 'Anchor', 'Spar', 'Rudder', 'Compass'],
+)
+const WEATHER: [string, number, number][] = named(
+  [
+    ['月', 5, 1],
+    ['火', 12, 1],
+    ['水', 8, 2],
+    ['木', 16, 2],
+    ['金', 3, 3],
+    ['土', 9, 1],
+  ],
+  ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+)
+const ARRIVALS: [string, string, number][] = tra<[string, string, number][]>(
+  [
+    ['カモメ号', '魚', 40],
+    ['イルカ号', '貝', 25],
+    ['クジラ号', '魚', 65],
+    ['サンマ丸', '海藻', 30],
+    ['タイ丸', 'カニ', 55],
+    ['アジ丸', '魚', 20],
+    ['ホタテ丸', '貝', 70],
+    ['ワカメ丸', '海藻', 50],
+  ],
+  [
+    ['Seagull', 'Fish', 40],
+    ['Dolphin', 'Shellfish', 25],
+    ['Whale', 'Fish', 65],
+    ['Saury Maru', 'Seaweed', 30],
+    ['Bream Maru', 'Crab', 55],
+    ['Mackerel Maru', 'Fish', 20],
+    ['Scallop Maru', 'Shellfish', 70],
+    ['Wakame Maru', 'Seaweed', 50],
+  ],
+)
+/** IF の 答えに 使う 言葉（英語版は 英語で 判定する） */
+const CARGO_FISH = tr('魚', 'Fish')
+const [GREAT, POOR] = tra(['大漁', '不漁'], ['Great', 'Poor'])
+const [SAIL, STAY, ALERT, NONE] = tra(['出航', '欠航', '警報', 'なし'], ['Sail', 'Stay', 'Alert', 'None'])
 const grade = (n: number) => (n >= 80 ? 'A' : n >= 60 ? 'B' : 'C')
 
 Object.assign(QUESTS, {
@@ -1498,216 +1536,325 @@ Object.assign(QUESTS, {
     id: 'port_compare',
     town: 'ifport',
     npc: '灯台守トモシ',
-    title: '潮位の見張り',
-    intro: [
+    title: tr('潮位の見張り', 'Watching the Tide'),
+    intro: tra([
       'ほっほ……わしは 灯台守の トモシじゃ。',
       '潮位が 警戒ライン（F1）以上に なったら、船に 知らせねば ならん。',
       'じゃが 最近 目が かすんでのう……「以上」か どうか、表で 自動で わかるように できんかの？',
-    ],
-    task: ['C2:C6 に「潮位が 警戒ライン（F1）以上か」を 出そう（TRUE / FALSE）', '比べるだけの 数式 =B2>=$F$1 で OK。C6 まで コピー'],
-    grid: () => makeGrid(8, 6, [['時刻', '潮位(cm)', '危険？', '', '警戒ライン', 180], ...TIDE.map(([t, v]) => [t, v])], ['A1', 'B1', 'C1', 'E1']),
+    ], [
+      'Ho ho... I\'m Tomoshi, the lighthouse keeper.',
+      'When the tide reaches the alert line (F1) or higher, I have to warn the ships.',
+      'But my eyes have gone blurry lately... Could you make the table tell me automatically whether it\'s "at least" that high?',
+    ]),
+    task: tra(['C2:C6 に「潮位が 警戒ライン（F1）以上か」を 出そう（TRUE / FALSE）', '比べるだけの 数式 =B2>=$F$1 で OK。C6 まで コピー'], [
+      'In C2:C6, show whether the tide is at or above the alert line (F1) (TRUE / FALSE)',
+      'Just a comparison formula, =B2>=$F$1, will do. Copy it down to C6',
+    ]),
+    grid: () => makeGrid(8, 6, [tra<(string | number)[]>(['時刻', '潮位(cm)', '危険？', '', '警戒ライン', 180], ['Time', 'Tide (cm)', 'Danger?', '', 'Alert Line', 180]), ...TIDE.map(([t, v]) => [t, v])], ['A1', 'B1', 'C1', 'E1']),
     colWidths: [60, 80, 70, 24, 90, 50],
-    hints: [
+    hints: tra([
       '「以上」は >=。=B2>=F1 と 書くと、正しければ TRUE、違えば FALSE に なるんじゃ。',
       'ただし 下へ コピーすると F1 が F2 に ずれてしまう……サンショウで 覚えた $ の 出番じゃな。',
       'C2 に =B2>=$F$1 → C6 まで オートフィル。ちょうど 180 の ときも「以上」じゃから TRUE じゃよ。',
-    ],
+    ], [
+      '"At least" is >=. Write =B2>=F1, and you get TRUE if it\'s right and FALSE if it\'s not.',
+      'But copy it down and F1 shifts to F2... Time for the $ you learned in Refton.',
+      '=B2>=$F$1 in C2 → AutoFill down to C6. Exactly 180 also counts as "at least," so that\'s TRUE.',
+    ]),
     check: (c) => eachVal(c, TIDE.map(([, v], i) => [`C${i + 2}`, v >= 180])),
     reward: { exp: 80, gold: 90, skill: 'compare' },
-    thanks: [
+    thanks: tra([
       'おお、TRUE の 時間だけ 見れば よいのか！ これなら 目が かすんでも 見逃さんわい。',
       '>= が「以上」、> が「より大きい」……ちょうど 180 の ときに 差が 出るんじゃな。',
       '灯台の 明かりも、これで 迷わず 灯せるわい。ありがとうよ。',
-    ],
+    ], [
+      'Oh, so I just look for the TRUE times! Now I won\'t miss a thing even with blurry eyes.',
+      '>= is "at least," and > is "greater than"... The difference shows up when it\'s exactly 180.',
+      'Now I can light the lighthouse without hesitating. Thank you kindly.',
+    ]),
   },
 
   port_if: {
     id: 'port_if',
     town: 'ifport',
     npc: '漁師アミ',
-    title: '大漁か不漁か',
-    intro: [
+    title: tr('大漁か不漁か', 'Great Catch or Poor Catch'),
+    intro: tra([
       'あっ、旅の人！ あたし 漁師の アミ！',
       '船ごとの 漁獲量で「50kg以上なら 大漁、それ以外は 不漁」って 記録を つけてるんだけど……',
       '幽霊船が 来てから、1隻ずつ「うーん、大漁……かな？」って 悩んじゃって 進まないの！ 手伝って！',
-    ],
-    task: ['C2:C6 に、漁獲量が 50以上なら「大漁」、それ以外は「不漁」と 出そう', '=IF(条件, 正しいとき, 違うとき) を 使う'],
-    grid: () => makeGrid(8, 3, [['船', '漁獲量(kg)', '結果'], ...BOATS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1']),
+    ], [
+      'Oh, a traveler! I\'m Ami, a fisher!',
+      'I log each boat\'s catch: 50 kg or more is "Great," anything else is "Poor"...',
+      'But ever since the ghost ship came, I keep agonizing over every boat, "Hmm, is this Great...?" and get nowhere! Help me out!',
+    ]),
+    task: tra(['C2:C6 に、漁獲量が 50以上なら「大漁」、それ以外は「不漁」と 出そう', '=IF(条件, 正しいとき, 違うとき) を 使う'], [
+      'In C2:C6, show "Great" if the catch is 50 or more, and "Poor" otherwise',
+      'Use =IF(condition, value if true, value if false)',
+    ]),
+    grid: () => makeGrid(8, 3, [tra<(string | number)[]>(['船', '漁獲量(kg)', '結果'], ['Boat', 'Catch (kg)', 'Result']), ...BOATS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1']),
     colWidths: [110, 90, 70],
-    hints: [
+    hints: tra([
       'IF は =IF(条件, 正しいときの答え, 違うときの答え) って 形なんだって！',
       '答えが 文字の ときは " で 囲むの。"大漁" "不漁" みたいに。',
       'C2 に =IF(B2>=50,"大漁","不漁") → C6 まで オートフィル！ 50kg ちょうどは 大漁だよ！',
-    ],
-    check: (c) => eachVal(c, BOATS.map(([, v], i) => [`C${i + 2}`, v >= 50 ? '大漁' : '不漁']), 'IF'),
+    ], [
+      'They say IF looks like =IF(condition, answer if true, answer if false)!',
+      'When the answer is text, wrap it in ". Like "Great" and "Poor".',
+      '=IF(B2>=50,"Great","Poor") in C2 → AutoFill down to C6! Exactly 50 kg counts as Great!',
+    ]),
+    check: (c) => eachVal(c, BOATS.map(([, v], i) => [`C${i + 2}`, v >= 50 ? GREAT : POOR]), 'IF'),
     reward: { exp: 85, gold: 95, skill: 'if' },
-    thanks: [
+    thanks: tra([
       'すごーい！ ルールを 1回 書いたら、全部の 船が 一瞬で 判定されちゃった！',
       'もう「大漁……かな？」って 悩まなくて いいんだ！',
       'IF って「もしも」の 魔法なんだね。お礼に、今度 いちばん おいしい 魚 あげるね！',
-    ],
+    ], [
+      'Amazing! I wrote the rule once, and every boat got judged in an instant!',
+      'No more agonizing over "Is this Great...?"',
+      'So IF is the magic of "what if." As thanks, I\'ll give you the tastiest fish next time!',
+    ]),
   },
 
   port_ifcalc: {
     id: 'port_ifcalc',
     town: 'ifport',
     npc: '運送屋ハコブ',
-    title: '送料の計算',
-    intro: [
+    title: tr('送料の計算', 'Calculating Shipping'),
+    intro: tra([
       'おう、ハコブ運送へ ようこそ！',
       'うちは 3000G以上の 注文なら 送料 タダ、それ未満なら 送料 500G だ。',
       'なのに 最近、1件ずつ「えーと、これは タダ……だっけ？」って 迷って 請求書が 出せねえんだ！',
-    ],
-    task: ['C2:C6 に 送料（金額が 3000以上なら 0、それ以外は 500）を 出そう', 'D2:D6 に 請求額（金額 ＋ 送料）を 出そう'],
-    grid: () => makeGrid(8, 4, [['お客', '金額', '送料', '請求額'], ...ORDERS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1', 'D1']),
+    ], [
+      'Hey, welcome to Hakobu Shipping!',
+      'Orders of 3000G or more ship free; anything less costs 500G to ship.',
+      'But lately I keep hesitating over every order, "Uh, was this one free...?" and can\'t send out any invoices!',
+    ]),
+    task: tra(['C2:C6 に 送料（金額が 3000以上なら 0、それ以外は 500）を 出そう', 'D2:D6 に 請求額（金額 ＋ 送料）を 出そう'], [
+      'In C2:C6, show the shipping (0 if the amount is 3000 or more, otherwise 500)',
+      'In D2:D6, show the total due (amount + shipping)',
+    ]),
+    grid: () => makeGrid(8, 4, [tra<(string | number)[]>(['お客', '金額', '送料', '請求額'], ['Customer', 'Amount', 'Shipping', 'Total Due']), ...ORDERS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1', 'D1']),
     colWidths: [90, 70, 60, 80],
-    hints: [
+    hints: tra([
       'IF の 答えは 文字じゃなくて 数値でも いい。数値は " で 囲まねえ。',
       'C2 に =IF(B2>=3000,0,500)。3000 ちょうどは タダだぜ！',
       'D2 に =B2+C2。どっちも D6・C6 まで オートフィルだ！',
-    ],
+    ], [
+      'IF\'s answers don\'t have to be text; numbers work too. Numbers don\'t get wrapped in ".',
+      '=IF(B2>=3000,0,500) in C2. Exactly 3000 ships free!',
+      '=B2+C2 in D2. AutoFill both down to row 6!',
+    ]),
     check: (c) =>
       first(
         ...ORDERS.map(([, v], i) => expectNum(c, `C${i + 2}`, v >= 3000 ? 0 : 500, 'IF')),
         ...ORDERS.map(([, v], i) => expectNum(c, `D${i + 2}`, v + (v >= 3000 ? 0 : 500), 'formula')),
       ),
     reward: { exp: 85, gold: 100, skill: 'ifcalc' },
-    thanks: [
+    thanks: tra([
       'よっしゃあ！ 送料も 請求額も 一発で 出たぜ！',
       '金額を 書きかえても、送料が 勝手に 0 と 500 を 切り替える……こいつぁ 便利だ！',
       'これで 今日の 荷物も ぜんぶ 出発できる。ありがとよ！',
-    ],
+    ], [
+      'All right! Shipping and totals, done in one go!',
+      'Change the amount, and the shipping switches between 0 and 500 by itself... Now that\'s handy!',
+      'Now all of today\'s packages can head out. Thanks!',
+    ]),
   },
 
   port_nested: {
     id: 'port_nested',
     town: 'ifport',
     npc: 'ロープ教官',
-    title: '航海士試験の評価',
-    intro: [
+    title: tr('航海士試験の評価', 'Grading the Navigator Exam'),
+    intro: tra([
       '本官は 航海士学校の ロープ教官で ある！',
       '試験の 評価は、80点以上が A、60点以上が B、それ未満が C と 決まっている。',
       'だが……IF は「正しい」「違う」の 2つにしか 分けられん。3つに 分ける 方法が わからんのだ……！',
-    ],
-    task: ['C2:C6 に 評価（80以上 → A、60以上 → B、それ未満 → C）を 出そう', 'IF の 中に、もう1つ IF を 入れる'],
-    grid: () => makeGrid(8, 3, [['候補生', '点数', '評価'], ...CADETS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1']),
+    ], [
+      'I am Instructor Rope of the Navigation School!',
+      'Exam grades are set: 80 or more is an A, 60 or more is a B, and anything less is a C.',
+      'But... IF can only split things into two: true or false. I have no idea how to split them into three...!',
+    ]),
+    task: tra(['C2:C6 に 評価（80以上 → A、60以上 → B、それ未満 → C）を 出そう', 'IF の 中に、もう1つ IF を 入れる'], [
+      'In C2:C6, show the grade (80+ → A, 60+ → B, otherwise → C)',
+      'Put another IF inside the IF',
+    ]),
+    grid: () => makeGrid(8, 3, [tra<(string | number)[]>(['候補生', '点数', '評価'], ['Cadet', 'Score', 'Grade']), ...CADETS.map(([n, v]) => [n, v])], ['A1', 'B1', 'C1']),
     colWidths: [90, 60, 60],
-    hints: [
+    hints: tra([
       'まず 80点以上か 判定し、A でなければ……「違うとき」の 場所で もう一度 判定する。',
       '=IF(B2>=80,"A", ここに もう1つの IF ) という 形に なる。',
       'C2 に =IF(B2>=80,"A",IF(B2>=60,"B","C")) → C6 まで オートフィル。カッコの 数に 注意だ！',
-    ],
+    ], [
+      'First check whether it\'s 80 or more, and if it\'s not an A... check again in the "if false" spot.',
+      'It takes the shape =IF(B2>=80,"A", another IF goes here ).',
+      '=IF(B2>=80,"A",IF(B2>=60,"B","C")) in C2 → AutoFill down to C6. Watch the number of parentheses!',
+    ]),
     check: (c) => eachVal(c, CADETS.map(([, v], i) => [`C${i + 2}`, grade(v)]), 'IF'),
     reward: { exp: 90, gold: 100, skill: 'nestif' },
-    thanks: [
+    thanks: tra([
       '見事で ある！ IF の 中に IF……「入れ子」と いうのだな。',
       '60点ちょうどの ホバシラは B、58点の カジは C。1点も まちがいが ない！',
       '本官も 今日から 採点に 迷わん。敬礼！',
-    ],
+    ], [
+      'Splendid! An IF inside an IF... They call it "nesting," do they?',
+      'Spar, with exactly 60, gets a B, and Rudder, with 58, gets a C. Not a single mistake!',
+      'From today, I shall never hesitate when grading. Salute!',
+    ]),
   },
 
   port_andor: {
     id: 'port_andor',
     town: 'ifport',
     npc: '天気予報士カザミ',
-    title: '出航できる日',
-    intro: [
+    title: tr('出航できる日', 'Days to Set Sail'),
+    intro: tra([
       'あら、いらっしゃい。気象台の カザミよ。',
       '船が 出航できるのは「風速が 10未満」かつ「波が 2m未満」の 日だけ。',
       'それと「風速 15以上」または「波 3m以上」なら 警報を 出すの。2つの 条件を いっしょに 見るのって、むずかしくて……。',
-    ],
-    task: [
+    ], [
+      'Oh, welcome. I\'m Kazami from the weather station.',
+      'Ships can only sail on days when the wind is under 10 AND the waves are under 2 m.',
+      'And if the wind is 15 or more OR the waves are 3 m or more, I issue an alert. Looking at two conditions at once is so hard...',
+    ]),
+    task: tra([
       'D2:D7 に、風速 10未満 かつ 波 2未満 なら「出航」、違えば「欠航」',
       'E2:E7 に、風速 15以上 または 波 3以上 なら「警報」、違えば「なし」',
-    ],
-    grid: () => makeGrid(9, 5, [['曜日', '風速(m)', '波(m)', '出航', '警報'], ...WEATHER.map(([d, w, h]) => [d, w, h])], ['A1', 'B1', 'C1', 'D1', 'E1']),
+    ], [
+      'In D2:D7, show "Sail" if the wind is under 10 AND the waves are under 2, otherwise "Stay"',
+      'In E2:E7, show "Alert" if the wind is 15 or more OR the waves are 3 or more, otherwise "None"',
+    ]),
+    grid: () => makeGrid(9, 5, [tra<(string | number)[]>(['曜日', '風速(m)', '波(m)', '出航', '警報'], ['Day', 'Wind (m)', 'Waves (m)', 'Sail?', 'Alert?']), ...WEATHER.map(([d, w, h]) => [d, w, h])], ['A1', 'B1', 'C1', 'D1', 'E1']),
     colWidths: [50, 70, 60, 60, 60],
-    hints: [
+    hints: tra([
       '「かつ（両方）」は AND、「または（どちらか）」は OR。どちらも TRUE / FALSE を 返すわ。',
       'IF の 条件の 場所に 入れるの。=IF(AND(B2<10,C2<2),"出航","欠航")',
       '警報は =IF(OR(B2>=15,C2>=3),"警報","なし")。どちらも 7行目まで オートフィルね。',
-    ],
+    ], [
+      '"AND (both)" is AND, and "OR (either one)" is OR. Both return TRUE / FALSE.',
+      'Put them in the condition spot of IF. =IF(AND(B2<10,C2<2),"Sail","Stay")',
+      'The alert is =IF(OR(B2>=15,C2>=3),"Alert","None"). AutoFill both down to row 7.',
+    ]),
     check: (c) =>
       first(
-        eachVal(c, WEATHER.map(([, w, h], i) => [`D${i + 2}`, w < 10 && h < 2 ? '出航' : '欠航']), 'AND'),
-        eachVal(c, WEATHER.map(([, w, h], i) => [`E${i + 2}`, w >= 15 || h >= 3 ? '警報' : 'なし']), 'OR'),
+        eachVal(c, WEATHER.map(([, w, h], i) => [`D${i + 2}`, w < 10 && h < 2 ? SAIL : STAY]), 'AND'),
+        eachVal(c, WEATHER.map(([, w, h], i) => [`E${i + 2}`, w >= 15 || h >= 3 ? ALERT : NONE]), 'OR'),
       ),
     reward: { exp: 95, gold: 110, skill: 'andor' },
-    thanks: [
+    thanks: tra([
       'すてき！ 水曜日は 波が ちょうど 2m だから 欠航……ちゃんと 判定できてるわ。',
       'AND は「両方」、OR は「どちらか」。条件を 組み合わせれば、どんな ルールも 書けるのね。',
       'これで 毎朝の 予報が 一瞬で 出せるわ。ありがとう！',
-    ],
+    ], [
+      'Wonderful! On Wednesday the waves are exactly 2 m, so it\'s Stay... It\'s judging correctly.',
+      'AND means "both," and OR means "either." Combine conditions, and you can write any rule.',
+      'Now I can put out the forecast every morning in an instant. Thank you!',
+    ]),
   },
 
   port_countif: {
     id: 'port_countif',
     town: 'ifport',
     npc: '港長ミナト',
-    title: '入港記録の集計',
-    intro: [
+    title: tr('入港記録の集計', 'Totaling the Arrival Records'),
+    intro: tra([
       '港長の ミナトだ。町の 悩みを 次々 片づけて くれているそうだね。',
       '最後に、この 入港記録を 集計してほしい。',
       '「魚を 運んだ 船の数」「魚の 合計」「50箱以上 運んだ 船の数」……聞かれるたびに、職員が 1行ずつ 指で 数えているんだ。',
-    ],
-    task: ['F2 に「魚」を 運んだ 船の数', 'F3 に「魚」の 箱数の 合計', 'F4 に 50箱以上 運んだ 船の数'],
+    ], [
+      'I\'m Minato, the harbormaster. I hear you\'ve been solving the town\'s troubles one after another.',
+      'Finally, I\'d like you to total up these arrival records.',
+      '"How many ships brought fish," "the total of the fish," "how many ships brought 50 crates or more"... Every time someone asks, my staff counts line by line with their fingers.',
+    ]),
+    task: tra(['F2 に「魚」を 運んだ 船の数', 'F3 に「魚」の 箱数の 合計', 'F4 に 50箱以上 運んだ 船の数'], [
+      'In F2, the number of ships that brought "Fish"',
+      'In F3, the total number of crates of "Fish"',
+      'In F4, the number of ships that brought 50 or more crates',
+    ]),
     grid: () =>
       makeGrid(10, 6, [
-        ['船', '積荷', '箱数', '', '項目', '答え'],
-        [...ARRIVALS[0], '', '魚の船の数'],
-        [...ARRIVALS[1], '', '魚の合計'],
-        [...ARRIVALS[2], '', '50箱以上の船'],
+        tra<(string | number)[]>(['船', '積荷', '箱数', '', '項目', '答え'], ['Ship', 'Cargo', 'Crates', '', 'Item', 'Answer']),
+        [...ARRIVALS[0], '', tr('魚の船の数', 'Fish ships')],
+        [...ARRIVALS[1], '', tr('魚の合計', 'Fish total')],
+        [...ARRIVALS[2], '', tr('50箱以上の船', 'Ships 50+')],
         ...ARRIVALS.slice(3),
       ], ['A1', 'B1', 'C1', 'E1', 'F1']),
     colWidths: [90, 60, 60, 24, 110, 60],
-    hints: [
+    hints: tra([
       '条件に 合う セルを 数えるのは COUNTIF。=COUNTIF(B2:B9,"魚")',
       '条件に 合う 行の 合計は SUMIF。=SUMIF(B2:B9,"魚",C2:C9)（条件の範囲、条件、合計する範囲 の 順）',
       '数の 条件は " で 囲んで 書く。=COUNTIF(C2:C9,">=50")',
-    ],
+    ], [
+      'To count the cells that match a condition, use COUNTIF. =COUNTIF(B2:B9,"Fish")',
+      'To total the rows that match a condition, use SUMIF. =SUMIF(B2:B9,"Fish",C2:C9) (in the order: range to check, condition, range to total)',
+      'Write number conditions inside ". =COUNTIF(C2:C9,">=50")',
+    ]),
     check: (c) =>
       first(
-        expectNum(c, 'F2', ARRIVALS.filter(([, k]) => k === '魚').length, 'COUNTIF'),
-        expectNum(c, 'F3', ARRIVALS.reduce((a, [, k, n]) => a + (k === '魚' ? n : 0), 0), 'SUMIF'),
+        expectNum(c, 'F2', ARRIVALS.filter(([, k]) => k === CARGO_FISH).length, 'COUNTIF'),
+        expectNum(c, 'F3', ARRIVALS.reduce((a, [, k, n]) => a + (k === CARGO_FISH ? n : 0), 0), 'SUMIF'),
         expectNum(c, 'F4', ARRIVALS.filter(([, , n]) => n >= 50).length, 'COUNTIF'),
       ),
     reward: { exp: 110, gold: 130, skill: 'countif' },
-    thanks: [
+    thanks: tra([
       '見事だ。聞かれた 瞬間に 答えが 出る……もう 指で 数える 必要は ないな。',
       '町の 悩みを すべて 解決して くれて、本当に ありがとう。',
       '桟橋の 結界も とけたはずだ。どうか 幽霊船の 船長を 止めてくれ。港の 未来を たのむ。',
-    ],
+    ], [
+      'Excellent. The answer appears the moment someone asks... No more counting on fingers.',
+      'Thank you, truly, for solving all of the town\'s troubles.',
+      'The barrier on the pier should be gone now. Please stop the ghost ship\'s captain. The harbor\'s future is in your hands.',
+    ]),
     notLast: {
-      introHead: ['港長の ミナトだ。よく 来てくれた。', 'ひとつ、この 入港記録を 集計してほしい。'],
-      thanksTail: ['港には まだ 困っている 者が いる。', '頭の上に「！」の 出ている 者の 話も、聞いてやってくれ。'],
+      introHead: tra(['港長の ミナトだ。よく 来てくれた。', 'ひとつ、この 入港記録を 集計してほしい。'], [
+        'I\'m Minato, the harbormaster. Thank you for coming.',
+        'There\'s one thing: I\'d like you to total up these arrival records.',
+      ]),
+      thanksTail: tra(['港には まだ 困っている 者が いる。', '頭の上に「！」の 出ている 者の 話も、聞いてやってくれ。'], [
+        'There are still people in the harbor who need help.',
+        'Please listen to anyone with a "!" over their head, too.',
+      ]),
     },
   },
 } satisfies Record<string, QuestDef>)
 
 // ---------------------------------------------------------------- 幽霊船の扉（謎解き）
-const CARGO: [string, number][] = [
-  ['木箱', 120],
-  ['タル', 80],
-  ['網', 100],
-  ['帆布', 99],
-  ['大砲', 150],
-]
-const TREASURE_VAL: [string, number][] = [
-  ['王冠', 1200],
-  ['指輪', 500],
-  ['首かざり', 999],
-  ['銀貨', 300],
-  ['宝剣', 1000],
-  ['古い鍵', 450],
-]
-const CHESTS: [string, number][] = [
-  ['金貨', 300],
-  ['宝石', 500],
-  ['金貨', 150],
-  ['地図', 50],
-  ['金貨', 250],
-  ['宝石', 400],
-]
+const CARGO: [string, number][] = named(
+  [
+    ['木箱', 120],
+    ['タル', 80],
+    ['網', 100],
+    ['帆布', 99],
+    ['大砲', 150],
+  ],
+  ['Crate', 'Barrel', 'Net', 'Canvas', 'Cannon'],
+)
+const TREASURE_VAL: [string, number][] = named(
+  [
+    ['王冠', 1200],
+    ['指輪', 500],
+    ['首かざり', 999],
+    ['銀貨', 300],
+    ['宝剣', 1000],
+    ['古い鍵', 450],
+  ],
+  ['Crown', 'Ring', 'Necklace', 'Silver Coin', 'Royal Sword', 'Old Key'],
+)
+const CHESTS: [string, number][] = named(
+  [
+    ['金貨', 300],
+    ['宝石', 500],
+    ['金貨', 150],
+    ['地図', 50],
+    ['金貨', 250],
+    ['宝石', 400],
+  ],
+  ['Gold', 'Jewels', 'Gold', 'Map', 'Gold', 'Jewels'],
+)
+const COIN = tr('金貨', 'Gold')
+const [HEAVY, LIGHT] = tra(['重', '軽'], ['Heavy', 'Light'])
+const [R_GOLD, R_SILVER, R_BRONZE] = tra(['金', '銀', '銅'], ['Gold', 'Silver', 'Bronze'])
 
 Object.assign(QUESTS, {
   ship_if: {
@@ -1715,55 +1862,79 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'ship',
     npc: '積荷の扉',
-    title: '積荷の扉',
-    intro: ['扉に、積荷の 重さの 表が 刻まれている。', '「重さ 100 以上の 荷は 重、それ以外は 軽 と 記せ」――と 読める。'],
-    task: ['C2:C6 に、重さが 100以上なら「重」、それ以外は「軽」と 記せ', '※ 手で 書いても、扉は 開かないようだ'],
-    grid: () => makeGrid(7, 3, [['積荷', '重さ', '区分'], ...CARGO.map(([n, v]) => [n, v])]),
+    title: tr('積荷の扉', 'Door of Cargo'),
+    intro: tra(['扉に、積荷の 重さの 表が 刻まれている。', '「重さ 100 以上の 荷は 重、それ以外は 軽 と 記せ」――と 読める。'], [
+      'A table of cargo weights is carved into the door.',
+      'It reads: "Mark cargo weighing 100 or more as Heavy, and the rest as Light."',
+    ]),
+    task: tra(['C2:C6 に、重さが 100以上なら「重」、それ以外は「軽」と 記せ', '※ 手で 書いても、扉は 開かないようだ'], [
+      'In C2:C6, mark "Heavy" if the weight is 100 or more, otherwise "Light"',
+      '* Writing it by hand doesn\'t seem to open the door',
+    ]),
+    grid: () => makeGrid(7, 3, [tra<(string | number)[]>(['積荷', '重さ', '区分'], ['Cargo', 'Weight', 'Class']), ...CARGO.map(([n, v]) => [n, v])]),
     colWidths: [80, 60, 60],
     hints: [],
-    check: (c) => eachVal(c, CARGO.map(([, v], i) => [`C${i + 2}`, v >= 100 ? '重' : '軽']), 'IF', true),
+    check: (c) => eachVal(c, CARGO.map(([, v], i) => [`C${i + 2}`, v >= 100 ? HEAVY : LIGHT]), 'IF', true),
     reward: { exp: 60, gold: 0 },
-    thanks: ['積荷の 文字が 青白く 光り、扉の 鎖が ほどけた！'],
+    thanks: tra(['積荷の 文字が 青白く 光り、扉の 鎖が ほどけた！'], [
+      'The words on the cargo glow pale blue, and the chains on the door come loose!',
+    ]),
   },
   ship_nested: {
     id: 'ship_nested',
     kind: 'puzzle',
     town: 'ship',
     npc: '階級の扉',
-    title: '階級の扉',
-    intro: ['扉には 宝の 名と 価値が 並んでいる。', '「価値 1000 以上は 金、500 以上は 銀、それ未満は 銅。すべての 宝に 階級を 刻め」――と 読める。'],
-    task: ['C2:C7 に、価値が 1000以上なら「金」、500以上なら「銀」、それ未満は「銅」と 刻め'],
-    grid: () => makeGrid(8, 3, [['宝', '価値', '階級'], ...TREASURE_VAL.map(([n, v]) => [n, v])]),
+    title: tr('階級の扉', 'Door of Ranks'),
+    intro: tra(['扉には 宝の 名と 価値が 並んでいる。', '「価値 1000 以上は 金、500 以上は 銀、それ未満は 銅。すべての 宝に 階級を 刻め」――と 読める。'], [
+      'The door lists the names and values of treasures.',
+      'It reads: "Value 1000 or more is Gold, 500 or more is Silver, and less is Bronze. Carve a rank for every treasure."',
+    ]),
+    task: tra(['C2:C7 に、価値が 1000以上なら「金」、500以上なら「銀」、それ未満は「銅」と 刻め'], [
+      'In C2:C7, carve "Gold" if the value is 1000 or more, "Silver" if 500 or more, otherwise "Bronze"',
+    ]),
+    grid: () => makeGrid(8, 3, [tra<(string | number)[]>(['宝', '価値', '階級'], ['Treasure', 'Value', 'Rank']), ...TREASURE_VAL.map(([n, v]) => [n, v])]),
     colWidths: [90, 60, 60],
     hints: [],
-    check: (c) => eachVal(c, TREASURE_VAL.map(([, v], i) => [`C${i + 2}`, v >= 1000 ? '金' : v >= 500 ? '銀' : '銅']), 'IF', true),
+    check: (c) => eachVal(c, TREASURE_VAL.map(([, v], i) => [`C${i + 2}`, v >= 1000 ? R_GOLD : v >= 500 ? R_SILVER : R_BRONZE]), 'IF', true),
     reward: { exp: 60, gold: 0 },
-    thanks: ['金・銀・銅の 光が 扉に 宿り、ゆっくりと 開いていく！'],
+    thanks: tra(['金・銀・銅の 光が 扉に 宿り、ゆっくりと 開いていく！'], [
+      'The light of gold, silver and bronze fills the door, and it slowly opens!',
+    ]),
   },
   ship_countif: {
     id: 'ship_countif',
     kind: 'puzzle',
     town: 'ship',
     npc: '宝の扉',
-    title: '宝の扉',
-    intro: ['船長室へ 続く 最後の扉。', '宝箱の 中身と 価値の 一覧が 刻まれている。', '「金貨の 箱は いくつか。金貨の 価値は 合わせて いくらか」――と 読める。'],
-    task: ['E2 に「金貨」の 箱の数を 示せ', 'E3 に「金貨」の 価値の 合計を 示せ'],
+    title: tr('宝の扉', 'Door of Treasure'),
+    intro: tra(['船長室へ 続く 最後の扉。', '宝箱の 中身と 価値の 一覧が 刻まれている。', '「金貨の 箱は いくつか。金貨の 価値は 合わせて いくらか」――と 読める。'], [
+      'The last door before the captain\'s cabin.',
+      'A list of treasure chest contents and their values is carved into it.',
+      'It reads: "How many chests hold Gold? What is the Gold worth in all?"',
+    ]),
+    task: tra(['E2 に「金貨」の 箱の数を 示せ', 'E3 に「金貨」の 価値の 合計を 示せ'], [
+      'In E2, show the number of "Gold" chests',
+      'In E3, show the total value of the "Gold"',
+    ]),
     grid: () =>
       makeGrid(8, 5, [
-        ['中身', '価値', '', '問い', '答え'],
-        [...CHESTS[0], '', '金貨の箱'],
-        [...CHESTS[1], '', '金貨の価値'],
+        tra<(string | number)[]>(['中身', '価値', '', '問い', '答え'], ['Contents', 'Value', '', 'Question', 'Answer']),
+        [...CHESTS[0], '', tr('金貨の箱', 'Gold chests')],
+        [...CHESTS[1], '', tr('金貨の価値', 'Gold value')],
         ...CHESTS.slice(2),
       ]),
     colWidths: [70, 60, 24, 90, 60],
     hints: [],
     check: (c) =>
       first(
-        pz(c, 'E2', CHESTS.filter(([k]) => k === '金貨').length, 'COUNTIF'),
-        pz(c, 'E3', CHESTS.reduce((a, [k, v]) => a + (k === '金貨' ? v : 0), 0), 'SUMIF'),
+        pz(c, 'E2', CHESTS.filter(([k]) => k === COIN).length, 'COUNTIF'),
+        pz(c, 'E3', CHESTS.reduce((a, [k, v]) => a + (k === COIN ? v : 0), 0), 'SUMIF'),
       ),
     reward: { exp: 70, gold: 0 },
-    thanks: ['金貨が じゃらじゃらと 鳴り響き、船長室の 扉が 開いた……！'],
+    thanks: tra(['金貨が じゃらじゃらと 鳴り響き、船長室の 扉が 開いた……！'], [
+      'The gold coins jingle and clatter, and the door to the captain\'s cabin opens...!',
+    ]),
   },
 } satisfies Record<string, QuestDef>)
 
