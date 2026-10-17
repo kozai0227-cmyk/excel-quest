@@ -284,7 +284,7 @@ export default function App() {
               continue
             }
             setGs((s) => ({ ...s, gold: s.gold - ITEMS[id].price, items: { ...s.items, [id]: s.items[id] + 1 } }))
-            await say([tr(`${itemName(id)}だね。まいど あり！`, `One ${itemName(id)}. Thank you kindly!`), `（${itemDesc(id)}）`])
+            await say([tr(`${itemName(id)}だね。まいど あり！`, `One ${itemName(id)}. Thank you kindly!`), tr(`（${itemDesc(id)}）`, `(${itemDesc(id)})`)])
           }
           break
         }
@@ -293,7 +293,7 @@ export default function App() {
           for (;;) {
             const cur = gsRef.current
             const stock = npc.stock ?? []
-            const opts = [...stock.map((id) => `${equipName(id)}　${EQUIP[id].price}G`), tr('やめる', 'Leave')]
+            const opts = [...stock.map((id) => `${equipName(id)}${tr("　", "  ")}${EQUIP[id].price}G`), tr('やめる', 'Leave')]
             const greet = first ? [...(npc.lines ?? [])] : []
             const i = await say([...greet, tr(`どれに するかね？（所持金 ${cur.gold}G）`, `Which one will it be? (You have ${cur.gold}G)`)], opts)
             first = false
@@ -304,10 +304,10 @@ export default function App() {
             const id = stock[i]
             const e = EQUIP[id]
             const nowId = cur.equip[e.slot]
-            const now = nowId ? `${equipName(nowId)}（${effectText(EQUIP[nowId])}）` : tr('なし', 'none')
+            const now = nowId ? tr(`${equipName(nowId)}（${effectText(EQUIP[nowId])}）`, `${equipName(nowId)} (${effectText(EQUIP[nowId])})`) : tr('なし', 'none')
             const j = await say(
               [
-                `${equipName(id)}：${equipDesc(id)}`,
+                tr(`${equipName(id)}：${equipDesc(id)}`, `${equipName(id)}: ${equipDesc(id)}`),
                 tr(`効果：${effectText(e)}　／　いまの${slotName(e.slot)}：${now}`, `Effect: ${effectText(e)}  /  Current ${slotName(e.slot).toLowerCase()}: ${now}`),
                 tr(`${e.price}ゴールドだが、かうかい？`, `That's ${e.price} gold. Want it?`),
               ],
@@ -512,22 +512,22 @@ export default function App() {
     if (ex.to === 'ship1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['ぎしぎしと きしむ 船倉。潮の においに まじって、古い インクの においが する……。', '床には「もしも」「もしも」と 書きなぐられた 紙が 散らばっている。'])
-        await me(['（扉の 謎を 解きながら、船長室を 目指そう）'])
+        await talk(undefined, [tr('ぎしぎしと きしむ 船倉。潮の においに まじって、古い インクの においが する……。', 'The hold creaks and groans. Mixed with the smell of the sea is the smell of old ink...'), tr('床には「もしも」「もしも」と 書きなぐられた 紙が 散らばっている。', 'Papers scrawled with "What if? What if?" are scattered across the floor.')])
+        await me([tr('（扉の 謎を 解きながら、船長室を 目指そう）', "(Let's solve the door puzzles and head for the captain's cabin.)")])
       })
     if (ex.to === 'ship2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['船長室に 入ると、ランプの 青白い 光が ゆれた。', '奥の 舵輪の 前に、ぼんやりと 光る 人影が 立っている……。'])
+        await talk(undefined, [tr('船長室に 入ると、ランプの 青白い 光が ゆれた。', "As you enter the captain's cabin, the pale blue light of a lamp flickers."), tr('奥の 舵輪の 前に、ぼんやりと 光る 人影が 立っている……。', "In front of the ship's wheel at the back stands a faintly glowing figure...")])
       })
     if (ex.to === 'ifport')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 条件の港町 イフポート。', '潮風が 気持ちいい……が、桟橋には ぼろぼろの 帆を 張った 不気味な 船が 停まっている。'])
-        await talk(undefined, ['町の人々は、書類を 前に「うーん……」と 頭を かかえて 立ちつくしている。'])
+        await talk(undefined, [tr('ここは 条件の港町 イフポート。', 'This is Ifport, the Harbor of Conditions.'), tr('潮風が 気持ちいい……が、桟橋には ぼろぼろの 帆を 張った 不気味な 船が 停まっている。', 'The sea breeze feels nice... but an eerie ship with tattered sails is moored at the pier.')])
+        await talk(undefined, [tr('町の人々は、書類を 前に「うーん……」と 頭を かかえて 立ちつくしている。', 'The townspeople stand frozen over their paperwork, groaning and clutching their heads.')])
         f?.emote('player', 'bang', 1200)
-        await talk('港長ミナト', ['そこの 旅の方！ 少し いいかな！'])
+        await talk('港長ミナト', [tr('そこの 旅の方！ 少し いいかな！', 'You there, traveler! Do you have a moment?')])
         if (f) {
           // 港長が 事務所から 走ってくる
           f.spawn({ id: 'minato_event', x: 4, y: 5, name: '港長ミナト', look: SPEAKER_LOOKS['港長ミナト'], kind: 'talk', dir: 'down' })
@@ -537,56 +537,56 @@ export default function App() {
           f.emote('minato_event', 'sweat', 2600)
         }
         await talk('港長ミナト', [
-          'ふぅ……。私は この港の 港長、ミナトだ。',
-          'サンショウの 鏡の霧を 晴らした 旅人……君の ことだね？ 港でも うわさに なっている。',
-          '見ての とおり、桟橋に 幽霊船が 居すわって しまってね。船長の 名は「モシナラバ」。',
-          'あの船が 来てから、町の 者は みんな「もしも ○○だったら？」と 1件ずつ 悩み続けて、何も 決められなく なった。',
-          'ルールを 決めて 自動で 判断する……そんな 当たり前の ことが、呪いで できなく なっているんだ。',
+          tr('ふぅ……。私は この港の 港長、ミナトだ。', "Phew... I'm Minato, the harbormaster here."),
+          tr('サンショウの 鏡の霧を 晴らした 旅人……君の ことだね？ 港でも うわさに なっている。', "The traveler who cleared Refton's mirror fog... that's you, isn't it? The whole harbor is talking about it."),
+          tr('見ての とおり、桟橋に 幽霊船が 居すわって しまってね。船長の 名は「モシナラバ」。', 'As you can see, a ghost ship has settled in at our pier. Its captain is called "Whatif."'),
+          tr('あの船が 来てから、町の 者は みんな「もしも ○○だったら？」と 1件ずつ 悩み続けて、何も 決められなく なった。', 'Ever since that ship arrived, everyone in town agonizes over each case, "What if this? What if that?", and nobody can decide anything.'),
+          tr('ルールを 決めて 自動で 判断する……そんな 当たり前の ことが、呪いで できなく なっているんだ。', 'Setting a rule and letting it decide automatically... the curse has taken away something that simple.'),
         ])
-        await me(['（1件ずつ 目で 見て 判断……。会社でも、条件ごとに 手で 色を 塗ったり していたっけ）', '（「もし ○○なら △△」……表計算の IF関数 だ！）'])
+        await me([tr('（1件ずつ 目で 見て 判断……。会社でも、条件ごとに 手で 色を 塗ったり していたっけ）', '(Checking each case by eye... At the office, I used to color cells by hand for each condition, too.)'), tr('（「もし ○○なら △△」……表計算の IF関数 だ！）', '("If this, then that"... That\'s the IF function!)')])
         await talk('港長ミナト', [
-          '町の 者たちの 悩みを 聞いてやって ほしい。',
-          'すべて 解決すれば、桟橋の 結界も とけるはずだ。',
-          '私は 事務所に いる。入港記録の 件で、あとで 相談させてくれ。',
+          tr('町の 者たちの 悩みを 聞いてやって ほしい。', "Please listen to the townspeople's troubles."),
+          tr('すべて 解決すれば、桟橋の 結界も とけるはずだ。', 'Solve them all, and the barrier on the pier should lift.'),
+          tr('私は 事務所に いる。入港記録の 件で、あとで 相談させてくれ。', "I'll be in my office. I'd like to talk to you later about the arrival records."),
         ])
         if (f) {
           void f.walkTo('minato_event', 4, 5, 200).then(() => f.remove('minato_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）'])
+        await talk(undefined, [tr('（IF の 答えに 文字を 使うときは " で 囲む。「以上」は >=、「以下」は <= と 書くぞ）', '(When IF returns text, wrap it in ". Write "at least" as >= and "at most" as <=.)')])
         save()
       })
     if (ex.to === 'clock1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['チクタク、チクタク……塔の 中に 無数の 時計の 音が 響いている。', 'どの 時計も、ばらばらの 時刻を 指している……。'])
-        await me(['（扉の 謎を 解きながら、時計塔の 最上階を 目指そう）'])
+        await talk(undefined, [tr('チクタク、チクタク……塔の 中に 無数の 時計の 音が 響いている。', 'Tick-tock, tick-tock... Countless clocks echo through the tower.'), tr('どの 時計も、ばらばらの 時刻を 指している……。', 'Every clock shows a different time...')])
+        await me([tr('（扉の 謎を 解きながら、時計塔の 最上階を 目指そう）', "(Let's solve the door puzzles and head for the top of the clock tower.)")])
       })
     if (ex.to === 'clock2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['最上階。巨大な 歯車が 軋みながら 回っている。', '歯車の 中心の 文字盤が ぎょろりと 動き、針の 腕が 伸びてきた……。'])
+        await talk(undefined, [tr('最上階。巨大な 歯車が 軋みながら 回っている。', 'The top floor. Giant gears grind as they turn.'), tr('歯車の 中心の 文字盤が ぎょろりと 動き、針の 腕が 伸びてきた……。', 'The clock face at the center of the gears rolls its eyes, and arms like clock hands reach out...')])
       })
     if (ex.to === 'castle1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['黒い 石で 組まれた 城の 中は、赤い「#」の 文字が 壁一面に 浮かんでは 消えている。', '#DIV/0!、#VALUE!、#NAME?、#REF!……どこかで 見た エラーの 文字ばかりだ。'])
-        await me(['（これまでの 町で 覚えた 力を 全部 使う時だ。扉の 謎を 解いて、玉座の間を 目指そう）'])
+        await talk(undefined, [tr('黒い 石で 組まれた 城の 中は、赤い「#」の 文字が 壁一面に 浮かんでは 消えている。', 'Inside the castle of black stone, red "#" symbols flicker on and off across every wall.'), tr('#DIV/0!、#VALUE!、#NAME?、#REF!……どこかで 見た エラーの 文字ばかりだ。', "#DIV/0!, #VALUE!, #NAME?, #REF!... Errors you've seen somewhere before.")])
+        await me([tr('（これまでの 町で 覚えた 力を 全部 使う時だ。扉の 謎を 解いて、玉座の間を 目指そう）', "(Time to use everything I've learned in every town. Let's solve the door puzzles and head for the throne room.)")])
       })
     if (ex.to === 'castle2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['玉座の間。割れた ステンドグラスから、赤黒い 光が 差しこんでいる。', '玉座の 上の 影が、ゆっくりと 立ち上がった……。'])
-        await me(['（……いよいよだ）'])
+        await talk(undefined, [tr('玉座の間。割れた ステンドグラスから、赤黒い 光が 差しこんでいる。', 'The throne room. Dark red light pours through the shattered stained glass.'), tr('玉座の 上の 影が、ゆっくりと 立ち上がった……。', 'The shadow on the throne slowly rises...')])
+        await me([tr('（……いよいよだ）', '(...This is it.)')])
       })
     if (ex.to === 'hope')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 最果ての砦 ホープ。', '北の 山の 向こうに、黒い 城が 見える……あれが 魔王レフエラーの 城だ。'])
-        await talk(undefined, ['砦の 兵士たちは、赤い「#」の 文字が 浮かんだ 帳面を 前に 立ちすくんでいる……。'])
+        await talk(undefined, [tr('ここは 最果ての砦 ホープ。', "This is Fort Hope, at the World's Edge."), tr('北の 山の 向こうに、黒い 城が 見える……あれが 魔王レフエラーの 城だ。', "Beyond the northern mountains, you can see a black castle... Demon Lord Referror's castle.")])
+        await talk(undefined, [tr('砦の 兵士たちは、赤い「#」の 文字が 浮かんだ 帳面を 前に 立ちすくんでいる……。', 'The fort\'s soldiers stand frozen in front of ledgers covered in red "#" symbols...')])
         f?.emote('player', 'bang', 1200)
-        await talk('砦の長ガンバル', ['おお、来たか！ 待っていたぞ、旅の者！'])
+        await talk('砦の長ガンバル', [tr('おお、来たか！ 待っていたぞ、旅の者！', "Oh, you've come! I've been waiting for you, traveler!")])
         if (f) {
           // 砦の長が 本営から 走ってくる
           f.spawn({ id: 'ganbaru_event', x: 4, y: 11, name: '砦の長ガンバル', look: SPEAKER_LOOKS['砦の長ガンバル'], kind: 'talk', dir: 'down' })
@@ -596,33 +596,33 @@ export default function App() {
           f.emote('ganbaru_event', 'sweat', 2600)
         }
         await talk('砦の長ガンバル', [
-          'ふう……。俺は この 砦を 預かる、ガンバルだ。',
-          'セルノから コヨミノまで、7つの 町を 救った 旅人……お前の 噂は 大陸じゅうに 届いている。',
-          'この 砦は 魔王城を 見張る 最後の 守り。だが 魔王レフエラーの 呪いで、帳面が エラーだらけに なってしまった。',
-          '「#DIV/0!」「#VALUE!」「#NAME?」「#REF!」……赤い 文字が 出るたび、兵たちは 怖がって 表を 丸ごと 捨てて しまうんだ。',
-          'そして 一から 手で 作り直す。……それこそが、魔王の 狙いなのさ。',
+          tr('ふう……。俺は この 砦を 預かる、ガンバルだ。', "Phew... I'm Ganbaru, commander of this fort."),
+          tr('セルノから コヨミノまで、7つの 町を 救った 旅人……お前の 噂は 大陸じゅうに 届いている。', 'The traveler who saved seven towns, from Cellno to Calendra... Word of you has spread across the continent.'),
+          tr('この 砦は 魔王城を 見張る 最後の 守り。だが 魔王レフエラーの 呪いで、帳面が エラーだらけに なってしまった。', "This fort is the last line of defense watching the Demon Lord's castle. But Demon Lord Referror's curse has filled our ledgers with errors."),
+          tr('「#DIV/0!」「#VALUE!」「#NAME?」「#REF!」……赤い 文字が 出るたび、兵たちは 怖がって 表を 丸ごと 捨てて しまうんだ。', '"#DIV/0!", "#VALUE!", "#NAME?", "#REF!"... Every time red text appears, my soldiers panic and throw the whole table away.'),
+          tr('そして 一から 手で 作り直す。……それこそが、魔王の 狙いなのさ。', "Then they rebuild it from scratch by hand. ...And that's exactly what the Demon Lord wants."),
         ])
-        await me(['（エラーが 出たら、怖くて 全部 消して やり直す……。入社した ころの 自分も そうだった）', '（でも エラーは「ここが おかしいよ」という メッセージ。読めば、直し方が わかるんだ！）'])
+        await me([tr('（エラーが 出たら、怖くて 全部 消して やり直す……。入社した ころの 自分も そうだった）', '(Getting scared of an error and deleting everything to start over... I used to do that when I first joined the company.)'), tr('（でも エラーは「ここが おかしいよ」という メッセージ。読めば、直し方が わかるんだ！）', '(But an error is a message saying "something\'s wrong here." Read it, and you\'ll know how to fix it!)')])
         await talk('砦の長ガンバル', [
-          'どうか 砦の 者たちの 悩みを 聞いてやって くれ。',
-          'すべて 解決すれば、魔王城の 結界も とけるはずだ。',
-          '俺は 本営に いる。出陣の 号令の 件で、あとで 相談させて くれ。',
+          tr('どうか 砦の 者たちの 悩みを 聞いてやって くれ。', "Please listen to my soldiers' troubles."),
+          tr('すべて 解決すれば、魔王城の 結界も とけるはずだ。', "Solve them all, and the barrier around the Demon Lord's castle should lift."),
+          tr('俺は 本営に いる。出陣の 号令の 件で、あとで 相談させて くれ。', "I'll be at headquarters. I'd like to talk to you later about the call to march."),
         ])
         if (f) {
           void f.walkTo('ganbaru_event', 4, 11, 200).then(() => f.remove('ganbaru_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（エラーは 種類で 原因が わかる。#DIV/0! は 0で 割った、#NAME? は 名前の 間違い、#REF! は 消えた セルを 参照。馬車で いつでも コヨミノに 戻れるぞ）'])
+        await talk(undefined, [tr('（エラーは 種類で 原因が わかる。#DIV/0! は 0で 割った、#NAME? は 名前の 間違い、#REF! は 消えた セルを 参照。馬車で いつでも コヨミノに 戻れるぞ）', '(The type of error tells you the cause. #DIV/0! means you divided by 0, #NAME? means a misspelled name, #REF! means a reference to a deleted cell. You can take the carriage back to Calendra anytime.)')])
         save()
       })
     if (ex.to === 'koyomi')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 暦の里 コヨミノ。', '里の 真ん中に そびえる 時計塔が、300年 時を 刻み続けてきた 静かな 里だ。'])
-        await talk(undefined, ['しかし 時計塔の 針は ぐるぐると 逆回りし、里の 人々は 指を 折って 日付を 数えている……。'])
+        await talk(undefined, [tr('ここは 暦の里 コヨミノ。', 'This is Calendra, the Village of Calendars.'), tr('里の 真ん中に そびえる 時計塔が、300年 時を 刻み続けてきた 静かな 里だ。', 'A quiet village where the clock tower at its center has kept time for 300 years.')])
+        await talk(undefined, [tr('しかし 時計塔の 針は ぐるぐると 逆回りし、里の 人々は 指を 折って 日付を 数えている……。', "But the clock tower's hands spin backward, and the villagers are counting dates on their fingers...")])
         f?.emote('player', 'bang', 1200)
-        await talk('村長トキワ', ['おお……旅の 方、待って くだされ！'])
+        await talk('村長トキワ', [tr('おお……旅の 方、待って くだされ！', 'Oh... traveler, please wait!')])
         if (f) {
           // 村長が 家から 走ってくる
           f.spawn({ id: 'tokiwa_event', x: 4, y: 11, name: '村長トキワ', look: SPEAKER_LOOKS['村長トキワ'], kind: 'talk', dir: 'down' })
@@ -632,44 +632,44 @@ export default function App() {
           f.emote('tokiwa_event', 'sweat', 2600)
         }
         await talk('村長トキワ', [
-          'ぜぇ……ぜぇ……。わしは この 里の 村長、トキワじゃ。',
-          'テキストリアの 文字を 取り戻した 旅人……あんたの ことじゃな？ 宿場長の 手紙が、ちゃんと 読める 文字で 届いたわい。',
-          '実は 時計塔に「シメキリス」という 魔物が 棲みつき、里の 暦を 喰らって しまったのじゃ。',
-          '「10日後は 何日か」「締め切りまで あと 何日か」「今日は 何曜日か」……誰も 数えられん。',
-          '約束は 破られ、締め切りは 過ぎ、里は 大混乱じゃ……。',
+          tr('ぜぇ……ぜぇ……。わしは この 里の 村長、トキワじゃ。', 'Huff... huff... I am Tokiwa, chief of this village.'),
+          tr('テキストリアの 文字を 取り戻した 旅人……あんたの ことじゃな？ 宿場長の 手紙が、ちゃんと 読める 文字で 届いたわい。', "You're the traveler who restored Textria's letters, aren't you? The warden's letter reached me in perfectly readable writing."),
+          tr('実は 時計塔に「シメキリス」という 魔物が 棲みつき、里の 暦を 喰らって しまったのじゃ。', 'A monster called "Deadlinus" has made its nest in the clock tower and devoured our calendar.'),
+          tr('「10日後は 何日か」「締め切りまで あと 何日か」「今日は 何曜日か」……誰も 数えられん。', '"What\'s the date 10 days from now?" "How many days until the deadline?" "What day of the week is it?" ...Nobody can count them anymore.'),
+          tr('約束は 破られ、締め切りは 過ぎ、里は 大混乱じゃ……。', 'Promises are broken, deadlines are missed, and the village is in chaos...'),
         ])
-        await me(['（日付の 計算……会社でも、納期や 締め切りを カレンダーで 指折り 数えてたっけ）', '（……表計算の 日付は ただの 数。足して 引けば いいんだ！）'])
+        await me([tr('（日付の 計算……会社でも、納期や 締め切りを カレンダーで 指折り 数えてたっけ）', '(Date math... At the office, I used to count due dates and deadlines on my fingers with a calendar, too.)'), tr('（……表計算の 日付は ただの 数。足して 引けば いいんだ！）', '(...But in a spreadsheet, a date is just a number. You can add and subtract them!)')])
         await talk('村長トキワ', [
-          'どうか 里の 者たちの 悩みを 聞いてやって くれんか。',
-          'すべて 解決すれば、時計塔の 結界も とけるはずじゃ。',
-          'わしは 家に おる。村人の 表彰の 件で、あとで 相談させて くれ。',
+          tr('どうか 里の 者たちの 悩みを 聞いてやって くれんか。', "Won't you please listen to the villagers' troubles?"),
+          tr('すべて 解決すれば、時計塔の 結界も とけるはずじゃ。', 'Solve them all, and the barrier around the clock tower should lift.'),
+          tr('わしは 家に おる。村人の 表彰の 件で、あとで 相談させて くれ。', "I'll be at home. I'd like to talk to you later about honoring the villagers."),
         ])
         if (f) {
           void f.walkTo('tokiwa_event', 4, 11, 220).then(() => f.remove('tokiwa_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（表計算の 日付は「1日 ＝ 1」の 数。足せば 何日後、引けば 何日間。馬車で いつでも テキストリアに 戻れるぞ）'])
+        await talk(undefined, [tr('（表計算の 日付は「1日 ＝ 1」の 数。足せば 何日後、引けば 何日間。馬車で いつでも テキストリアに 戻れるぞ）', '(In a spreadsheet, a date is a number where 1 day = 1. Add to get days later, subtract to get days between. You can take the carriage back to Textria anytime.)')])
         save()
       })
     if (ex.to === 'print1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['インクの においが 立ちこめる 印刷所。', '床に 散らばった 紙には「縺薙ｓ縺ｫ縺｡縺ｯ」のような 読めない 文字が びっしり 刷られている……。'])
-        await me(['（扉の 謎を 解きながら、印刷所の 奥を 目指そう）'])
+        await talk(undefined, [tr('インクの においが 立ちこめる 印刷所。', 'A print shop thick with the smell of ink.'), tr('床に 散らばった 紙には「縺薙ｓ縺ｫ縺｡縺ｯ」のような 読めない 文字が びっしり 刷られている……。', 'The papers scattered on the floor are covered in unreadable gibberish like "縺薙ｓ縺ｫ縺｡縺ｯ"...')])
+        await me([tr('（扉の 謎を 解きながら、印刷所の 奥を 目指そう）', "(Let's solve the door puzzles and head for the back of the print shop.)")])
       })
     if (ex.to === 'print2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['奥の間。巨大な 印刷機の 上で、文字の 渦が ぐるぐると 回っている。', '渦が ゆっくりと 人の 形を とり、2つの ちぐはぐな 目が 光った……。'])
+        await talk(undefined, [tr('奥の間。巨大な 印刷機の 上で、文字の 渦が ぐるぐると 回っている。', 'The back room. A whirlpool of letters spins above a giant printing press.'), tr('渦が ゆっくりと 人の 形を とり、2つの ちぐはぐな 目が 光った……。', 'The whirlpool slowly takes a human shape, and two mismatched eyes light up...')])
       })
     if (ex.to === 'textria')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 文字の宿場町 テキストリア。', '旅人の 手紙や 看板、書物を 一手に 引き受ける、文字の 町だ。'])
-        await talk(undefined, ['しかし 看板も 張り紙も、文字が ぐちゃぐちゃに 化けて 読めない……。'])
+        await talk(undefined, [tr('ここは 文字の宿場町 テキストリア。', 'This is Textria, the Post Town of Letters.'), tr('旅人の 手紙や 看板、書物を 一手に 引き受ける、文字の 町だ。', "A town of letters that handles all of the travelers' mail, signs and books.")])
+        await talk(undefined, [tr('しかし 看板も 張り紙も、文字が ぐちゃぐちゃに 化けて 読めない……。', 'But the letters on every sign and poster are garbled beyond reading...')])
         f?.emote('player', 'bang', 1200)
-        await talk('宿場長カキコ', ['あら、旅の方！ ちょうど よかった、お待ちになって！'])
+        await talk('宿場長カキコ', [tr('あら、旅の方！ ちょうど よかった、お待ちになって！', 'Oh, a traveler! What perfect timing. Please wait!')])
         if (f) {
           // 宿場長が 屋敷から 走ってくる
           f.spawn({ id: 'kakiko_event', x: 4, y: 11, name: '宿場長カキコ', look: SPEAKER_LOOKS['宿場長カキコ'], kind: 'talk', dir: 'down' })
@@ -679,43 +679,43 @@ export default function App() {
           f.emote('kakiko_event', 'sweat', 2600)
         }
         await talk('宿場長カキコ', [
-          'はぁ……はぁ……。わたくし、この 宿場の 宿場長、カキコと 申します。',
-          '王都の 帳簿を 取り戻した 旅の方……あなたの ことね？ 宰相さまから 手紙が 届いて……届いた けれど、文字が 化けて 半分 読めなかったわ。',
-          '北の 活版印刷所に「モジバケーラ」という 魔物が 住みついてから、町の 文字が みんな 化けて しまったの。',
-          '名前を つなげば 化け、コードを 切り分ければ 化け……。みんな 1文字ずつ 手で 書き写しては、また 間違えて。',
+          tr('はぁ……はぁ……。わたくし、この 宿場の 宿場長、カキコと 申します。', "Huff... huff... I'm Kakiko, the warden of this post town."),
+          tr('王都の 帳簿を 取り戻した 旅の方……あなたの ことね？ 宰相さまから 手紙が 届いて……届いた けれど、文字が 化けて 半分 読めなかったわ。', "You're the traveler who recovered the capital's ledger, aren't you? The chancellor sent me a letter... It arrived, but half of it was garbled and unreadable."),
+          tr('北の 活版印刷所に「モジバケーラ」という 魔物が 住みついてから、町の 文字が みんな 化けて しまったの。', 'Ever since a monster called "Mojibakera" moved into the print shop to the north, every letter in town has gone garbled.'),
+          tr('名前を つなげば 化け、コードを 切り分ければ 化け……。みんな 1文字ずつ 手で 書き写しては、また 間違えて。', 'Join names, and they garble. Split codes, and they garble... Everyone copies them out by hand, letter by letter, and makes mistakes all over again.'),
         ])
-        await me(['（1文字ずつ 書き写す……会社でも、姓と 名を つなげたり、コードを 分けたりするのに 何時間も かけてたな）', '（……文字列関数だ。& で つなぎ、LEFT や MID で 切り取る 魔法！）'])
+        await me([tr('（1文字ずつ 書き写す……会社でも、姓と 名を つなげたり、コードを 分けたりするのに 何時間も かけてたな）', '(Copying letter by letter... At the office, I used to spend hours joining first and last names or splitting codes, too.)'), tr('（……文字列関数だ。& で つなぎ、LEFT や MID で 切り取る 魔法！）', '(...Text functions! The magic of joining with & and cutting with LEFT and MID!)')])
         await talk('宿場長カキコ', [
-          'どうか 宿場の 者たちの 悩みを 聞いてやって。',
-          'すべて 解決すれば、印刷所の 結界も とけるはず……。',
-          'わたくしは 屋敷に いるわ。伝書鳩の あて先の 件で、あとで 相談させて ちょうだい。',
+          tr('どうか 宿場の 者たちの 悩みを 聞いてやって。', "Please listen to the townspeople's troubles."),
+          tr('すべて 解決すれば、印刷所の 結界も とけるはず……。', 'Solve them all, and the barrier around the print shop should lift...'),
+          tr('わたくしは 屋敷に いるわ。伝書鳩の あて先の 件で、あとで 相談させて ちょうだい。', "I'll be at my residence. I'd like to talk to you later about the carrier pigeons' addresses."),
         ])
         if (f) {
           void f.walkTo('kakiko_event', 4, 11, 200).then(() => f.remove('kakiko_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（文字と 文字は「&」で つなぐ。文字を 数式に 書くときは " で 囲もう。馬車で いつでも ピボリアに 戻れるぞ）'])
+        await talk(undefined, [tr('（文字と 文字は「&」で つなぐ。文字を 数式に 書くときは " で 囲もう。馬車で いつでも ピボリアに 戻れるぞ）', '(Join text with "&". When you write text in a formula, wrap it in ". You can take the carriage back to Pivoria anytime.)')])
         save()
       })
     if (ex.to === 'treasury1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['金銀の 財宝の あいだに、伝票の 紙切れが 吹雪のように 舞っている。', '床から 天井まで、バラバラの 記録が 散らかり放題だ……。'])
-        await me(['（扉の 謎を 解きながら、宝物庫の 奥を 目指そう）'])
+        await talk(undefined, [tr('金銀の 財宝の あいだに、伝票の 紙切れが 吹雪のように 舞っている。', 'Among the gold and silver treasure, scraps of receipts swirl like a blizzard.'), tr('床から 天井まで、バラバラの 記録が 散らかり放題だ……。', 'From floor to ceiling, scattered records are strewn everywhere...')])
+        await me([tr('（扉の 謎を 解きながら、宝物庫の 奥を 目指そう）', "(Let's solve the door puzzles and head for the back of the treasury.)")])
       })
     if (ex.to === 'treasury2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['王の間。玉座の 前に、伝票の 山が うずたかく 積み上がっている。', '紙の 山が ざわりと うごめき、赤い 目が 2つ 開いた……。'])
+        await talk(undefined, [tr('王の間。玉座の 前に、伝票の 山が うずたかく 積み上がっている。', "The King's Hall. A towering mountain of receipts is piled in front of the throne."), tr('紙の 山が ざわりと うごめき、赤い 目が 2つ 開いた……。', 'The mountain of paper rustles and stirs, and two red eyes open...')])
       })
     if (ex.to === 'pivoria')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 集計の王都 ピボリア。', '国じゅうの 記録が 集まり、王宮で 1つに まとめられる……はずの 都だ。'])
-        await talk(undefined, ['しかし 役所の 窓からは、伝票の 山に 埋もれた 役人たちの うめき声が 聞こえてくる……。'])
+        await talk(undefined, [tr('ここは 集計の王都 ピボリア。', 'This is Pivoria, the Royal Capital of Totals.'), tr('国じゅうの 記録が 集まり、王宮で 1つに まとめられる……はずの 都だ。', "The capital where records from across the kingdom are gathered and combined at the palace... or at least they're supposed to be.")])
+        await talk(undefined, [tr('しかし 役所の 窓からは、伝票の 山に 埋もれた 役人たちの うめき声が 聞こえてくる……。', 'But from the government office windows come the groans of clerks buried under mountains of receipts...')])
         f?.emote('player', 'bang', 1200)
-        await talk('宰相ヒョウマ', ['そこの 旅の方！ お待ちを！'])
+        await talk('宰相ヒョウマ', [tr('そこの 旅の方！ お待ちを！', 'You there, traveler! Please wait!')])
         if (f) {
           // 宰相が 館から 走ってくる
           f.spawn({ id: 'hyouma_event', x: 4, y: 11, name: '宰相ヒョウマ', look: SPEAKER_LOOKS['宰相ヒョウマ'], kind: 'talk', dir: 'down' })
@@ -725,44 +725,44 @@ export default function App() {
           f.emote('hyouma_event', 'sweat', 2600)
         }
         await talk('宰相ヒョウマ', [
-          'はぁ、はぁ……。失礼。わたくし、この 国の 宰相、ヒョウマと 申します。',
-          'ルックアップの 大書庫を 救った 旅の方……あなたの ことですな？ 大臣サガスから 早馬で 知らせが 届いております。',
-          '実は 王宮の 宝物庫に「バラバラン」という 魔物が 居座り、王国の 記録を すべて バラバラに 散らかして しまったのです。',
-          '「北の 地区の、夜の 分だけ」「東店の、パンの 分だけ」……条件が 2つに なった とたん、誰も 数えられず、足せず……。',
-          '陛下への 報告書は、もう ひと月も 止まった ままなのです。',
+          tr('はぁ、はぁ……。失礼。わたくし、この 国の 宰相、ヒョウマと 申します。', 'Huff, huff... Pardon me. I am Hyoma, chancellor of this kingdom.'),
+          tr('ルックアップの 大書庫を 救った 旅の方……あなたの ことですな？ 大臣サガスから 早馬で 知らせが 届いております。', "You're the traveler who saved the Great Library of Lookup, are you not? Minister Sagasu sent word by fast horse."),
+          tr('実は 王宮の 宝物庫に「バラバラン」という 魔物が 居座り、王国の 記録を すべて バラバラに 散らかして しまったのです。', 'A monster called "Scatteron" has taken over the palace treasury and scattered every record in the kingdom.'),
+          tr('「北の 地区の、夜の 分だけ」「東店の、パンの 分だけ」……条件が 2つに なった とたん、誰も 数えられず、足せず……。', '"Only the north district, only at night." "Only the east shop, only bread." ...The moment there are two conditions, no one can count or add anything.'),
+          tr('陛下への 報告書は、もう ひと月も 止まった ままなのです。', 'The report to His Majesty has been stalled for a whole month.'),
         ])
-        await me(['（条件が 2つ……会社でも「支店別・商品別の 売上」を 出すのに、毎月 徹夜してたな……）', '（……SUMIFS と COUNTIFS だ。条件を いくつでも 並べられる、集計の 魔法！）'])
+        await me([tr('（条件が 2つ……会社でも「支店別・商品別の 売上」を 出すのに、毎月 徹夜してたな……）', '(Two conditions... At the office, I used to pull all-nighters every month to get "sales by branch and by product"...)'), tr('（……SUMIFS と COUNTIFS だ。条件を いくつでも 並べられる、集計の 魔法！）', '(...SUMIFS and COUNTIFS! The magic of totals that lets you line up as many conditions as you want!)')])
         await talk('宰相ヒョウマ', [
-          'どうか 王都の 者たちの 悩みを 聞いてやって くだされ。',
-          'すべて 解決すれば、王宮の 結界も とけるはず……。',
-          'わたくしは 館に おります。陛下に お見せする 収穫表の 件で、あとで ご相談させて くだされ。',
+          tr('どうか 王都の 者たちの 悩みを 聞いてやって くだされ。', "Please listen to the troubles of the capital's people."),
+          tr('すべて 解決すれば、王宮の 結界も とけるはず……。', 'Solve them all, and the barrier around the palace should lift...'),
+          tr('わたくしは 館に おります。陛下に お見せする 収穫表の 件で、あとで ご相談させて くだされ。', "I'll be at my manor. I'd like to talk to you later about the harvest table for His Majesty."),
         ])
         if (f) {
           void f.walkTo('hyouma_event', 4, 11, 200).then(() => f.remove('hyouma_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（SUMIF・COUNTIF の 最後に S が つくと、条件を いくつも 並べられる。馬車で いつでも ルックアップに 戻れるぞ）'])
+        await talk(undefined, [tr('（SUMIF・COUNTIF の 最後に S が つくと、条件を いくつも 並べられる。馬車で いつでも ルックアップに 戻れるぞ）', '(Add an S to the end of SUMIF or COUNTIF, and you can line up as many conditions as you like. You can take the carriage back to Lookup anytime.)')])
         save()
       })
     if (ex.to === 'library1')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['天井まで 届く 書架が、迷路のように 並んでいる。', '床には「#N/A」と 書かれた 紙切れが、枯れ葉のように 散らばっている……。'])
-        await me(['（扉の 謎を 解きながら、書庫の 奥を 目指そう）'])
+        await talk(undefined, [tr('天井まで 届く 書架が、迷路のように 並んでいる。', 'Bookshelves reaching the ceiling stand in rows like a maze.'), tr('床には「#N/A」と 書かれた 紙切れが、枯れ葉のように 散らばっている……。', 'Scraps of paper marked "#N/A" are scattered on the floor like dead leaves...')])
+        await me([tr('（扉の 謎を 解きながら、書庫の 奥を 目指そう）', "(Let's solve the door puzzles and head for the back of the library.)")])
       })
     if (ex.to === 'library2')
       run(async () => {
         await sleep(900)
-        await talk(undefined, ['鎖で 閉ざされた 禁書の間。', '部屋の 奥で、巨大な 本が ゆっくりと 目を 開いた……。'])
+        await talk(undefined, [tr('鎖で 閉ざされた 禁書の間。', 'The Forbidden Stacks, sealed with chains.'), tr('部屋の 奥で、巨大な 本が ゆっくりと 目を 開いた……。', 'At the back of the room, a giant book slowly opens its eyes...')])
       })
     if (ex.to === 'lookup')
       run(async () => {
         await sleep(1100)
         const f = fieldRef.current
-        await talk(undefined, ['ここは 検索の城下町 ルックアップ。', '丘の 上の 城には、国じゅうの 記録を 集めた「大書庫」が あるという。'])
-        await talk(undefined, ['しかし 町の人々は、分厚い 帳簿を 1行ずつ 指で たどりながら「ない……ない……」と つぶやいている。'])
+        await talk(undefined, [tr('ここは 検索の城下町 ルックアップ。', 'This is Lookup, the Castle Town of Searching.'), tr('丘の 上の 城には、国じゅうの 記録を 集めた「大書庫」が あるという。', 'They say the castle on the hill holds a "Great Library" of records from across the kingdom.')])
+        await talk(undefined, [tr('しかし 町の人々は、分厚い 帳簿を 1行ずつ 指で たどりながら「ない……ない……」と つぶやいている。', 'But the townspeople trace thick ledgers line by line with their fingers, muttering, "Not here... not here..."')])
         f?.emote('player', 'bang', 1200)
-        await talk('大臣サガス', ['おお……！ そこの お方、お待ちくだされ！'])
+        await talk('大臣サガス', [tr('おお……！ そこの お方、お待ちくだされ！', 'Oh...! You there, please wait!')])
         if (f) {
           // 大臣が 館から 走ってくる
           f.spawn({ id: 'sagasu_event', x: 4, y: 11, name: '大臣サガス', look: SPEAKER_LOOKS['大臣サガス'], kind: 'talk', dir: 'down' })
@@ -772,23 +772,23 @@ export default function App() {
           f.emote('sagasu_event', 'sweat', 2600)
         }
         await talk('大臣サガス', [
-          'ふう、ふう……。わたくし、この 国の 大臣を 務めております、サガスと 申します。',
-          'イフポートの 幽霊船を 鎮めた 旅の方……あなたの ことですな？ 港の 船乗りから 聞いております。',
-          '実は この 城の 大書庫に「ミツカラーヌ」という 魔物が 巣くって しまいましてな。',
-          'それ以来、帳簿や 目録から 何を 探しても 見つからず、「#N/A」という 不吉な 文字ばかり……。',
-          '皆、1行ずつ 目で 探しては 見落とし、探しては 見落とし……。一日じゅう 探しものに 追われて おるのです。',
+          tr('ふう、ふう……。わたくし、この 国の 大臣を 務めております、サガスと 申します。', 'Phew, phew... I am Sagasu, a minister of this kingdom.'),
+          tr('イフポートの 幽霊船を 鎮めた 旅の方……あなたの ことですな？ 港の 船乗りから 聞いております。', "You're the traveler who calmed the ghost ship of Ifport, are you not? I heard it from the sailors at the harbor."),
+          tr('実は この 城の 大書庫に「ミツカラーヌ」という 魔物が 巣くって しまいましてな。', 'You see, a monster called "Notfoundra" has made its nest in this castle\'s Great Library.'),
+          tr('それ以来、帳簿や 目録から 何を 探しても 見つからず、「#N/A」という 不吉な 文字ばかり……。', 'Since then, whatever we search for in the ledgers and catalogs, we find nothing but the ominous words "#N/A"...'),
+          tr('皆、1行ずつ 目で 探しては 見落とし、探しては 見落とし……。一日じゅう 探しものに 追われて おるのです。', 'Everyone searches line by line by eye and misses things, searches and misses again... We spend all day just looking for things.'),
         ])
-        await me(['（1行ずつ 目で 探す……会社でも、取引先コードから 名前を 探すのに 何十分も かかってたっけ）', '（……VLOOKUP だ。番号を 渡せば、表の 中から 探し出してくれる 魔法！）'])
+        await me([tr('（1行ずつ 目で 探す……会社でも、取引先コードから 名前を 探すのに 何十分も かかってたっけ）', "(Searching line by line by eye... At the office, it used to take me ages to find a client's name from their code, too.)"), tr('（……VLOOKUP だ。番号を 渡せば、表の 中から 探し出してくれる 魔法！）', '(...VLOOKUP! The magic that finds things in a table when you give it a number!)')])
         await talk('大臣サガス', [
-          'どうか 城下の 者たちの 悩みを 聞いてやって くだされ。',
-          'すべて 解決すれば、城門の 結界も とけるはず……。',
-          'わたくしは 館に おります。晩餐会の 在庫の 件で、あとで ご相談させて くだされ。',
+          tr('どうか 城下の 者たちの 悩みを 聞いてやって くだされ。', "Please listen to the townspeople's troubles."),
+          tr('すべて 解決すれば、城門の 結界も とけるはず……。', 'Solve them all, and the barrier at the castle gate should lift...'),
+          tr('わたくしは 館に おります。晩餐会の 在庫の 件で、あとで ご相談させて くだされ。', "I'll be at my manor. I'd like to talk to you later about the banquet stock."),
         ])
         if (f) {
           void f.walkTo('sagasu_event', 4, 11, 200).then(() => f.remove('sagasu_event'))
           await sleep(1400)
         }
-        await talk(undefined, ['（VLOOKUP の 最後に 書く FALSE は「ぴったり 同じ 値を 探す」という 意味だ。定期船で いつでも イフポートに 戻れるぞ）'])
+        await talk(undefined, [tr('（VLOOKUP の 最後に 書く FALSE は「ぴったり 同じ 値を 探す」という 意味だ。定期船で いつでも イフポートに 戻れるぞ）', '(The FALSE at the end of VLOOKUP means "find an exact match." You can take the ferry back to Ifport anytime.)')])
         save()
       })
     if (ex.to === 'temple1')
@@ -922,16 +922,16 @@ export default function App() {
               : q.town === 'sansho'
                 ? tr('（北の 鏡の神殿に 入れるように なった。最奥に ズレズレ・ミラージュが いるらしい）', '(You can now enter the Mirror Temple to the north. The Shifty Mirage is said to wait in its deepest hall.)')
                 : q.town === 'lookup'
-                  ? '（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）'
+                  ? tr('（城門の 結界が とけ、大書庫に 入れるように なった。最奥に ミツカラーヌが いるらしい）', '(The barrier at the castle gate has lifted, and you can enter the Great Library. Notfoundra is said to wait in its depths.)')
                   : q.town === 'pivoria'
-                    ? '（王宮の 結界が とけ、宝物庫に 入れるように なった。最奥に バラバランが いるらしい）'
+                    ? tr('（王宮の 結界が とけ、宝物庫に 入れるように なった。最奥に バラバランが いるらしい）', '(The barrier around the palace has lifted, and you can enter the treasury. Scatteron is said to wait in its depths.)')
                     : q.town === 'textria'
-                      ? '（印刷所の 結界が とけ、中に 入れるように なった。奥の間に モジバケーラが いるらしい）'
+                      ? tr('（印刷所の 結界が とけ、中に 入れるように なった。奥の間に モジバケーラが いるらしい）', '(The barrier around the print shop has lifted, and you can go inside. Mojibakera is said to wait in the back room.)')
                       : q.town === 'koyomi'
-                        ? '（時計塔の 結界が とけ、中に 入れるように なった。最上階に シメキリスが いるらしい）'
+                        ? tr('（時計塔の 結界が とけ、中に 入れるように なった。最上階に シメキリスが いるらしい）', '(The barrier around the clock tower has lifted, and you can go inside. Deadlinus is said to wait on the top floor.)')
                       : q.town === 'hope'
-                        ? '（城門の 結界が とけ、魔王城に 入れるように なった。玉座の間に 魔王レフエラーが いるらしい）'
-                  : '（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）',
+                        ? tr('（城門の 結界が とけ、魔王城に 入れるように なった。玉座の間に 魔王レフエラーが いるらしい）', "(The castle gate's barrier has lifted, and you can enter the Demon Lord's castle. Demon Lord Referror is said to wait in the throne room.)")
+                  : tr('（桟橋の 結界が とけ、幽霊船に 乗りこめるように なった。船長室に モシナラバが いるらしい）', "(The barrier on the pier has lifted, and you can board the ghost ship. Captain Whatif is said to wait in the captain's cabin.)"),
         ])
       save()
     })
@@ -991,33 +991,33 @@ export default function App() {
         await talk(undefined, [tr('大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', 'The moment the great mirror shattered, the "mirror fog" covering the southern pass began to clear...!'), tr('（サンショウの 南の 峠を 越えて、港町 イフポートへ 行けるように なった）', '(You can now cross the pass south of Refton to the harbor town of Ifport.)')])
       if (b.id === 'captain')
         await talk(undefined, [
-          '幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。',
-          '港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！',
-          '（止まっていた 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）',
+          tr('幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。', "Bathed in the morning sun, the ghost ship's sails turn back into those of an ordinary old sailing ship..."),
+          tr('港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！', 'Ship whistles and cheers ring out all over the harbor!'),
+          tr('（止まっていた 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）', '(The ferry that had stopped is running again. Talk to the sailor on the pier to cross the sea.)'),
         ])
       if (b.id === 'mitsukaranu')
         await talk(undefined, [
-          '大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。',
-          '城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！',
-          '（東門の 街道が 通れるように なった。東門の 馬車の 御者に 話せば、王都へ 向かえるらしい）',
+          tr('大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。', "The Great Library's books return to their shelves on their own, and the catalogs begin to glow softly..."),
+          tr('城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！', 'All over town, people are shouting "Here it is!" and "Found it!"'),
+          tr('（東門の 街道が 通れるように なった。東門の 馬車の 御者に 話せば、王都へ 向かえるらしい）', '(The road from the east gate is open. Talk to the carriage driver at the east gate to head for the capital.)'),
         ])
       if (b.id === 'barabaran')
         await talk(undefined, [
-          '散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。',
-          '王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！',
-          '（東の 宿場町への 馬車が 動き出した。王都の 東門の 御者に 話せば 向かえるらしい）',
+          tr('散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。', 'Every last scattered receipt is bound together, and a giant ledger appears at the back of the treasury...'),
+          tr('王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！', 'The capital\'s bells ring out, and cheers of "Totals done!" come from every corner of the government office!'),
+          tr('（東の 宿場町への 馬車が 動き出した。王都の 東門の 御者に 話せば 向かえるらしい）', "(The carriage to the post town in the east is running. Talk to the driver at the capital's east gate to go there.)"),
         ])
       if (b.id === 'mojibake')
         await talk(undefined, [
-          '化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。',
-          '宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！',
-          '（東の 里への 馬車が 動き出した。宿場の 東の 木戸の 御者に 話せば 向かえるらしい）',
+          tr('化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。', 'One by one, the garbled type returns to its true shape, and the printing press starts up again...'),
+          tr('宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！', 'All over the post town, you hear people reading letters aloud and laughing!'),
+          tr('（東の 里への 馬車が 動き出した。宿場の 東の 木戸の 御者に 話せば 向かえるらしい）', "(The carriage to the village in the east is running. Talk to the driver at the town's east gate to go there.)"),
         ])
       if (b.id === 'shimekiris')
         await talk(undefined, [
-          '時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。',
-          '里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！',
-          '（北の 果ての 砦への 馬車が 動き出した。里の 北東の 峠道の 御者に 話せば 向かえるらしい）',
+          tr('時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。', 'The clock tower bell begins to toll the correct time... Bong... bong...'),
+          tr('里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！', "All over the village, you hear calendar pages turning and cheerful voices calling out today's date!"),
+          tr('（北の 果ての 砦への 馬車が 動き出した。里の 北東の 峠道の 御者に 話せば 向かえるらしい）', '(The carriage to the fort at the northern edge of the world is running. Talk to the driver on the mountain road northeast of the village to go there.)'),
         ])
       save()
       if (b.id === 'golem') {
@@ -1049,7 +1049,7 @@ export default function App() {
         setScene('ending')
       }
       if (b.id === 'refera') {
-        await talk(undefined, ['魔王城が 崩れ落ちる 轟音の 中、空が まっ白に 光った……。'])
+        await talk(undefined, [tr('魔王城が 崩れ落ちる 轟音の 中、空が まっ白に 光った……。', "Amid the roar of the Demon Lord's castle crumbling, the sky flashes pure white...")])
         setScene('epilogue')
       }
     })

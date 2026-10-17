@@ -1375,33 +1375,33 @@ const ifport: MapDef = {
     { x: 28, y: 28, to: 'ship1', tx: 10, ty: 12, dir: 'up' },
   ],
   signs: [
-    { x: 21, y: 21, lines: ['幽霊船 ― 霧の夜に 現れ、港に 居すわった 謎の船。', '船長室には「幽霊船長モシナラバ」が いるという。', '町の悩みを すべて解決すれば、桟橋の 結界は とけるだろう。'] },
+    { x: 21, y: 21, lines: [tr('幽霊船 ― 霧の夜に 現れ、港に 居すわった 謎の船。', 'Ghost Ship — a mysterious ship that appeared one foggy night and settled in the harbor.'), tr('船長室には「幽霊船長モシナラバ」が いるという。', "They say Ghost Captain Whatif waits in the captain's cabin."), tr('町の悩みを すべて解決すれば、桟橋の 結界は とけるだろう。', "Solve all of the town's troubles, and the barrier on the pier should lift.")] },
   ],
   npcs: [
     { id: 'tomoshi', x: 2, y: 22, name: '灯台守トモシ', look: C.tomoshi, kind: 'quest', questId: 'port_compare', dir: 'right' },
     { id: 'ami', x: 16, y: 27, name: '漁師アミ', look: C.ami, kind: 'quest', questId: 'port_if', dir: 'down' },
     {
       id: 'fishmonger', x: 21, y: 19, name: '魚屋のおやじ', look: C.fishmonger, kind: 'talk', dir: 'down',
-      lines: ['らっしゃい！ ……と 言いたいが、魚の 仕分けが 追いつかねえ。', '「この魚は 大きいか？ 小さいか？」って、1匹ずつ 目で 見て 判断してんだ。', '「もし ○○なら」って ルールを 決めて、自動で 分けられたら なぁ……。'],
-      linesAfter: { when: (s) => s.solved.includes('port_if'), lines: ['アミから IF って 魔法を 教わったぜ！', 'ルールさえ 決めりゃ、仕分けは 一瞬だ！ らっしゃい らっしゃい！'] },
+      lines: [tr('らっしゃい！ ……と 言いたいが、魚の 仕分けが 追いつかねえ。', "Step right up! ...Is what I'd say, but I can't keep up with sorting the fish."), tr('「この魚は 大きいか？ 小さいか？」って、1匹ずつ 目で 見て 判断してんだ。', '"Is this fish big? Is it small?" I\'m judging every single one by eye.'), tr('「もし ○○なら」って ルールを 決めて、自動で 分けられたら なぁ……。', 'If only I could set an "if this, then that" rule and sort them automatically...')],
+      linesAfter: { when: (s) => s.solved.includes('port_if'), lines: [tr('アミから IF って 魔法を 教わったぜ！', 'Ami taught me this magic called IF!'), tr('ルールさえ 決めりゃ、仕分けは 一瞬だ！ らっしゃい らっしゃい！', 'Just set the rule, and sorting takes no time at all! Step right up!')] },
     },
     {
       id: 'ghost_sailor', x: 25, y: 28, name: '幽霊の船員', creature: 'ghost', kind: 'talk', wander: true,
-      lines: ['ヨーソロー……。', '船長は……船倉の 奥から 船長室へ……。もしも……もしも……と つぶやきながら……。'],
+      lines: [tr('ヨーソロー……。', 'Steady as she goes...'), tr('船長は……船倉の 奥から 船長室へ……。もしも……もしも……と つぶやきながら……。', 'The captain... went from the back of the hold to his cabin... muttering, "What if... what if..."')],
       hideIf: (s) => s.bosses.includes('captain'),
     },
     {
       id: 'sailor', x: 24, y: 16, name: '船乗り', look: C.sailor, kind: 'talk', wander: true,
-      lines: ['あの 幽霊船が 来てから、町の みんなが 何も 決められなく なっちまった。', '「もしも 嵐だったら？」「もしも 赤字だったら？」……って、毎回 1件ずつ 悩んで 手が 止まるんだ。'],
+      lines: [tr('あの 幽霊船が 来てから、町の みんなが 何も 決められなく なっちまった。', 'Ever since that ghost ship showed up, nobody in town can decide anything.'), tr('「もしも 嵐だったら？」「もしも 赤字だったら？」……って、毎回 1件ずつ 悩んで 手が 止まるんだ。', '"What if there\'s a storm?" "What if we lose money?" ...We agonize over every case and get nothing done.')],
     },
     {
       id: 'kid4', x: 10, y: 8, name: '港の子ども', look: C.kid4, kind: 'talk', wander: true, emote: 'note',
-      lines: ['ねえねえ、「もしも」って 言葉、知ってる？', 'もしも 晴れたら 海で 遊ぶ！ もしも 雨なら おうちで あそぶ！ ……これも IF なんだって！'],
+      lines: [tr('ねえねえ、「もしも」って 言葉、知ってる？', 'Hey, hey, do you know the word "if"?'), tr('もしも 晴れたら 海で 遊ぶ！ もしも 雨なら おうちで あそぶ！ ……これも IF なんだって！', "If it's sunny, I play at the beach! If it rains, I play at home! ...They say that's IF too!")],
     },
-    { id: 'dog2', x: 23, y: 8, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（海の においを かいで しっぽを ふっている）'] },
+    { id: 'dog2', x: 23, y: 8, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', tr('（海の においを かいで しっぽを ふっている）', "(It's sniffing the sea air and wagging its tail.)")] },
     {
       id: 'port_ferry', x: 21, y: 25, name: '定期船の船乗り', look: C.ferryman, kind: 'ferry', dir: 'up',
-      lines: ['幽霊船が 消えて、港の 定期船が また 出せるように なった！', '行き先は 海の 向こうの「検索の城下町 ルックアップ」。お城の 大書庫で 有名な 町さ。'],
+      lines: [tr('幽霊船が 消えて、港の 定期船が また 出せるように なった！', "The ghost ship is gone, so the harbor's ferry can sail again!"), tr('行き先は 海の 向こうの「検索の城下町 ルックアップ」。お城の 大書庫で 有名な 町さ。', "It goes across the sea to Lookup, the Castle Town of Searching. It's famous for the Great Library in its castle.")],
       ferry: { to: 'lookup', x: 16, y: 23, dir: 'up', place: '検索の城下町 ルックアップ' },
       hideIf: (s) => !s.bosses.includes('captain'),
     },
@@ -1566,40 +1566,40 @@ const lookup: MapDef = {
   respawn: { map: 'lookup_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'library1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
-    { x: 14, y: 7, lines: ['ルックアップ城 大書庫 ― 城と 町の すべての 記録が 眠る 場所。', 'いまは「迷宮書庫の主 ミツカラーヌ」が 巣くい、何を 探しても 見つからないという。', '城下の 悩みを すべて 解決すれば、城門の 結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('ルックアップ城 大書庫 ― 城と 町の すべての 記録が 眠る 場所。', 'Lookup Castle Great Library — where every record of the castle and town rests.'), tr('いまは「迷宮書庫の主 ミツカラーヌ」が 巣くい、何を 探しても 見つからないという。', 'Now Notfoundra, Lord of the Maze Library, has made its nest there, and they say nothing can be found.'), tr('城下の 悩みを すべて 解決すれば、城門の 結界は とけるだろう。', "Solve all of the town's troubles, and the barrier at the castle gate should lift.")] },
   ],
   npcs: [
     { id: 'post', x: 12, y: 21, name: '郵便屋ポスト', look: C.post, kind: 'quest', questId: 'lookup_vlookup', dir: 'down' },
     { id: 'hantei', x: 18, y: 8, name: '兵士長ハンテイ', look: C.hantei, kind: 'quest', questId: 'lookup_approx', dir: 'left' },
     {
       id: 'lookup_ferry', x: 17, y: 24, name: '定期船の船乗り', look: C.ferryman, kind: 'ferry', dir: 'up',
-      lines: ['イフポート行きの 定期船だ。いつでも 乗せてやるぜ。'],
+      lines: [tr('イフポート行きの 定期船だ。いつでも 乗せてやるぜ。', "This is the ferry to Ifport. I'll take you anytime.")],
       ferry: { to: 'ifport', x: 21, y: 23, dir: 'up', place: '条件の港町 イフポート' },
     },
     {
       id: 'lookup_coach', x: 32, y: 11, name: '東門の御者', look: C.coachman, kind: 'ferry', dir: 'left',
-      lines: ['書庫の 呪いが 解けて、王都への 街道も 通れるように なったぞ！', '行き先は 東の「集計の王都 ピボリア」。国じゅうの 記録が 集まる 都さ。'],
+      lines: [tr('書庫の 呪いが 解けて、王都への 街道も 通れるように なったぞ！', "The library's curse is broken, so the road to the capital is open too!"), tr('行き先は 東の「集計の王都 ピボリア」。国じゅうの 記録が 集まる 都さ。', "It heads east to Pivoria, the Royal Capital of Totals. That's where records from across the kingdom are gathered.")],
       ferry: {
         to: 'pivoria', x: 2, y: 20, dir: 'right', place: '集計の王都 ピボリア', verb: '向かう',
         closed: (s) => !s.bosses.includes('mitsukaranu'),
-        closedLines: ['すまんな、東の 王都への 街道は いま 通れないんだ。', '城の 大書庫が 呪われてから、道の 地図まで 見つからなくなってな……。', '書庫の 主を 何とかしてくれたら、すぐに 馬車を 出すぜ。'],
+        closedLines: [tr('すまんな、東の 王都への 街道は いま 通れないんだ。', 'Sorry, the road east to the capital is closed right now.'), tr('城の 大書庫が 呪われてから、道の 地図まで 見つからなくなってな……。', "Ever since the castle's Great Library was cursed, we can't even find the road maps..."), tr('書庫の 主を 何とかしてくれたら、すぐに 馬車を 出すぜ。', "Deal with the library's master, and I'll get the carriage moving right away.")],
       },
     },
     {
       id: 'quill', x: 25, y: 21, name: '古本屋のクイル', look: C.quill, kind: 'talk', dir: 'down',
-      lines: ['この 町の 人間は、何でも 分厚い 帳簿に 書き残す。', 'だが 城の 大書庫が 呪われてから、書いた ものが 見つからねえ。', '1行ずつ 指で たどって「ない……ない……」って つぶやく 声が、町じゅうから 聞こえるのさ。'],
-      linesAfter: { when: (s) => s.solved.includes('lookup_vlookup'), lines: ['VLOOKUP って 魔法が はやってるらしいな。', '番号さえ わかれば、帳簿の どこに あっても 一発で 引ける……古本屋 泣かせだぜ。'] },
+      lines: [tr('この 町の 人間は、何でも 分厚い 帳簿に 書き残す。', 'The people in this town write everything down in thick ledgers.'), tr('だが 城の 大書庫が 呪われてから、書いた ものが 見つからねえ。', "But ever since the castle's Great Library was cursed, nobody can find what they wrote."), tr('1行ずつ 指で たどって「ない……ない……」って つぶやく 声が、町じゅうから 聞こえるのさ。', 'All over town you hear people tracing line by line with their fingers, muttering, "Not here... not here..."')],
+      linesAfter: { when: (s) => s.solved.includes('lookup_vlookup'), lines: [tr('VLOOKUP って 魔法が はやってるらしいな。', 'I hear this magic called VLOOKUP is all the rage.'), tr('番号さえ わかれば、帳簿の どこに あっても 一発で 引ける……古本屋 泣かせだぜ。', "If you know the number, you can pull it from anywhere in the ledger in one go... That's bad news for a used bookseller.")] },
     },
     {
       id: 'kid5', x: 8, y: 13, name: '城下の子ども', look: C.kid5, kind: 'talk', wander: true, emote: 'note',
-      lines: ['かくれんぼ しよう！ ……あ、でも いま 探しても 見つからない 呪いが かかってるんだっけ。', 'ずっと 見つけて もらえないのは さみしいよ〜。'],
+      lines: [tr('かくれんぼ しよう！ ……あ、でも いま 探しても 見つからない 呪いが かかってるんだっけ。', "Let's play hide-and-seek! ...Oh wait, there's a curse that makes things impossible to find right now."), tr('ずっと 見つけて もらえないのは さみしいよ〜。', 'Never getting found would be so lonely...')],
     },
     {
       id: 'shelfa', x: 14, y: 6, name: '城門の衛兵', look: C.shelfa, kind: 'guard', dir: 'down',
-      lines: ['この先は ルックアップ城の 大書庫だ。', 'ミツカラーヌの 結界が 張られていて、今は 誰も 入れん。', '城下の 者たちの 悩みを 晴らせば、結界も 弱まるはずだが……。'],
-      linesAfter: { when: (s) => s.bosses.includes('mitsukaranu'), lines: ['大書庫の 記録が、ふたたび 引けるように なった！', '城の 者 一同、感謝して おるぞ。'] },
+      lines: [tr('この先は ルックアップ城の 大書庫だ。', "Ahead lies Lookup Castle's Great Library."), tr('ミツカラーヌの 結界が 張られていて、今は 誰も 入れん。', "Notfoundra's barrier is up, so no one can enter right now."), tr('城下の 者たちの 悩みを 晴らせば、結界も 弱まるはずだが……。', "If you clear up the townspeople's troubles, the barrier should weaken...")],
+      linesAfter: { when: (s) => s.bosses.includes('mitsukaranu'), lines: [tr('大書庫の 記録が、ふたたび 引けるように なった！', "We can look up the Great Library's records again!"), tr('城の 者 一同、感謝して おるぞ。', 'Everyone in the castle is grateful to you.')] },
     },
-    { id: 'cat3', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ。', '（本の 山の 上で 丸くなるのが 好きらしい）'] },
+    { id: 'cat3', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: [tr('ニャ。', 'Mew.'), tr('（本の 山の 上で 丸くなるのが 好きらしい）', '(It seems to like curling up on piles of books.)')] },
   ],
 }
 
@@ -1661,41 +1661,41 @@ const pivoria: MapDef = {
   respawn: { map: 'pivo_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'treasury1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
-    { x: 14, y: 7, lines: ['ピボリア王宮 宝物庫 ― 王国の 財宝と、すべての 記録の 原本が 眠る 場所。', 'いまは「散乱帳簿の王 バラバラン」が 居座り、記録を バラバラに 散らかしているという。', '王都の 悩みを すべて 解決すれば、王宮の 結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('ピボリア王宮 宝物庫 ― 王国の 財宝と、すべての 記録の 原本が 眠る 場所。', "Pivoria Palace Treasury — where the kingdom's treasure and the originals of every record rest."), tr('いまは「散乱帳簿の王 バラバラン」が 居座り、記録を バラバラに 散らかしているという。', 'Now Scatteron, King of Strewn Ledgers, has taken it over and is said to be scattering the records everywhere.'), tr('王都の 悩みを すべて 解決すれば、王宮の 結界は とけるだろう。', "Solve all of the capital's troubles, and the barrier around the palace should lift.")] },
   ],
   npcs: [
     { id: 'kazoe', x: 18, y: 9, name: '衛兵長カゾエ', look: C.kazoe, kind: 'quest', questId: 'pivo_countifs', dir: 'left' },
     { id: 'akina', x: 12, y: 21, name: '市場頭アキナ', look: C.akina, kind: 'quest', questId: 'pivo_sumifs', dir: 'down' },
     {
       id: 'pivo_coach', x: 1, y: 19, name: '西門の御者', look: C.coachman, kind: 'ferry', dir: 'right',
-      lines: ['西の ルックアップ行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      lines: [tr('西の ルックアップ行きの 馬車だ。いつでも 乗せて やるぞ。', "This carriage goes west to Lookup. I'll take you anytime.")],
       ferry: { to: 'lookup', x: 31, y: 12, dir: 'left', place: '検索の城下町 ルックアップ', verb: '向かう' },
     },
     {
       id: 'noble', x: 21, y: 14, name: '王都の貴婦人', look: C.noble, kind: 'talk', wander: true, emote: 'sweat',
-      lines: ['ごきげんよう。……と 言いたいところですけれど、王宮の 舞踏会の 招待客名簿が バラバラで。', '「北の 貴族で、しかも 未返信の 方」を 数えるだけで 3日も かかって おりますの。'],
-      linesAfter: { when: (s) => s.solved.includes('pivo_countifs'), lines: ['COUNTIFS という 魔法で、条件を 2つ つけて 数えられるのですって？', '名簿の 整理が 楽しみに なって きましたわ。'] },
+      lines: [tr('ごきげんよう。……と 言いたいところですけれど、王宮の 舞踏会の 招待客名簿が バラバラで。', "Good day. ...Or so I'd like to say, but the guest list for the palace ball is in complete disarray."), tr('「北の 貴族で、しかも 未返信の 方」を 数えるだけで 3日も かかって おりますの。', 'Just counting "nobles from the north who also haven\'t replied" has taken me three whole days.')],
+      linesAfter: { when: (s) => s.solved.includes('pivo_countifs'), lines: [tr('COUNTIFS という 魔法で、条件を 2つ つけて 数えられるのですって？', "I hear there's a magic called COUNTIFS that counts with two conditions?"), tr('名簿の 整理が 楽しみに なって きましたわ。', "I'm actually starting to look forward to sorting out the list.")] },
     },
     {
       id: 'kid6', x: 23, y: 24, name: '王都の子ども', look: C.kid6, kind: 'talk', wander: true, emote: 'note',
-      lines: ['どんぐりを 集めたの！ 大きいの・小さいの、赤いの・茶色いの……', 'ねえ「大きくて 赤い」のは いくつ？ ……数えてたら わかんなく なっちゃった。'],
+      lines: [tr('どんぐりを 集めたの！ 大きいの・小さいの、赤いの・茶色いの……', 'I collected acorns! Big ones, small ones, red ones, brown ones...'), tr('ねえ「大きくて 赤い」のは いくつ？ ……数えてたら わかんなく なっちゃった。', 'Hey, how many are "big AND red"? ...I lost track while counting.')],
     },
     {
       id: 'pivo_gate', x: 14, y: 6, name: '王宮の衛兵', look: C.kazoe, kind: 'guard', dir: 'down',
-      lines: ['この先は ピボリア王宮の 宝物庫だ。', 'バラバランの 結界が 張られていて、陛下でさえ 入れぬ。', '王都の 者たちの 悩みを 晴らせば、結界も 弱まるはずだ。'],
-      linesAfter: { when: (s) => s.bosses.includes('barabaran'), lines: ['宝物庫の 記録が、1冊の 帳簿に まとまった！', '王都の 者 一同、感謝して おるぞ。'] },
+      lines: [tr('この先は ピボリア王宮の 宝物庫だ。', 'Ahead lies the treasury of Pivoria Palace.'), tr('バラバランの 結界が 張られていて、陛下でさえ 入れぬ。', "Scatteron's barrier is up, and not even His Majesty can enter."), tr('王都の 者たちの 悩みを 晴らせば、結界も 弱まるはずだ。', "If you clear up the people's troubles, the barrier should weaken.")],
+      linesAfter: { when: (s) => s.bosses.includes('barabaran'), lines: [tr('宝物庫の 記録が、1冊の 帳簿に まとまった！', "The treasury's records have been gathered into a single ledger!"), tr('王都の 者 一同、感謝して おるぞ。', 'Everyone in the capital is grateful to you.')] },
     },
     {
       id: 'pivo_coach2', x: 32, y: 19, name: '東門の御者', look: C.coachman, kind: 'ferry', dir: 'left',
-      lines: ['王都の 帳簿が 戻って、東の 宿場町への 便も 再開だ！', '行き先は「文字の宿場町 テキストリア」。手紙と 書物の 町さ。……最近は 文字が 化けて 読めないって 噂だがね。'],
+      lines: [tr('王都の 帳簿が 戻って、東の 宿場町への 便も 再開だ！', "The capital's ledgers are back, so service to the post town in the east is running again!"), tr('行き先は「文字の宿場町 テキストリア」。手紙と 書物の 町さ。……最近は 文字が 化けて 読めないって 噂だがね。', 'It goes to Textria, the Post Town of Letters. A town of mail and books. ...Though rumor has it the letters there have gone garbled lately.')],
       ferry: {
         to: 'textria', x: 2, y: 14, dir: 'right', place: '文字の宿場町 テキストリア', verb: '向かう',
         closed: (s) => !s.bosses.includes('barabaran'),
-        closedLines: ['東の 宿場町への 便は 止まってるよ。', '王都の 帳簿が バラバラで、運賃の 計算すら できないんだ。'],
+        closedLines: [tr('東の 宿場町への 便は 止まってるよ。', 'Service to the post town in the east is suspended.'), tr('王都の 帳簿が バラバラで、運賃の 計算すら できないんだ。', "The capital's ledgers are scattered, so I can't even work out the fares.")],
       },
     },
-    { id: 'cat4', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャー。', '（市場の 魚屋の 前から 動かない）'] },
-    { id: 'dog3', x: 6, y: 23, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（馬車の 車輪を じっと 見ている）'] },
+    { id: 'cat4', x: 27, y: 21, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: [tr('ニャー。', 'Meow.'), tr('（市場の 魚屋の 前から 動かない）', "(It won't budge from in front of the market's fish stall.)")] },
+    { id: 'dog3', x: 6, y: 23, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', tr('（馬車の 車輪を じっと 見ている）', "(It's staring intently at the carriage wheels.)")] },
   ],
 }
 
@@ -1757,40 +1757,40 @@ const textria: MapDef = {
   respawn: { map: 'text_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'print1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
-    { x: 14, y: 7, lines: ['テキストリア 活版印刷所 ― 宿場の 手紙・看板・書物を すべて 刷る 場所。', 'いまは「文字化けの怪 モジバケーラ」が 住みつき、刷る 文字が すべて 化けてしまうという。', '宿場の 悩みを すべて 解決すれば、印刷所の 結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('テキストリア 活版印刷所 ― 宿場の 手紙・看板・書物を すべて 刷る 場所。', "Textria Print Shop — where all the post town's letters, signs and books are printed."), tr('いまは「文字化けの怪 モジバケーラ」が 住みつき、刷る 文字が すべて 化けてしまうという。', 'Now Mojibakera, the Garbled-Text Fiend, lives there, and they say every letter it prints comes out garbled.'), tr('宿場の 悩みを すべて 解決すれば、印刷所の 結界は とけるだろう。', "Solve all of the post town's troubles, and the barrier around the print shop should lift.")] },
   ],
   npcs: [
     { id: 'kodo', x: 25, y: 23, name: '倉庫番コード', look: C.kodo, kind: 'quest', questId: 'text_leftright', dir: 'down' },
     {
       id: 'text_coach', x: 1, y: 13, name: '王都行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
-      lines: ['西の ピボリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      lines: [tr('西の ピボリア行きの 馬車だ。いつでも 乗せて やるぞ。', "This carriage goes west to Pivoria. I'll take you anytime.")],
       ferry: { to: 'pivoria', x: 31, y: 20, dir: 'left', place: '集計の王都 ピボリア', verb: '向かう' },
     },
     {
       id: 'printer', x: 18, y: 8, name: '印刷工のハンコ', look: C.printer, kind: 'guard', dir: 'left',
-      lines: ['この先は 活版印刷所だ。……いや、もう 印刷所とは 呼べんな。', 'モジバケーラが 住みついてから、刷る 文字が ぜんぶ「縺薙ｓ縺ｫ縺｡縺ｯ」みたいに 化けちまう。', '宿場の みんなの 悩みが 晴れれば、結界も 弱まるはずなんだが……。'],
-      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: ['見ろ、刷りたての 新聞だ！ 1文字も 化けて ねえ！', 'あんたの おかげだ。宿場の 文字が 戻ってきたぜ。'] },
+      lines: [tr('この先は 活版印刷所だ。……いや、もう 印刷所とは 呼べんな。', 'Ahead is the print shop. ...Well, you can hardly call it a print shop anymore.'), tr('モジバケーラが 住みついてから、刷る 文字が ぜんぶ「縺薙ｓ縺ｫ縺｡縺ｯ」みたいに 化けちまう。', 'Ever since Mojibakera moved in, everything we print comes out garbled like "縺薙ｓ縺ｫ縺｡縺ｯ".'), tr('宿場の みんなの 悩みが 晴れれば、結界も 弱まるはずなんだが……。', "If everyone's troubles in town get cleared up, the barrier should weaken...")],
+      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: [tr('見ろ、刷りたての 新聞だ！ 1文字も 化けて ねえ！', 'Look, a freshly printed newspaper! Not one letter garbled!'), tr('あんたの おかげだ。宿場の 文字が 戻ってきたぜ。', "It's all thanks to you. The town's letters are back.")] },
     },
     {
       id: 'kid7', x: 23, y: 13, name: '宿場の子ども', look: C.kid7, kind: 'talk', wander: true, emote: 'note',
-      lines: ['しりとり しよう！ 「テキスト」……「トマト」……「ト……縺ｨ」……あれ？', 'なんか 言葉が 化けちゃう！ 呪いのせいだって 母ちゃんが 言ってた。'],
-      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: ['しりとり 再開！ 「テキスト」「トマト」「とけい」……ちゃんと 言えるよ！'] },
+      lines: [tr('しりとり しよう！ 「テキスト」……「トマト」……「ト……縺ｨ」……あれ？', 'Let\'s play a word chain! "Text"... "Tomato"... "O... 縺ｨ"... Huh?'), tr('なんか 言葉が 化けちゃう！ 呪いのせいだって 母ちゃんが 言ってた。', "My words keep getting garbled! Mom says it's because of the curse.")],
+      linesAfter: { when: (s) => s.bosses.includes('mojibake'), lines: [tr('しりとり 再開！ 「テキスト」「トマト」「とけい」……ちゃんと 言えるよ！', 'Word chain, take two! "Text," "Tomato," "Otter"... I can say them all!')] },
     },
     {
       id: 'poet', x: 9, y: 13, name: '旅の歌詠み', look: C.traveler, kind: 'talk', wander: true,
-      lines: ['五・七・五の 歌を 詠んで いるのだが、文字数を 数えるのが 苦手でね。', 'LEN という 魔法が あれば、指を 折らずに すむのだが……。'],
-      linesAfter: { when: (s) => s.solved.includes('text_len'), lines: ['LEN で 数えたら、わたしの 歌は 5・8・5 だった……。字余りじゃ。'] },
+      lines: [tr('五・七・五の 歌を 詠んで いるのだが、文字数を 数えるのが 苦手でね。', "I compose poems of 5, 7 and 5 syllables, but I'm terrible at counting them."), tr('LEN という 魔法が あれば、指を 折らずに すむのだが……。', "If only I had this magic called LEN, I wouldn't need to count on my fingers...")],
+      linesAfter: { when: (s) => s.solved.includes('text_len'), lines: [tr('LEN で 数えたら、わたしの 歌は 5・8・5 だった……。字余りじゃ。', 'I counted with LEN, and my poem was 5, 8, 5... One too many.')] },
     },
     {
       id: 'text_coach2', x: 32, y: 13, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'left',
-      lines: ['宿場の 文字が 戻って、東の 里への 便も 出せるように なった！', '行き先は「暦の里 コヨミノ」。時計塔の ある 静かな 里さ。……もっとも 最近は、日付が 狂って 大騒ぎらしいがね。'],
+      lines: [tr('宿場の 文字が 戻って、東の 里への 便も 出せるように なった！', "The town's letters are back, so the carriage to the village in the east can run again!"), tr('行き先は「暦の里 コヨミノ」。時計塔の ある 静かな 里さ。……もっとも 最近は、日付が 狂って 大騒ぎらしいがね。', "It goes to Calendra, the Village of Calendars. A quiet village with a clock tower. ...Though lately I hear the dates have gone haywire and it's chaos.")],
       ferry: {
         to: 'koyomi', x: 2, y: 13, dir: 'right', place: '暦の里 コヨミノ', verb: '向かう',
         closed: (s) => !s.bosses.includes('mojibake'),
-        closedLines: ['東の 里への 便は お休みだよ。', '行き先の 札の 文字が 化けて、どこ行きか わからなく なっちまってね。'],
+        closedLines: [tr('東の 里への 便は お休みだよ。', 'The carriage to the village in the east is out of service.'), tr('行き先の 札の 文字が 化けて、どこ行きか わからなく なっちまってね。', "The letters on the destination sign got garbled, so nobody knows where it's going.")],
       },
     },
-    { id: 'cat5', x: 6, y: 23, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: ['ニャ……ニ繝｣……？', '（ネコの 鳴き声まで 化けている……）'] },
+    { id: 'cat5', x: 6, y: 23, name: 'ネコ', creature: 'cat', kind: 'talk', wander: true, lines: [tr('ニャ……ニ繝｣……？', 'Mew... M繝｣...?'), tr('（ネコの 鳴き声まで 化けている……）', "(Even the cat's meow is garbled...)")] },
   ],
 }
 
@@ -1852,37 +1852,37 @@ const koyomi: MapDef = {
   respawn: { map: 'koyo_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'clock1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
-    { x: 14, y: 7, lines: ['コヨミノ 時計塔 ― 里の 暦と 時を 刻み続けて 300年。', 'いまは「刻を喰らう者 シメキリス」が 棲みつき、里の 日付を 狂わせているという。', '里の 悩みを すべて 解決すれば、時計塔の 結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('コヨミノ 時計塔 ― 里の 暦と 時を 刻み続けて 300年。', "Calendra Clock Tower — keeping the village's calendar and time for 300 years."), tr('いまは「刻を喰らう者 シメキリス」が 棲みつき、里の 日付を 狂わせているという。', "Now Deadlinus, Devourer of Time, nests there and is said to be throwing the village's dates into chaos."), tr('里の 悩みを すべて 解決すれば、時計塔の 結界は とけるだろう。', "Solve all of the village's troubles, and the barrier around the clock tower should lift.")] },
   ],
   npcs: [
     { id: 'nokori', x: 10, y: 22, name: '鍛冶屋の弟子ノコリ', look: C.nokori, kind: 'quest', questId: 'date_diff', dir: 'down' },
     { id: 'youbi', x: 26, y: 23, name: '市場番ヨウビ', look: C.youbi, kind: 'quest', questId: 'date_weekday', dir: 'down' },
     {
       id: 'koyo_coach', x: 1, y: 12, name: '宿場行きの御者', look: C.coachman, kind: 'ferry', dir: 'right',
-      lines: ['西の テキストリア行きの 馬車だ。いつでも 乗せて やるぞ。'],
+      lines: [tr('西の テキストリア行きの 馬車だ。いつでも 乗せて やるぞ。', "This carriage goes west to Textria. I'll take you anytime.")],
       ferry: { to: 'textria', x: 31, y: 14, dir: 'left', place: '文字の宿場町 テキストリア', verb: '向かう' },
     },
     {
       id: 'clockman', x: 18, y: 8, name: '時計守りのゼンマイ', look: C.clockman, kind: 'guard', dir: 'left',
-      lines: ['この先は 時計塔じゃ。わしは 300年 この 塔の 時計を 守ってきた 家の 者。', 'シメキリスが 棲みついてから、時計は 好き勝手に 進んだり 戻ったり……里の 暦も めちゃくちゃじゃ。', '里の 者たちの 悩みが 晴れれば、結界も 弱まるはずじゃが……。'],
-      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['聞こえるかの、正しい 鐘の 音が。', '里の 暦が 戻った。あんたの おかげじゃ。'] },
+      lines: [tr('この先は 時計塔じゃ。わしは 300年 この 塔の 時計を 守ってきた 家の 者。', 'Ahead is the clock tower. My family has looked after its clock for 300 years.'), tr('シメキリスが 棲みついてから、時計は 好き勝手に 進んだり 戻ったり……里の 暦も めちゃくちゃじゃ。', 'Ever since Deadlinus moved in, the clock runs forward and backward as it pleases... and the village calendar is a mess.'), tr('里の 者たちの 悩みが 晴れれば、結界も 弱まるはずじゃが……。', "If the villagers' troubles are cleared up, the barrier should weaken...")],
+      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: [tr('聞こえるかの、正しい 鐘の 音が。', 'Can you hear it? The bell ringing true.'), tr('里の 暦が 戻った。あんたの おかげじゃ。', "The village calendar is back. It's all thanks to you.")] },
     },
     {
       id: 'kid8', x: 22, y: 13, name: '里の子ども', look: C.kid8, kind: 'talk', wander: true, emote: 'question',
-      lines: ['ぼくの 誕生日まで あと 何日？ ってきいたら、母ちゃんが「わからない」って。', 'カレンダーの 呪いで、日付が 数えられないんだって！'],
-      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: ['誕生日まで あと 12日！ 引き算で すぐ わかったよ！'] },
+      lines: [tr('ぼくの 誕生日まで あと 何日？ ってきいたら、母ちゃんが「わからない」って。', 'I asked Mom how many days until my birthday, and she said "I don\'t know."'), tr('カレンダーの 呪いで、日付が 数えられないんだって！', 'She says the calendar curse makes it impossible to count the days!')],
+      linesAfter: { when: (s) => s.bosses.includes('shimekiris'), lines: [tr('誕生日まで あと 12日！ 引き算で すぐ わかったよ！', '12 more days until my birthday! I figured it out right away with subtraction!')] },
     },
     {
       id: 'koyo_coach2', x: 32, y: 1, name: '砦行きの御者', look: C.coachman, kind: 'ferry', dir: 'down',
-      lines: ['時計塔の 鐘が 鳴って、北の 果てへの 峠道が 開けた……。', '行き先は「最果ての砦 ホープ」。魔王レフエラーの 城を 見張る 最後の 砦さ。……覚悟は いいかい？'],
+      lines: [tr('時計塔の 鐘が 鳴って、北の 果てへの 峠道が 開けた……。', 'The clock tower bell rang, and the mountain road to the northern edge of the world has opened...'), tr('行き先は「最果ての砦 ホープ」。魔王レフエラーの 城を 見張る 最後の 砦さ。……覚悟は いいかい？', "It goes to Fort Hope, at the World's Edge. The last fort keeping watch on Demon Lord Referror's castle. ...Are you ready?")],
       ferry: {
         to: 'hope', x: 16, y: 25, dir: 'up', place: '最果ての砦 ホープ', verb: '向かう',
         closed: (s) => !s.bosses.includes('shimekiris'),
-        closedLines: ['北の 果てへの 峠道は 閉ざされている。', '時計塔の 鐘が 鳴らないかぎり、いつ 出発すれば いいかも わからん……。'],
+        closedLines: [tr('北の 果てへの 峠道は 閉ざされている。', 'The mountain road to the northern edge of the world is closed.'), tr('時計塔の 鐘が 鳴らないかぎり、いつ 出発すれば いいかも わからん……。', "Until the clock tower bell rings, I can't even tell when to set out...")],
       },
     },
-    { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), '（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）'] },
-    { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', '（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）'] },
+    { id: 'hen', x: 7, y: 20, name: 'ニワトリ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), tr('（……ヒツジだった。時計の 呪いで 朝を 知らせる 鳥が いなく なったらしい）', '(...It was a sheep. Thanks to the clock curse, the bird that announces the morning seems to have disappeared.)')] },
+    { id: 'dog4', x: 28, y: 13, name: 'イヌ', creature: 'dog', kind: 'talk', wander: true, lines: ['ワン！', tr('（毎日 同じ 時間に 散歩に 行きたいのに、時計が 狂って ふきげんらしい）', '(It wants its walk at the same time every day, but the broken clocks have put it in a bad mood.)')] },
   ],
 }
 
@@ -1944,30 +1944,30 @@ const hope: MapDef = {
   respawn: { map: 'hope_church', x: 5, y: 4 },
   exits: [{ x: 16, y: 4, to: 'castle1', tx: 10, ty: 12, dir: 'up' }],
   signs: [
-    { x: 14, y: 7, lines: ['この先 魔王レフエラーの 城。', '城門は 魔王の 結界で 閉ざされている。', '砦の 者たちの 悩みを すべて 解決すれば、結界は とけるだろう。'] },
+    { x: 14, y: 7, lines: [tr('この先 魔王レフエラーの 城。', "Ahead: Demon Lord Referror's castle."), tr('城門は 魔王の 結界で 閉ざされている。', "The castle gate is sealed by the Demon Lord's barrier."), tr('砦の 者たちの 悩みを すべて 解決すれば、結界は とけるだろう。', "Solve all of the fort's troubles, and the barrier should lift.")] },
   ],
   npcs: [
     { id: 'miharu', x: 23, y: 13, name: '見張り番ミハル', look: C.miharu, kind: 'quest', questId: 'err_value', dir: 'up' },
     {
       id: 'hope_coach', x: 17, y: 26, name: '里行きの御者', look: C.coachman, kind: 'ferry', dir: 'up',
-      lines: ['南の コヨミノ行きの 馬車だ。準備が 足りなければ、いつでも 戻れるぞ。'],
+      lines: [tr('南の コヨミノ行きの 馬車だ。準備が 足りなければ、いつでも 戻れるぞ。', "This carriage goes south to Calendra. If you're not ready yet, you can go back anytime.")],
       ferry: { to: 'koyomi', x: 32, y: 3, dir: 'down', place: '暦の里 コヨミノ', verb: '向かう' },
     },
     {
       id: 'gatekeeper', x: 18, y: 8, name: '城門の見張り', look: C.soldier9, kind: 'guard', dir: 'left',
-      lines: ['この先は 魔王レフエラーの 城だ。', '城門には「#REF!」の 結界が 張られている。どんな 参照も 届かない、黒い 壁だ。', '砦の みんなの 悩みが 晴れれば、結界も 弱まるはずだ。'],
-      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: ['魔王が 倒れた……！ 世界じゅうの 数式が、元に 戻っていく！', 'あんたは 本物の 勇者だ。'] },
+      lines: [tr('この先は 魔王レフエラーの 城だ。', "Ahead lies Demon Lord Referror's castle."), tr('城門には「#REF!」の 結界が 張られている。どんな 参照も 届かない、黒い 壁だ。', 'A "#REF!" barrier covers the castle gate. A black wall that no reference can reach.'), tr('砦の みんなの 悩みが 晴れれば、結界も 弱まるはずだ。', "If everyone's troubles at the fort are cleared up, the barrier should weaken.")],
+      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: [tr('魔王が 倒れた……！ 世界じゅうの 数式が、元に 戻っていく！', 'The Demon Lord has fallen...! Formulas all over the world are going back to normal!'), tr('あんたは 本物の 勇者だ。', "You're a true hero.")] },
     },
     {
       id: 'veteran', x: 9, y: 13, name: '古参兵', look: C.ganbaru, kind: 'talk', wander: true,
-      lines: ['エラーが 出ると、新兵は すぐ 慌てて 表を 全部 消しちまう。', 'だが エラーには 種類が ある。#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……。種類を 読めば、直し方は 見える。'],
+      lines: [tr('エラーが 出ると、新兵は すぐ 慌てて 表を 全部 消しちまう。', 'When an error pops up, the recruits panic and delete the whole table.'), tr('だが エラーには 種類が ある。#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……。種類を 読めば、直し方は 見える。', "But errors come in types. #DIV/0!, #VALUE!, #NAME?, #REF!, #N/A... Read the type, and you'll see how to fix it.")],
     },
     {
       id: 'recruit', x: 26, y: 23, name: '新兵', look: C.kid7, kind: 'talk', wander: true, emote: 'sweat',
-      lines: ['ま、魔王の 城って、ほんとに 行くんですか……？', '自分の 作った 表が エラーだらけで……もう 何が 何だか……。'],
-      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: ['エラーの 意味が わかったら、怖く なくなりました！', '自分の 表は、自分で 直せます！'] },
+      lines: [tr('ま、魔王の 城って、ほんとに 行くんですか……？', "A-are we really going to the Demon Lord's castle...?"), tr('自分の 作った 表が エラーだらけで……もう 何が 何だか……。', "The tables I made are full of errors... I don't know what's what anymore...")],
+      linesAfter: { when: (s) => s.bosses.includes('refera'), lines: [tr('エラーの 意味が わかったら、怖く なくなりました！', 'Once I understood what the errors mean, they stopped being scary!'), tr('自分の 表は、自分で 直せます！', 'I can fix my own tables myself!')] },
     },
-    { id: 'horse', x: 6, y: 23, name: 'ウマ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), '（……砦の 人いわく、ウマらしい）'] },
+    { id: 'horse', x: 6, y: 23, name: 'ウマ', creature: 'sheep', kind: 'talk', wander: true, lines: [tr('メェ〜。', 'Baa.'), tr('（……砦の 人いわく、ウマらしい）', "(...According to the people at the fort, it's a horse.)")] },
   ],
 }
 
@@ -2134,68 +2134,68 @@ const rooms: MapDef[] = [
     { id: 'minato', x: 6, y: 2, name: '港長ミナト', look: C.minato, kind: 'quest', questId: 'port_countif' },
     {
       id: 'port_clerk', x: 10, y: 5, name: '事務所の職員', look: C.official, kind: 'talk', wander: true, emote: 'sweat',
-      lines: ['入港記録が 山のように……。', '「魚を 運んできた 船は 何隻？」って 聞かれるたびに、1行ずつ 指で 数えてるんです……。'],
-      linesAfter: { when: (s) => s.solved.includes('port_countif'), lines: ['COUNTIF と SUMIF……。聞かれた 瞬間に 答えられるように なりました！'] },
+      lines: [tr('入港記録が 山のように……。', 'Mountains of arrival records...'), tr('「魚を 運んできた 船は 何隻？」って 聞かれるたびに、1行ずつ 指で 数えてるんです……。', 'Every time someone asks "How many ships brought fish?", I count line by line with my finger...')],
+      linesAfter: { when: (s) => s.solved.includes('port_countif'), lines: [tr('COUNTIF と SUMIF……。聞かれた 瞬間に 答えられるように なりました！', "COUNTIF and SUMIF... Now I can answer the moment I'm asked!")] },
     },
   ]),
   room('port_weapon', 'モリ武器店', 'ifport', 'weapon', [
     {
       id: 'mori', x: 2, y: 2, name: '武器屋モリ', look: C.mori, kind: 'gear',
       stock: ['mirror_rapier', 'dollar_lance', 'anchor_axe', 'branch_trident'],
-      lines: ['……海の男の 武器を 見ていけ。', '分岐のトライデントは 3つ又だ。どんな「もしも」にも 対応できるぜ。'],
+      lines: [tr('……海の男の 武器を 見ていけ。', "...Take a look at a sailor's weapons."), tr('分岐のトライデントは 3つ又だ。どんな「もしも」にも 対応できるぜ。', 'The Branch Trident has three prongs. It can handle any "what if."')],
     },
   ]),
   room('port_armor', 'ウロコ防具店', 'ifport', 'armor', [
     {
       id: 'uroko', x: 2, y: 2, name: '防具屋ウロコ', look: C.uroko, kind: 'gear',
       stock: ['silver_suit', 'captain_coat', 'mirror_shield', 'buoy_shield', 'captain_hat'],
-      lines: ['いらっしゃい！ 海の 防具なら うちに おまかせ！', '浮き輪のたては 見た目は アレだけど、性能は 本物よ。'],
+      lines: [tr('いらっしゃい！ 海の 防具なら うちに おまかせ！', 'Welcome! For armor of the sea, leave it to us!'), tr('浮き輪のたては 見た目は アレだけど、性能は 本物よ。', 'The Life Ring Shield looks a bit silly, but it really works.')],
     },
   ]),
   room('port_inn', 'イフポートの宿屋', 'ifport', 'inn', [
     inn('inn4', 8, 2, C.inn4),
-    { id: 'guest4', x: 5, y: 5, name: '足止めの旅人', look: C.traveler, kind: 'talk', lines: ['船に 乗りたいんだが、「もしも 嵐だったら」と 船長たちが 決めきれなくて、出航しないんだ。', '決まりを 作っておけば、悩まずに すむのにな……。'] },
+    { id: 'guest4', x: 5, y: 5, name: '足止めの旅人', look: C.traveler, kind: 'talk', lines: [tr('船に 乗りたいんだが、「もしも 嵐だったら」と 船長たちが 決めきれなくて、出航しないんだ。', 'I want to board a ship, but the captains keep fretting "what if there\'s a storm" and never set sail.'), tr('決まりを 作っておけば、悩まずに すむのにな……。', "If they'd just make a rule, they wouldn't have to agonize...")] },
   ]),
   room('port_church', 'イフポートの教会', 'ifport', 'church', [church('church4', 5, 2)]),
   room('port_shop', 'イフポート道具店', 'ifport', 'shop', [shop('shop4', 2, 2, C.shop4)]),
   room('port_school', '航海士学校', 'ifport', 'school', [
     { id: 'rope', x: 7, y: 3, name: 'ロープ教官', look: C.rope, kind: 'quest', questId: 'port_nested' },
-    { id: 'cadet', x: 3, y: 5, name: '航海士の卵', look: C.cadet, kind: 'talk', lines: ['試験の 評価が まだ 出ないんです……。', '教官、1人ずつ「80点以上なら A……いや 60点は……」って ずっと 悩んでて……。'] },
+    { id: 'cadet', x: 3, y: 5, name: '航海士の卵', look: C.cadet, kind: 'talk', lines: [tr('試験の 評価が まだ 出ないんです……。', "Our test grades still aren't out..."), tr('教官、1人ずつ「80点以上なら A……いや 60点は……」って ずっと 悩んでて……。', 'Our instructor keeps agonizing over each of us: "80 or more is an A... no wait, 60 is..."')] },
   ]),
   room('port_express', 'ハコブ運送', 'ifport', 'bank', [
     { id: 'hakobu', x: 2, y: 2, name: '運送屋ハコブ', look: C.hakobu, kind: 'quest', questId: 'port_ifcalc' },
   ]),
   room('port_fisher', 'アミの家', 'ifport', 'home', [
-    { id: 'ami_mother', x: 6, y: 4, name: 'アミの母', look: C.amiMother, kind: 'talk', lines: ['アミは 朝から 晩まで 桟橋に いるのよ。', '海が 大好きなのは いいけど、帳簿つけは 苦手みたいでねぇ。'] },
+    { id: 'ami_mother', x: 6, y: 4, name: 'アミの母', look: C.amiMother, kind: 'talk', lines: [tr('アミは 朝から 晩まで 桟橋に いるのよ。', 'Ami is out on the pier from morning till night.'), tr('海が 大好きなのは いいけど、帳簿つけは 苦手みたいでねぇ。', "Loving the sea is fine and all, but she's not much good at bookkeeping.")] },
   ]),
   room('port_weather', '気象台', 'ifport', 'small', [{ id: 'kazami', x: 3, y: 4, name: '天気予報士カザミ', look: C.kazami, kind: 'quest', questId: 'port_andor' }]),
   room('port_storage', '港の倉庫', 'ifport', 'cozy', [
-    { id: 'storekeeper', x: 4, y: 4, name: '倉庫番', look: C.storekeeper, kind: 'talk', lines: ['積荷の 箱が 天井まで……。', '「重い箱は 右、軽い箱は 左」って 決めれば いいのに、1箱ずつ 「どっちかなぁ」と 悩んじまう。これも 幽霊船の 呪いかねぇ。'] },
+    { id: 'storekeeper', x: 4, y: 4, name: '倉庫番', look: C.storekeeper, kind: 'talk', lines: [tr('積荷の 箱が 天井まで……。', 'Cargo crates stacked to the ceiling...'), tr('「重い箱は 右、軽い箱は 左」って 決めれば いいのに、1箱ずつ 「どっちかなぁ」と 悩んじまう。これも 幽霊船の 呪いかねぇ。', 'All I need is a rule like "heavy crates right, light crates left," but I keep agonizing over every crate. Is this the ghost ship\'s curse too?')] },
   ]),
   room('lookup_hall', '大臣の館', 'lookup', 'hall', [
     { id: 'sagasu', x: 6, y: 2, name: '大臣サガス', look: C.sagasu, kind: 'quest', questId: 'lookup_minister' },
     {
       id: 'steward', x: 10, y: 5, name: '執事', look: C.official, kind: 'talk', wander: true, emote: 'sweat',
-      lines: ['晩餐会の 準備が 進みません……。', '在庫台帳から 1品ずつ 探しているのですが、見つからない 品が あると そこで 手が 止まってしまうのです。'],
+      lines: [tr('晩餐会の 準備が 進みません……。', "Preparations for the banquet aren't going anywhere..."), tr('在庫台帳から 1品ずつ 探しているのですが、見つからない 品が あると そこで 手が 止まってしまうのです。', "I'm searching the stock ledger item by item, but whenever something can't be found, everything grinds to a halt.")],
     },
   ]),
   room('lookup_weapon', 'ルーペ武器店', 'lookup', 'weapon', [
     {
       id: 'loupe_smith', x: 2, y: 2, name: '武器屋メガネ', look: C.roll, kind: 'gear',
       stock: ['anchor_axe', 'branch_trident', 'loupe_blade', 'index_spear'],
-      lines: ['いらっしゃいませ。探しものに 強い 武器を そろえております。', '索引の槍は、目録の 1行を 正確に 貫きますよ。'],
+      lines: [tr('いらっしゃいませ。探しものに 強い 武器を そろえております。', 'Welcome. We carry weapons that are excellent at finding things.'), tr('索引の槍は、目録の 1行を 正確に 貫きますよ。', 'The Index Spear pierces exactly one line of a catalog.')],
     },
   ]),
   room('lookup_armor', 'ショカ防具店', 'lookup', 'armor', [
     {
       id: 'shoka', x: 2, y: 2, name: '防具屋ショカ', look: C.shelfa, kind: 'gear',
       stock: ['captain_coat', 'librarian_robe', 'buoy_shield', 'catalog_shield', 'bookmark_band'],
-      lines: ['いらっしゃい！ 書庫の 司書たちが 愛用する 防具よ。', 'しおりのハチマキは、大事な ページを 見失わない すぐれもの！'],
+      lines: [tr('いらっしゃい！ 書庫の 司書たちが 愛用する 防具よ。', "Welcome! This is the armor the library's librarians swear by."), tr('しおりのハチマキは、大事な ページを 見失わない すぐれもの！', 'The Bookmark Headband never loses track of an important page!')],
     },
   ]),
   room('lookup_inn', 'ルックアップの宿屋', 'lookup', 'inn', [
     inn('inn5', 8, 2, C.inn5),
-    { id: 'guest5', x: 5, y: 5, name: '調べものの 旅人', look: C.traveler, kind: 'talk', lines: ['大書庫に 古い 地図を 調べに 来たんだが、入れて もらえなくてね。', '城下の 人たちも、帳簿から 目当ての 行を 探すのに 一日 かかっているらしい。'] },
+    { id: 'guest5', x: 5, y: 5, name: '調べものの 旅人', look: C.traveler, kind: 'talk', lines: [tr('大書庫に 古い 地図を 調べに 来たんだが、入れて もらえなくてね。', "I came to study old maps in the Great Library, but they won't let me in."), tr('城下の 人たちも、帳簿から 目当ての 行を 探すのに 一日 かかっているらしい。', 'I hear the townspeople spend all day finding the line they need in their ledgers, too.')] },
   ]),
   room('lookup_church', 'ルックアップの教会', 'lookup', 'church', [church('church5', 5, 2)]),
   room('lookup_shop', 'カタログ道具店', 'lookup', 'shop', [
@@ -2204,11 +2204,11 @@ const rooms: MapDef[] = [
   ]),
   room('lookup_library', '城下の図書館', 'lookup', 'school', [
     { id: 'shoko', x: 7, y: 3, name: '司書ショコ', look: C.shoko, kind: 'quest', questId: 'lookup_iferror' },
-    { id: 'reader', x: 3, y: 5, name: '本の虫の 少女', look: C.reader, kind: 'talk', lines: ['「#N/A」って 書いてある カードを 引いちゃった……。', 'なんだか 怖いよ。本は ちゃんと あるはず なのに。'] },
+    { id: 'reader', x: 3, y: 5, name: '本の虫の 少女', look: C.reader, kind: 'talk', lines: [tr('「#N/A」って 書いてある カードを 引いちゃった……。', 'I pulled a card that says "#N/A"...'), tr('なんだか 怖いよ。本は ちゃんと あるはず なのに。', "It's kind of scary. The book should definitely be here.")] },
   ]),
   room('lookup_knights', '騎士団の詰所', 'lookup', 'bank', [
     { id: 'roll', x: 2, y: 2, name: '騎士団の書記ロール', look: C.roll, kind: 'quest', questId: 'lookup_xlookup' },
-    { id: 'knight', x: 7, y: 5, name: '見習い騎士', look: C.hantei, kind: 'talk', lines: ['騎士番号で 呼ばれても、自分の 名前が 名簿の どこに あるか わからないんです……。', '名簿の いちばん 右に 番号、いちばん 左に 名前。遠すぎますよね？'] },
+    { id: 'knight', x: 7, y: 5, name: '見習い騎士', look: C.hantei, kind: 'talk', lines: [tr('騎士番号で 呼ばれても、自分の 名前が 名簿の どこに あるか わからないんです……。', "Even when they call my knight number, I can't find where my name is on the roster..."), tr('名簿の いちばん 右に 番号、いちばん 左に 名前。遠すぎますよね？', "The number is at the far right of the roster and the name is at the far left. That's way too far apart, right?")] },
   ]),
   room('pivo_hall', '宰相の館', 'pivoria', 'hall', [
     { id: 'hyouma', x: 6, y: 2, name: '宰相ヒョウマ', look: C.hyouma, kind: 'quest', questId: 'pivo_crosstab' },
@@ -2218,49 +2218,49 @@ const rooms: MapDef[] = [
     {
       id: 'pivo_smith', x: 2, y: 2, name: '武器職人タバネ', look: C.smith6, kind: 'gear',
       stock: ['loupe_blade', 'index_spear', 'tally_hammer', 'royal_scepter'],
-      lines: ['よう、旅の人。王都 いちばんの 鍛冶屋 タバネだ。', '集計のハンマーは、バラバラの 記録を 叩いて 1つに まとめる 逸品だぜ。'],
+      lines: [tr('よう、旅の人。王都 いちばんの 鍛冶屋 タバネだ。', "Hey, traveler. I'm Tabane, the best smith in the capital."), tr('集計のハンマーは、バラバラの 記録を 叩いて 1つに まとめる 逸品だぜ。', 'The Tally Hammer is a masterpiece that pounds scattered records into one.')],
     },
   ]),
   room('pivo_armor', '王都の仕立屋', 'pivoria', 'armor', [
     {
       id: 'pivo_tailor', x: 2, y: 2, name: '仕立屋ツヅリ', look: C.noble, kind: 'gear',
       stock: ['librarian_robe', 'royal_suit', 'catalog_shield', 'ledger_shield', 'bookmark_band', 'pivot_crown'],
-      lines: ['いらっしゃいませ。王宮御用達の 仕立屋 ツヅリですわ。', '王宮の礼服は、宰相さまも お認めに なった 正装ですのよ。'],
+      lines: [tr('いらっしゃいませ。王宮御用達の 仕立屋 ツヅリですわ。', "Welcome. I'm Tsuzuri, tailor by appointment to the palace."), tr('王宮の礼服は、宰相さまも お認めに なった 正装ですのよ。', 'The Palace Formalwear is official attire approved by the chancellor himself.')],
     },
   ]),
   room('pivo_inn', 'ピボリアの宿屋', 'pivoria', 'inn', [
     inn('inn6', 8, 2, C.inn6),
-    { id: 'guest6', x: 5, y: 5, name: '旅の商人', look: C.traveler, kind: 'talk', lines: ['王都に 商売の 報告に 来たんだが、役所の 集計が 終わらなくて 足止めさ。', '「どの 店の、どの 品が、いくら 売れたか」……条件が 2つに なると、とたんに 手が 止まるらしい。'] },
+    { id: 'guest6', x: 5, y: 5, name: '旅の商人', look: C.traveler, kind: 'talk', lines: [tr('王都に 商売の 報告に 来たんだが、役所の 集計が 終わらなくて 足止めさ。', "I came to the capital to report on my business, but I'm stuck because the office can't finish its totals."), tr('「どの 店の、どの 品が、いくら 売れたか」……条件が 2つに なると、とたんに 手が 止まるらしい。', '"Which shop sold how much of which item"... I hear everything grinds to a halt once there are two conditions.')] },
   ]),
   room('pivo_church', 'ピボリアの大聖堂', 'pivoria', 'church', [church('church6', 5, 2)]),
   room('pivo_shop', '王都の道具屋', 'pivoria', 'shop', [
     shop('shop6', 2, 2, C.shop6),
-    { id: 'clerk6', x: 7, y: 4, name: '道具屋の見習い', look: C.kid5, kind: 'talk', lines: ['在庫を 品目ごと・棚ごとに 数えろって 言われて……', '1つの 条件なら 数えられるのに、2つ に なると 頭が こんがらがるんです！'] },
+    { id: 'clerk6', x: 7, y: 4, name: '道具屋の見習い', look: C.kid5, kind: 'talk', lines: [tr('在庫を 品目ごと・棚ごとに 数えろって 言われて……', 'They told me to count the stock by item and by shelf...'), tr('1つの 条件なら 数えられるのに、2つ に なると 頭が こんがらがるんです！', 'I can count with one condition, but with two my head gets all tangled up!')] },
   ]),
   room('pivo_school', '王立学院', 'pivoria', 'school', [
     { id: 'manabu', x: 6, y: 2, name: '学者マナブ', look: C.manabu, kind: 'quest', questId: 'pivo_average' },
-    { id: 'student6', x: 3, y: 5, name: '学院の生徒', look: C.student, kind: 'talk', lines: ['クラス全体の 平均なら AVERAGE で 出せるんだ。', 'でも「赤組だけの 平均」って 言われると……赤組の 点数だけ 書き写すしか ないのかなぁ。'] },
+    { id: 'student6', x: 3, y: 5, name: '学院の生徒', look: C.student, kind: 'talk', lines: [tr('クラス全体の 平均なら AVERAGE で 出せるんだ。', 'I can get the whole class average with AVERAGE.'), tr('でも「赤組だけの 平均」って 言われると……赤組の 点数だけ 書き写すしか ないのかなぁ。', 'But "the average for just the Red Team"... Do I have to copy out only the Red Team\'s scores?')] },
   ]),
   room('pivo_bank', '王都の税務所', 'pivoria', 'bank', [
     { id: 'zeim', x: 2, y: 2, name: '税務官ゼイム', look: C.zeim, kind: 'quest', questId: 'pivo_compare' },
-    { id: 'taxpayer', x: 7, y: 5, name: '納税に 来た 商人', look: C.shop5, kind: 'talk', lines: ['税務所は いつも 大行列だ。', '帳簿の 束を 1枚ずつ めくって、地区と 金額を 確かめているらしい。'] },
+    { id: 'taxpayer', x: 7, y: 5, name: '納税に 来た 商人', look: C.shop5, kind: 'talk', lines: [tr('税務所は いつも 大行列だ。', "There's always a huge line at the tax office."), tr('帳簿の 束を 1枚ずつ めくって、地区と 金額を 確かめているらしい。', 'I hear they flip through stacks of ledgers page by page, checking each district and amount.')] },
   ]),
   room('text_hall', '宿場長の屋敷', 'textria', 'hall', [
     { id: 'kakiko', x: 6, y: 2, name: '宿場長カキコ', look: C.kakiko, kind: 'quest', questId: 'text_find' },
-    { id: 'clerk7', x: 9, y: 5, name: '屋敷の書生', look: C.student, kind: 'talk', wander: true, lines: ['伝書鳩の あて先が 読めなくて、手紙が 迷子に なって いるんです。', '「@」の 前と 後ろで 分けられたら、すぐ 届けられるのに……。'] },
+    { id: 'clerk7', x: 9, y: 5, name: '屋敷の書生', look: C.student, kind: 'talk', wander: true, lines: [tr('伝書鳩の あて先が 読めなくて、手紙が 迷子に なって いるんです。', "We can't read the carrier pigeons' addresses, so the letters are getting lost."), tr('「@」の 前と 後ろで 分けられたら、すぐ 届けられるのに……。', 'If we could split them before and after the "@", we could deliver them right away...')] },
   ]),
   room('text_weapon', '活字の武器屋', 'textria', 'weapon', [
     {
       id: 'text_smith', x: 2, y: 2, name: '武器屋スミツキ', look: C.smith6, kind: 'gear',
       stock: ['tally_hammer', 'royal_scepter', 'quill_saber', 'ampersand_blade'],
-      lines: ['いらっしゃい。文字を 斬る 武器なら うちに おまかせ。', 'アンパサンドの剣は、離れた ものを 1つに つなぐ 不思議な 剣だよ。'],
+      lines: [tr('いらっしゃい。文字を 斬る 武器なら うちに おまかせ。', 'Welcome. For weapons that cut through text, leave it to us.'), tr('アンパサンドの剣は、離れた ものを 1つに つなぐ 不思議な 剣だよ。', 'The Ampersand Sword is a strange blade that joins separate things into one.')],
     },
   ]),
   room('text_armor', '植字工の防具屋', 'textria', 'armor', [
     {
       id: 'text_tailor', x: 2, y: 2, name: '防具屋クミハン', look: C.printer, kind: 'gear',
       stock: ['royal_suit', 'typesetter_apron', 'ledger_shield', 'galley_shield', 'pivot_crown', 'proof_glasses'],
-      lines: ['よう。印刷所の 職人たちの 防具を 作ってる クミハンだ。', 'ゲラ箱のたては、活字を 並べる 箱を 打ち直した 頑丈な 盾さ。'],
+      lines: [tr('よう。印刷所の 職人たちの 防具を 作ってる クミハンだ。', "Hey. I'm Kumihan. I make armor for the print shop's craftsmen."), tr('ゲラ箱のたては、活字を 並べる 箱を 打ち直した 頑丈な 盾さ。', 'The Galley Shield is a sturdy shield hammered out of a box for setting type.')],
     },
   ]),
   room('text_inn', 'テキストリアの宿屋', 'textria', 'inn', [
@@ -2274,33 +2274,33 @@ const rooms: MapDef[] = [
   ]),
   room('text_school', '宿場の寺子屋', 'textria', 'school', [
     { id: 'narabe', x: 6, y: 2, name: '書記ナラベ', look: C.narabe, kind: 'quest', questId: 'text_clean' },
-    { id: 'pupil7', x: 3, y: 5, name: '寺子屋の子', look: C.kid5, kind: 'talk', lines: ['名前を 並べたら、空白の せいで ガタガタに なっちゃった。', '先生が「よけいな 空白は 魔物の しわざ」だって。'] },
+    { id: 'pupil7', x: 3, y: 5, name: '寺子屋の子', look: C.kid5, kind: 'talk', lines: [tr('名前を 並べたら、空白の せいで ガタガタに なっちゃった。', 'I lined up names, but the spaces made them all crooked.'), tr('先生が「よけいな 空白は 魔物の しわざ」だって。', 'Our teacher says "extra spaces are the work of monsters."')] },
   ]),
   room('text_post', '宿場の通信所', 'textria', 'bank', [
     { id: 'denwa', x: 2, y: 2, name: '通信士デンワ', look: C.denwa, kind: 'quest', questId: 'text_mid' },
-    { id: 'caller', x: 7, y: 5, name: '電話を かけに 来た 商人', look: C.shop5, kind: 'talk', lines: ['局番ごとに 料金が ちがうらしいんだが、番号の どこが 局番か わからなくてね。'] },
+    { id: 'caller', x: 7, y: 5, name: '電話を かけに 来た 商人', look: C.shop5, kind: 'talk', lines: [tr('局番ごとに 料金が ちがうらしいんだが、番号の どこが 局番か わからなくてね。', "I hear the price depends on the area code, but I can't tell which part of the number is the area code.")] },
   ]),
   room('koyo_hall', '村長の家', 'koyomi', 'hall', [
     { id: 'tokiwa', x: 6, y: 2, name: '村長トキワ', look: C.tokiwa, kind: 'quest', questId: 'date_datedif' },
-    { id: 'koyo_wife', x: 9, y: 5, name: '村長の妻', look: C.toki, kind: 'talk', wander: true, lines: ['うちの 人ったら、村人の 入村日を 帳面に 書いては、指折り 数えて いるのよ。', '「満 何年」って、数えるの 難しいのよね。誕生日を 過ぎたか どうかも あるし。'] },
+    { id: 'koyo_wife', x: 9, y: 5, name: '村長の妻', look: C.toki, kind: 'talk', wander: true, lines: [tr('うちの 人ったら、村人の 入村日を 帳面に 書いては、指折り 数えて いるのよ。', "My husband writes each villager's move-in date in his notebook and counts on his fingers."), tr('「満 何年」って、数えるの 難しいのよね。誕生日を 過ぎたか どうかも あるし。', 'Counting "full years" is hard, you know. You have to check whether the anniversary has passed, too.')] },
   ]),
   room('koyo_weapon', '時の武器屋', 'koyomi', 'weapon', [
     {
       id: 'koyo_smith', x: 2, y: 2, name: '武器屋ハリ', look: C.smith6, kind: 'gear',
       stock: ['quill_saber', 'ampersand_blade', 'clockhand_spear', 'calendar_axe'],
-      lines: ['いらっしゃい。時計の 針から 打った 槍が 自慢さ。', '暦のオノは、ひと振りで 1年分の 敵を なぎはらうって 評判だよ。'],
+      lines: [tr('いらっしゃい。時計の 針から 打った 槍が 自慢さ。', 'Welcome. My pride and joy is a spear forged from clock hands.'), tr('暦のオノは、ひと振りで 1年分の 敵を なぎはらうって 評判だよ。', "They say the Calendar Axe mows down a whole year's worth of enemies in one swing.")],
     },
   ]),
   room('koyo_armor', '時の防具屋', 'koyomi', 'armor', [
     {
       id: 'koyo_tailor', x: 2, y: 2, name: '防具屋トケ', look: C.clockman, kind: 'gear',
       stock: ['typesetter_apron', 'moonphase_robe', 'galley_shield', 'hourglass_shield', 'proof_glasses', 'alarm_band'],
-      lines: ['いらっしゃい。時を 味方に つける 防具を そろえて おるよ。', '目覚ましのハチマキは、どんな 締め切りにも 遅れない 優れものじゃ。'],
+      lines: [tr('いらっしゃい。時を 味方に つける 防具を そろえて おるよ。', 'Welcome. I carry armor that puts time on your side.'), tr('目覚ましのハチマキは、どんな 締め切りにも 遅れない 優れものじゃ。', 'The Alarm Headband never lets you miss a deadline.')],
     },
   ]),
   room('koyo_inn', 'コヨミノの宿屋', 'koyomi', 'inn', [
     inn('inn8', 8, 2, C.inn8),
-    { id: 'guest8', x: 5, y: 5, name: '湯治の 旅人', look: C.traveler, kind: 'talk', lines: ['3泊の つもりで 来たのに、いつ 帰る 日なのか わからなく なってしまった。', '「到着日 ＋ 3」で わかるはず なんだが……。'] },
+    { id: 'guest8', x: 5, y: 5, name: '湯治の 旅人', look: C.traveler, kind: 'talk', lines: [tr('3泊の つもりで 来たのに、いつ 帰る 日なのか わからなく なってしまった。', "I came for a 3-night stay, but now I can't figure out which day I'm supposed to leave."), tr('「到着日 ＋ 3」で わかるはず なんだが……。', 'It should just be "arrival date + 3"...')] },
   ]),
   room('koyo_church', 'コヨミノの教会', 'koyomi', 'church', [church('church8', 5, 2)]),
   room('koyo_shop', '暦の道具屋', 'koyomi', 'shop', [
@@ -2309,11 +2309,11 @@ const rooms: MapDef[] = [
   ]),
   room('koyo_school', '里の寄り合い所', 'koyomi', 'school', [
     { id: 'hare', x: 6, y: 2, name: 'お祝い係ハレ', look: C.hare, kind: 'quest', questId: 'date_parts' },
-    { id: 'koyo_elder', x: 3, y: 5, name: '寄り合いの 老人', look: C.elder, kind: 'talk', lines: ['わしの 誕生日は 何月 じゃったかのう……。', '名簿には 書いて あるんじゃが、年も 月も 日も くっついとって 読みにくいわい。'] },
+    { id: 'koyo_elder', x: 3, y: 5, name: '寄り合いの 老人', look: C.elder, kind: 'talk', lines: [tr('わしの 誕生日は 何月 じゃったかのう……。', 'Now what month was my birthday again...?'), tr('名簿には 書いて あるんじゃが、年も 月も 日も くっついとって 読みにくいわい。', "It's written in the register, but the year, month and day are all stuck together, so it's hard to read.")] },
   ]),
   room('koyo_post', '飛脚屋', 'koyomi', 'bank', [
     { id: 'hayate', x: 2, y: 2, name: '飛脚ハヤテ', look: C.hayate, kind: 'quest', questId: 'date_add' },
-    { id: 'koyo_client', x: 7, y: 5, name: '荷物を 頼みに 来た 客', look: C.shop5, kind: 'talk', lines: ['「10日後に 届けて くれ」と 頼んだら、「10日後って 何日？」と 聞き返されてね……。'] },
+    { id: 'koyo_client', x: 7, y: 5, name: '荷物を 頼みに 来た 客', look: C.shop5, kind: 'talk', lines: [tr('「10日後に 届けて くれ」と 頼んだら、「10日後って 何日？」と 聞き返されてね……。', 'I asked them to "deliver it in 10 days," and they asked me back, "What date is 10 days from now?"...')] },
   ]),
   room('hope_hall', '砦の本陣', 'hope', 'hall', [
     { id: 'ganbaru', x: 6, y: 2, name: '砦の長ガンバル', look: C.ganbaru, kind: 'quest', questId: 'err_final' },
@@ -2323,19 +2323,19 @@ const rooms: MapDef[] = [
     {
       id: 'hope_smith', x: 2, y: 2, name: '武器係ツルギ', look: C.smith6, kind: 'gear',
       stock: ['ampersand_blade', 'clockhand_spear', 'calendar_axe', 'iferror_lance'],
-      lines: ['ここは 砦の 武器庫だ。魔王と 戦う 者に、最高の 武器を。', 'IFERRORの槍は、どんな エラーも 受け流して 貫く 槍だ。'],
+      lines: [tr('ここは 砦の 武器庫だ。魔王と 戦う 者に、最高の 武器を。', "This is the fort's armory. The finest weapons for those who fight the Demon Lord."), tr('IFERRORの槍は、どんな エラーも 受け流して 貫く 槍だ。', 'The IFERROR Spear deflects any error and pierces through.')],
     },
   ]),
   room('hope_armor', '砦の防具庫', 'hope', 'armor', [
     {
       id: 'hope_tailor', x: 2, y: 2, name: '防具係マモル', look: C.soldier9, kind: 'gear',
       stock: ['moonphase_robe', 'hero_suit', 'hourglass_shield', 'sheet_shield', 'alarm_band', 'focus_crown'],
-      lines: ['防具庫だ。魔王の「#REF!」に 耐えられる 防具を 用意してある。', '勇者のスーツは、むかし この 世界を 救った 者が 着ていたと いう。'],
+      lines: [tr('防具庫だ。魔王の「#REF!」に 耐えられる 防具を 用意してある。', 'This is the armor store. We have armor that can withstand the Demon Lord\'s "#REF!".'), tr('勇者のスーツは、むかし この 世界を 救った 者が 着ていたと いう。', "They say the Hero's Suit was worn by the one who saved this world long ago.")],
     },
   ]),
   room('hope_inn', '砦の宿舎', 'hope', 'inn', [
     inn('inn9', 8, 2, C.inn9),
-    { id: 'guest9', x: 5, y: 5, name: '休んでいる 兵士', look: C.soldier9, kind: 'talk', lines: ['出陣の 前の 晩は、眠れないもんだ。', 'あんたが 7つの 町を 救ったって 本当か？ ……なら、きっと 勝てる。'] },
+    { id: 'guest9', x: 5, y: 5, name: '休んでいる 兵士', look: C.soldier9, kind: 'talk', lines: [tr('出陣の 前の 晩は、眠れないもんだ。', 'You can never sleep the night before a battle.'), tr('あんたが 7つの 町を 救ったって 本当か？ ……なら、きっと 勝てる。', 'Is it true you saved seven towns? ...Then we can surely win.')] },
   ]),
   room('hope_church', '砦の礼拝堂', 'hope', 'church', [church('church9', 5, 2)]),
   room('hope_shop', '補給所', 'hope', 'shop', [
@@ -2344,11 +2344,11 @@ const rooms: MapDef[] = [
   ]),
   room('hope_school', '書記の詰所', 'hope', 'school', [
     { id: 'kakumisu', x: 6, y: 2, name: '書記兵カクミス', look: C.kakumisu, kind: 'quest', questId: 'err_name' },
-    { id: 'clerk9', x: 3, y: 5, name: '見習い書記', look: C.student, kind: 'talk', lines: ['先輩の 式、どこが 間違ってるか わからないって 嘆いてました。', '関数の 名前って、1文字 ちがうだけで 動かなく なるんですね……。'] },
+    { id: 'clerk9', x: 3, y: 5, name: '見習い書記', look: C.student, kind: 'talk', lines: [tr('先輩の 式、どこが 間違ってるか わからないって 嘆いてました。', "My senior was lamenting that he can't tell what's wrong with his formula."), tr('関数の 名前って、1文字 ちがうだけで 動かなく なるんですね……。', 'So a function stops working if its name is off by just one letter...')] },
   ]),
   room('hope_map', '地図の間', 'hope', 'bank', [
     { id: 'tsunagi', x: 2, y: 2, name: '地図係ツナギ', look: C.tsunagi, kind: 'quest', questId: 'err_ref' },
-    { id: 'scout9', x: 7, y: 5, name: '斥候', look: C.traveler, kind: 'talk', lines: ['魔王城の 中は、扉の 謎だらけだ。', 'これまで 覚えた 魔法を、組み合わせないと 開かない らしい。'] },
+    { id: 'scout9', x: 7, y: 5, name: '斥候', look: C.traveler, kind: 'talk', lines: [tr('魔王城の 中は、扉の 謎だらけだ。', "The Demon Lord's castle is full of door puzzles."), tr('これまで 覚えた 魔法を、組み合わせないと 開かない らしい。', "They say they won't open unless you combine all the magic you've learned so far.")] },
   ]),
   room('calc_house', 'ナミオの家', 'calculet', 'home', [
     { id: 'wife2', x: 6, y: 4, name: 'ナミオの妻', look: C.wife2, kind: 'talk', lines: [tr('うちの人ったら、釣った魚の数を 毎日 紙に 書いてるのよ。', 'My husband writes down how many fish he caught on paper every day.'), tr('表にすれば 一番多い日も すぐ わかるのにねぇ。', "If he put it in a table, he'd see his best day right away.")] },
