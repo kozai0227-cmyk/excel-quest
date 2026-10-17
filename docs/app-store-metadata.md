@@ -6,6 +6,61 @@ App Store Connect の 各欄に、そのまま 貼り付けて 使える 形に 
 
 ---
 
+## 1.1.0 で 変えるもの（英語版）
+
+アプリが 英語に 対応したので、ストアの 英語（米国）の ページも 英語の 中身に します。
+
+- アプリは 端末の 言語が 日本語なら 日本語、それ以外なら 英語で 始まる（タイトル画面の 🌐 と 設定から 切りかえ）
+- ホーム画面の 名前も 英語の 端末では `Equal Quest` に なる
+- ストアの「言語」欄には、アプリの 中身から 自動で「英語、日本語」と 出る
+- 配信地域は 今は 日本のみの まま。日本で 端末を 英語に している 人には 英語の ページが 表示される（国を 広げるのは 次の 段階）
+
+### 手順
+
+1. Mac で 最新を 取ってきて、アプリを 組み立てる
+   ```sh
+   git pull origin main
+   npm run ios
+   npx cap open ios
+   ```
+   > `git pull` で `project.pbxproj` が「上書きされる」と 止まったら、前に Xcode で 入れた Version・Build の 変更が 残っているだけです。
+   > `git checkout -- ios/App/App.xcodeproj/project.pbxproj` で 戻してから、もう一度 `git pull origin main`（Version・Build は 手順2で 入れ直す）
+2. Xcode の **TARGETS > App > General** で **Version を `1.1.0`、Build を `5`**（前より 大きい 数）に する
+3. **シミュレーターで 英語を 確かめる**（任意）：シミュレーターの 設定 → 一般 → 言語と地域 で 英語に して アプリを 開く →
+   ホーム画面の 名前が `Equal Quest`、タイトルが `EQUAL QUEST` で 始まれば OK（日本語に もどすと 日本語で 始まる）
+4. Archive → Upload
+5. App Store Connect →「配信」の **＋** → バージョン `1.1.0` を 作る
+6. 左の **App 情報** → 右上の 言語メニューで **英語（米国）**（無ければ 追加）→ 下の「英語（米国）の ページ」の 表の とおり 名前・サブタイトル・プライバシーポリシーの URL を 入れて 保存
+7. 1.1.0 の ページ（**日本語**）
+   - **このバージョンの 最新情報** に 下の 日本語を 貼る
+   - **説明** を 下の「説明」に 差し替え（「■ 英語でも遊べる」を 足した）
+   - **ビルド** で 手順4の ビルドを 選ぶ
+8. 1.1.0 の ページ（右上の 言語メニューで **英語（米国）**）
+   - **スクリーンショット**：`store/screenshots-6.3-en/` の 6枚（6.9インチの 欄が あれば `store/screenshots-en/`）
+   - **プロモーションテキスト・説明・キーワード・サポート URL・最新情報**：下の「英語（米国）の ページ」の とおり
+9. **App 内課金「全章解放」に 英語を 足す**：左の 収益化 → App 内課金 → 全章解放 → ローカリゼーション の **＋** → 英語（米国）
+   （表示名・説明は 下の「App 内課金」の 表）。足したら 1.1.0 の ページの「App 内課金と サブスクリプション」で 全章解放を 選び、いっしょに 提出する
+10. **App Review に関する情報** の メモを 下の 英文に 差し替え（英語の 画面の 名前に した）
+11. 「審査に 提出」
+
+#### このバージョンの 最新情報（1.1.0・日本語）
+
+```
+・英語に対応しました。端末の言語が日本語以外のときは英語で始まります（タイトル画面と設定から、いつでも切りかえられます）
+・依頼の表で、長い文字が切れないように列の幅を自動で広げるようにしました
+・そのほか、細かな表示を改善しました
+```
+
+#### What's New（1.1.0・英語）
+
+```
+- Now available in English! The game starts in English when your device language isn't Japanese. You can switch languages anytime from the title screen or Settings.
+- Table columns now widen automatically so long text isn't cut off.
+- Other small display improvements.
+```
+
+---
+
 ## 1.0.2 で 変えるもの（検索で 見つけてもらう ための 見直し）
 
 App Store の 検索に 使われるのは **名前・サブタイトル・キーワード欄** です（説明文は 検索に 使われない）。
@@ -116,6 +171,9 @@ App Store の 検索に 使われるのは **名前・サブタイトル・キ�
 ・時間制限なし。毎回、答えと解説が出ます
 ・タイトル画面からすぐに遊べます
 
+■ 英語でも遊べる
+・日本語と英語に対応。タイトル画面と設定から、いつでも切りかえられます
+
 ■ こんな人におすすめ
 ・表計算を基礎から学びたい新社会人・学生
 ・関数を「なんとなく」使っている人
@@ -148,45 +206,95 @@ App Store の 検索に 使われるのは **名前・サブタイトル・キ�
 
 </details>
 
-## 英語（米国）の ページ（検索の 言葉を 増やす）
+## 英語（米国）の ページ（1.1.0 から 英語の 中身）
 
-日本の App Store では、日本語の ページに 加えて **英語（米国）の ページの 名前・サブタイトル・キーワードも 検索に 使われる** と されています
-（Apple の 公式資料には 書かれておらず、ASO 会社の 調査に よるもの）。英語の ページを 足すと、キーワードの 枠が 増えます。
-ただし 違う 言語の ページどうしの 言葉は 組み合わせて 検索されないので、英語の ページの キーワードには「関数」「表計算」も もう一度 入れています。
+端末を 英語に している 人には この ページが 表示されます。アプリが 英語に 対応したので、1.1.0 から 中身も 英語に します。
 
-端末を 英語に している 人には この ページが 表示されるので、説明文には「今は 日本語のみ」と 正直に 書いています。
+日本の App Store では、英語（米国）の ページの 名前・サブタイトル・キーワードも 検索に 使われる と されています（ASO 会社の 調査）。
+1.0.2 までは この 枠に 日本語の 言葉（関数・表計算 など）を 入れて いましたが、英語の 利用者と、次の 段階で 国を 広げる ときの ために、
+1.1.0 から 英語の 言葉に 切りかえます（日本語の 主な 言葉は 日本語の ページの 名前・サブタイトル・キーワードで 押さえて あります）。
 
-**追加の しかた**：App Store Connect の **App 情報** → 右上の 言語（日本語）の メニュー → **英語（米国）** を 追加 →
-名前・サブタイトル・プライバシーポリシーの URL を 入れる。続けて バージョンの ページでも 言語を 英語（米国）に 切りかえて、説明・キーワード・サポート URL を 入れる。
-スクリーンショットは 入れなければ 日本語の ものが 使われます。
+| 欄 | 入れる 内容 | 上限 |
+|---|---|---|
+| 名前 | `Equal Quest: Spreadsheet RPG`（28字） | 30字 |
+| サブタイトル | `Learn formulas and functions`（28字） | 30字 |
+| キーワード | 下の 枠（98字） | 100字 |
+| プロモーションテキスト | 下の 枠（168字） | 170字 |
+| プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html#en`（英語の 部分へ 飛ぶ） | |
+| サポート URL | `https://equal-quest.vercel.app/support.html#en` | |
+| マーケティング URL | 空の まま（紹介ページは 日本語だけ） | |
+| スクリーンショット | `store/screenshots-6.3-en/`（1206×2622）／ 6.9インチの 欄は `store/screenshots-en/`（1320×2868） | |
 
-| 欄 | 入れる 内容 |
-|---|---|
-| 名前 | `Equal Quest: Spreadsheet RPG`（28字） |
-| サブタイトル | `Learn formulas and functions`（28字） |
-| キーワード | 下の 枠（93字） |
-| プライバシーポリシーの URL | `https://equal-quest.vercel.app/privacy.html` |
-| サポート URL | `https://equal-quest.vercel.app/support.html` |
+キーワード（他社の 商標は 入れない。名前・サブタイトルに ある 言葉〔spreadsheet・RPG・learn・formulas・functions〕は 自動で 対象）：
+
+```
+vlookup,xlookup,sumif,countif,iferror,office,skills,training,beginner,tutorial,practice,quiz,retro
+```
+
+<details><summary>1.0.2 までの キーワード（日本語の 枠として 使っていた もの）</summary>
 
 ```
 関数,表計算,練習,問題集,基礎,勉強,ビジネス,新社会人,就活,資格,脳トレ,クイズ,DATEDIF,WEEKDAY,ROUND,AVERAGE,SUM,LEFT,MID,office
 ```
 
+</details>
+
+プロモーションテキスト（英語）：
+
+```
+A new office worker saves a fantasy world with spreadsheet magic! Master SUM, IF, VLOOKUP, SUMIFS, dates and text by helping the townspeople. Chapters 1-2 free, no ads.
+```
+
 説明（英語）：
 
 ```
-Save a fantasy world with spreadsheet skills!
+"Your time is too valuable to waste."
 
-Equal Quest is a retro RPG about a new office worker who gets pulled into a world where spreadsheet formulas work like magic. Help the townspeople with their problems, battle monsters with quick quiz questions, and master real formulas step by step.
+That night, after hearing those words from a senior colleague, a new office worker was sucked into a #REF! error in a spreadsheet. When he woke up, he was in a land where spreadsheet formulas work like magic...
 
-- Learn by doing: build formulas by tapping buttons and cells, then check your answer instantly
-- From the basics to practical skills: SUM, AVERAGE, absolute references ($), IF, VLOOKUP, XLOOKUP, SUMIFS, COUNTIFS, text functions, date math, and fixing errors such as #DIV/0! and #REF!
-- 8 chapters and 81 requests and puzzles
-- Book of Review: practice by chapter, or focus on the questions you missed
-- Chapters 1 and 2 are free. Unlock the rest with a one-time purchase
-- No ads, no account, works offline
+Equal Quest is a retro RPG where you help townspeople with their spreadsheet troubles and master formulas and functions from the ground up.
 
-Note: The game is currently available in Japanese only. English support is planned for a future update.
+■ Learn skills you can use at work
+- Solve requests with real spreadsheet steps. Build the formula, and if the answer is right, the request is complete!
+- Battles are spreadsheet quizzes and formula questions. The numbers change every time, so memorizing won't save you
+- In towers and temples, crack stone-tablet puzzles with formulas
+
+■ Chapters 1 and 2 are free
+- Play Chapters 1 and 2 for free. If you enjoy them, "Unlock All Chapters" (a one-time purchase) lets you play to the final chapter
+
+■ 8 chapters, 81 requests and puzzles
+Chapter 1: Selecting cells, AutoFill, arithmetic, SUM / AVERAGE
+Chapter 2: Relative and absolute references ($), ROUND
+Chapter 3: IF, AND / OR, COUNTIF / SUMIF
+Chapter 4: VLOOKUP, XLOOKUP, IFERROR
+Chapter 5: SUMIFS, COUNTIFS, summary tables
+Chapter 6: Joining text, LEFT / MID, LEN, TRIM, FIND
+Chapter 7: Date math, WEEKDAY, EDATE, DATEDIF
+Final chapter: Reading and fixing errors such as #DIV/0!, #NAME? and #REF!
+
+■ Easy formula building on your phone
+- Build formulas by tapping buttons. Tap a cell to insert a reference, or press and hold, then drag, to insert a range
+- Practice adding and removing $ with the F4 button
+
+■ Book of Review
+- Review by chapter, take the All-Chapter Course, or try the Weak Spot Course built from questions you missed
+- No time limit, with the answer and an explanation every time
+- Start right away from the title screen
+
+■ English and Japanese
+- Play in English or Japanese. Switch anytime from the title screen or Settings
+
+■ Who it's for
+- New employees and students who want to learn spreadsheets from the basics
+- Anyone who uses functions without really understanding them
+- Fans of retro RPGs
+
+■ Play with peace of mind
+- No internet connection needed (except when purchasing or restoring)
+- No ads. The only purchase is "Unlock All Chapters," with nothing else to buy
+- No personal data is collected
+
+The functions and formulas in this app are widely used in common spreadsheet software.
 ```
 
 ---
@@ -219,7 +327,7 @@ Note: The game is currently available in Japanese only. English support is plann
 
 - アプリ本体：**無料**（「価格および配信状況」で 0 円を 選ぶ）
 - 第3章から 先は、下の App 内課金「全章解放」で 売る
-- 配信地域：はじめは **日本のみ** が おすすめ（本文が 日本語だけのため）
+- 配信地域：今は **日本のみ**（1.1.0 で 英語に 対応したので、ほかの 国へ 広げるのは 次の 段階で 検討）
 
 ## App 内課金「全章解放」
 
@@ -234,13 +342,15 @@ App Store Connect の アプリの ページ → 左の **収益化 → App 内�
 | ファミリー共有 | オン（家族も 追加の 支払いなしで 遊べる。おすすめ） |
 | 表示名（日本語） | `全章解放` |
 | 説明（日本語・45字まで） | `第3章〜最終章と、ふくしゅうの書の全章が遊べます` |
+| 表示名（英語（米国）・1.1.0 から） | `Unlock All Chapters`（ゲーム内の 名前と 同じ） |
+| 説明（英語（米国）・45字まで） | `Play chapters 3-8 and the full Book of Review`（45字） |
 | 審査用スクリーンショット | `store/iap-review.png`（購入画面・¥500・1320×2868）。TestFlight で 撮った ものに 差し替えても よい |
 | 審査メモ | 下の 英文 |
 
 ```
-Unlocks chapters 3 to 8 (the final chapter) and all chapters of the review book. Chapters 1 and 2 are free.
-To open the purchase screen quickly: Title screen > "ふくしゅう" (Review) > tap any chapter with a lock (🔒).
-"購入を 復元" (Restore Purchases) is on the same screen and in Menu (B) > 設定 (Settings) > 全章解放.
+Unlocks chapters 3 to 8 (the final chapter) and all chapters of the Book of Review. Chapters 1 and 2 are free.
+To open the purchase screen quickly: Title screen > "Review" (ふくしゅう) > tap any chapter with a lock (🔒).
+"Restore Purchase" (購入を 復元) is on the same screen and in Menu (B) > Settings (設定) > Unlock All Chapters (全章解放).
 ```
 
 > 最初の App 内課金は、アプリの 審査と いっしょに 出します。バージョンの ページの「App 内課金と サブスクリプション」で この 商品を 選んでから「審査に 提出」してください。
@@ -256,17 +366,18 @@ To open the purchase screen quickly: Title screen > "ふくしゅう" (Review) >
 | メモ | 下の 英文を 貼る |
 
 ```
-This is an offline educational RPG (Japanese only) that teaches spreadsheet functions and formulas such as SUM, IF, VLOOKUP, SUMIFS, date and text functions, and error handling.
+This is an offline educational RPG that teaches spreadsheet functions and formulas such as SUM, IF, VLOOKUP, SUMIFS, date and text functions, and error handling.
+It is available in English and Japanese. It starts in English unless the device language is Japanese, and the language can be switched with the 🌐 button on the title screen or in Menu (B) > Settings > Language.
 No account, ads, or tracking. All progress is saved on the device only. The app works offline except when purchasing or restoring.
 
-Chapters 1 and 2 are free. A one-time non-consumable in-app purchase, "全章解放" (com.kozai0227.equalquest.full), unlocks chapters 3 to 8.
+Chapters 1 and 2 are free. A one-time non-consumable in-app purchase, "Unlock All Chapters" (com.kozai0227.equalquest.full), unlocks chapters 3 to 8.
 
 Quick tour for review:
-- Title screen > "ふくしゅう" (Review): answer quiz questions immediately, no time limit. Chapters with a lock (🔒) open the purchase screen.
-- The purchase screen has "購入する" (Buy) and "購入を 復元" (Restore Purchases). It is also in Menu (B) > 設定 (Settings) > 全章解放.
-- Title screen > "はじめから" (New game): enter a name, watch the short prologue (or tap SKIP), and the first battle starts within about a minute.
+- Title screen > "Review": answer quiz questions immediately, no time limit. Chapters with a lock (🔒) open the purchase screen.
+- The purchase screen has "Buy" and "Restore Purchase". It is also in Menu (B) > Settings > Unlock All Chapters.
+- Title screen > "New Game": enter a name, watch the short prologue (or tap SKIP), and the first battle starts within about a minute.
 - In formula questions, tap the buttons or tap table cells to build a formula. Long-press a cell and drag to insert a range; swipe to scroll the table.
-- The privacy policy is available from the title screen and from Menu (B) > 設定 (Settings).
+- The privacy policy is available from the title screen and from Menu (B) > Settings.
 
 The formula engine is our own implementation. The app is not affiliated with, and does not imitate, any third-party spreadsheet product.
 ```
@@ -275,10 +386,10 @@ The formula engine is our own implementation. The app is not affiliated with, an
 
 ## スクリーンショット
 
-| App Store Connect の 欄 | 画像（6枚・01〜06 の 順） |
-|---|---|
-| **Dynamic Island 搭載 iPhone（中型ディスプレイ）**（6.1〜6.3インチ） | `store/screenshots-6.3/`（1206×2622） |
-| 6.9インチ（大型）の 欄が ある 場合 | `store/screenshots/`（1320×2868） |
+| App Store Connect の 欄 | 日本語の ページ（6枚・01〜06 の 順） | 英語（米国）の ページ（1.1.0 から） |
+|---|---|---|
+| **Dynamic Island 搭載 iPhone（中型ディスプレイ）**（6.1〜6.3インチ） | `store/screenshots-6.3/`（1206×2622） | `store/screenshots-6.3-en/` |
+| 6.9インチ（大型）の 欄が ある 場合 | `store/screenshots/`（1320×2868） | `store/screenshots-en/` |
 
 画面の 一番上に 出ている iPhone の 欄に 入れれば、ほかの 大きさにも 自動で 使われます。
 iPad・Apple Watch の 欄は 空の ままで よい（iPhone 専用の ため）。

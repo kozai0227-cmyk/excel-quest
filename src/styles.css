@@ -1744,6 +1744,10 @@ kbd {
   color: #aab;
   text-align: right;
 }
+/* 英語の 見出し（Functions・Symbols）は 長いので 広げる */
+html:lang(en) .fpad-label {
+  width: 5em;
+}
 .fpad-chips {
   flex: 1;
   min-width: 0;

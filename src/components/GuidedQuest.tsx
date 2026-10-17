@@ -8,6 +8,7 @@ import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value 
 import { guideChips, pickRef, rangeCells, stepCells, toggleLastRef, tryFormula, type GuideStep, type TryResult } from '../game/guide'
 import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
+import { useFitWidths } from './useFitWidths'
 import { jingle, sfx } from '../game/sound'
 
 interface Props {
@@ -304,7 +305,15 @@ function Sheet({ grid, values, colWidths, focus, fillArea, wrong, changed, inspe
   const scroller = useRef<HTMLDivElement>(null)
   const { selecting, handlers, ref } = useCellPick(onPick, scroller)
   const cols = grid[0].length
-  const widths = Array.from({ length: cols }, (_, c) => Math.round((colWidths?.[c] ?? 80) * 0.9))
+  // 列の 幅：依頼で 決めた 幅（少し 詰める）を もとに、文字が 切れない ところまで 広げる
+  const widths = useFitWidths(
+    Array.from({ length: cols }, (_, c) => Math.round((colWidths?.[c] ?? 80) * 0.9)),
+    grid.map((row, r) => row.map((cell, c) => ({ text: formatValue(values[r]?.[c] ?? null), bold: cell.bold }))),
+    scroller,
+    'td',
+    12,
+    220,
+  )
   const flash = new Set(changed.cells)
 
   // 目立たせる セルが 見えるように スクロール

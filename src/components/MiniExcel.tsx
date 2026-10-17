@@ -16,6 +16,7 @@ import {
   type Grid,
   type Value,
 } from '../game/formula'
+import { useFitWidths } from './useFitWidths'
 
 const ROW_H = 26
 const HEAD_W = 40
@@ -58,8 +59,6 @@ const ARROWS: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: 
 export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Props) {
   const rows = initial.length
   const cols = initial[0].length
-  const widths = Array.from({ length: cols }, (_, c) => colWidths?.[c] ?? DEFAULT_W)
-  const lefts = widths.reduce<number[]>((acc, _w, i) => [...acc, i === 0 ? HEAD_W : acc[i - 1] + widths[i - 1]], [])
 
   const [grid, setGrid] = useState<Grid>(initial)
   const [past, setPast] = useState<Grid[]>(initialHistory ?? [])
@@ -75,6 +74,23 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
   const drag = useRef<null | { kind: 'select' } | { kind: 'fill' } | { kind: 'ref' }>(null)
 
   const values = useMemo(() => evaluate(grid), [grid])
+  // 列の 幅：文字が 切れない ところまで 広げる（右の 空きマスに はみ出して 見える 文字は 数えない）
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const widths = useFitWidths(
+    Array.from({ length: cols }, (_, c) => colWidths?.[c] ?? DEFAULT_W),
+    grid.map((row, r) =>
+      row.map((cell, c) => {
+        const v = values[r][c]
+        if (typeof v === 'string' && c + 1 < cols && row[c + 1].raw === '') return null
+        return { text: formatValue(v), bold: cell.bold }
+      }),
+    ),
+    sheetRef,
+    '.xl-cell',
+    14,
+    260,
+  )
+  const lefts = widths.reduce<number[]>((acc, _w, i) => [...acc, i === 0 ? HEAD_W : acc[i - 1] + widths[i - 1]], [])
   const R = norm(sel)
   const multi = R.r1 !== R.r2 || R.c1 !== R.c2
 
@@ -563,6 +579,7 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
       </div>
       <div className="xl-scroll">
         <div
+          ref={sheetRef}
           className="xl-sheet"
           style={{ width: totalW, height: totalH }}
           onPointerDown={onPointerDown}
