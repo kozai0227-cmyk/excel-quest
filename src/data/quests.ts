@@ -3729,39 +3729,56 @@ const SUPPLY: [number, number][] = [
   [60, 3],
   [80, 0],
 ]
-const WATCH: [string, number | string][] = [
-  ['月', 12],
-  ['火', '休み'],
-  ['水', 9],
-  ['木', 15],
-  ['金', '休み'],
-]
+const WATCH: [string, number | string][] = tra<[string, number | string][]>(
+  [
+    ['月', 12],
+    ['火', '休み'],
+    ['水', 9],
+    ['木', 15],
+    ['金', '休み'],
+  ],
+  [
+    ['Mon', 12],
+    ['Tue', 'Closed'],
+    ['Wed', 9],
+    ['Thu', 15],
+    ['Fri', 'Closed'],
+  ],
+)
 const SCRIBE_SCORES = [72, 55, 88, 64]
 const MAP_COST = [300, 450, 120, 800]
 const RATE_F = 0.1
-const UNITS: [string, string, number][] = [
-  ['西隊', '兵糧', 60],
-  ['南隊', '兵糧', 25],
-  ['北隊', '兵糧', 40],
-  ['北隊', '兵糧', 70],
-  ['南隊', '兵糧', 30],
-  ['西隊', '兵糧', 50],
-  ['北隊', '兵糧', 10],
-  ['南隊', '兵糧', 20],
-]
-const UNIT_NAMES = ['北隊', '南隊', '西隊']
-const ROSTER: [string, number][] = [
-  ['北隊', 38],
-  ['南隊', 27],
-  ['西隊', 33],
-  ['遊撃隊', 22],
-]
+/** 部隊の 名前（英語版は 英語で 条件に 使う） */
+const UNIT_EN: Record<string, string> = { 北隊: 'North', 南隊: 'South', 西隊: 'West', 遊撃隊: 'Raiders', 兵糧: 'Rations' }
+const unit = (x: string) => tr(x, UNIT_EN[x])
+const UNITS: [string, string, number][] = (
+  [
+    ['西隊', '兵糧', 60],
+    ['南隊', '兵糧', 25],
+    ['北隊', '兵糧', 40],
+    ['北隊', '兵糧', 70],
+    ['南隊', '兵糧', 30],
+    ['西隊', '兵糧', 50],
+    ['北隊', '兵糧', 10],
+    ['南隊', '兵糧', 20],
+  ] as [string, string, number][]
+).map(([a, b, n]) => [unit(a), unit(b), n])
+const UNIT_NAMES = ['北隊', '南隊', '西隊'].map(unit)
+const ROSTER: [string, number][] = (
+  [
+    ['北隊', 38],
+    ['南隊', 27],
+    ['西隊', 33],
+    ['遊撃隊', 22],
+  ] as [string, number][]
+).map(([a, n]) => [unit(a), n])
+const [ENOUGH, SHORT] = tra(['十分', '不足'], ['Enough', 'Short'])
 
 /** 数か「-」か（0 で 割る 行は「-」） */
 const divOrDash = (c: CheckCtx, a: string, want: number | string) => (typeof want === 'number' ? expectNum(c, a, want) : expectVal(c, a, want))
 const needErrFix = (c: CheckCtx, cells: string[]) => {
   const a = cells.find((x) => !usesFn(c.raw(x), 'IFERROR') && !usesFn(c.raw(x), 'IF'))
-  return a ? `${a} は 合っている！ でも IFERROR（または IF）で エラーを 防ぐ 形に しよう。` : null
+  return a ? tr(`${a} は 合っている！ でも IFERROR（または IF）で エラーを 防ぐ 形に しよう。`, `${a} is right! But make it prevent the error with IFERROR (or IF).`) : null
 }
 
 Object.assign(QUESTS, {
@@ -3769,185 +3786,280 @@ Object.assign(QUESTS, {
     id: 'err_div0',
     town: 'hope',
     npc: '補給係ワリザン',
-    title: '1人あたりの食料',
-    intro: [
+    title: tr('1人あたりの食料', 'Food per Person'),
+    intro: tra([
       '補給係の ワリザンだ。魔王城へ 向かう 部隊に、食料を 分けている。',
       '「食料 ÷ 人数」で 1人あたりを 出したいんだが……まだ 人が 集まって いない 部隊が あってな。',
       'そこだけ「#DIV/0!」という 不気味な 文字が 出る。魔王の 呪いか？',
-    ],
-    task: ['C2:C5 に、1人あたりの 食料（A ÷ B）を 出そう', '人数が 0 で 割れない 行は「-」と 出す（IFERROR）'],
-    grid: () => makeGrid(6, 3, [['食料', '人数', '1人あたり'], ...SUPPLY], ['A1', 'B1', 'C1']),
+    ], [
+      'I\'m Warizan, the supply officer. I\'m dividing food among the units heading for the Demon Lord\'s castle.',
+      'I want "food ÷ people" to get the amount per person... but some units haven\'t gathered their people yet.',
+      'Only those show this eerie "#DIV/0!" Is it the Demon Lord\'s curse?',
+    ]),
+    task: tra(['C2:C5 に、1人あたりの 食料（A ÷ B）を 出そう', '人数が 0 で 割れない 行は「-」と 出す（IFERROR）'], [
+      'In C2:C5, show the food per person (A ÷ B)',
+      'For rows that can\'t be divided because there are 0 people, show "-" (IFERROR)',
+    ]),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['食料', '人数', '1人あたり'], ['Food', 'People', 'Per Person']), ...SUPPLY], ['A1', 'B1', 'C1']),
     colWidths: [60, 60, 80],
-    hints: [
+    hints: tra([
       '#DIV/0! は「0 で 割った」という エラー。人数が 0 の 行で 出る。呪いでは ない。',
       'IFERROR(計算, エラーの ときの 値) で 包めば、エラーの ときだけ「-」に できる。',
       'C2 に =IFERROR(A2/B2,"-") → C5 まで オートフィル。',
-    ],
+    ], [
+      '#DIV/0! is the error for "divided by 0." It shows up in rows with 0 people. It\'s not a curse.',
+      'Wrap it in IFERROR(calculation, value if error), and you can show "-" only when there\'s an error.',
+      '=IFERROR(A2/B2,"-") in C2 → AutoFill down to C5.',
+    ]),
     check: (c) => first(...SUPPLY.map(([a, b], i) => divOrDash(c, `C${i + 2}`, b === 0 ? '-' : a / b)), needErrFix(c, SUPPLY.map((_, i) => `C${i + 2}`))),
     reward: { exp: 420, gold: 400, skill: 'diverr' },
-    thanks: [
+    thanks: tra([
       '30、-、20、-……。不気味な 文字が 消えた！',
       '#DIV/0! は 0 で 割った 合図だったのか。呪いじゃ なかったんだな。',
       'エラーが 出たら、まず その 意味を 読む。戦いと 同じだ。',
-    ],
+    ], [
+      '30, -, 20, -... The eerie text is gone!',
+      'So #DIV/0! was a sign that I\'d divided by 0. It wasn\'t a curse after all.',
+      'When an error appears, first read what it means. Just like in battle.',
+    ]),
   },
 
   err_value: {
     id: 'err_value',
     town: 'hope',
     npc: '見張り番ミハル',
-    title: '見張りの合計',
-    intro: [
+    title: tr('見張りの合計', 'Watch Totals'),
+    intro: tra([
       '見張り番の ミハルです。今週 見つけた 魔物の 数を 合計しているのですが……。',
       'B7 に =B2+B3+B4+B5+B6 と 書いたら「#VALUE!」に なって しまいました。',
       '「休み」の 日が あるからでしょうか……？',
-    ],
-    task: ['B7 の 式を 直して、魔物の 数の 合計を 出そう', '+ で 足すと、文字（休み）が まざって #VALUE! に なる。SUM は 文字を 飛ばして 足す'],
+    ], [
+      'I\'m Miharu, the lookout. I\'m totaling the number of monsters spotted this week, but...',
+      'I wrote =B2+B3+B4+B5+B6 in B7, and it turned into "#VALUE!"',
+      'Could it be because of the "Closed" days...?',
+    ]),
+    task: tra(['B7 の 式を 直して、魔物の 数の 合計を 出そう', '+ で 足すと、文字（休み）が まざって #VALUE! に なる。SUM は 文字を 飛ばして 足す'], [
+      'Fix the formula in B7 to get the total number of monsters',
+      'Adding with + mixes in text (Closed) and gives #VALUE!. SUM skips text when it adds',
+    ]),
     grid: () => {
-      const g = makeGrid(8, 2, [['曜日', '魔物の数'], ...WATCH, ['合計']], ['A1', 'B1', 'A7'])
+      const g = makeGrid(8, 2, [tra<(string | number)[]>(['曜日', '魔物の数'], ['Day', 'Monsters']), ...WATCH, [tr('合計', 'Total')]], ['A1', 'B1', 'A7'])
       g[6][1].raw = '=B2+B3+B4+B5+B6'
       return g
     },
     colWidths: [60, 80],
-    hints: [
+    hints: tra([
       '#VALUE! は「計算できない 種類の 値（文字など）が まざっている」という エラー。',
       '+ は 1つずつ 足すので、「休み」を 足そうとして 失敗する。SUM なら 数だけを 足してくれる。',
       'B7 を =SUM(B2:B6) に 書きかえる。',
-    ],
+    ], [
+      '#VALUE! is the error for "a value that can\'t be calculated (like text) is mixed in."',
+      '+ adds things one by one, so it fails when it tries to add "Closed." SUM adds only the numbers.',
+      'Rewrite B7 as =SUM(B2:B6).',
+    ]),
     check: (c) => expectNum(c, 'B7', WATCH.reduce((a, [, v]) => a + (typeof v === 'number' ? v : 0), 0), 'SUM'),
     reward: { exp: 420, gold: 400, skill: 'valueerr' },
-    thanks: [
+    thanks: tra([
       '合計 36 体……！ 「休み」の 日は ちゃんと 飛ばされて いますね。',
       '+ は 文字に つまずく けど、SUM は 数だけを 拾う。使い分けが 大事なんですね。',
       'これで 魔物の 動きを 正しく 報告できます。',
-    ],
+    ], [
+      'A total of 36...! The "Closed" days were skipped properly.',
+      '+ trips over text, but SUM picks up only the numbers. Using the right one matters.',
+      'Now I can report the monsters\' movements correctly.',
+    ]),
   },
 
   err_name: {
     id: 'err_name',
     town: 'hope',
     npc: '書記兵カクミス',
-    title: '書き損じの式',
-    intro: [
+    title: tr('書き損じの式', 'Botched Formulas'),
+    intro: tra([
       '書記兵の カクミスです……。',
       '訓練の 点数表を 作ったのですが、D2 も D3 も「#NAME?」に なって しまって。',
       '自分で 書いた 式なのに、どこが 間違って いるのか わからないんです。',
-    ],
-    task: ['D2 の 式を 直して、点数の 合計を 出そう（今は =SUMM(A2:A5)）', 'D3 の 式を 直して、A2 が 60以上なら「OK」、それ以外は「NG」と 出そう（今は =IF(A2>=60,OK,NG)）'],
+    ], [
+      'I\'m Kakumisu, a scribe...',
+      'I made a table of training scores, but both D2 and D3 turned into "#NAME?"',
+      'I wrote the formulas myself, but I can\'t tell what\'s wrong with them.',
+    ]),
+    task: tra(['D2 の 式を 直して、点数の 合計を 出そう（今は =SUMM(A2:A5)）', 'D3 の 式を 直して、A2 が 60以上なら「OK」、それ以外は「NG」と 出そう（今は =IF(A2>=60,OK,NG)）'], [
+      'Fix the formula in D2 to get the total score (it\'s =SUMM(A2:A5) now)',
+      'Fix the formula in D3 to show "OK" if A2 is 60 or more, otherwise "NG" (it\'s =IF(A2>=60,OK,NG) now)',
+    ]),
     grid: () => {
-      const g = makeGrid(6, 4, [['点数', '', '', ''], ...SCRIBE_SCORES.map((v, i) => [v, '', i === 0 ? '合計' : i === 1 ? '判定' : ''])], ['A1', 'C2', 'C3'])
+      const g = makeGrid(6, 4, [tra<(string | number)[]>(['点数', '', '', ''], ['Score', '', '', '']), ...SCRIBE_SCORES.map((v, i) => [v, '', i === 0 ? tr('合計', 'Total') : i === 1 ? tr('判定', 'Check') : ''])], ['A1', 'C2', 'C3'])
       g[1][3].raw = '=SUMM(A2:A5)'
       g[2][3].raw = '=IF(A2>=60,OK,NG)'
       return g
     },
     colWidths: [60, 20, 50, 80],
-    hints: [
+    hints: tra([
       '#NAME? は「その 名前を 知らない」という エラー。関数名の 打ちまちがいや、" を 付け忘れた 文字で 出る。',
       'D2 は SUMM ではなく SUM。D3 は 文字の OK・NG を " で 囲む。',
       'D2 に =SUM(A2:A5)、D3 に =IF(A2>=60,"OK","NG")。',
-    ],
+    ], [
+      '#NAME? is the error for "I don\'t know that name." It shows up with a misspelled function name or text missing its ".',
+      'D2 should be SUM, not SUMM. In D3, wrap the text OK and NG in ".',
+      '=SUM(A2:A5) in D2 and =IF(A2>=60,"OK","NG") in D3.',
+    ]),
     check: (c) => first(expectNum(c, 'D2', SCRIBE_SCORES.reduce((a, b) => a + b, 0), 'SUM'), expectVal(c, 'D3', SCRIBE_SCORES[0] >= 60 ? 'OK' : 'NG', 'IF')),
     reward: { exp: 430, gold: 410, skill: 'nameerr' },
-    thanks: [
+    thanks: tra([
       '合計 279、判定は「OK」……！ ちゃんと 出ました！',
       '#NAME? が 出たら、関数名の つづりと、" の 付け忘れを 確かめる。覚えました！',
       'わたしの 書き損じ、魔王の せいに しないで よかった……。',
-    ],
+    ], [
+      'A total of 279, and the check says "OK"...! They work!',
+      'When #NAME? appears, check the spelling of the function name and for missing ". Got it!',
+      'Glad I didn\'t blame my own mistakes on the Demon Lord...',
+    ]),
   },
 
   err_ref: {
     id: 'err_ref',
     town: 'hope',
     npc: '地図係ツナギ',
-    title: '消えた参照',
-    intro: [
+    title: tr('消えた参照', 'The Missing Reference'),
+    intro: tra([
       '地図係の ツナギよ。道ごとの 通行税を 計算してたの。',
       '税率を 書いた 列を うっかり 消したら、式が ぜんぶ「#REF!」に なっちゃって……。',
       '税率は E1 に 書き直したわ。式を どう 直せば いいかしら？',
-    ],
-    task: ['C2:C5 の 式を 直して、通行料（B列）× 税率（E1）を 出そう', '1つ 直して 下へ コピー。税率の セルは $ で 固定'],
+    ], [
+      'I\'m Tsunagi, the mapmaker. I was calculating the toll tax for each road.',
+      'I accidentally deleted the column with the tax rate, and every formula turned into "#REF!"...',
+      'I\'ve rewritten the tax rate in E1. How should I fix the formulas?',
+    ]),
+    task: tra(['C2:C5 の 式を 直して、通行料（B列）× 税率（E1）を 出そう', '1つ 直して 下へ コピー。税率の セルは $ で 固定'], [
+      'Fix the formulas in C2:C5 to show the toll (column B) × the tax rate (E1)',
+      'Fix one and copy it down. Lock the tax rate cell with $',
+    ]),
     grid: () => {
-      const g = makeGrid(6, 5, [['道', '通行料', '税', '税率', RATE_F], ...MAP_COST.map((v, i) => [`${['北', '東', '南', '西'][i]}の道`, v])], ['A1', 'B1', 'C1', 'D1'])
+      const g = makeGrid(6, 5, [tra<(string | number)[]>(['道', '通行料', '税', '税率', RATE_F], ['Road', 'Toll', 'Tax', 'Rate', RATE_F]), ...MAP_COST.map((v, i) => [tr(`${['北', '東', '南', '西'][i]}の道`, `${['North', 'East', 'South', 'West'][i]} Rd`), v])], ['A1', 'B1', 'C1', 'D1'])
       for (let i = 0; i < MAP_COST.length; i++) g[i + 1][2].raw = `=B${i + 2}*#REF!`
       return g
     },
     colWidths: [70, 60, 60, 50, 50],
-    hints: [
+    hints: tra([
       '#REF! は「参照先の セルが 消えた」という エラー。行や 列を 削除すると 出る。',
       '消えた 参照を、新しい 税率の セル E1 に 付けかえる。コピーするので $E$1。',
       'C2 に =B2*$E$1 → C5 まで オートフィル。',
-    ],
+    ], [
+      '#REF! is the error for "the referenced cell is gone." It shows up when you delete rows or columns.',
+      'Reconnect the lost reference to the new tax rate cell, E1. You\'ll copy it, so make it $E$1.',
+      '=B2*$E$1 in C2 → AutoFill down to C5.',
+    ]),
     check: (c) => first(...MAP_COST.map((v, i) => expectNum(c, `C${i + 2}`, v * RATE_F, 'formula'))),
     reward: { exp: 440, gold: 420, skill: 'referr' },
-    thanks: [
+    thanks: tra([
       '30、45、12、80……税が ちゃんと 出たわ！',
       '#REF! は「行き先が 消えた」合図。消す 前に、その セルを 使っている 式が ないか 確かめるのね。',
       'ふう、地図の 帳面が 元どおりに なったわ。',
-    ],
+    ], [
+      '30, 45, 12, 80... The taxes came out right!',
+      '#REF! is the sign that "the destination is gone." Before deleting, check whether any formula uses that cell.',
+      'Phew, my map ledger is back to normal.',
+    ]),
   },
 
   err_report: {
     id: 'err_report',
     town: 'hope',
     npc: '兵站長マトメ',
-    title: '出陣前の兵糧',
-    intro: [
+    title: tr('出陣前の兵糧', 'Rations Before Marching'),
+    intro: tra([
       '兵站長の マトメだ。魔王城へ 出陣する 前に、部隊ごとの 兵糧を 確かめたい。',
       '記録は バラバラ。北隊・南隊・西隊の 合計を 出して、100袋 以上 あれば「十分」、なければ「不足」と 判定したい。',
       'ピボリアや イフポートで 覚えた 魔法を、組み合わせて くれないか。',
-    ],
-    task: ['F2:F4 に、部隊（E列）ごとの 兵糧の 合計を 出そう（SUMIFS、範囲は $ で 固定）', 'G2:G4 に、100 以上なら「十分」、それ以外は「不足」と 出そう'],
-    grid: () => makeGrid(10, 7, [['部隊', '品', '袋', '', '部隊', '合計', '判定'], ...UNITS.map((r, i) => [...r, '', UNIT_NAMES[i] ?? ''])], ['A1', 'B1', 'C1', 'E1', 'F1', 'G1']),
+    ], [
+      'I\'m Matome, the quartermaster. Before marching on the Demon Lord\'s castle, I want to check each unit\'s rations.',
+      'The records are scattered. I want the totals for the North, South and West units, and to judge "Enough" if there are 100 bags or more, otherwise "Short."',
+      'Could you combine the magic you learned in Pivoria and Ifport?',
+    ]),
+    task: tra(['F2:F4 に、部隊（E列）ごとの 兵糧の 合計を 出そう（SUMIFS、範囲は $ で 固定）', 'G2:G4 に、100 以上なら「十分」、それ以外は「不足」と 出そう'], [
+      'In F2:F4, show the total rations for each unit (column E) (SUMIFS; lock the ranges with $)',
+      'In G2:G4, show "Enough" if it\'s 100 or more, otherwise "Short"',
+    ]),
+    grid: () => makeGrid(10, 7, [tra<(string | number)[]>(['部隊', '品', '袋', '', '部隊', '合計', '判定'], ['Unit', 'Item', 'Bags', '', 'Unit', 'Total', 'Check']), ...UNITS.map((r, i) => [...r, '', UNIT_NAMES[i] ?? ''])], ['A1', 'B1', 'C1', 'E1', 'F1', 'G1']),
     colWidths: [50, 50, 40, 20, 50, 50, 50],
-    hints: [
+    hints: tra([
       '合計は =SUMIFS(合計する範囲, 条件の範囲, 条件)。条件は E2 の 部隊名。',
       '下へ コピーするので 記録の 範囲は $ で 固定。=SUMIFS($C$2:$C$9,$A$2:$A$9,E2)',
       '判定は =IF(F2>=100,"十分","不足")。どちらも 4行目まで オートフィル。',
-    ],
+    ], [
+      'The total is =SUMIFS(range to total, range to check, condition). The condition is the unit name in E2.',
+      'Since you\'ll copy it down, lock the record ranges with $. =SUMIFS($C$2:$C$9,$A$2:$A$9,E2)',
+      'The check is =IF(F2>=100,"Enough","Short"). AutoFill both down to row 4.',
+    ]),
     check: (c) =>
       first(
         ...UNIT_NAMES.map((u, i) => expectNum(c, `F${i + 2}`, sumIf(UNITS, ([a]) => a === u, (r) => r[2]), 'SUMIFS')),
-        eachVal(c, UNIT_NAMES.map((u, i) => [`G${i + 2}`, sumIf(UNITS, ([a]) => a === u, (r) => r[2]) >= 100 ? '十分' : '不足']), 'IF'),
+        eachVal(c, UNIT_NAMES.map((u, i) => [`G${i + 2}`, sumIf(UNITS, ([a]) => a === u, (r) => r[2]) >= 100 ? ENOUGH : SHORT]), 'IF'),
       ),
     reward: { exp: 460, gold: 440, skill: 'combine' },
-    thanks: [
+    thanks: tra([
       '北隊 120、南隊 75、西隊 110。南隊が「不足」か……すぐに 補給を 回そう。',
       '集計して、判定する。2つの 魔法を 組み合わせれば、報告書が 一瞬で できあがる。',
       'これで 出陣できる。ありがとう、旅の者。',
-    ],
+    ], [
+      'North 120, South 75, West 110. So the South unit is "Short"... I\'ll send supplies right away.',
+      'Total, then judge. Combine two kinds of magic, and the report is done in an instant.',
+      'Now we can march. Thank you, traveler.',
+    ]),
   },
 
   err_final: {
     id: 'err_final',
     town: 'hope',
     npc: '砦の長ガンバル',
-    title: '出陣の号令',
-    intro: [
+    title: tr('出陣の号令', 'The Call to March'),
+    intro: tra([
       '砦の長、ガンバルだ。7つの 町を 救った 噂は、ここまで 届いて おる。',
       '最後に 頼みが ある。出陣の 号令を、名簿から 自動で 作りたいのだ。',
       '総勢 何名かを 計算して、「総勢 ○ 名、出陣！」と 1つの 文に したい。人数が 変わっても、文が 自動で 変わるように な。',
-    ],
-    task: ['B6 に、人数の 合計を 出そう', 'A8 に、「総勢 」と B6 と「 名、出陣!」を つないだ 文を 作ろう'],
-    grid: () => makeGrid(9, 2, [['部隊', '人数'], ...ROSTER, ['合計'], [], ['']], ['A1', 'B1', 'A6']),
+    ], [
+      'I\'m Ganbaru, commander of the fort. Word that you saved seven towns has reached even here.',
+      'One last request. I want to make the call to march automatically from the roster.',
+      'I want to calculate the total number of troops and make it one sentence: "All ○ troops, march!" And the sentence should change by itself if the numbers change.',
+    ]),
+    task: tra(['B6 に、人数の 合計を 出そう', 'A8 に、「総勢 」と B6 と「 名、出陣!」を つないだ 文を 作ろう'], [
+      'In B6, show the total number of troops',
+      'In A8, make a sentence joining "All ", B6 and " troops, march!"',
+    ]),
+    grid: () => makeGrid(9, 2, [tra<(string | number)[]>(['部隊', '人数'], ['Unit', 'Troops']), ...ROSTER, [tr('合計', 'Total')], [], ['']], ['A1', 'B1', 'A6']),
     colWidths: [180, 60],
-    hints: [
+    hints: tra([
       '合計は =SUM(B2:B5)。',
       '文字と 数も「&」で つなげる。文字の 部分は " で 囲む。空白も 文字の うち。',
       'A8 に ="総勢 "&B6&" 名、出陣!"',
-    ],
+    ], [
+      'The total is =SUM(B2:B5).',
+      'Text and numbers can also be joined with "&". Wrap the text parts in ". Spaces count as text too.',
+      '="All "&B6&" troops, march!" in A8',
+    ]),
     check: (c) => {
       const total = ROSTER.reduce((a, [, v]) => a + v, 0)
-      return first(expectNum(c, 'B6', total, 'SUM'), expectVal(c, 'A8', `総勢 ${total} 名、出陣!`), needJoin(c, ['A8']))
+      return first(expectNum(c, 'B6', total, 'SUM'), expectVal(c, 'A8', tr(`総勢 ${total} 名、出陣!`, `All ${total} troops, march!`)), needJoin(c, ['A8']))
     },
     reward: { exp: 500, gold: 500, skill: 'message' },
-    thanks: [
+    thanks: tra([
       '「総勢 120 名、出陣!」……うむ、見事な 号令だ！',
       '数を 計算して、文に 組みこむ。これまでの 力が、すべて つながったな。',
       '魔王レフエラーの 城は、北の 結界の 向こうだ。どうか……この 世界の「時間」を 取り戻して くれ。',
-    ],
+    ], [
+      '"All 120 troops, march!"... Hm, a splendid call!',
+      'Calculate a number and work it into a sentence. Everything you\'ve learned has come together.',
+      'Demon Lord Referror\'s castle lies beyond the northern barrier. Please... take back this world\'s "time."',
+    ]),
     notLast: {
-      introHead: ['砦の長、ガンバルだ。7つの 町を 救った 噂は、ここまで 届いて おる。', '頼みが ある。出陣の 号令を、名簿から 自動で 作りたいのだ。'],
-      thanksTail: ['砦には まだ 困っている 者が いる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'],
+      introHead: tra(['砦の長、ガンバルだ。7つの 町を 救った 噂は、ここまで 届いて おる。', '頼みが ある。出陣の 号令を、名簿から 自動で 作りたいのだ。'], [
+        'I\'m Ganbaru, commander of the fort. Word that you saved seven towns has reached even here.',
+        'I have a request. I want to make the call to march automatically from the roster.',
+      ]),
+      thanksTail: tra(['砦には まだ 困っている 者が いる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'], [
+        'There are still people at the fort who need help. Please listen to anyone with a "!" over their head, too.',
+      ]),
     },
   },
 } satisfies Record<string, QuestDef>)
@@ -3958,25 +4070,34 @@ const RATIONS: [number, number][] = [
   [40, 0],
   [36, 4],
 ]
-const CASTLE_PRICES: [string, number][] = [
-  ['剣', 120],
-  ['盾', 80],
-  ['薬', 15],
-]
-const CASTLE_ORDERS: [string, number][] = [
-  ['盾', 2],
-  ['薬', 5],
-  ['剣', 1],
-]
-const SEALS: [string, number][] = [
-  ['表の封印', 12],
-  ['計算の封印', 18],
-  ['参照の封印', 9],
-  ['条件の封印', 15],
-  ['検索の封印', 21],
-  ['集計の封印', 14],
-  ['文字の封印', 11],
-]
+const CASTLE_PRICES: [string, number][] = named(
+  [
+    ['剣', 120],
+    ['盾', 80],
+    ['薬', 15],
+  ],
+  ['Sword', 'Shield', 'Potion'],
+)
+const CASTLE_ORDERS: [string, number][] = named(
+  [
+    ['盾', 2],
+    ['薬', 5],
+    ['剣', 1],
+  ],
+  ['Shield', 'Potion', 'Sword'],
+)
+const SEALS: [string, number][] = named(
+  [
+    ['表の封印', 12],
+    ['計算の封印', 18],
+    ['参照の封印', 9],
+    ['条件の封印', 15],
+    ['検索の封印', 21],
+    ['集計の封印', 14],
+    ['文字の封印', 11],
+  ],
+  ['Seal of Tables', 'Seal of Math', 'Seal of Reference', 'Seal of Conditions', 'Seal of Searching', 'Seal of Totals', 'Seal of Text'],
+)
 
 Object.assign(QUESTS, {
   cst_iferror: {
@@ -3984,45 +4105,62 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'castle',
     npc: '割れぬ扉',
-    title: '割れぬ扉',
-    intro: ['扉に「÷」の 紋章と 数字が 刻まれている。', '「割れるものは 割り、割れぬものには 0 を 刻め。1つの 式を すべてに 映せ」――と 読める。'],
-    task: ['C2:C4 に、A ÷ B を 示せ。割れない（0 で 割る）ときは 0'],
-    grid: () => makeGrid(5, 3, [['数', '割る数', '答え'], ...RATIONS]),
+    title: tr('割れぬ扉', 'Unbreakable Door'),
+    intro: tra(['扉に「÷」の 紋章と 数字が 刻まれている。', '「割れるものは 割り、割れぬものには 0 を 刻め。1つの 式を すべてに 映せ」――と 読める。'], [
+      'A "÷" crest and numbers are carved into the door.',
+      'It reads: "Divide what can be divided, and carve 0 for what cannot. Reflect a single formula into them all."',
+    ]),
+    task: tra(['C2:C4 に、A ÷ B を 示せ。割れない（0 で 割る）ときは 0'], [
+      'In C2:C4, show A ÷ B. When it can\'t be divided (dividing by 0), show 0',
+    ]),
+    grid: () => makeGrid(5, 3, [tra<(string | number)[]>(['数', '割る数', '答え'], ['Number', 'Divisor', 'Answer']), ...RATIONS]),
     colWidths: [50, 60, 60],
     hints: [],
     check: (c) => first(...RATIONS.map(([a, b], i) => expectNum(c, `C${i + 2}`, b === 0 ? 0 : a / b, 'IFERROR', `C${i + 2}`, true))),
     reward: { exp: 200, gold: 0 },
-    thanks: ['3つの 答えが 光り、扉の 紋章が 割れた！'],
+    thanks: tra(['3つの 答えが 光り、扉の 紋章が 割れた！'], ['The three answers glow, and the crest on the door cracks apart!']),
   },
   cst_lookup: {
     id: 'cst_lookup',
     kind: 'puzzle',
     town: 'castle',
     npc: '代価の扉',
-    title: '代価の扉',
-    intro: ['扉に 品の 値段表と、注文の 帳面が 刻まれている。', '「品の 値を 表より 引き、数を 掛けて 代価を 示せ。1つの 式を すべてに 映せ」――と 読める。'],
-    task: ['C2:C4 に、品（A列）の 値段を 表（E2:F4）から 引いて、数（B列）を 掛けた 代価を 示せ'],
-    grid: () => makeGrid(5, 6, [['品', '数', '代価', '', '品', '値段'], ...CASTLE_ORDERS.map((r, i) => [...r, '', '', ...(CASTLE_PRICES[i] ?? [])])]),
+    title: tr('代価の扉', 'Door of Prices'),
+    intro: tra(['扉に 品の 値段表と、注文の 帳面が 刻まれている。', '「品の 値を 表より 引き、数を 掛けて 代価を 示せ。1つの 式を すべてに 映せ」――と 読める。'], [
+      'A price list and an order ledger are carved into the door.',
+      'It reads: "Look up the price of each item in the list, multiply by the count, and show the cost. Reflect a single formula into them all."',
+    ]),
+    task: tra(['C2:C4 に、品（A列）の 値段を 表（E2:F4）から 引いて、数（B列）を 掛けた 代価を 示せ'], [
+      'In C2:C4, look up the price of each item (column A) in the list (E2:F4) and show the cost multiplied by the count (column B)',
+    ]),
+    grid: () => makeGrid(5, 6, [tra<(string | number)[]>(['品', '数', '代価', '', '品', '値段'], ['Item', 'Qty', 'Cost', '', 'Item', 'Price']), ...CASTLE_ORDERS.map((r, i) => [...r, '', '', ...(CASTLE_PRICES[i] ?? [])])]),
     colWidths: [40, 40, 60, 20, 40, 50],
     hints: [],
     check: (c) => first(...CASTLE_ORDERS.map(([k, n], i) => expectNum(c, `C${i + 2}`, CASTLE_PRICES.find(([p]) => p === k)![1] * n, 'XLOOKUP', `C${i + 2}`, true))),
     reward: { exp: 220, gold: 0 },
-    thanks: ['代価の 数字が 天秤に 乗り、重い 扉が 開いた！'],
+    thanks: tra(['代価の 数字が 天秤に 乗り、重い 扉が 開いた！'], ['The costs settle onto the scales, and the heavy door opens!']),
   },
   cst_seals: {
     id: 'cst_seals',
     kind: 'puzzle',
     town: 'castle',
     npc: '七つの封印',
-    title: '七つの封印',
-    intro: ['玉座の間へ 続く 最後の 扉。7つの 封印が 刻まれている。', '「七つの 力の 和が 百に 届くならば『ヒラケ』、届かぬならば『トジヨ』と 刻め」――と 読める。'],
-    task: ['B9 に、7つの 力（B2:B8）の 合計が 100 以上なら「ヒラケ」、それ以外は「トジヨ」と 示せ'],
-    grid: () => makeGrid(10, 2, [['封印', '力'], ...SEALS, ['命令']]),
+    title: tr('七つの封印', 'The Seven Seals'),
+    intro: tra(['玉座の間へ 続く 最後の 扉。7つの 封印が 刻まれている。', '「七つの 力の 和が 百に 届くならば『ヒラケ』、届かぬならば『トジヨ』と 刻め」――と 読める。'], [
+      'The last door before the throne room. Seven seals are carved into it.',
+      'It reads: "If the sum of the seven powers reaches one hundred, carve OPEN. If it falls short, carve CLOSE."',
+    ]),
+    task: tra(['B9 に、7つの 力（B2:B8）の 合計が 100 以上なら「ヒラケ」、それ以外は「トジヨ」と 示せ'], [
+      'In B9, show "OPEN" if the total of the seven powers (B2:B8) is 100 or more, otherwise "CLOSE"',
+    ]),
+    grid: () => makeGrid(10, 2, [tra<(string | number)[]>(['封印', '力'], ['Seal', 'Power']), ...SEALS, [tr('命令', 'Command')]]),
     colWidths: [110, 70],
     hints: [],
-    check: (c) => expectVal(c, 'B9', SEALS.reduce((a, [, v]) => a + v, 0) >= 100 ? 'ヒラケ' : 'トジヨ', 'IF', true),
+    check: (c) => expectVal(c, 'B9', SEALS.reduce((a, [, v]) => a + v, 0) >= 100 ? tr('ヒラケ', 'OPEN') : tr('トジヨ', 'CLOSE'), 'IF', true),
     reward: { exp: 260, gold: 0 },
-    thanks: ['7つの 封印が 次々と 光を 放ち、玉座の間への 扉が 開いた……！'],
+    thanks: tra(['7つの 封印が 次々と 光を 放ち、玉座の間への 扉が 開いた……！'], [
+      'One after another, the seven seals give off light, and the door to the throne room opens...!',
+    ]),
   },
 } satisfies Record<string, QuestDef>)
 
