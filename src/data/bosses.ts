@@ -181,27 +181,47 @@ export const BOSSES: Record<string, BossDef> = {
     name: '幽霊船長モシナラバ',
     sprite: 'captain',
     boss: true,
-    attackText: '「もしも」の 呪いを こめた 錨を 投げつけてきた！',
-    defeatText: [
-      '「もし……あのとき 判断を 人まかせに しなければ……。」',
-      '「条件を 決めて おけば……迷わずに すんだのか……。ヨーソロー……。」',
-      '幽霊船長モシナラバは、朝焼けの 光の中へ 静かに 消えていった。',
-    ],
+    attackText: tr('「もしも」の 呪いを こめた 錨を 投げつけてきた！', 'It hurled an anchor laced with the curse of "what if"!'),
+    defeatText: tra(
+  [
+        '「もし……あのとき 判断を 人まかせに しなければ……。」',
+        '「条件を 決めて おけば……迷わずに すんだのか……。ヨーソロー……。」',
+        '幽霊船長モシナラバは、朝焼けの 光の中へ 静かに 消えていった。',
+      ],
+      [
+      '"If only... I hadn\'t left my decisions to others back then..."',
+      '"If I had set the conditions... I wouldn\'t have had to agonize... Steady as she goes..."',
+      'Ghost Captain Whatif quietly faded into the light of the dawn.',
+      ],
+    ),
     hp: 400,
     attack: [22, 29],
     exp: 380,
     gold: 300,
-    intro: [
-      '（船長室の 奥。青白く 光る 船長が、舵輪を 握って 立っている……）',
-      'ヨーソロー……。もしも 嵐なら？ もしも 大漁なら？ もしも 赤字なら？',
-      'すべての「もしも」を、ひとつ ひとつ 目で 見て 悩み続けるが いい……！',
-      'この港の 者どもは、永遠に 判断を 手作業で くり返すのだ！',
-    ],
+    intro: tra(
+  [
+        '（船長室の 奥。青白く 光る 船長が、舵輪を 握って 立っている……）',
+        'ヨーソロー……。もしも 嵐なら？ もしも 大漁なら？ もしも 赤字なら？',
+        'すべての「もしも」を、ひとつ ひとつ 目で 見て 悩み続けるが いい……！',
+        'この港の 者どもは、永遠に 判断を 手作業で くり返すのだ！',
+      ],
+      [
+      '(At the back of the captain\'s cabin, a pale, glowing captain stands gripping the ship\'s wheel...)',
+      'Steady as she goes... What if there\'s a storm? What if it\'s a great catch? What if we lose money?',
+      'Go on, agonize over every "what if," one by one, by eye...!',
+      'The people of this harbor shall make every decision by hand, forever!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: 'IF関数の 正しい 形は？', choices: ['=IF(条件,正しいとき,違うとき)', '=IF(正しいとき,条件,違うとき)', '=IF(条件)', '=IF(違うとき,正しいとき)'], answer: '=IF(条件,正しいとき,違うとき)', explain: '条件 → TRUE のとき → FALSE のとき の 順。' },
-      { type: 'choice', q: 'IFの 答えに 文字を 使うとき、文字を 囲む 記号は？', choices: ['"（ダブルクォーテーション）', "'（シングルクォーテーション）", '[ ]（カッコ）', '#（シャープ）'], answer: '"（ダブルクォーテーション）', explain: '=IF(A1>=60,"合格","不合格") のように " で 囲む。' },
-      { type: 'choice', q: '「A1 が 10以上 かつ B1 が 5未満」を 表す 式は？', choices: ['AND(A1>=10,B1<5)', 'OR(A1>=10,B1<5)', 'AND(A1>10,B1<=5)', 'IF(A1>=10,B1<5)'], answer: 'AND(A1>=10,B1<5)', explain: '「かつ」は AND、「または」は OR。' },
-      { type: 'choice', q: '条件に 合う セルの「数」を 数える 関数は？', choices: ['COUNTIF', 'SUMIF', 'COUNTA', 'IF'], answer: 'COUNTIF', explain: 'COUNTIF(範囲, 条件)。合計なら SUMIF。' },
+      c('IF関数の 正しい 形は？', ['=IF(条件,正しいとき,違うとき)', '=IF(正しいとき,条件,違うとき)', '=IF(条件)', '=IF(違うとき,正しいとき)'], '=IF(条件,正しいとき,違うとき)', '条件 → TRUE のとき → FALSE のとき の 順。', { q: 'What\'s the correct form of the IF function?', choices: ['=IF(condition,if true,if false)', '=IF(if true,condition,if false)', '=IF(condition)', '=IF(if false,if true)'], answer: '=IF(condition,if true,if false)', explain: 'Condition → value when TRUE → value when FALSE, in that order.' }),
+      c('IFの 答えに 文字を 使うとき、文字を 囲む 記号は？', ['"（ダブルクォーテーション）', "'（シングルクォーテーション）", '[ ]（カッコ）', '#（シャープ）'], '"（ダブルクォーテーション）', '=IF(A1>=60,"合格","不合格") のように " で 囲む。', {
+        q: 'When IF returns text, which symbol wraps the text?',
+        choices: ['" (double quote)', "' (single quote)", '[ ] (brackets)', '# (hash)'],
+        answer: '" (double quote)',
+        explain: 'Wrap it in ", like =IF(A1>=60,"Pass","Fail").',
+      }),
+      c('「A1 が 10以上 かつ B1 が 5未満」を 表す 式は？', ['AND(A1>=10,B1<5)', 'OR(A1>=10,B1<5)', 'AND(A1>10,B1<=5)', 'IF(A1>=10,B1<5)'], 'AND(A1>=10,B1<5)', '「かつ」は AND、「または」は OR。', { q: 'Which expresses "A1 is 10 or more AND B1 is under 5"?', explain: '"And" is AND, "or" is OR.' }),
+      c('条件に 合う セルの「数」を 数える 関数は？', ['COUNTIF', 'SUMIF', 'COUNTA', 'IF'], 'COUNTIF', 'COUNTIF(範囲, 条件)。合計なら SUMIF。', { q: 'Which function counts the number of cells that match a condition?', explain: 'COUNTIF(range, condition). For a total, use SUMIF.' }),
       G.genCompare,
       G.genIfText,
       G.genIfNum,
@@ -226,26 +246,40 @@ Object.assign(BOSSES, {
     name: '迷宮書庫の主 ミツカラーヌ',
     sprite: 'mitsukaranu',
     boss: true,
-    attackText: '「#N/A」の 紙吹雪を 巻き上げて 襲ってきた！',
-    defeatText: [
-      '「探せば……見つかる……。探し方さえ……知って いれば……。」',
-      '「ワタシは……ただ、誰かに 見つけて ほしかった だけ なのかも しれない……。」',
-      'ミツカラーヌの 表紙が 静かに 閉じ、光の 栞と なって 書架へ 戻っていった。',
-    ],
+    attackText: tr('「#N/A」の 紙吹雪を 巻き上げて 襲ってきた！', 'It attacked with a whirlwind of "#N/A" confetti!'),
+    defeatText: tra(
+  [
+        '「探せば……見つかる……。探し方さえ……知って いれば……。」',
+        '「ワタシは……ただ、誰かに 見つけて ほしかった だけ なのかも しれない……。」',
+        'ミツカラーヌの 表紙が 静かに 閉じ、光の 栞と なって 書架へ 戻っていった。',
+      ],
+      [
+      '"Search... and you shall find... if only you know... how to search..."',
+      '"Perhaps all I ever wanted... was for someone to find me..."',
+      'Notfoundra\'s cover quietly closed, and it returned to the shelves as a bookmark of light.',
+      ],
+    ),
     hp: 480,
     attack: [26, 33],
     exp: 520,
     gold: 420,
-    intro: [
-      '（大書庫の 最奥。天井まで 積まれた 本の 山の 中で、巨大な 本が 目を 開いた……！）',
-      'ミツカラヌ……ミツカラヌ……。この 城の 記録は すべて ワタシが 呑みこんだ。',
-      '1行ずつ 目で 探し、見つからずに 途方に くれるが いい。キサマの 答えも「#N/A」に してやろう……！',
-    ],
+    intro: tra(
+  [
+        '（大書庫の 最奥。天井まで 積まれた 本の 山の 中で、巨大な 本が 目を 開いた……！）',
+        'ミツカラヌ……ミツカラヌ……。この 城の 記録は すべて ワタシが 呑みこんだ。',
+        '1行ずつ 目で 探し、見つからずに 途方に くれるが いい。キサマの 答えも「#N/A」に してやろう……！',
+      ],
+      [
+      '(Deep in the Great Library, among mountains of books stacked to the ceiling, a giant book opened its eyes...!)',
+      'NOT FOUND... NOT FOUND... I have swallowed every record in this castle.',
+      'Search line by line by eye, find nothing, and despair. I shall turn your answer into "#N/A" too...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: 'VLOOKUP の 4つ目を FALSE に すると？', choices: ['完全一致で 探す', '近似一致で 探す', '右から 探す', '見つからなければ 0'], answer: '完全一致で 探す', explain: 'FALSE は 完全一致。TRUE（または 省略）は 近似一致。番号や 名前を 探すときは FALSE。' },
-      { type: 'choice', q: 'VLOOKUP で 探す値が 見つからないと 出る エラーは？', choices: ['#N/A', '#VALUE!', '#DIV/0!', '#REF!'], answer: '#N/A', explain: '#N/A は Not Available（見つからない）。IFERROR か XLOOKUP の 4つ目で 別の 値に できる。' },
-      { type: 'choice', q: '探す列より 左の 列を 取り出せる 関数は？', choices: ['XLOOKUP', 'VLOOKUP', 'COUNTIF', 'ROUND'], answer: 'XLOOKUP', explain: 'XLOOKUP(探す値, 探す列, 取り出す列)。探す列と 取り出す列を 別々に 指定できる。' },
-      { type: 'choice', q: 'VLOOKUP の 範囲を 下へ コピーしても ずれないように するには？', choices: ['$A$2:$C$9 のように 固定', 'A2:C9 のまま', '列番号に $ を 付ける', 'FALSE を TRUE に する'], answer: '$A$2:$C$9 のように 固定', explain: '範囲が ずれると 上の 行が 探せなくなる。F4 で 固定しよう。' },
+      c('VLOOKUP の 4つ目を FALSE に すると？', ['完全一致で 探す', '近似一致で 探す', '右から 探す', '見つからなければ 0'], '完全一致で 探す', 'FALSE は 完全一致。TRUE（または 省略）は 近似一致。番号や 名前を 探すときは FALSE。', { q: 'What happens when you set the 4th part of VLOOKUP to FALSE?', choices: ['It searches for an exact match', 'It searches for an approximate match', 'It searches from the right', 'It shows 0 if not found'], answer: 'It searches for an exact match', explain: 'FALSE is an exact match. TRUE (or leaving it out) is an approximate match. Use FALSE when looking up numbers or names.' }),
+      c('VLOOKUP で 探す値が 見つからないと 出る エラーは？', ['#N/A', '#VALUE!', '#DIV/0!', '#REF!'], '#N/A', '#N/A は Not Available（見つからない）。IFERROR か XLOOKUP の 4つ目で 別の 値に できる。', { q: 'Which error does VLOOKUP give when the value isn\'t found?', explain: '#N/A means Not Available (not found). You can turn it into something else with IFERROR or the 4th part of XLOOKUP.' }),
+      c('探す列より 左の 列を 取り出せる 関数は？', ['XLOOKUP', 'VLOOKUP', 'COUNTIF', 'ROUND'], 'XLOOKUP', 'XLOOKUP(探す値, 探す列, 取り出す列)。探す列と 取り出す列を 別々に 指定できる。', { q: 'Which function can return a column to the left of the one it searches?', explain: 'XLOOKUP(value to find, column to search, column to return). You set the column to search and the column to return separately.' }),
+      c('VLOOKUP の 範囲を 下へ コピーしても ずれないように するには？', ['$A$2:$C$9 のように 固定', 'A2:C9 のまま', '列番号に $ を 付ける', 'FALSE を TRUE に する'], '$A$2:$C$9 のように 固定', '範囲が ずれると 上の 行が 探せなくなる。F4 で 固定しよう。', { q: 'How do you keep VLOOKUP\'s range from shifting when you copy it down?', choices: ['Lock it like $A$2:$C$9', 'Leave it as A2:C9', 'Add $ to the column number', 'Change FALSE to TRUE'], answer: 'Lock it like $A$2:$C$9', explain: 'If the range shifts, the top rows can\'t be searched. Lock it with F4.' }),
       G.genVlookupPick,
       G.genColIndex,
       G.genApproxPick,
@@ -265,26 +299,40 @@ Object.assign(BOSSES, {
     name: '散乱帳簿の王 バラバラン',
     sprite: 'barabaran',
     boss: true,
-    attackText: 'バラバラの 伝票を 嵐のように 吹き荒らした！',
-    defeatText: [
-      '「まとめ……られた……？ あれほど バラバラに した 記録が……たった 1つの 表に……。」',
-      '「数字は……並べる だけでは 何も 語らぬ……。まとめて はじめて……意味を 持つ……のか……。」',
-      'バラバランの 体を つくっていた 伝票が、1枚ずつ 光の 帳簿へと 綴じられていった。',
-    ],
+    attackText: tr('バラバラの 伝票を 嵐のように 吹き荒らした！', 'It whipped up a storm of scattered receipts!'),
+    defeatText: tra(
+  [
+        '「まとめ……られた……？ あれほど バラバラに した 記録が……たった 1つの 表に……。」',
+        '「数字は……並べる だけでは 何も 語らぬ……。まとめて はじめて……意味を 持つ……のか……。」',
+        'バラバランの 体を つくっていた 伝票が、1枚ずつ 光の 帳簿へと 綴じられていった。',
+      ],
+      [
+      '"Gathered...? The records I scattered so thoroughly... into just one table...?"',
+      '"Numbers... say nothing when merely lined up... Only when totaled... do they have meaning...?"',
+      'One by one, the receipts that made up Scatteron\'s body were bound into a ledger of light.',
+      ],
+    ),
     hp: 560,
     attack: [30, 37],
     exp: 640,
     gold: 520,
-    intro: [
-      '（宝物庫の 最奥。積み上げられた 伝票の 山が、ゆっくりと 起き上がった……！）',
-      'バラバラ……バラバラ……。王都の 記録は すべて ワシが 散らかして やった。',
-      '何千枚の 伝票を 1枚ずつ 数え、足し、途方に くれるが いい。キサマの 報告書も、永遠に 終わらぬ……！',
-    ],
+    intro: tra(
+  [
+        '（宝物庫の 最奥。積み上げられた 伝票の 山が、ゆっくりと 起き上がった……！）',
+        'バラバラ……バラバラ……。王都の 記録は すべて ワシが 散らかして やった。',
+        '何千枚の 伝票を 1枚ずつ 数え、足し、途方に くれるが いい。キサマの 報告書も、永遠に 終わらぬ……！',
+      ],
+      [
+      '(Deep in the treasury, a towering mountain of receipts slowly rose up...!)',
+      'Scattered... scattered... I have strewn every record in the capital.',
+      'Count and add thousands of receipts one by one, and despair. Your report shall never be finished...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: '条件が 2つ ある 合計を 出す 関数は？', choices: ['SUMIFS', 'SUMIF', 'SUM', 'COUNTIFS'], answer: 'SUMIFS', explain: 'SUMIFS(合計する範囲, 範囲1, 条件1, 範囲2, 条件2)。条件は いくつでも 並べられる。' },
-      { type: 'choice', q: 'SUMIFS と SUMIF で 位置が ちがう 引数は？', choices: ['合計する 範囲', '条件', '条件の 範囲', 'どれも 同じ'], answer: '合計する 範囲', explain: 'SUMIFS は 合計する範囲が 最初、SUMIF は 最後。' },
-      { type: 'choice', q: '「1000以上」を COUNTIFS の 条件に 書くと？', choices: ['">=1000"', '>=1000', '"=>1000"', '"≧1000"'], answer: '">=1000"', explain: '比べる 記号つきの 条件は " で 囲む。以上は >=。' },
-      { type: 'choice', q: 'ピボットテーブルで、合計する 数（売上など）を 置く 欄は？', choices: ['値', '行', '列', 'フィルター'], answer: '値', explain: 'ピボットテーブルは 行・列・値・フィルター の 4つの 欄で 表を 作る。' },
+      c('条件が 2つ ある 合計を 出す 関数は？', ['SUMIFS', 'SUMIF', 'SUM', 'COUNTIFS'], 'SUMIFS', 'SUMIFS(合計する範囲, 範囲1, 条件1, 範囲2, 条件2)。条件は いくつでも 並べられる。', { q: 'Which function gives a total with two conditions?', explain: 'SUMIFS(range to total, range1, condition1, range2, condition2). You can line up as many conditions as you like.' }),
+      c('SUMIFS と SUMIF で 位置が ちがう 引数は？', ['合計する 範囲', '条件', '条件の 範囲', 'どれも 同じ'], '合計する 範囲', 'SUMIFS は 合計する範囲が 最初、SUMIF は 最後。', { q: 'Which argument is in a different position in SUMIFS and SUMIF?', choices: ['The range to total', 'The condition', 'The range to check', 'They\'re all the same'], answer: 'The range to total', explain: 'In SUMIFS the range to total comes first; in SUMIF it comes last.' }),
+      c('「1000以上」を COUNTIFS の 条件に 書くと？', ['">=1000"', '>=1000', '"=>1000"', '"≧1000"'], '">=1000"', '比べる 記号つきの 条件は " で 囲む。以上は >=。', { q: 'How do you write "1000 or more" as a COUNTIFS condition?', explain: 'Conditions with a comparison symbol are wrapped in ". "At least" is >=.' }),
+      c('ピボットテーブルで、合計する 数（売上など）を 置く 欄は？', ['値', '行', '列', 'フィルター'], '値', 'ピボットテーブルは 行・列・値・フィルター の 4つの 欄で 表を 作る。', { q: 'In a PivotTable, which area holds the numbers to total (like sales)?', choices: ['Values', 'Rows', 'Columns', 'Filters'], answer: 'Values', explain: 'A PivotTable is built from four areas: Rows, Columns, Values and Filters.' }),
       G.genCountifsPick,
       G.genSumifsOrder,
       G.genCrossRef,
@@ -304,26 +352,40 @@ Object.assign(BOSSES, {
     name: '文字化けの怪 モジバケーラ',
     sprite: 'mojibake',
     boss: true,
-    attackText: '「縺薙ｓ縺ｫ縺｡縺ｯ」――意味の ない 文字の 渦が 襲いかかってきた！',
-    defeatText: [
-      '「繧ｪ……オ……ワタシの 言葉が……戻って……いく……？」',
-      '「つなげば 意味に なり、切りとれば 必要な 分だけ 取り出せる……。文字とは……そういう ものだった のか……。」',
-      'モジバケーラの 体を つくっていた 文字の 渦が ほどけ、1つずつ 正しい 活字へと 戻っていった。',
-    ],
+    attackText: tr('「縺薙ｓ縺ｫ縺｡縺ｯ」――意味の ない 文字の 渦が 襲いかかってきた！', '"縺薙ｓ縺ｫ縺｡縺ｯ" — a whirlpool of meaningless letters came at you!'),
+    defeatText: tra(
+  [
+        '「繧ｪ……オ……ワタシの 言葉が……戻って……いく……？」',
+        '「つなげば 意味に なり、切りとれば 必要な 分だけ 取り出せる……。文字とは……そういう ものだった のか……。」',
+        'モジバケーラの 体を つくっていた 文字の 渦が ほどけ、1つずつ 正しい 活字へと 戻っていった。',
+      ],
+      [
+      '"繧ｪ... O... My words... are coming... back...?"',
+      '"Joined, they gain meaning; cut, they give just what you need... So that is... what letters are..."',
+      'The whirlpool of letters that made up Mojibakera\'s body unraveled, and each letter returned to proper type.',
+      ],
+    ),
     hp: 640,
     attack: [33, 40],
     exp: 760,
     gold: 600,
-    intro: [
-      '（印刷所の 最奥。積み上げられた 活字が ざわめき、文字の 渦が 人の 形に なった……！）',
-      '繧ｳ繝ｳ繝九メ繝……おっと 失礼。ワタシは モジバケーラ。この 町の 文字は すべて ワタシが 化けさせた。',
-      '名前も 番号も、つなげず 切れず 読めもしない。キサマの 言葉も、意味の ない 記号に してやろう……！',
-    ],
+    intro: tra(
+  [
+        '（印刷所の 最奥。積み上げられた 活字が ざわめき、文字の 渦が 人の 形に なった……！）',
+        '繧ｳ繝ｳ繝九メ繝……おっと 失礼。ワタシは モジバケーラ。この 町の 文字は すべて ワタシが 化けさせた。',
+        '名前も 番号も、つなげず 切れず 読めもしない。キサマの 言葉も、意味の ない 記号に してやろう……！',
+      ],
+      [
+      '(Deep in the print shop, piles of type rustled, and a whirlpool of letters took human form...!)',
+      '繧ｳ繝ｳ繝九メ繝... Oh, pardon me. I am Mojibakera. I garbled every letter in this town.',
+      'Names and numbers alike: you can\'t join them, can\'t cut them, can\'t even read them. I\'ll turn your words into meaningless symbols too...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: '文字と 文字を つなぐ 記号は？', choices: ['&', '+', '*', '#'], answer: '&', explain: '=A1&B1 で つながる。+ は 数の 足し算。' },
-      { type: 'choice', q: '=LEFT(A1,FIND("@",A1)-1) の 役割は？', choices: ['@ より 前を 取り出す', '@ より 後ろを 取り出す', '@ を 消す', '@ の 数を 数える'], answer: '@ より 前を 取り出す', explain: 'FIND で @ の 位置を 調べ、その 1つ手前まで LEFT で 取り出す。' },
-      { type: 'choice', q: '=TRIM(" A  B ") の 結果は？', choices: ['"A B"', '"AB"', '" A  B "', '"A  B"'], answer: '"A B"', explain: 'TRIM は 前後の 空白を 消し、間の 空白は 1つに そろえる。' },
-      { type: 'choice', q: '「株式会社」を「(株)」に 置きかえる 関数は？', choices: ['SUBSTITUTE', 'TRIM', 'REPLACE', 'FIND'], answer: 'SUBSTITUTE', explain: '=SUBSTITUTE(文字列, 探す文字, 置きかえる文字)。' },
+      c('文字と 文字を つなぐ 記号は？', ['&', '+', '*', '#'], '&', '=A1&B1 で つながる。+ は 数の 足し算。', { q: 'Which symbol joins text to text?', explain: '=A1&B1 joins them. + is for adding numbers.' }),
+      c('=LEFT(A1,FIND("@",A1)-1) の 役割は？', ['@ より 前を 取り出す', '@ より 後ろを 取り出す', '@ を 消す', '@ の 数を 数える'], '@ より 前を 取り出す', 'FIND で @ の 位置を 調べ、その 1つ手前まで LEFT で 取り出す。', { q: 'What does =LEFT(A1,FIND("@",A1)-1) do?', choices: ['Takes the part before the @', 'Takes the part after the @', 'Removes the @', 'Counts the @s'], answer: 'Takes the part before the @', explain: 'FIND locates the @, and LEFT takes everything up to one before it.' }),
+      c('=TRIM(" A  B ") の 結果は？', ['"A B"', '"AB"', '" A  B "', '"A  B"'], '"A B"', 'TRIM は 前後の 空白を 消し、間の 空白は 1つに そろえる。', { q: 'What is the result of =TRIM(" A  B ")?', explain: 'TRIM removes the spaces at both ends and squeezes the spaces in between down to one.' }),
+      c('「株式会社」を「(株)」に 置きかえる 関数は？', ['SUBSTITUTE', 'TRIM', 'REPLACE', 'FIND'], 'SUBSTITUTE', '=SUBSTITUTE(文字列, 探す文字, 置きかえる文字)。', { q: 'Which function replaces "Corporation" with "Corp."?', explain: '=SUBSTITUTE(text, text to find, replacement).' }),
       G.genLeftRightPick,
       G.genMidPick,
       G.genJoinPick,
@@ -343,26 +405,40 @@ Object.assign(BOSSES, {
     name: '刻を喰らう者 シメキリス',
     sprite: 'shimekiris',
     boss: true,
-    attackText: '時計の 針を 振りかざし、締め切りの 日付を 次々と 奪っていく！',
-    defeatText: [
-      '「時は……数えられる……。足して、引いて、月を 数え、年を 数え……。」',
-      '「暦を 知る者からは……時を 奪えぬ……のか……。」',
-      'シメキリスの 歯車が 1つずつ はずれ、時計塔の 鐘が 正しい 時を 打ちはじめた。',
-    ],
+    attackText: tr('時計の 針を 振りかざし、締め切りの 日付を 次々と 奪っていく！', 'It brandished its clock hands and snatched away deadline after deadline!'),
+    defeatText: tra(
+  [
+        '「時は……数えられる……。足して、引いて、月を 数え、年を 数え……。」',
+        '「暦を 知る者からは……時を 奪えぬ……のか……。」',
+        'シメキリスの 歯車が 1つずつ はずれ、時計塔の 鐘が 正しい 時を 打ちはじめた。',
+      ],
+      [
+      '"Time... can be counted... Add, subtract, count the months, count the years..."',
+      '"From one who knows the calendar... time cannot be stolen...?"',
+      'One by one, Deadlinus\'s gears came loose, and the clock tower bell began to toll the correct time.',
+      ],
+    ),
     hp: 720,
     attack: [36, 43],
     exp: 880,
     gold: 680,
-    intro: [
-      '（時計塔の 最上階。巨大な 歯車の 中から、針の 腕を 持つ 怪物が 現れた……！）',
-      'チクタク……チクタク……。この 村の 暦は ワタシが 喰らった。',
-      '何日後か、何曜日か、何年 たったか……もう 誰にも わからぬ。キサマの 締め切りも、永遠に 過ぎ去るが いい……！',
-    ],
+    intro: tra(
+  [
+        '（時計塔の 最上階。巨大な 歯車の 中から、針の 腕を 持つ 怪物が 現れた……！）',
+        'チクタク……チクタク……。この 村の 暦は ワタシが 喰らった。',
+        '何日後か、何曜日か、何年 たったか……もう 誰にも わからぬ。キサマの 締め切りも、永遠に 過ぎ去るが いい……！',
+      ],
+      [
+      '(At the top of the clock tower, a monster with arms like clock hands emerged from the giant gears...!)',
+      'Tick-tock... tick-tock... I have devoured this village\'s calendar.',
+      'How many days later, which weekday, how many years have passed... no one can tell anymore. Let your deadlines slip away forever...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: '表計算の 日付の 中身は？', choices: ['1日 ＝ 1 の 数', '文字', '時刻', '曜日の 番号'], answer: '1日 ＝ 1 の 数', explain: 'だから 足し算・引き算で 何日後・何日間が わかる。' },
-      { type: 'choice', q: '=EDATE("2026/1/31", 1) の 答えは？', choices: ['2026/2/28', '2026/2/31', '2026/3/3', '2026/3/1'], answer: '2026/2/28', explain: '2月に 31日は ないので、その月の 末日（2月28日）に なる。' },
-      { type: 'choice', q: '満年数を 出す DATEDIF の 3つ目は？', choices: ['"Y"', '"M"', '"D"', '"YEAR"'], answer: '"Y"', explain: '"Y" で 満年数、"M" で 満月数、"D" で 日数。' },
-      { type: 'choice', q: '=EOMONTH(A1, 0) で 出るのは？', choices: ['A1 の 月の 末日', 'A1 の 翌月の 1日', 'A1 の 月の 1日', 'A1 の 曜日'], answer: 'A1 の 月の 末日', explain: '0 で その月、1 で 翌月の 末日。' },
+      c('表計算の 日付の 中身は？', ['1日 ＝ 1 の 数', '文字', '時刻', '曜日の 番号'], '1日 ＝ 1 の 数', 'だから 足し算・引き算で 何日後・何日間が わかる。', { q: 'What is a spreadsheet date really?', choices: ['A number where 1 day = 1', 'Text', 'A time', 'A weekday number'], answer: 'A number where 1 day = 1', explain: 'That\'s why adding and subtracting tells you days later and days between.' }),
+      c('=EDATE("2026/1/31", 1) の 答えは？', ['2026/2/28', '2026/2/31', '2026/3/3', '2026/3/1'], '2026/2/28', '2月に 31日は ないので、その月の 末日（2月28日）に なる。', { q: 'What is =EDATE("2026/1/31", 1)?', explain: 'February has no 31st, so it becomes the last day of that month (Feb 28).' }),
+      c('満年数を 出す DATEDIF の 3つ目は？', ['"Y"', '"M"', '"D"', '"YEAR"'], '"Y"', '"Y" で 満年数、"M" で 満月数、"D" で 日数。', { q: 'What is the 3rd part of DATEDIF for full years?', explain: '"Y" gives full years, "M" full months, and "D" days.' }),
+      c('=EOMONTH(A1, 0) で 出るのは？', ['A1 の 月の 末日', 'A1 の 翌月の 1日', 'A1 の 月の 1日', 'A1 の 曜日'], 'A1 の 月の 末日', '0 で その月、1 で 翌月の 末日。', { q: 'What does =EOMONTH(A1, 0) give?', choices: ['The last day of A1\'s month', 'The 1st of the month after A1', 'The 1st of A1\'s month', 'A1\'s weekday'], answer: 'The last day of A1\'s month', explain: '0 gives that month, 1 gives the last day of the next month.' }),
       G.genDateAddPick,
       G.genDateDiffPick,
       G.genWeekdayPick,
@@ -382,27 +458,44 @@ Object.assign(BOSSES, {
     name: '魔王レフエラー',
     sprite: 'refera',
     boss: true,
-    attackText: '「#REF!」の 黒い 稲妻が、世界じゅうの 参照を 断ち切っていく！',
-    defeatText: [
-      '「バカな……。ワシが 消した 参照を……つなぎ直した だと……？」',
-      '「エラーは……終わりでは なく……直すための……合図……。そう 言うのか……人間……。」',
-      '「時間を 奪えば……人は 何も できぬと 思って いた……。だが キサマは……仕組みで 時間を 取り戻した……。」',
-      '魔王レフエラーの 体が「#REF!」の 文字と ともに 崩れ、まぶしい 光が 城を つつみこんだ……。',
-    ],
+    attackText: tr('「#REF!」の 黒い 稲妻が、世界じゅうの 参照を 断ち切っていく！', 'Black lightning of "#REF!" severs references all over the world!'),
+    defeatText: tra(
+  [
+        '「バカな……。ワシが 消した 参照を……つなぎ直した だと……？」',
+        '「エラーは……終わりでは なく……直すための……合図……。そう 言うのか……人間……。」',
+        '「時間を 奪えば……人は 何も できぬと 思って いた……。だが キサマは……仕組みで 時間を 取り戻した……。」',
+        '魔王レフエラーの 体が「#REF!」の 文字と ともに 崩れ、まぶしい 光が 城を つつみこんだ……。',
+      ],
+      [
+      '"Impossible... You reconnected... the references I erased...?"',
+      '"Errors are... not the end... but a signal... to fix... Is that what you\'re saying... human...?"',
+      '"I thought... if I stole their time... people could do nothing... But you... took time back... with systems..."',
+      'Demon Lord Referror\'s body crumbled along with the letters "#REF!", and a dazzling light engulfed the castle...',
+      ],
+    ),
     hp: 960,
     attack: [42, 50],
     exp: 1500,
     gold: 1200,
-    intro: [
-      '（玉座に 座る 黒い 影が、ゆっくりと 立ち上がった……！）',
-      'よくぞ 来た、表の理を 知る者よ。ワシこそ 魔王レフエラー。',
-      '人々から「時間」を 奪う ため、数式を 消し、参照を 断ち、世界を エラーで 埋めつくして やった。',
-      '手作業に 追われ、雑用に 1日を 費やす……それこそが 人間の 正しい 姿よ。',
-      '7つの 町で 覚えた 小手先の 魔法など、ワシの「#REF!」の 前には 無力！ さあ、すべての 参照を 失うが いい……！',
-    ],
+    intro: tra(
+  [
+        '（玉座に 座る 黒い 影が、ゆっくりと 立ち上がった……！）',
+        'よくぞ 来た、表の理を 知る者よ。ワシこそ 魔王レフエラー。',
+        '人々から「時間」を 奪う ため、数式を 消し、参照を 断ち、世界を エラーで 埋めつくして やった。',
+        '手作業に 追われ、雑用に 1日を 費やす……それこそが 人間の 正しい 姿よ。',
+        '7つの 町で 覚えた 小手先の 魔法など、ワシの「#REF!」の 前には 無力！ さあ、すべての 参照を 失うが いい……！',
+      ],
+      [
+      '(The black shadow seated on the throne slowly rose...!)',
+      'Well met, you who know the Law of the Sheet. I am Demon Lord Referror.',
+      'To steal "time" from the people, I erased formulas, severed references, and buried the world in errors.',
+      'Chased by manual work, spending whole days on busywork... That is the proper state of humankind.',
+      'The petty tricks you learned in seven towns are powerless before my "#REF!" Now, lose every last reference...!',
+      ],
+    ),
     questions: [
-      { type: 'choice', q: 'エラーが 出たとき、まず すべきことは？', choices: ['エラーの 種類から 原因を 読む', 'セルを 消す', '式を すべて 書き直す', '見なかった ことに する'], answer: 'エラーの 種類から 原因を 読む', explain: '#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……種類ごとに 原因と 直し方が 決まっている。' },
-      { type: 'choice', q: '列を 削除する 前に 確かめたいことは？', choices: ['その 列を 使っている 式が ないか', '列の 幅', '文字の 色', 'シートの 名前'], answer: 'その 列を 使っている 式が ないか', explain: '使われている セルを 消すと #REF! に なる。' },
+      c('エラーが 出たとき、まず すべきことは？', ['エラーの 種類から 原因を 読む', 'セルを 消す', '式を すべて 書き直す', '見なかった ことに する'], 'エラーの 種類から 原因を 読む', '#DIV/0!・#VALUE!・#NAME?・#REF!・#N/A……種類ごとに 原因と 直し方が 決まっている。', { q: 'When an error appears, what should you do first?', choices: ['Read the cause from the error\'s type', 'Delete the cell', 'Rewrite every formula', 'Pretend you never saw it'], answer: 'Read the cause from the error\'s type', explain: '#DIV/0!, #VALUE!, #NAME?, #REF!, #N/A... Each type has its own cause and fix.' }),
+      c('列を 削除する 前に 確かめたいことは？', ['その 列を 使っている 式が ないか', '列の 幅', '文字の 色', 'シートの 名前'], 'その 列を 使っている 式が ないか', '使われている セルを 消すと #REF! に なる。', { q: 'What should you check before deleting a column?', choices: ['Whether any formula uses that column', 'The column width', 'The text color', 'The sheet name'], answer: 'Whether any formula uses that column', explain: 'Delete a cell that\'s in use, and you get #REF!.' }),
       G.genErrorCause,
       G.genErrorMeaning,
       G.genFormulaSafeDivide,
@@ -499,8 +592,8 @@ const MIXES: QuestionSrc[] = [
 ]
 
 const CONDS: QuestionSrc[] = [
-  c('「10以上」を 表す 比較演算子は？', ['>=', '=>', '≧', '>'], '>=', '以上は >=、以下は <=。≧ は 使えない。'),
-  c('比較の 結果として 返ってくるのは？', ['TRUE か FALSE', '0 か 100', '○ か ×', 'はい か いいえ'], 'TRUE か FALSE', '=A1>=10 のような 比較は TRUE（正しい）か FALSE（違う）に なる。'),
+  c('「10以上」を 表す 比較演算子は？', ['>=', '=>', '≧', '>'], '>=', '以上は >=、以下は <=。≧ は 使えない。', { q: 'Which comparison operator means "10 or more"?', explain: 'At least is >=, at most is <=. You can\'t use ≧.' }),
+  c('比較の 結果として 返ってくるのは？', ['TRUE か FALSE', '0 か 100', '○ か ×', 'はい か いいえ'], 'TRUE か FALSE', '=A1>=10 のような 比較は TRUE（正しい）か FALSE（違う）に なる。', { q: 'What does a comparison return?', choices: ['TRUE or FALSE', '0 or 100', '○ or ×', 'Yes or No'], answer: 'TRUE or FALSE', explain: 'A comparison like =A1>=10 gives TRUE (right) or FALSE (wrong).' }),
   G.genCompare,
   G.genCompare,
   G.genOpMeaning,
@@ -512,8 +605,8 @@ const CONDS: QuestionSrc[] = [
 ]
 
 const BRANCHES: QuestionSrc[] = [
-  c('「A1が 5以上 または B1が 5以上」を 表す 式は？', ['OR(A1>=5,B1>=5)', 'AND(A1>=5,B1>=5)', 'OR(A1>5,B1>5)', 'IF(A1>=5,B1>=5)'], 'OR(A1>=5,B1>=5)', '「または」は OR。どちらか 1つでも 満たせば TRUE。'),
-  c('3段階（A・B・C）に 分けたいとき、よく使う 方法は？', ['IFの中に IFを入れる', 'IFを 2つ 並べる', 'SUMを使う', 'COUNTIFを使う'], 'IFの中に IFを入れる', '=IF(A1>=80,"A",IF(A1>=60,"B","C")) のように 入れ子にする。'),
+  c('「A1が 5以上 または B1が 5以上」を 表す 式は？', ['OR(A1>=5,B1>=5)', 'AND(A1>=5,B1>=5)', 'OR(A1>5,B1>5)', 'IF(A1>=5,B1>=5)'], 'OR(A1>=5,B1>=5)', '「または」は OR。どちらか 1つでも 満たせば TRUE。', { q: 'Which expresses "A1 is 5 or more OR B1 is 5 or more"?', explain: '"Or" is OR. TRUE if even one is met.' }),
+  c('3段階（A・B・C）に 分けたいとき、よく使う 方法は？', ['IFの中に IFを入れる', 'IFを 2つ 並べる', 'SUMを使う', 'COUNTIFを使う'], 'IFの中に IFを入れる', '=IF(A1>=80,"A",IF(A1>=60,"B","C")) のように 入れ子にする。', { q: 'What\'s the usual way to split into three levels (A, B, C)?', choices: ['Put an IF inside an IF', 'Put two IFs side by side', 'Use SUM', 'Use COUNTIF'], answer: 'Put an IF inside an IF', explain: 'Nest them, like =IF(A1>=80,"A",IF(A1>=60,"B","C")).' }),
   G.genNestedIf,
   G.genNestedIf,
   G.genAndOr,
@@ -527,9 +620,9 @@ const BRANCHES: QuestionSrc[] = [
 ]
 
 const LOOKS: QuestionSrc[] = [
-  c('表の 左端の 列で 探して、同じ行の 右の 値を 取り出す 関数は？', ['VLOOKUP', 'COUNTIF', 'SUMIF', 'ROUND'], 'VLOOKUP', 'VLOOKUP（ブイ・ルックアップ）。V は Vertical（縦）の V。'),
-  c('VLOOKUP で 見つからないと 出る エラーは？', ['#N/A', '#DIV/0!', '#NAME?', '#REF!'], '#N/A', '#N/A は「見つからない」の 意味。'),
-  c('番号や 名前を ぴったり 探すとき、VLOOKUP の 4つ目は？', ['FALSE', 'TRUE', '0以上', '"完全"'], 'FALSE', 'FALSE で 完全一致。書き忘れると 近似一致に なって、思わぬ 値が 出ることも。'),
+  c('表の 左端の 列で 探して、同じ行の 右の 値を 取り出す 関数は？', ['VLOOKUP', 'COUNTIF', 'SUMIF', 'ROUND'], 'VLOOKUP', 'VLOOKUP（ブイ・ルックアップ）。V は Vertical（縦）の V。', { q: 'Which function searches the leftmost column of a table and returns a value to the right in the same row?', explain: 'VLOOKUP. The V stands for Vertical.' }),
+  c('VLOOKUP で 見つからないと 出る エラーは？', ['#N/A', '#DIV/0!', '#NAME?', '#REF!'], '#N/A', '#N/A は「見つからない」の 意味。', { q: 'Which error does VLOOKUP give when it can\'t find something?', explain: '#N/A means "not found."' }),
+  c('番号や 名前を ぴったり 探すとき、VLOOKUP の 4つ目は？', ['FALSE', 'TRUE', '0以上', '"完全"'], 'FALSE', 'FALSE で 完全一致。書き忘れると 近似一致に なって、思わぬ 値が 出ることも。', { q: 'When looking up an exact number or name, what\'s the 4th part of VLOOKUP?', choices: ['FALSE', 'TRUE', '0 or more', '"exact"'], answer: 'FALSE', explain: 'FALSE means an exact match. Forget it, and you get an approximate match that can return surprising values.' }),
   G.genVlookupPick,
   G.genVlookupPick,
   G.genColIndex,
@@ -537,9 +630,9 @@ const LOOKS: QuestionSrc[] = [
   G.genFormulaVlookup,
 ]
 const SEARCHES: QuestionSrc[] = [
-  c('=IFERROR(VLOOKUP(…),"なし") の 役割は？', ['見つからない ときだけ "なし" に する', 'いつも "なし" に する', 'エラーの 数を 数える', '"なし" を 探す'], '見つからない ときだけ "なし" に する', 'IFERROR は エラーの ときだけ 2つ目の 値を 出す。'),
-  c('XLOOKUP の 4つ目の 引数は？', ['見つからない ときの 値', '列番号', '完全一致か どうか', '探す 行数'], '見つからない ときの 値', '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")'),
-  c('近似一致（TRUE）で 使う 区切りの 表は どう 並べる？', ['小さい順', '大きい順', 'バラバラで よい', '五十音順'], '小さい順', '近似一致は「探す値 以下で いちばん 大きい 値」を 選ぶので、小さい順に 並べておく。'),
+  c('=IFERROR(VLOOKUP(…),"なし") の 役割は？', ['見つからない ときだけ "なし" に する', 'いつも "なし" に する', 'エラーの 数を 数える', '"なし" を 探す'], '見つからない ときだけ "なし" に する', 'IFERROR は エラーの ときだけ 2つ目の 値を 出す。', { q: 'What does =IFERROR(VLOOKUP(…),"None") do?', choices: ['Shows "None" only when not found', 'Always shows "None"', 'Counts the errors', 'Searches for "None"'], answer: 'Shows "None" only when not found', explain: 'IFERROR shows the 2nd value only when there\'s an error.' }),
+  c('XLOOKUP の 4つ目の 引数は？', ['見つからない ときの 値', '列番号', '完全一致か どうか', '探す 行数'], '見つからない ときの 値', '=XLOOKUP(探す値, 探す列, 取り出す列, "なし")', { q: 'What\'s the 4th argument of XLOOKUP?', choices: ['The value if not found', 'The column number', 'Whether to match exactly', 'The number of rows to search'], answer: 'The value if not found', explain: '=XLOOKUP(value to find, column to search, column to return, "None")' }),
+  c('近似一致（TRUE）で 使う 区切りの 表は どう 並べる？', ['小さい順', '大きい順', 'バラバラで よい', '五十音順'], '小さい順', '近似一致は「探す値 以下で いちばん 大きい 値」を 選ぶので、小さい順に 並べておく。', { q: 'How do you sort a cutoff table used with approximate match (TRUE)?', choices: ['Smallest first', 'Largest first', 'Any order', 'Alphabetical'], answer: 'Smallest first', explain: 'Approximate match picks "the largest value at or below the one you\'re looking for," so sort it smallest first.' }),
   G.genApproxPick,
   G.genApproxPick,
   G.genFormulaXlookup,
@@ -548,8 +641,8 @@ const SEARCHES: QuestionSrc[] = [
 ]
 
 const TALLIES: QuestionSrc[] = [
-  c('条件を 2つ 以上 つけて 数える 関数は？', ['COUNTIFS', 'COUNTIF', 'COUNT', 'COUNTA'], 'COUNTIFS', 'COUNTIF は 条件 1つ。最後に S が つくと 条件を いくつも 並べられる。'),
-  c('=COUNTIFS(A2:A9,"北",B2:B9,"夜") が 数えるのは？', ['北 で、しかも 夜 の 行', '北 か 夜 の どちらかの 行', '北 の 行と 夜 の 行の 合計', '夜 の 行だけ'], '北 で、しかも 夜 の 行', 'COUNTIFS は すべての 条件を 満たす（AND の）行を 数える。'),
+  c('条件を 2つ 以上 つけて 数える 関数は？', ['COUNTIFS', 'COUNTIF', 'COUNT', 'COUNTA'], 'COUNTIFS', 'COUNTIF は 条件 1つ。最後に S が つくと 条件を いくつも 並べられる。', { q: 'Which function counts with two or more conditions?', explain: 'COUNTIF takes one condition. With an S at the end, you can line up as many as you like.' }),
+  c('=COUNTIFS(A2:A9,"北",B2:B9,"夜") が 数えるのは？', ['北 で、しかも 夜 の 行', '北 か 夜 の どちらかの 行', '北 の 行と 夜 の 行の 合計', '夜 の 行だけ'], '北 で、しかも 夜 の 行', 'COUNTIFS は すべての 条件を 満たす（AND の）行を 数える。', { q: 'What does =COUNTIFS(A2:A9,"North",B2:B9,"Night") count?', choices: ['Rows that are North AND Night', 'Rows that are either North or Night', 'North rows plus Night rows', 'Only Night rows'], answer: 'Rows that are North AND Night', explain: 'COUNTIFS counts the rows that meet every condition (AND).' }),
   G.genCountifsPick,
   G.genCountifsPick,
   G.genIfsFunction,
@@ -558,8 +651,8 @@ const TALLIES: QuestionSrc[] = [
   G.genFormulaSumifs,
 ]
 const TABLES: QuestionSrc[] = [
-  c('=AVERAGEIF(A2:A8,"赤組",B2:B8) の B2:B8 は？', ['平均する 範囲', '条件の 範囲', '条件', '答えの セル'], '平均する 範囲', 'AVERAGEIF は SUMIF と 同じ 並び（条件の範囲, 条件, 平均する範囲）。'),
-  c('地区ごとの 集計表で、条件に 地区の セル E2 を 使う 理由は？', ['コピーすると 地区が 自動で 変わる', '計算が 速い', '" が いらない だけ', 'エラーが 出ない'], 'コピーすると 地区が 自動で 変わる', '見出しの セルを 条件に すれば、1つの 式を コピーするだけで 表が 埋まる。'),
+  c('=AVERAGEIF(A2:A8,"赤組",B2:B8) の B2:B8 は？', ['平均する 範囲', '条件の 範囲', '条件', '答えの セル'], '平均する 範囲', 'AVERAGEIF は SUMIF と 同じ 並び（条件の範囲, 条件, 平均する範囲）。', { q: 'In =AVERAGEIF(A2:A8,"Red",B2:B8), what is B2:B8?', choices: ['The range to average', 'The range to check', 'The condition', 'The answer cell'], answer: 'The range to average', explain: 'AVERAGEIF uses the same order as SUMIF (range to check, condition, range to average).' }),
+  c('地区ごとの 集計表で、条件に 地区の セル E2 を 使う 理由は？', ['コピーすると 地区が 自動で 変わる', '計算が 速い', '" が いらない だけ', 'エラーが 出ない'], 'コピーすると 地区が 自動で 変わる', '見出しの セルを 条件に すれば、1つの 式を コピーするだけで 表が 埋まる。', { q: 'In a totals-by-district table, why use the district cell E2 as the condition?', choices: ['The district changes automatically when copied', 'It calculates faster', 'You just skip typing "', 'No errors appear'], answer: 'The district changes automatically when copied', explain: 'Use the heading cell as the condition, and copying one formula fills the whole table.' }),
   G.genPivotArea,
   G.genPivotArea,
   G.genCrossRef,
@@ -569,9 +662,9 @@ const TABLES: QuestionSrc[] = [
 ]
 
 const SPACES: QuestionSrc[] = [
-  c('文字と 文字を つなぐ 記号は？', ['&', '+', ',', ':'], '&', '=A1&B1 のように 使う。'),
-  c('=A1&" "&B1 の " " は 何？', ['空白 1文字', '何も ない 文字', 'エラー', '改行'], '空白 1文字', '" " は 空白 1文字の 文字列。名字と 名前の 間に はさむ。'),
-  c('よけいな 空白を 消す 関数は？', ['TRIM', 'LEN', 'CLEAN', 'SUBSTITUTE'], 'TRIM', 'TRIM は 前後の 空白を 消し、間の 空白を 1つに そろえる。'),
+  c('文字と 文字を つなぐ 記号は？', ['&', '+', ',', ':'], '&', '=A1&B1 のように 使う。', { q: 'Which symbol joins text to text?', explain: 'Use it like =A1&B1.' }),
+  c('=A1&" "&B1 の " " は 何？', ['空白 1文字', '何も ない 文字', 'エラー', '改行'], '空白 1文字', '" " は 空白 1文字の 文字列。名字と 名前の 間に はさむ。', { q: 'In =A1&" "&B1, what is " "?', choices: ['One space character', 'Empty text', 'An error', 'A line break'], answer: 'One space character', explain: '" " is text made of one space. Put it between the first and last names.' }),
+  c('よけいな 空白を 消す 関数は？', ['TRIM', 'LEN', 'CLEAN', 'SUBSTITUTE'], 'TRIM', 'TRIM は 前後の 空白を 消し、間の 空白を 1つに そろえる。', { q: 'Which function removes extra spaces?', explain: 'TRIM removes the spaces at both ends and squeezes the spaces in between down to one.' }),
   G.genJoinPick,
   G.genJoinPick,
   G.genLenPick,
@@ -579,8 +672,8 @@ const SPACES: QuestionSrc[] = [
   G.genFormulaLeftRight,
 ]
 const FRAGMENTS: QuestionSrc[] = [
-  c('=MID(文字列, 4, 2) の 4 は？', ['何文字目から', '何文字', '何回', '何行目'], '何文字目から', 'MID(文字列, 何文字目から, 何文字)。'),
-  c('「@」が 何文字目に あるかを 調べる 関数は？', ['FIND', 'LEN', 'MID', 'COUNTIF'], 'FIND', '=FIND("@",A1)。LEFT や MID と 組み合わせて 使う。'),
+  c('=MID(文字列, 4, 2) の 4 は？', ['何文字目から', '何文字', '何回', '何行目'], '何文字目から', 'MID(文字列, 何文字目から, 何文字)。', { q: 'In =MID(text, 4, 2), what is the 4?', choices: ['Where to start', 'How many characters', 'How many times', 'Which row'], answer: 'Where to start', explain: 'MID(text, start position, count).' }),
+  c('「@」が 何文字目に あるかを 調べる 関数は？', ['FIND', 'LEN', 'MID', 'COUNTIF'], 'FIND', '=FIND("@",A1)。LEFT や MID と 組み合わせて 使う。', { q: 'Which function finds which character the "@" is?', explain: '=FIND("@",A1). Use it together with LEFT or MID.' }),
   G.genLeftRightPick,
   G.genLeftRightPick,
   G.genMidPick,
@@ -590,8 +683,8 @@ const FRAGMENTS: QuestionSrc[] = [
 ]
 
 const CALENDARS: QuestionSrc[] = [
-  c('日付「2026/10/1」に 7 を 足すと？', ['2026/10/8', '2026/10/17', '2026/17/1', 'エラー'], '2026/10/8', '日付は「1日 ＝ 1」の 数。7 を 足せば 7日後。'),
-  c('日付から「月」を 取り出す 関数は？', ['MONTH', 'MID', 'DAY', 'MON'], 'MONTH', '年 YEAR、月 MONTH、日 DAY。'),
+  c('日付「2026/10/1」に 7 を 足すと？', ['2026/10/8', '2026/10/17', '2026/17/1', 'エラー'], '2026/10/8', '日付は「1日 ＝ 1」の 数。7 を 足せば 7日後。', { q: 'What do you get if you add 7 to the date "2026/10/1"?', choices: ['2026/10/8', '2026/10/17', '2026/17/1', 'An error'], answer: '2026/10/8', explain: 'A date is a number where 1 day = 1. Add 7, and you get 7 days later.' }),
+  c('日付から「月」を 取り出す 関数は？', ['MONTH', 'MID', 'DAY', 'MON'], 'MONTH', '年 YEAR、月 MONTH、日 DAY。', { q: 'Which function pulls the "month" out of a date?', explain: 'Year is YEAR, month is MONTH, and day is DAY.' }),
   G.genDateAddPick,
   G.genDateDiffPick,
   G.genDateFunction,
@@ -600,8 +693,8 @@ const CALENDARS: QuestionSrc[] = [
   G.genFormulaDateDiff,
 ]
 const CLOCKS: QuestionSrc[] = [
-  c('=WEEKDAY(A1,2) の 2 の 意味は？', ['月曜を 1 として 数える', '2日後の 曜日', '2週目', '火曜を 1 として 数える'], '月曜を 1 として 数える', '2 を 書くと 月曜 1 〜 日曜 7。'),
-  c('3か月後の 同じ日を 出す 関数は？', ['EDATE', 'EOMONTH', 'DATEDIF', 'MONTH'], 'EDATE', '=EDATE(日付, 3)。'),
+  c('=WEEKDAY(A1,2) の 2 の 意味は？', ['月曜を 1 として 数える', '2日後の 曜日', '2週目', '火曜を 1 として 数える'], '月曜を 1 として 数える', '2 を 書くと 月曜 1 〜 日曜 7。', { q: 'What does the 2 in =WEEKDAY(A1,2) mean?', choices: ['Count Monday as 1', 'The weekday 2 days later', 'The 2nd week', 'Count Tuesday as 1'], answer: 'Count Monday as 1', explain: 'With 2, Monday is 1 through Sunday 7.' }),
+  c('3か月後の 同じ日を 出す 関数は？', ['EDATE', 'EOMONTH', 'DATEDIF', 'MONTH'], 'EDATE', '=EDATE(日付, 3)。', { q: 'Which function gives the same day 3 months later?', explain: '=EDATE(date, 3).' }),
   G.genWeekdayPick,
   G.genWeekdayPick,
   G.genDateFunction,
@@ -611,8 +704,8 @@ const CLOCKS: QuestionSrc[] = [
 ]
 
 const ZEROS: QuestionSrc[] = [
-  c('0 で 割ったときに 出る エラーは？', ['#DIV/0!', '#VALUE!', '#N/A', '#REF!'], '#DIV/0!', 'DIV は 割る。0 では 割れない。'),
-  c('=IFERROR(A1/B1,0) の 0 は？', ['エラーの ときに 出す 値', '割る数', '小数点の けた', '最初に 出る 値'], 'エラーの ときに 出す 値', 'IFERROR(計算, エラーの ときの 値)。'),
+  c('0 で 割ったときに 出る エラーは？', ['#DIV/0!', '#VALUE!', '#N/A', '#REF!'], '#DIV/0!', 'DIV は 割る。0 では 割れない。', { q: 'Which error appears when you divide by 0?', explain: 'DIV means divide. You can\'t divide by 0.' }),
+  c('=IFERROR(A1/B1,0) の 0 は？', ['エラーの ときに 出す 値', '割る数', '小数点の けた', '最初に 出る 値'], 'エラーの ときに 出す 値', 'IFERROR(計算, エラーの ときの 値)。', { q: 'In =IFERROR(A1/B1,0), what is the 0?', choices: ['The value to show if there\'s an error', 'The divisor', 'The number of decimal places', 'The value shown first'], answer: 'The value to show if there\'s an error', explain: 'IFERROR(calculation, value if error).' }),
   G.genErrorCause,
   G.genErrorMeaning,
   G.genFormulaSafeDivide,
@@ -621,8 +714,8 @@ const ZEROS: QuestionSrc[] = [
   G.genFormulaVlookup,
 ]
 const NAMELESS: QuestionSrc[] = [
-  c('文字に " を 付け忘れると 出る エラーは？', ['#NAME?', '#VALUE!', '#DIV/0!', '#REF!'], '#NAME?', '" が ないと、表計算ソフトは その 文字を 名前だと 思ってしまう。'),
-  c('参照先の セルを 削除すると 出る エラーは？', ['#REF!', '#N/A', '#NAME?', '#VALUE!'], '#REF!', 'REF は reference（参照）。'),
+  c('文字に " を 付け忘れると 出る エラーは？', ['#NAME?', '#VALUE!', '#DIV/0!', '#REF!'], '#NAME?', '" が ないと、表計算ソフトは その 文字を 名前だと 思ってしまう。', { q: 'Which error appears when you forget the " around text?', explain: 'Without ", the spreadsheet thinks the text is a name.' }),
+  c('参照先の セルを 削除すると 出る エラーは？', ['#REF!', '#N/A', '#NAME?', '#VALUE!'], '#REF!', 'REF は reference（参照）。', { q: 'Which error appears when you delete a referenced cell?', explain: 'REF stands for reference.' }),
   G.genErrorCause,
   G.genErrorMeaning,
   G.genFormulaFixSum,
