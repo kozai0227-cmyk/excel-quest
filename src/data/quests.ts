@@ -3366,189 +3366,288 @@ const CONTRACTS: [string, number][] = [
   ['2026/3/31', 1],
   ['2026/8/10', 12],
 ]
-const VILLAGERS: [string, string][] = [
-  ['ムラオサ', '2001/12/1'],
-  ['ハタケ', '2018/10/11'],
-  ['イズミ', '2016/10/9'],
-  ['モリ', '2010/4/1'],
-]
+const VILLAGERS: [string, string][] = named(
+  [
+    ['ムラオサ', '2001/12/1'],
+    ['ハタケ', '2018/10/11'],
+    ['イズミ', '2016/10/9'],
+    ['モリ', '2010/4/1'],
+  ],
+  ['Muraosa', 'Hatake', 'Izumi', 'Mori'],
+)
+const [OPEN_DAY, AWARD] = tra(['営業', '表彰'], ['Open', 'Award'])
 
 Object.assign(QUESTS, {
   date_add: {
     id: 'date_add',
     town: 'koyomi',
     npc: '飛脚ハヤテ',
-    title: 'お届け予定日',
-    intro: [
+    title: tr('お届け予定日', 'Delivery Dates'),
+    intro: tra([
       'おっと、旅の人！ 飛脚の ハヤテだ。',
       '荷物は「受付の日から 何日後に 届けるか」で 約束してる。予定日を 帳面に 書きたいんだが……',
       '暦の 呪いで、10月の 次が 何月だったか、31日の 次が 何日だったか、さっぱり わからなく なっちまった！',
-    ],
-    task: ['C2:C5 に、受付日（A列）の 日数（B列）後の 日付を 出そう', '日付は 足し算・引き算が できる。=A2+B2'],
-    grid: () => makeGrid(6, 3, [['受付日', '日数', '届け予定日'], ...ORDERS7], ['A1', 'B1', 'C1']),
+    ], [
+      'Whoa there, traveler! I\'m Hayate, the courier.',
+      'I promise deliveries as "so many days after the day I take the order." I want to write the due dates in my notebook, but...',
+      'Thanks to the calendar curse, I can\'t remember what month comes after October, or what day comes after the 31st!',
+    ]),
+    task: tra(['C2:C5 に、受付日（A列）の 日数（B列）後の 日付を 出そう', '日付は 足し算・引き算が できる。=A2+B2'], [
+      'In C2:C5, show the date that is the number of days (column B) after the order date (column A)',
+      'You can add and subtract dates. =A2+B2',
+    ]),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['受付日', '日数', '届け予定日'], ['Order Date', 'Days', 'Delivery Date']), ...ORDERS7], ['A1', 'B1', 'C1']),
     colWidths: [90, 50, 100],
-    hints: [
+    hints: tra([
       '表計算の 日付は「1日 ＝ 1」の 数として 扱われている。だから 足せば 何日後、引けば 何日前。',
       '月や 年を またいでも、表計算ソフトが 暦どおりに 計算してくれる。',
       'C2 に =A2+B2 → C5 まで オートフィル。',
-    ],
+    ], [
+      'In a spreadsheet, dates are treated as numbers where 1 day = 1. So add to get days later, subtract to get days before.',
+      'Even across months and years, the spreadsheet calculates by the calendar for you.',
+      '=A2+B2 in C2 → AutoFill down to C5.',
+    ]),
     check: (c) => eachVal(c, ORDERS7.map(([d, n], i) => [`C${i + 2}`, addDays(d, n)]), undefined),
     reward: { exp: 330, gold: 320, skill: 'dateadd' },
-    thanks: [
+    thanks: tra([
       '10月20日の 14日後は 11月3日、28日の 5日後は 11月2日……月を またいでも ばっちりだ！',
       '日付は 数と 同じように 足せる……こりゃ 便利だな。',
       'これで お客さんとの 約束を 破らずに すむぜ。ありがとよ！',
-    ],
+    ], [
+      '14 days after Oct 20 is Nov 3, and 5 days after the 28th is Nov 2... Spot on, even across months!',
+      'You can add dates just like numbers... Now that\'s handy.',
+      'Now I won\'t break my promises to customers. Thanks!',
+    ]),
   },
 
   date_diff: {
     id: 'date_diff',
     town: 'koyomi',
     npc: '鍛冶屋の弟子ノコリ',
-    title: '締め切りまで あと何日',
-    intro: [
+    title: tr('締め切りまで あと何日', 'Days Until the Deadline'),
+    intro: tra([
       'あ、あの……鍛冶屋の 弟子の ノコリです。',
       '注文の 締め切りが いくつも あって、それぞれ「今日から あと何日か」を 知りたいんです。',
       'カレンダーを 指で 数えてたら、途中で 何日目か わからなく なって……。',
-    ],
-    task: ['B2:B5 に、締め切り（A列）まで 今日（E1）から あと何日かを 出そう', '1つ 作って 下へ コピー。今日の セルは $ で 固定'],
-    grid: () => makeGrid(6, 5, [['締め切り', 'あと何日', '', '今日', TODAY7], ...DEADLINES.map((d) => [d])], ['A1', 'B1', 'D1']),
+    ], [
+      'Um, h-hello... I\'m Nokori, the blacksmith\'s apprentice.',
+      'I have lots of order deadlines, and I want to know "how many days from today" for each one.',
+      'When I count on the calendar with my finger, I lose track of which day I\'m on...',
+    ]),
+    task: tra(['B2:B5 に、締め切り（A列）まで 今日（E1）から あと何日かを 出そう', '1つ 作って 下へ コピー。今日の セルは $ で 固定'], [
+      'In B2:B5, show how many days there are from today (E1) until each deadline (column A)',
+      'Build one and copy it down. Lock today\'s cell with $',
+    ]),
+    grid: () => makeGrid(6, 5, [tra<(string | number)[]>(['締め切り', 'あと何日', '', '今日', TODAY7], ['Deadline', 'Days Left', '', 'Today', TODAY7]), ...DEADLINES.map((d) => [d])], ['A1', 'B1', 'D1']),
     colWidths: [100, 70, 20, 50, 100],
-    hints: [
+    hints: tra([
       '日付どうしを 引き算すると、間の 日数が 出る。締め切り − 今日。',
       '下へ コピーしても 今日の セル（E1）が ずれないよう $E$1 に する。',
       'B2 に =A2-$E$1 → B5 まで オートフィル。',
-    ],
+    ], [
+      'Subtract one date from another, and you get the number of days between. Deadline − today.',
+      'Make it $E$1 so today\'s cell (E1) doesn\'t shift when you copy down.',
+      '=A2-$E$1 in B2 → AutoFill down to B5.',
+    ]),
     check: (c) => first(...DEADLINES.map((d, i) => expectNum(c, `B${i + 2}`, daysBetween(TODAY7, d), 'formula'))),
     reward: { exp: 340, gold: 330, skill: 'datediff' },
-    thanks: [
+    thanks: tra([
       'あと 5日、21日、31日、75日……！ いちばん 急ぐのは 10月15日の 注文ですね。',
       '引き算するだけで 日数が 出る。今日の セルを 書きかえれば、毎日 使えますね！',
       '師匠に 怒られずに すみそうです。ありがとうございます！',
-    ],
+    ], [
+      '5, 21, 31 and 75 days left...! The most urgent is the order due Oct 15.',
+      'Just subtract to get the days. Change the "today" cell, and I can use it every day!',
+      'Looks like I won\'t get scolded by my master. Thank you!',
+    ]),
   },
 
   date_parts: {
     id: 'date_parts',
     town: 'koyomi',
     npc: 'お祝い係ハレ',
-    title: '誕生月のお祝い',
-    intro: [
+    title: tr('誕生月のお祝い', 'Birthday Celebrations'),
+    intro: tra([
       'こんにちは！ 村の お祝い係、ハレです。',
       '毎月、その月が 誕生日の 人を お祝いするんですけど、名簿の 誕生日が「1995/4/12」みたいに 年・月・日 ぜんぶ くっついてて……',
       '月と 日だけ 取り出す 方法って ないですか？',
-    ],
-    task: ['B2:B5 に、誕生日の「月」を 取り出そう（MONTH）', 'C2:C5 に、誕生日の「日」を 取り出そう（DAY）'],
-    grid: () => makeGrid(6, 3, [['誕生日', '月', '日'], ...BIRTHDAYS.map((d) => [d])], ['A1', 'B1', 'C1']),
+    ], [
+      'Hello! I\'m Hare, the village party planner.',
+      'Every month we celebrate everyone with a birthday that month, but the birthdays in the register are all stuck together, like "1995/4/12"...',
+      'Is there a way to pull out just the month and the day?',
+    ]),
+    task: tra(['B2:B5 に、誕生日の「月」を 取り出そう（MONTH）', 'C2:C5 に、誕生日の「日」を 取り出そう（DAY）'], [
+      'In B2:B5, pull out the "month" of each birthday (MONTH)',
+      'In C2:C5, pull out the "day" of each birthday (DAY)',
+    ]),
+    grid: () => makeGrid(6, 3, [tra<(string | number)[]>(['誕生日', '月', '日'], ['Birthday', 'Month', 'Day']), ...BIRTHDAYS.map((d) => [d])], ['A1', 'B1', 'C1']),
     colWidths: [100, 50, 50],
-    hints: [
+    hints: tra([
       '=YEAR(日付) で 年、=MONTH(日付) で 月、=DAY(日付) で 日を 数として 取り出せる。',
       '月は =MONTH(A2)、日は =DAY(A2)。',
       'B2 に =MONTH(A2)、C2 に =DAY(A2)。どちらも 5行目まで オートフィル。',
-    ],
+    ], [
+      '=YEAR(date) gives the year, =MONTH(date) the month, and =DAY(date) the day, as numbers.',
+      'The month is =MONTH(A2), and the day is =DAY(A2).',
+      '=MONTH(A2) in B2 and =DAY(A2) in C2. AutoFill both down to row 5.',
+    ]),
     check: (c) =>
       first(
         ...BIRTHDAYS.map((d, i) => expectNum(c, `B${i + 2}`, D(d).getUTCMonth() + 1, 'MONTH')),
         ...BIRTHDAYS.map((d, i) => expectNum(c, `C${i + 2}`, D(d).getUTCDate(), 'DAY')),
       ),
     reward: { exp: 340, gold: 330, skill: 'dateparts' },
-    thanks: [
+    thanks: tra([
       '4月、12月、7月、1月……日も ちゃんと 出ました！',
       '月が 数に なれば、COUNTIF で「今月 誕生日の 人数」も 数えられますね！',
       'お祝いの 準備が はかどります。ありがとう！',
-    ],
+    ], [
+      'April, December, July, January... and the days came out right too!',
+      'Once the month is a number, I can count "how many birthdays this month" with COUNTIF, too!',
+      'Party prep is going to go so smoothly. Thank you!',
+    ]),
   },
 
   date_weekday: {
     id: 'date_weekday',
     town: 'koyomi',
     npc: '市場番ヨウビ',
-    title: '市場の休み',
-    intro: [
+    title: tr('市場の休み', 'Market Holidays'),
+    intro: tra([
       '市場番の ヨウビじゃ。',
       'この 村の 市場は、土曜と 日曜が 休み。じゃが 暦の 呪いで、日付から 曜日が わからなく なってしもうた。',
       '「その日は 開いとるか」と 聞かれても、答えられんのじゃ……。',
-    ],
-    task: ['B2:B6 に、土曜・日曜なら「休み」、それ以外は「営業」と 出そう', '=WEEKDAY(日付, 2) は 月曜が 1、土曜が 6、日曜が 7'],
-    grid: () => makeGrid(7, 2, [['日付', '市場'], ...MARKET_DAYS.map((d) => [d])], ['A1', 'B1']),
+    ], [
+      'I\'m Yobi, keeper of the market.',
+      'This village\'s market is closed on Saturdays and Sundays. But thanks to the calendar curse, I can\'t tell the day of the week from a date anymore.',
+      'When people ask, "Is it open that day?", I can\'t answer...',
+    ]),
+    task: tra(['B2:B6 に、土曜・日曜なら「休み」、それ以外は「営業」と 出そう', '=WEEKDAY(日付, 2) は 月曜が 1、土曜が 6、日曜が 7'], [
+      'In B2:B6, show "Closed" for Saturday or Sunday, otherwise "Open"',
+      '=WEEKDAY(date, 2) gives Monday 1, Saturday 6 and Sunday 7',
+    ]),
+    grid: () => makeGrid(7, 2, [tra<(string | number)[]>(['日付', '市場'], ['Date', 'Market']), ...MARKET_DAYS.map((d) => [d])], ['A1', 'B1']),
     colWidths: [100, 60],
-    hints: [
+    hints: tra([
       'WEEKDAY は 曜日を 数で 返す。2つ目に 2 を 書くと 月曜 1 〜 日曜 7。',
       '土日は 6 と 7、つまり「6以上」。IF の 条件に WEEKDAY(A2,2)>=6 と 書く。',
       'B2 に =IF(WEEKDAY(A2,2)>=6,"休み","営業") → B6 まで オートフィル。',
-    ],
-    check: (c) => eachVal(c, MARKET_DAYS.map((d, i) => [`B${i + 2}`, weekday2(d) >= 6 ? '休み' : '営業']), 'WEEKDAY'),
+    ], [
+      'WEEKDAY returns the day of the week as a number. With 2 as the second part, Monday is 1 through Sunday 7.',
+      'Saturday and Sunday are 6 and 7, so "6 or more." Write WEEKDAY(A2,2)>=6 as the IF condition.',
+      '=IF(WEEKDAY(A2,2)>=6,"Closed","Open") in B2 → AutoFill down to B6.',
+    ]),
+    check: (c) => eachVal(c, MARKET_DAYS.map((d, i) => [`B${i + 2}`, weekday2(d) >= 6 ? CLOSED : OPEN_DAY]), 'WEEKDAY'),
     reward: { exp: 350, gold: 340, skill: 'weekday' },
-    thanks: [
+    thanks: tra([
       '3日と 4日が 休みで、あとは 営業……そうじゃ、そうじゃった！',
       '曜日を 数に すれば、IF で 判断できる。「6以上は 休み」とは わかりやすい。',
       '客に 聞かれても もう 迷わん。礼を 言うぞ。',
-    ],
+    ], [
+      'Closed on the 3rd and 4th, open the rest... That\'s right, that\'s how it was!',
+      'Turn the weekday into a number, and IF can decide. "6 or more is closed" is easy to understand.',
+      'I won\'t hesitate when customers ask anymore. You have my thanks.',
+    ]),
   },
 
   date_edate: {
     id: 'date_edate',
     town: 'koyomi',
     npc: '契約係ツキミ',
-    title: '契約の更新日',
-    intro: [
+    title: tr('契約の更新日', 'Contract Renewal Dates'),
+    intro: tra([
       '契約係の ツキミと 申します。',
       '畑の 貸し借りの 契約は「○か月ごとに 更新」で、お代は「その月の 末日」に 締めます。',
       '月によって 30日だったり 31日だったり、2月は 28日だったり……もう 頭が こんがらがって しまって。',
-    ],
-    task: ['C2:C4 に、開始日（A列）の 月数（B列）後の 更新日を 出そう（EDATE）', 'D2:D4 に、開始日の 月の 末日を 出そう（EOMONTH）'],
-    grid: () => makeGrid(5, 4, [['開始日', '月数', '更新日', '月末'], ...CONTRACTS], ['A1', 'B1', 'C1', 'D1']),
+    ], [
+      'I\'m Tsukimi, the contracts clerk.',
+      'Field rental contracts "renew every so many months," and payment is settled "on the last day of that month."',
+      'Some months have 30 days, some 31, and February has 28... My head is all in knots.',
+    ]),
+    task: tra(['C2:C4 に、開始日（A列）の 月数（B列）後の 更新日を 出そう（EDATE）', 'D2:D4 に、開始日の 月の 末日を 出そう（EOMONTH）'], [
+      'In C2:C4, show the renewal date, the number of months (column B) after the start date (column A) (EDATE)',
+      'In D2:D4, show the last day of the start date\'s month (EOMONTH)',
+    ]),
+    grid: () => makeGrid(5, 4, [tra<(string | number)[]>(['開始日', '月数', '更新日', '月末'], ['Start', 'Months', 'Renewal', 'Month End']), ...CONTRACTS], ['A1', 'B1', 'C1', 'D1']),
     colWidths: [100, 50, 100, 100],
-    hints: [
+    hints: tra([
       '=EDATE(日付, 月数) で ○か月後の 同じ日。その月に ない 日（4月31日 など）は 月末に なる。',
       '=EOMONTH(日付, 0) で その月の 末日。1 に すると 翌月の 末日。',
       'C2 に =EDATE(A2,B2)、D2 に =EOMONTH(A2,0)。どちらも 4行目まで オートフィル。',
-    ],
+    ], [
+      '=EDATE(date, months) gives the same day so many months later. A day that doesn\'t exist in that month (like April 31) becomes the month\'s last day.',
+      '=EOMONTH(date, 0) gives the last day of that month. Make it 1 for the last day of the next month.',
+      '=EDATE(A2,B2) in C2 and =EOMONTH(A2,0) in D2. AutoFill both down to row 4.',
+    ]),
     check: (c) =>
       first(
         eachVal(c, CONTRACTS.map(([d, n], i) => [`C${i + 2}`, addMonths(d, n)]), 'EDATE'),
         eachVal(c, CONTRACTS.map(([d], i) => [`D${i + 2}`, monthEnd(d)]), 'EOMONTH'),
       ),
     reward: { exp: 360, gold: 350, skill: 'edate' },
-    thanks: [
+    thanks: tra([
       '3月31日の 1か月後は 4月30日……4月に 31日が ないことまで 考えて くれるのですね！',
       '何日 足すか ではなく、何か月 足すか。暦に 合わせた 計算が できるのですね。',
       '契約の 帳面が すっきりしました。ありがとうございます。',
-    ],
+    ], [
+      'One month after March 31 is April 30... It even knows April has no 31st!',
+      'Not how many days to add, but how many months. It calculates by the calendar.',
+      'My contract book is all tidied up. Thank you.',
+    ]),
   },
 
   date_datedif: {
     id: 'date_datedif',
     town: 'koyomi',
     npc: '村長トキワ',
-    title: '勤続のお祝い',
-    intro: [
+    title: tr('勤続のお祝い', 'Years of Service'),
+    intro: tra([
       '村長の トキワじゃ。村の 暦を 次々と 取り戻して くれて、礼を 言う。',
       '最後に 頼みが ある。村に 来てから 10年 以上 たつ 者を 表彰したいのじゃ。',
       'じゃが「何年 たったか」を 引き算で 出そうと すると、日数に なって しまって……。',
-    ],
-    task: ['B2:B5 に、入村日（A列）から 今日（E1）までの 年数（満年数）を 出そう', 'C2:C5 に、10年 以上なら「表彰」、それ以外は「-」と 出そう'],
-    grid: () => makeGrid(6, 5, [['入村日', '年数', '表彰', '今日', TODAY7], ...VILLAGERS.map(([, d]) => [d])], ['A1', 'B1', 'C1', 'D1']),
+    ], [
+      'I am Tokiwa, the village chief. Thank you for restoring our calendar piece by piece.',
+      'One last request. I wish to honor those who have lived in the village for 10 years or more.',
+      'But when I try to get "how many years" by subtracting, it comes out in days...',
+    ]),
+    task: tra(['B2:B5 に、入村日（A列）から 今日（E1）までの 年数（満年数）を 出そう', 'C2:C5 に、10年 以上なら「表彰」、それ以外は「-」と 出そう'], [
+      'In B2:B5, show the number of full years from the move-in date (column A) to today (E1)',
+      'In C2:C5, show "Award" for 10 years or more, otherwise "-"',
+    ]),
+    grid: () => makeGrid(6, 5, [tra<(string | number)[]>(['入村日', '年数', '表彰', '今日', TODAY7], ['Moved In', 'Years', 'Award?', 'Today', TODAY7]), ...VILLAGERS.map(([, d]) => [d])], ['A1', 'B1', 'C1', 'D1']),
     colWidths: [100, 50, 60, 50, 100],
-    hints: [
+    hints: tra([
       '=DATEDIF(開始日, 終了日, "Y") で 満年数。"M" なら 満月数、"D" なら 日数。',
       '今日の セルは コピーしても ずれないよう $E$1。',
       'B2 に =DATEDIF(A2,$E$1,"Y")、C2 に =IF(B2>=10,"表彰","-")。どちらも 5行目まで オートフィル。',
-    ],
+    ], [
+      '=DATEDIF(start date, end date, "Y") gives full years. "M" gives full months, and "D" gives days.',
+      'Make today\'s cell $E$1 so it doesn\'t shift when copied.',
+      '=DATEDIF(A2,$E$1,"Y") in B2 and =IF(B2>=10,"Award","-") in C2. AutoFill both down to row 5.',
+    ]),
     check: (c) =>
       first(
         ...VILLAGERS.map(([, d], i) => expectNum(c, `B${i + 2}`, fullYears(d, TODAY7), 'DATEDIF')),
-        eachVal(c, VILLAGERS.map(([, d], i) => [`C${i + 2}`, fullYears(d, TODAY7) >= 10 ? '表彰' : '-']), 'IF'),
+        eachVal(c, VILLAGERS.map(([, d], i) => [`C${i + 2}`, fullYears(d, TODAY7) >= 10 ? AWARD : '-']), 'IF'),
       ),
     reward: { exp: 380, gold: 370, skill: 'datedif' },
-    thanks: [
+    thanks: tra([
       '24年、7年、10年、16年……2016年10月9日の 者は、きのうで ちょうど 10年じゃな。',
       '「満何年」は DATEDIF。引き算と ちがって、誕生日を 迎えたかまで 見て くれるのじゃな。',
       'じゃが 村の 暦を 狂わせた 張本人は、北の 時計塔に 棲む「シメキリス」。どうか、時を 取り戻して くれ。',
-    ],
+    ], [
+      '24, 7, 10 and 16 years... The one who came on Oct 9, 2016 reached exactly 10 years yesterday.',
+      'For "full years," use DATEDIF. Unlike subtraction, it even checks whether the anniversary has passed.',
+      'But the one who threw our calendar into chaos is "Deadlinus," who lives in the clock tower to the north. Please, take back our time.',
+    ]),
     notLast: {
-      introHead: ['村長の トキワじゃ。よう 来てくれた。', '頼みが ある。村に 来てから 10年 以上 たつ 者を 表彰したいのじゃ。'],
-      thanksTail: ['村には まだ 困っている 者が おる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'],
+      introHead: tra(['村長の トキワじゃ。よう 来てくれた。', '頼みが ある。村に 来てから 10年 以上 たつ 者を 表彰したいのじゃ。'], [
+        'I am Tokiwa, the village chief. Thank you for coming.',
+        'I have a request. I wish to honor those who have lived in the village for 10 years or more.',
+      ]),
+      thanksTail: tra(['村には まだ 困っている 者が おる。頭の上に「！」の 出ている 者の 話も 聞いてやってくれ。'], [
+        'There are still people in the village who need help. Please listen to anyone with a "!" over their head, too.',
+      ]),
     },
   },
 } satisfies Record<string, QuestDef>)
@@ -3566,45 +3665,60 @@ Object.assign(QUESTS, {
     kind: 'puzzle',
     town: 'clock',
     npc: '百日の扉',
-    title: '百日の扉',
-    intro: ['扉に 日付と 数字が 刻まれている。', '「始まりの日より 百日の 後、その 日付を 示せ」――と 読める。'],
-    task: ['C2 に、A2 の 日付の B2 日後の 日付を 示せ'],
-    grid: () => makeGrid(3, 3, [['始まりの日', '日数', '百日の後'], ['2026/1/1', 100]]),
+    title: tr('百日の扉', 'Door of a Hundred Days'),
+    intro: tra(['扉に 日付と 数字が 刻まれている。', '「始まりの日より 百日の 後、その 日付を 示せ」――と 読める。'], [
+      'A date and a number are carved into the door.',
+      'It reads: "One hundred days after the day of beginning: show that date."',
+    ]),
+    task: tra(['C2 に、A2 の 日付の B2 日後の 日付を 示せ'], ['In C2, show the date B2 days after the date in A2']),
+    grid: () => makeGrid(3, 3, [tra<(string | number)[]>(['始まりの日', '日数', '百日の後'], ['Start Day', 'Days', '100 Days On']), ['2026/1/1', 100]]),
     colWidths: [100, 50, 100],
     hints: [],
     check: (c) => expectVal(c, 'C2', addDays('2026/1/1', 100), undefined, true),
     reward: { exp: 160, gold: 0 },
-    thanks: [`「${addDays('2026/1/1', 100)}」の 文字が 光り、扉が 開いた！`],
+    thanks: [tr(`「${addDays('2026/1/1', 100)}」の 文字が 光り、扉が 開いた！`, `The date "${addDays('2026/1/1', 100)}" glows, and the door opens!`)],
   },
   clk_weekday: {
     id: 'clk_weekday',
     kind: 'puzzle',
     town: 'clock',
     npc: '曜日の扉',
-    title: '曜日の扉',
-    intro: ['扉に 7つの 穴が 並び、1つの 日付が 刻まれている。', '「この日は 月より 数えて 幾つめの 日か。その 数を 示せ」――と 読める。'],
-    task: ['B2 に、A2 の 日付の 曜日を 月曜 1 〜 日曜 7 の 数で 示せ'],
-    grid: () => makeGrid(3, 2, [['日付', '曜日の数'], ['2026/12/25']]),
+    title: tr('曜日の扉', 'Door of Weekdays'),
+    intro: tra(['扉に 7つの 穴が 並び、1つの 日付が 刻まれている。', '「この日は 月より 数えて 幾つめの 日か。その 数を 示せ」――と 読める。'], [
+      'Seven holes line the door, and a single date is carved into it.',
+      'It reads: "Counting from Monday, which day is this? Show the number."',
+    ]),
+    task: tra(['B2 に、A2 の 日付の 曜日を 月曜 1 〜 日曜 7 の 数で 示せ'], [
+      'In B2, show the weekday of A2\'s date as a number, Monday 1 through Sunday 7',
+    ]),
+    grid: () => makeGrid(3, 2, [tra<(string | number)[]>(['日付', '曜日の数'], ['Date', 'Weekday No.']), ['2026/12/25']]),
     colWidths: [100, 70],
     hints: [],
     check: (c) => expectNum(c, 'B2', weekday2('2026/12/25'), 'WEEKDAY', 'B2', true),
     reward: { exp: 170, gold: 0 },
-    thanks: ['7つの 穴の 1つに 光が ともり、錠が はずれた！'],
+    thanks: tra(['7つの 穴の 1つに 光が ともり、錠が はずれた！'], ['Light fills one of the seven holes, and the lock comes off!']),
   },
   clk_months: {
     id: 'clk_months',
     kind: 'puzzle',
     town: 'clock',
     npc: '月日の扉',
-    title: '月日の扉',
-    intro: ['時計塔の 最上階へ 続く 扉。', '「3つの 時の 間、満ちた 月の 数を 示せ。1つの 式を すべてに 映せ」――と 読める。'],
-    task: ['C2:C4 に、開始日（A列）から 終了日（B列）までの 満月数を 示せ'],
-    grid: () => makeGrid(5, 3, [['開始日', '終了日', '満ちた月'], ...TERMS]),
+    title: tr('月日の扉', 'Door of Months and Days'),
+    intro: tra(['時計塔の 最上階へ 続く 扉。', '「3つの 時の 間、満ちた 月の 数を 示せ。1つの 式を すべてに 映せ」――と 読める。'], [
+      'The door to the top floor of the clock tower.',
+      'It reads: "Between the three spans of time, show the number of full months. Reflect a single formula into them all."',
+    ]),
+    task: tra(['C2:C4 に、開始日（A列）から 終了日（B列）までの 満月数を 示せ'], [
+      'In C2:C4, show the number of full months from the start date (column A) to the end date (column B)',
+    ]),
+    grid: () => makeGrid(5, 3, [tra<(string | number)[]>(['開始日', '終了日', '満ちた月'], ['Start', 'End', 'Full Months']), ...TERMS]),
     colWidths: [100, 100, 70],
     hints: [],
     check: (c) => first(...TERMS.map(([a, b], i) => expectNum(c, `C${i + 2}`, fullMonths(a, b), 'DATEDIF', `C${i + 2}`, true))),
     reward: { exp: 190, gold: 0 },
-    thanks: ['時計塔の 鐘が 1つ 鳴り、最上階への 扉が 開いた……！'],
+    thanks: tra(['時計塔の 鐘が 1つ 鳴り、最上階への 扉が 開いた……！'], [
+      'The clock tower bell rings once, and the door to the top floor opens...!',
+    ]),
   },
 } satisfies Record<string, QuestDef>)
 
