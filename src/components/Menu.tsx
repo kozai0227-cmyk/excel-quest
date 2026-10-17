@@ -372,7 +372,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
                   </div>
                 )
               })}
-              {privacy && <DocView src="/privacy.html" title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
+              {privacy && <DocView src={tr('/privacy.html', '/privacy.html#en')} title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
               {lic !== null && <DocView text={lic} title={tr('ライセンス表記', 'License Notices')} onClose={() => setLic(null)} />}
             </div>
           )}

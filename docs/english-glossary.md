@@ -68,3 +68,10 @@
 - 英語の 画面は、英字を Jersey 10（ドット体・OFL）で 表示する。日本語の 文字は DotGothic16 のまま。
 - 主人公の 名前は 英語では 8文字まで（はじめの 名前は Sato）。
 - 装備・町・敵の 名前は src/data/en.ts に ID ごとに 書く。日本語の データは 変えない。
+
+## 言語の 決まり方（公開の しくみ）
+
+- はじめて 開いた ときは 端末の 言語で 始まる（日本語なら 日本語、それ以外は 英語）。タイトル画面の 🌐 ボタンと メニュー → 設定 → 言語 で 切りかえられ、選んだ 言語は 保存される。
+- 英語版を 隠したい ときは `src/game/lang.ts` の `EN_READY` を false に する（`?lang=en` で 試すことは できる）。
+- iPhone アプリは `ios/App/App/Info.plist` の `CFBundleLocalizations` に ja・en を 入れている。これが ないと、英語の 端末でも アプリの 中は 日本語 扱いに なり、英語で 始まらない。
+- ホーム画面の アプリ名は `ios/App/App/en.lproj/InfoPlist.strings`（Equal Quest）と `ja.lproj/InfoPlist.strings`（イコールクエスト）で 言語ごとに 変わる。

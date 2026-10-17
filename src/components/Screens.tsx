@@ -129,7 +129,7 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
           {tr('プライバシーポリシー', 'Privacy Policy')}
         </button>
       </div>
-      {privacy && <DocView src="/privacy.html" title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
+      {privacy && <DocView src={tr('/privacy.html', '/privacy.html#en')} title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
     </div>
   )
 }

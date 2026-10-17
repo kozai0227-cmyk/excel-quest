@@ -10,10 +10,10 @@ import { useSyncExternalStore } from 'react'
 export type Lang = 'ja' | 'en'
 
 /**
- * 英語版の 準備が できたか。false の 間は、端末が 英語でも 日本語で 始まり、言語の 切りかえも 出さない
- * （?lang=en を つけて 開くと 英語を 試せる。選んだ 言語は 保存されるので、?lang=ja で 戻す）
+ * 英語版を 出すか。true なら 端末の 言語が 日本語 以外の とき 英語で 始まり、タイトル画面と 設定に 言語の 切りかえを 出す。
+ * false に すると、端末が 英語でも 日本語で 始まり、切りかえも 隠れる（?lang=en を つけて 開くと 英語を 試せる）
  */
-export const EN_READY = false
+export const EN_READY = true
 
 const KEY = 'excel-quest-lang'
 const hasWindow = typeof window !== 'undefined'
@@ -36,7 +36,11 @@ function detect(): Lang {
 }
 
 let lang: Lang = detect()
-if (hasWindow) document.documentElement.lang = lang
+if (hasWindow) {
+  document.documentElement.lang = lang
+  // ブラウザの タブの 題も 英語に（検索向けの 日本語の 題は index.html の まま）
+  if (lang === 'en') document.title = 'Equal Quest | A Retro RPG for Learning Spreadsheet Functions'
+}
 const subs = new Set<() => void>()
 
 export const getLang = () => lang
