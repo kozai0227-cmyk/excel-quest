@@ -405,7 +405,7 @@ The formula engine is our own implementation. The app is not affiliated with, an
 
 ### リニューアル版（いちばん おすすめ・6.9インチ）
 
-`store/screenshots-v2/01〜06.png`（1320×2868）。6枚を 並べると 背景が つながる パノラマ構成。並べた 見本は `preview.png`（ストアには 入れない）。
+日本語の ページは `store/screenshots-v2/01〜06.png`、英語（米国）の ページは `store/screenshots-v2-en/01〜06.png`（どちらも 1320×2868）。6枚を 並べると 背景が つながる パノラマ構成。並べた 見本は `preview.png`（ストアには 入れない）。
 極太の サンセリフ（Noto Sans JP Black）の 白い 見出しに、強調語だけ エメラルド。最新 iPhone の 枠で 画面を 大きく 見せ、2・3枚目は 数式バーと 正解の 選択肢を 拡大して 端末の 外へ 出している。
 
 ### 見出し付き（前の 案）
