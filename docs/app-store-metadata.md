@@ -403,6 +403,19 @@ The formula engine is our own implementation. The app is not affiliated with, an
 
 ## スクリーンショット
 
+### 見出し付き（おすすめ・差し替え用）
+
+ストアで 最初に 見える 2〜3枚で「何の ゲームか」が 伝わるよう、見出しを 付けた 版。審査なしで 差し替えられる（次の バージョンの 提出時でも よい）。
+
+| 欄 | 日本語の ページ | 英語（米国）の ページ |
+|---|---|---|
+| 6.1〜6.3インチ | `store/captioned-6.3/`（01〜06） | `store/captioned-6.3-en/` |
+| 6.9インチ | `store/captioned-6.9/` | `store/captioned-6.9-en/` |
+
+並び：01 タイトル（表計算×RPG・第2章まで無料・広告なし）→ 02 数式で 解決 → 03 関数クイズの バトル → 04 町の 悩み → 05 異世界へ → 06 ふくしゅうの書
+
+### 見出し なし（元の 画面）
+
 | App Store Connect の 欄 | 日本語の ページ（6枚・01〜06 の 順） | 英語（米国）の ページ（1.1.0 から） |
 |---|---|---|
 | **Dynamic Island 搭載 iPhone（中型ディスプレイ）**（6.1〜6.3インチ） | `store/screenshots-6.3/`（1206×2622） | `store/screenshots-6.3-en/` |
