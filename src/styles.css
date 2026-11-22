@@ -460,6 +460,147 @@ button {
   background: #e84040;
   transition: width 0.5s;
 }
+/* HP バー：赤（今の HP）の 後ろに 白い なごりが 遅れて 縮む */
+.hpbar {
+  position: relative;
+  overflow: hidden;
+}
+.hpbar > div {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+}
+.hpbar .fill,
+.boss-hp .hpbar .fill {
+  transition: width 0.35s ease-out;
+}
+.boss-hp .hpbar .fill {
+  background: linear-gradient(#ff7a6a, #e84040 55%, #b82828);
+}
+.hpbar .ghost,
+.boss-hp .hpbar .ghost {
+  background: #fff4c8;
+  transition: width 0.6s ease-in 0.45s;
+}
+.status-win .hpbar.me {
+  width: 100%;
+  height: 0.9cqw;
+  margin: 0.3cqw 0 0.4cqw;
+  background: #233;
+  border-radius: 99px;
+  box-shadow: 0 0 0 0.15cqw #fff6;
+}
+.hpbar.me .fill {
+  background: linear-gradient(#7cf29a, #2fc463);
+  border-radius: 99px;
+}
+.hpbar.me.mid .fill {
+  background: linear-gradient(#ffe27a, #f2b628);
+}
+.hpbar.me.low .fill {
+  background: linear-gradient(#ff8a7a, #e84040);
+  animation: hpLow 0.9s ease-in-out infinite;
+}
+.hpbar.me .ghost {
+  border-radius: 99px;
+}
+@keyframes hpLow {
+  50% { filter: brightness(1.5); }
+}
+.st-hp b {
+  display: inline-block;
+  font-weight: inherit;
+  animation: hpTick 0.4s ease-out;
+}
+@keyframes hpTick {
+  0% { transform: scale(1.45); color: #fff4c8; }
+  100% { transform: scale(1); }
+}
+/* ダメージ・回復の 数字 */
+.dmg-pop {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  font-family: 'Jersey 10', 'DotGothic16', monospace;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: -2px -2px 0 #000, 0px -2px 0 #000, 2px -2px 0 #000, -2px 0px 0 #000, 2px 0px 0 #000, -2px 2px 0 #000, 0px 2px 0 #000, 2px 2px 0 #000, 0px 4px 0 #000;
+  animation: dmgPop 1.25s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+.boss-area .dmg-pop {
+  top: 34%;
+  left: 50%;
+  font-size: 7cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.boss-area .dmg-pop.crit {
+  color: #ffd84a;
+  font-size: 9.5cqw;
+}
+.dmg-pop small {
+  font-size: 0.4em;
+  letter-spacing: 0.08em;
+}
+.status-win .dmg-pop {
+  top: 18%;
+  left: 100%;
+  margin-left: 1.2cqw;
+  font-size: 4.6cqw;
+}
+.dmg-pop.hurt {
+  color: #ff6a5a;
+}
+.dmg-pop.heal {
+  color: #7cf29a;
+}
+.dmg-pop.guard {
+  color: #9fd8ff;
+  font-family: inherit;
+  font-size: 2.6cqw !important;
+}
+@keyframes dmgPop {
+  0% { transform: translate(-50%, 30%) scale(0.3); opacity: 0; }
+  14% { transform: translate(-50%, -30%) scale(1.25); opacity: 1; }
+  28% { transform: translate(-50%, -20%) scale(1); }
+  75% { transform: translate(-50%, -55%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -85%) scale(0.95); opacity: 0; }
+}
+.status-win .dmg-pop {
+  animation-name: dmgPopSide;
+}
+@keyframes dmgPopSide {
+  0% { transform: translate(-20%, 0) scale(0.3); opacity: 0; }
+  14% { transform: translate(0, -20%) scale(1.25); opacity: 1; }
+  28% { transform: translate(0, -10%) scale(1); }
+  75% { transform: translate(0, -40%); opacity: 1; }
+  100% { transform: translate(0, -70%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dmg-pop,
+  .status-win .dmg-pop {
+    animation: dmgFade 1.25s linear forwards;
+  }
+  .boss-area .dmg-pop {
+    transform: translateX(-50%);
+  }
+  .hpbar .fill,
+  .hpbar .ghost,
+  .boss-hp .hpbar .fill,
+  .boss-hp .hpbar .ghost {
+    transition: none;
+  }
+  .hpbar.me.low .fill,
+  .st-hp b {
+    animation: none;
+  }
+}
+@keyframes dmgFade {
+  0%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .boss-sprite {
   width: 27cqw;
   height: 27cqw;
@@ -2142,6 +2283,24 @@ html:lang(en) .fpad-label {
   height: 8px;
   border-width: 2px;
   margin-top: 4px;
+}
+.phone .screen .status-win .hpbar.me {
+  height: 6px;
+  margin: 3px 0 4px;
+  box-shadow: 0 0 0 1px #fff6;
+}
+.phone .boss-area .dmg-pop {
+  font-size: 44px;
+}
+.phone .boss-area .dmg-pop.crit {
+  font-size: 58px;
+}
+.phone .status-win .dmg-pop {
+  font-size: 28px;
+  margin-left: 8px;
+}
+.phone .dmg-pop.guard {
+  font-size: 15px !important;
 }
 .phone .boss-sprite,
 .phone .boss-gone {

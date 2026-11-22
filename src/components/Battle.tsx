@@ -119,6 +119,14 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [buff, setBuff] = useState<{ scroll: boolean; sand: boolean }>({ scroll: false, sand: false })
   const [hit, setHit] = useState(0)
   const [shake, setShake] = useState(0)
+  /** ダメージ・回復の 数字（ポンと 飛び出して 消える） */
+  const [pops, setPops] = useState<Pop[]>([])
+  const popId = useRef(0)
+  const pop = (on: Pop['on'], kind: Pop['kind'], text: string) => {
+    const id = ++popId.current
+    setPops((list) => [...list, { id, on, kind, text }])
+    setTimeout(() => setPops((list) => list.filter((x) => x.id !== id)), 1300)
+  }
   const startedAt = useRef(0)
   const answered = useRef(false)
   const mhp = maxHp(gs.level)
@@ -196,7 +204,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       lines.push(tr('せいかい！', 'Correct!'))
       if (Math.random() < PERFECT_GUARD) {
         dmg = 0
-        lines.push(pick(GUARD_LINES()), tr(`${gs.name}は ダメージを うけなかった！`, `${gs.name} took no damage!`))
+        lines.push(pick(GUARD_LINES()), { text: tr(`${gs.name}は ダメージを うけなかった！`, `${gs.name} took no damage!`), fx: () => pop('me', 'guard', tr('ノーダメージ', 'No damage')) })
       } else {
         dmg = Math.max(1, Math.round(full * 0.3))
         lines.push(tr('ガード せいこう！ ダメージを おさえた！', 'Guard success! Damage reduced!'))
@@ -217,6 +225,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         fx: () => {
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
+          pop('me', 'hurt', `-${dmg}`)
         },
       })
     if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
@@ -237,6 +246,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       const c = combo + 1
       const lines: Msg[] = [tr('せいかい！', 'Correct!')]
       let dmg: number
+      let crit = false
       if (boss.hits) {
         // チュートリアル：決まった回数の正解で倒れる
         dmg = Math.ceil(boss.hp / boss.hits)
@@ -250,6 +260,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         }
         if (Math.random() < CRIT + gear.crit) {
           dmg *= 1.6
+          crit = true
           lines.push(tr(`一発決裁！ ${pick(CRIT_LINES())}`, `Instant Approval! ${pick(CRIT_LINES())}`))
         }
         dmg = Math.round(dmg)
@@ -261,6 +272,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         fx: () => {
           setHit((h) => h + 1)
           setBossHp(hp)
+          pop('boss', crit ? 'crit' : 'dmg', String(dmg))
         },
       })
       setCombo(c)
@@ -285,6 +297,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         fx: () => {
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
+          pop('me', 'hurt', `-${dmg}`)
         },
       })
       if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
@@ -307,6 +320,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     if (id === 'herb') {
       const heal = Math.min(30, mhp - gs.hp)
       setGs((g) => ({ ...g, hp: Math.min(mhp, g.hp + 30) }))
+      pop('me', 'heal', `+${heal}`)
       say([tr(`${gs.name}は やくそうを つかった！`, `${gs.name} used a Herb!`), tr(`HPが ${heal} かいふくした！`, `Recovered ${heal} HP!`)], () => setPhase('command'))
     } else if (id === 'scroll') {
       setBuff((b) => ({ ...b, scroll: true }))
@@ -338,6 +352,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
               fx: () => {
                 setShake((sh) => sh + 1)
                 setGs((g) => ({ ...g, hp }))
+                pop('me', 'hurt', `-${dmg}`)
               },
             },
             ...(hp <= 0 ? [tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)] : []),
@@ -400,10 +415,12 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     <div className={`battle bg-${scene} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
       <div className="win status-win">
         <div>{gs.name}</div>
-        <div>
-          H {gs.hp}/{mhp}
+        <div className="st-hp">
+          <span>H</span> <b key={gs.hp}>{gs.hp}</b>/{mhp}
         </div>
+        <HpBar value={gs.hp} max={mhp} kind="me" />
         <div>Lv {gs.level}</div>
+        {pops.filter((x) => x.on === 'me').map((x) => <div key={x.id} className={`dmg-pop ${x.kind}`}>{x.text}</div>)}
         {(buff.scroll || buff.sand) && (
           <div className="buffs">
             {buff.scroll && '📜'}
@@ -414,9 +431,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       <div className="boss-area">
         <div className="boss-hp">
           <span>{bossName}</span>
-          <div className="bar">
-            <div style={{ width: `${(bossHp / boss.hp) * 100}%` }} />
-          </div>
+          <HpBar value={bossHp} max={boss.hp} kind="boss" />
         </div>
         {bossHp <= 0 ? (
           <div className="boss-gone">✨</div>
@@ -425,6 +440,12 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         ) : (
           <BossSprite key={hit} id={boss.sprite} hit={hit} />
         )}
+        {pops.filter((x) => x.on === 'boss').map((x) => (
+          <div key={x.id} className={`dmg-pop ${x.kind}`}>
+            {x.kind === 'crit' && <small>{tr('会心！', 'CRIT!')}</small>}
+            {x.text}
+          </div>
+        ))}
       </div>
 
       {phase === 'question' && q && portal(
@@ -529,6 +550,20 @@ function TimerBar({ start, deadline, mode, showQuick }: { start: number; deadlin
       <div className="timer-fill" style={{ animationDuration: `${limit}ms`, animationDelay: `${-elapsed}ms` }} />
       {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
       {quickZone && <span className="timer-label">{tr('即答ボーナス！', 'Quick bonus!')}</span>}
+    </div>
+  )
+}
+
+type Pop = { id: number; on: 'me' | 'boss'; kind: 'dmg' | 'crit' | 'hurt' | 'heal' | 'guard'; text: string }
+
+/** HP バー：減った分は 白い「なごり」が 少し 遅れて 縮む（どれだけ 減ったか 目で 追える） */
+function HpBar({ value, max, kind }: { value: number; max: number; kind: 'me' | 'boss' }) {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100))
+  const level = kind === 'me' ? (pct <= 25 ? 'low' : pct <= 50 ? 'mid' : 'ok') : ''
+  return (
+    <div className={`bar hpbar ${kind} ${level}`}>
+      <div className="ghost" style={{ width: `${pct}%` }} />
+      <div className="fill" style={{ width: `${pct}%` }} />
     </div>
   )
 }
