@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
 import { ITEM_IDS, itemDesc, itemName } from '../data/items'
 import { SKILLS } from '../data/skills'
-import { expToNext, maxHp } from '../game/progress'
+import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
 import { PLAYER_SPEC } from '../data/maps'
 import { Portrait } from './Portrait'
 import { EQUIP, SLOTS, effectText, equipDesc, equipName, gearStats, slotName, type Slot } from '../data/equipment'
@@ -236,10 +236,11 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
   return (
     <div className="menu-layer">
       <div className="win menu-cmds">
+        <MenuStatus gs={gs} />
         {CMDS.map((c, i) => (
           <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onClick={() => { setCursor(i); select(i) }}>
             {cmdLabel(c)}
-            {c === 'にゅうりょく' && <small>{tr('：', ': ')}{inputMode === 'touch' ? tr('ボタン', 'Buttons') : tr('キーボード', 'Keyboard')}</small>}
+            {c === 'にゅうりょく' && <small>{inputMode === 'touch' ? tr('ボタン', 'Buttons') : tr('キーボード', 'Keyboard')}</small>}
           </div>
         ))}
       </div>
@@ -419,6 +420,46 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
         </div>
       )}
       {!open && note && <div className="win menu-panel"><p className="note">{note}</p></div>}
+    </div>
+  )
+}
+
+/** メニュー上部の 状態カード：レベル・HP・次の レベルまでの 経験値・ゴールド・達成率を ひと目で 見せる */
+function MenuStatus({ gs }: { gs: GameState }) {
+  const hpMax = maxHp(gs.level)
+  const base = LEVEL_EXP[gs.level] ?? 0
+  const next = LEVEL_EXP[gs.level + 1]
+  const expRate = next === undefined ? 1 : Math.min(1, Math.max(0, (gs.exp - base) / (next - base)))
+  const toNext = expToNext(gs)
+  const hpRate = Math.min(1, gs.hp / hpMax)
+  return (
+    <div className="menu-status" aria-label={tr('いまの 状態', 'Current status')}>
+      <div className="ms-head">
+        <b className="ms-name">{gs.name}</b>
+        <span className="ms-lv">Lv {gs.level}</span>
+      </div>
+      <div className="ms-row">
+        <span className="ms-key">HP</span>
+        <div className={`ms-bar hp ${hpRate <= 0.3 ? 'low' : ''}`}>
+          <div style={{ width: `${hpRate * 100}%` }} />
+        </div>
+        <span className="ms-val">
+          {gs.hp}/{hpMax}
+        </span>
+      </div>
+      <div className="ms-row">
+        <span className="ms-key">EXP</span>
+        <div className="ms-bar exp">
+          <div style={{ width: `${expRate * 100}%` }} />
+        </div>
+        <span className="ms-val">{toNext === null ? 'MAX' : tr(`あと${toNext}`, `${toNext} to go`)}</span>
+      </div>
+      <div className="ms-foot">
+        <span>{gs.gold} G</span>
+        <span>
+          {tr('達成率', 'Done')} {totalPercent(gs)}%
+        </span>
+      </div>
     </div>
   )
 }

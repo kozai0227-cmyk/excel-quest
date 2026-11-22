@@ -1886,8 +1886,105 @@ html:lang(en) .fpad-label {
   font-size: 14px;
 }
 .menu-cmds small {
-  font-size: 0.75em;
+  display: block;
+  margin-top: -0.25em;
+  font-size: 0.62em;
   opacity: 0.7;
+}
+/* メニュー上部の 状態カード（Lv・HP・経験値バー・G・達成率） */
+.menu-status {
+  margin: 0.2em 0 0.55em;
+  padding: 0.55em 0.7em 0.5em;
+  border-radius: 0.6em;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-size: 0.62em;
+  line-height: 1.35;
+  white-space: nowrap;
+  animation: msIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes msIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+.ms-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6em;
+  margin-bottom: 0.3em;
+}
+.ms-name {
+  font-size: 1.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-lv {
+  padding: 0.05em 0.55em;
+  border-radius: 999px;
+  background: #ffd84a;
+  color: #2a1d00;
+  font-weight: bold;
+}
+.ms-row {
+  display: grid;
+  grid-template-columns: 2.3em 1fr auto;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.2em;
+}
+.ms-key {
+  color: #ffe070;
+  font-size: 0.9em;
+}
+.ms-val {
+  min-width: 3.6em;
+  text-align: right;
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+.ms-bar {
+  height: 0.62em;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.ms-bar div {
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left;
+  animation: msFill 0.7s 0.12s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ms-bar.hp div {
+  background: linear-gradient(#7cf29a, #2fbf5a);
+}
+.ms-bar.hp.low div {
+  background: linear-gradient(#ff9a8a, #e0453a);
+}
+.ms-bar.exp div {
+  background: linear-gradient(#8fd8ff, #3a8dff);
+}
+@keyframes msFill {
+  from {
+    transform: scaleX(0);
+  }
+}
+.ms-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8em;
+  margin-top: 0.35em;
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-status,
+  .ms-bar div {
+    animation: none;
+  }
 }
 
 /* ================= スマホの 縦画面：画面いっぱいに 表示する ================= */
@@ -2030,6 +2127,17 @@ html:lang(en) .fpad-label {
   grid-template-columns: 1fr 1fr;
   column-gap: 12px;
   font-size: 16px;
+}
+.phone .screen .menu-status {
+  grid-column: 1 / -1;
+  margin: 2px 0 8px;
+  padding: 9px 12px 8px;
+  font-size: 13px;
+}
+.phone .screen .menu-cmds small {
+  display: inline;
+  margin: 0 0 0 0.4em;
+  font-size: 0.75em;
 }
 .phone .screen .menu-panel {
   flex: 0 1 auto;
