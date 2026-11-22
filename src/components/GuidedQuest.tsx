@@ -52,6 +52,9 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
   const card = useRef<HTMLDivElement>(null)
   const [changed, setChanged] = useState<{ cells: string[]; key: number }>({ cells: [], key: 0 })
   const [cleared, setCleared] = useState(false)
+  // 答えた 手ごたえ：まちがえた ボタン（や 数式）を ゆらす。key を 変えて アニメを 毎回 やり直す
+  const [shake, setShake] = useState<{ target: string; key: number }>({ target: '', key: 0 })
+  const nudge = (target: string) => setShake((s) => ({ target, key: s.key + 1 }))
 
   const focusOf = (s: GuideStep) => (s.kind === 'formula' ? s.target : s.focus?.split(':')[0]) ?? null
   const [inspect, setInspect] = useState<string | null>(() => focusOf(steps[0]))
@@ -71,6 +74,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     if (step.kind !== 'choice' || solved || picked.includes(c)) return
     if (c !== step.answer) {
       sfx('wrong')
+      nudge(c)
       setPicked([...picked, c])
       setMsg(puzzle ? tr('……石版は 反応しない。', '...The tablet does not respond.') : tr('ちがうようだ……。もう一度 考えてみよう。', "That doesn't seem right... Think it over again."))
       return
@@ -95,6 +99,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     const r = tryFormula(grid, step, '=' + chips.join(''), puzzle)
     if (r.msg) {
       sfx('wrong')
+      nudge('formula')
       setTrial(r)
       setMsg(r.msg)
       if (r.wrong[0]) setInspect(r.wrong[0])
@@ -132,6 +137,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
     setTrial(null)
     setMsg(null)
     setHintOpen(false)
+    setShake({ target: '', key: 0 })
     setInspect(focusOf(s))
     card.current?.scrollTo({ top: 0 })
   }
@@ -150,6 +156,12 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
 
   const reward = quest.reward
   const fillEnd = step.kind === 'formula' && step.fill ? step.fill.split(':')[1] : null
+
+  const feedback = (
+    <div key={shake.key} className="feedback guide-wrong" role="alert">
+      {msg}
+    </div>
+  )
 
   return (
     <div className="quest-overlay guided">
@@ -194,6 +206,19 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
 
         <div ref={card} className={`guide-card ${solved ? 'solved' : ''}`}>
           <div className="guide-head">
+            {/* 進み具合：正解すると その ステップの 区切りが 満ちる */}
+            <div
+              className="guide-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={steps.length}
+              aria-valuenow={i + (solved ? 1 : 0)}
+              aria-label={tr('進み具合', 'Progress')}
+            >
+              {steps.map((_, k) => (
+                <span key={k} className={`gp-seg ${k < i || (k === i && solved) ? 'done' : ''} ${k === i ? 'now' : ''}`} />
+              ))}
+            </div>
             <span className="guide-no">
               {puzzle ? tr('謎', 'Puzzle') : tr('ステップ', 'Step')} {i + 1} / {steps.length}
             </span>
@@ -211,24 +236,26 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
           </div>
           <p className="guide-q">{step.q}</p>
           {hintOpen && !solved && <p className="hint">💡 {step.hint}</p>}
-          {msg && <div className="feedback">{msg}</div>}
+          {msg && step.kind !== 'choice' && feedback}
 
           {step.kind === 'choice' ? (
             <div className="guide-choices">
               {order.map((c) => (
                 <button
-                  key={c}
-                  className={`guide-choice ${picked.includes(c) ? 'no' : ''} ${solved && c === step.answer ? 'yes' : ''}`}
+                  key={shake.target === c ? `${c}-${shake.key}` : c}
+                  className={`guide-choice ${picked.includes(c) ? 'no' : ''} ${solved && c === step.answer ? 'yes' : ''} ${shake.target === c ? 'shake' : ''}`}
                   disabled={solved || picked.includes(c)}
                   onClick={() => choose(c)}
                 >
                   {c}
                 </button>
               ))}
+              {/* まちがいの 知らせは 選択肢の 下に 出す（ボタンが 指の 下で ずれないように） */}
+              {msg && feedback}
             </div>
           ) : (
             <>
-              <div className="fpad-formula">
+              <div key={shake.target === 'formula' ? shake.key : 0} className={`fpad-formula ${shake.target === 'formula' ? 'shake' : ''} ${solved ? 'ok' : ''}`}>
                 <span className="fpad-target">{step.target}</span>
                 <span className="fpad-text">
                   ={chips.join('')}
@@ -256,7 +283,15 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
 
           {solved && (
             <>
-              <div className="guide-explain">⭕ {step.explain}</div>
+              <div className="guide-explain" role="status">
+                <span className="ge-badge" aria-hidden="true">
+                  ✓
+                </span>
+                <span className="ge-body">
+                  <b className="ge-title">{puzzle ? tr('石版が 光った！', 'The tablet glows!') : tr('せいかい！', 'Correct!')}</b>
+                  {step.explain}
+                </span>
+              </div>
               <button className="btn primary guide-go" onClick={next}>
                 {last ? tr('これで どうだ！', 'How about this!') : tr('つぎへ ▶', 'Next ▶')}
               </button>
