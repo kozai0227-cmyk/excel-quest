@@ -730,7 +730,7 @@ export const FIELD_ENEMIES: Record<string, BossDef> = {
     name: 'セルイム',
     sprite: 'celime',
     hp: 50,
-    hits: 5,
+    hits: 3,
     attack: [3, 5],
     exp: 14,
     gold: 10,
