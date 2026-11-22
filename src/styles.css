@@ -3342,6 +3342,171 @@ html:lang(en) .fpad-label {
   outline: 2px solid #ffd76a;
 }
 
+/* けっか：達成画面（正答率リング・記録タイル・紙ふぶき） */
+.study-page.result {
+  position: relative;
+}
+.rs-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.8em 0 0.6em;
+  animation: eqRise 0.45s ease both;
+}
+.rs-ring {
+  --p: 0;
+  --ring: #ffd76a;
+  width: 9.5em;
+  height: 9.5em;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring) calc(var(--p) * 1%), rgba(255, 255, 255, 0.1) 0);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 2.4em color-mix(in srgb, var(--ring) 28%, transparent);
+  animation: eqPop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.result.perfect .rs-ring,
+.result.great .rs-ring {
+  --ring: #34d68a;
+}
+.result.try .rs-ring {
+  --ring: #5ab0ff;
+}
+.rs-ring-in {
+  width: calc(100% - 1.3em);
+  height: calc(100% - 1.3em);
+  border-radius: 50%;
+  background: #121a2c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+.rs-ring-in b {
+  font-size: 2.6em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.rs-ring-in b small {
+  font-size: 0.45em;
+  margin-left: 0.08em;
+  opacity: 0.8;
+}
+.rs-ring-in span {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+.rs-title {
+  margin-top: 0.55em;
+  font-size: 1.7em;
+  font-weight: bold;
+  color: #ffd76a;
+  animation: eqPop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s both;
+}
+.result.perfect .rs-title,
+.result.great .rs-title {
+  color: #7ee0a6;
+}
+.rs-hero .result-comment {
+  margin: 0.2em 0 0;
+}
+.rs-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6em;
+  margin: 0.4em 0 1.2em;
+}
+.rs-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0.7em 0.4em 0.6em;
+  border-radius: 0.8em;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-bottom-width: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+  animation: eqRise 0.4s ease both;
+}
+.rs-stat:nth-child(1) {
+  animation-delay: 0.35s;
+  border-color: #34b57899;
+}
+.rs-stat:nth-child(2) {
+  animation-delay: 0.45s;
+  border-color: #ff9a4a99;
+}
+.rs-stat:nth-child(3) {
+  animation-delay: 0.55s;
+  border-color: #5ab0ff99;
+}
+.rs-ico {
+  font-size: 1.2em;
+  line-height: 1.2;
+}
+.rs-stat b {
+  font-size: 1.45em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.rs-stat b small {
+  font-size: 0.6em;
+  opacity: 0.7;
+}
+.rs-stat > span:last-child {
+  font-size: 0.78em;
+  opacity: 0.75;
+  line-height: 1.25;
+}
+.rs-sub {
+  margin: 0 0 0.45em;
+  font-size: 0.95em;
+  color: #ffd76a;
+}
+.rs-confetti {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.rs-confetti i {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: rsFall 2s cubic-bezier(0.25, 0.6, 0.5, 1) both;
+}
+@keyframes rsFall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(560px) rotate(540deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rs-hero,
+  .rs-ring,
+  .rs-title,
+  .rs-stat {
+    animation: none;
+  }
+  .rs-confetti {
+    display: none;
+  }
+}
+
 .phone .study {
   font-size: 15px;
 }

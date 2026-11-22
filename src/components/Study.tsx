@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Question } from '../data/bosses'
 import { useKeys } from '../game/keys'
 import { jingle, sfx } from '../game/sound'
@@ -67,6 +67,9 @@ export function Study({ gs, fromTitle, onClose }: Props) {
   const [weak, setWeakState] = useState(getWeak)
   /** コースを はじめた 回数（問題画面を 作り直す 目印） */
   const [run, setRun] = useState(0)
+  /** コースを はじめた 時刻と、かかった 時間（けっか画面の タイム） */
+  const startAt = useRef(0)
+  const [elapsed, setElapsed] = useState(0)
 
   const start = (c: Course, list = c.make()) => {
     if (!list.length) return
@@ -76,12 +79,14 @@ export function Study({ gs, fromTitle, onClose }: Props) {
     setIdx(0)
     setResults([])
     setRun((n) => n + 1)
+    startAt.current = Date.now()
     setView('quiz')
   }
 
   const finish = (res: Result[]) => {
     setResults(res)
     setWeakState(getWeak())
+    setElapsed(Date.now() - startAt.current)
     setView('result')
     if (res.every((r) => r.ok)) jingle('clear')
   }
@@ -120,6 +125,7 @@ export function Study({ gs, fromTitle, onClose }: Props) {
         <ResultView
           title={course.title}
           results={results}
+          elapsed={elapsed}
           onRetry={() => start(course)}
           onSimilar={() => {
             const wrong = results.filter((r) => !r.ok).map((r) => r.item.key)
@@ -460,6 +466,7 @@ function Quiz({
 function ResultView({
   title,
   results,
+  elapsed,
   onRetry,
   onSimilar,
   onMenu,
@@ -467,6 +474,7 @@ function ResultView({
 }: {
   title: string
   results: Result[]
+  elapsed: number
   onRetry(): void
   onSimilar(): void
   onMenu(): void
@@ -475,11 +483,34 @@ function ResultView({
   const correct = results.filter((r) => r.ok).length
   const wrong = results.length - correct
   const rate = correct / results.length
+  const pct = Math.round(rate * 100)
+  // 連続正解の 最高記録
+  const best = results.reduce((a, r) => (r.ok ? { run: a.run + 1, max: Math.max(a.max, a.run + 1) } : { run: 0, max: a.max }), { run: 0, max: 0 }).max
+  const sec = Math.max(1, Math.round(elapsed / 1000))
+  const time = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+  const headline =
+    rate === 1 ? tr('パーフェクト！', 'Perfect!') : rate >= 0.8 ? tr('すばらしい！', 'Awesome!') : rate >= 0.5 ? tr('コース クリア！', 'Course complete!') : tr('おつかれさま！', 'Nice effort!')
+  const tier = rate === 1 ? 'perfect' : rate >= 0.8 ? 'great' : rate >= 0.5 ? 'good' : 'try'
+  // 正答率を 0 から 数え上げる（動きを 減らす 設定では すぐ 最終値）
+  const shown = useCountUp(pct)
+  const confetti = useMemo(
+    () =>
+      rate >= 0.8
+        ? Array.from({ length: 28 }, (_, i) => ({
+            left: `${(i * 37) % 100}%`,
+            delay: `${(i % 7) * 0.09}s`,
+            dur: `${1.6 + (i % 5) * 0.25}s`,
+            color: ['#ffd76a', '#34b578', '#5ab0ff', '#ff7a8a', '#c58bff'][i % 5],
+            rot: `${(i * 53) % 360}deg`,
+          }))
+        : [],
+    [rate],
+  )
   const comment =
     rate === 1
-      ? tr('パーフェクト！ 完璧に 身についている！', "Perfect! You've totally got this!")
+      ? tr('完璧に 身についている！ この調子！', "You've totally got this! Keep it up!")
       : rate >= 0.8
-        ? tr('すばらしい！ あと少しで 完璧だ。', 'Great job! Almost perfect.')
+        ? tr('あと少しで 完璧だ。', 'So close to perfect.')
         : rate >= 0.5
           ? tr('いい調子！ まちがえた 所を 復習しよう。', "Nice going! Let's review the ones you missed.")
           : tr('まずは 解説を 読んで、類題で もう一度！', 'Read the explanations first, then try similar questions!')
@@ -499,15 +530,52 @@ function ResultView({
   })
 
   return (
-    <div className="study-page result">
+    <div className={`study-page result ${tier}`}>
+      {confetti.length > 0 && (
+        <div className="rs-confetti" aria-hidden="true">
+          {confetti.map((c, i) => (
+            <i key={i} style={{ left: c.left, background: c.color, animationDelay: c.delay, animationDuration: c.dur, rotate: c.rot }} />
+          ))}
+        </div>
+      )}
       <header className="study-head">
         <h2>{tr('けっか', 'Results')}</h2>
         <div className="quiz-title">{title}</div>
       </header>
-      <div className="result-score">
-        <b>{correct}</b> / {results.length} {tr('問 正解', 'correct')}
+      <div className="rs-hero">
+        <div className="rs-ring" style={{ '--p': shown } as CSSProperties} role="img" aria-label={tr(`正答率 ${pct}%`, `Accuracy ${pct}%`)}>
+          <div className="rs-ring-in">
+            <b>
+              {shown}
+              <small>%</small>
+            </b>
+            <span>{tr('正答率', 'Accuracy')}</span>
+          </div>
+        </div>
+        <div className="rs-title">{headline}</div>
+        <p className="result-comment">{comment}</p>
       </div>
-      <p className="result-comment">{comment}</p>
+      <div className="rs-stats">
+        <div className="rs-stat ok">
+          <span className="rs-ico">✅</span>
+          <b>
+            {correct}
+            <small> / {results.length}</small>
+          </b>
+          <span>{tr('正解', 'Correct')}</span>
+        </div>
+        <div className="rs-stat streak">
+          <span className="rs-ico">🔥</span>
+          <b>{best}</b>
+          <span>{tr('最高 連続正解', 'Best streak')}</span>
+        </div>
+        <div className="rs-stat time">
+          <span className="rs-ico">⏱️</span>
+          <b>{time}</b>
+          <span>{tr('タイム', 'Time')}</span>
+        </div>
+      </div>
+      <h3 className="rs-sub">{tr('ふりかえり', 'Review')}</h3>
       <ol className="result-list">
         {results.map((r, i) => (
           <li key={i} className={r.ok ? 'ok' : 'ng'}>
@@ -531,4 +599,23 @@ function ResultView({
       </div>
     </div>
   )
+}
+
+/** 0 から target まで 数え上げる（約0.9秒・動きを 減らす 設定では すぐ target） */
+function useCountUp(target: number) {
+  const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [v, setV] = useState(reduce ? target : 0)
+  useEffect(() => {
+    if (reduce) return setV(target)
+    let raf = 0
+    const t0 = performance.now() + 250
+    const step = (t: number) => {
+      const k = Math.min(1, Math.max(0, (t - t0) / 900))
+      setV(Math.round(target * (1 - Math.pow(1 - k, 3))))
+      if (k < 1) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [target, reduce])
+  return v
 }
