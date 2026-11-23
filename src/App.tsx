@@ -1279,7 +1279,7 @@ export default function App() {
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
       {isTouchDevice && inWorld && scene !== 'quest' && !review && !(phone && scene === 'battle') && <TouchPad />}
-      {scene === 'quest' && questId && <QuestScreen quest={QUESTS[questId]} onClear={onQuestClear} onClose={onQuestClose} />}
+      {scene === 'quest' && questId && <QuestScreen quest={QUESTS[questId]} exp={gs.exp} onClear={onQuestClear} onClose={onQuestClose} />}
     </div>
   )
 }
