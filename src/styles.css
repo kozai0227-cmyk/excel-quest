@@ -135,6 +135,136 @@ button {
 }
 .hud-name {
   color: #ffe070;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* フィールドの 状態ウインドウ：HP・経験値を バーで 見せる */
+.hud {
+  min-width: 24%;
+}
+.hud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  margin-bottom: 0.2em;
+}
+.hud-lv {
+  flex: none;
+  font-size: 0.85em;
+  padding: 0.05em 0.5em;
+  border-radius: 999px;
+  background: #ffe070;
+  color: #1a1a1a;
+  font-weight: bold;
+}
+.hud-row {
+  display: grid;
+  grid-template-columns: 1.6em 1fr auto;
+  align-items: center;
+  gap: 0.45em;
+}
+.hud-key {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+.hud-val {
+  font-size: 0.85em;
+  min-width: 3.6em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.hud-bar {
+  position: relative;
+  height: 0.55em;
+  min-width: 4em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+.hud-bar div {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hud-bar.hp div {
+  background: linear-gradient(#7cf29a, #2fbf5a);
+}
+.hud-bar.hp.low div {
+  background: linear-gradient(#ff9a8a, #e0453a);
+  animation: hudLow 1s ease-in-out infinite;
+}
+.hud-bar.exp div {
+  background: linear-gradient(#8fd8ff, #3a8dff);
+}
+.hud-bar.gain {
+  animation: hudGain 1.2s ease-out;
+}
+.hud-bar.gain div {
+  filter: brightness(1.35);
+}
+.hud-gold {
+  margin-top: 0.15em;
+  font-size: 0.85em;
+  color: #ffd54a;
+}
+@keyframes hudGain {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+  30% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+      0 0 0.6em rgba(143, 216, 255, 0.9);
+  }
+}
+@keyframes hudLow {
+  50% {
+    opacity: 0.55;
+  }
+}
+/* 町の 依頼の 進み具合（マス） */
+.hq-pips {
+  display: flex;
+  gap: 0.25em;
+  margin-top: 0.3em;
+}
+.hq-pips span {
+  flex: 1;
+  min-width: 0.9em;
+  height: 0.45em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.hq-pips span.on {
+  background: linear-gradient(#ffe98a, #f2b632);
+  box-shadow: 0 0 0.35em rgba(255, 210, 80, 0.55);
+}
+.hq-pips span.new {
+  animation: hqPop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes hqPop {
+  0% {
+    transform: scale(0.3);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+  }
+  60% {
+    transform: scale(1.35, 1.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-bar div {
+    transition: none;
+  }
+  .hud-bar.gain,
+  .hud-bar.hp.low div,
+  .hq-pips span.new {
+    animation: none;
+  }
 }
 .hud-quest {
   top: 3%;
