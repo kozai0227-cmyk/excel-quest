@@ -4726,3 +4726,233 @@ html:lang(en) .fpad-label {
     animation: none;
   }
 }
+
+/* ================= 会話ウインドウ（フィールド）：名札・弾む ▼・押しやすい 選択ボタン ================= */
+.dlg {
+  box-shadow: 0 1.2cqw 3cqw rgba(0, 0, 0, 0.45);
+  transform-origin: 50% 100%;
+  animation: dlgIn 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  transition: transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+/* 押すと ほんの少し 沈む */
+.dlg:not(.choosing):active {
+  transform: scale(0.992);
+}
+.dlg.named {
+  padding-top: 2.4cqw;
+}
+/* 名札：ウインドウの 上の 縁に のる */
+.dlg .speaker {
+  position: absolute;
+  top: 0;
+  left: 1.6cqw;
+  translate: 0 -58%;
+  margin: 0;
+  padding: 0.3cqw 1.6cqw;
+  max-width: calc(100% - 3.2cqw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 0.35cqw solid #fff;
+  border-radius: 999px;
+  background: linear-gradient(#24314f, #141b2e);
+  color: #ffe070;
+  font-size: 2.3cqw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  box-shadow: 0 0.4cqw 1cqw rgba(0, 0, 0, 0.4);
+  animation: dlgTag 0.24s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+/* 続きが ある ときの ▼：点滅より 目に やさしく、ふわふわ 弾む */
+.dlg .next {
+  color: #ffe070;
+  animation: dlgNext 0.9s ease-in-out infinite;
+}
+
+/* 選択肢：ウインドウの 右上に、指で 押しやすい 立体ボタンを 縦に 並べる */
+.dlg .dlg-choices {
+  position: absolute;
+  right: 0;
+  left: auto;
+  bottom: calc(100% + 1.6cqw);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1cqw;
+  min-width: 26%;
+  max-width: 70%;
+  z-index: 21;
+  cursor: default;
+}
+.dlg-choices .opt {
+  position: relative;
+  display: block;
+  min-height: 5.4cqw;
+  padding: 0.9cqw 2.4cqw;
+  border: 0.3cqw solid rgba(255, 255, 255, 0.85);
+  border-bottom-width: 0.8cqw;
+  border-bottom-color: #0b0f1a;
+  border-radius: 1.4cqw;
+  background: linear-gradient(#2c3a5c, #1a2340);
+  color: #fff;
+  font-family: inherit;
+  font-size: 2.7cqw;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 0.6cqw 1.4cqw rgba(0, 0, 0, 0.4);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  animation: dlgOpt 0.26s cubic-bezier(0.25, 1.4, 0.5, 1) both;
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    background 0.12s ease;
+}
+/* いちばん上（「はい」「たすける」など）は 色つきで 目立たせる */
+.dlg-choices .opt.first {
+  background: linear-gradient(#1aa3a1, var(--brand));
+  border-bottom-color: #064240;
+}
+.dlg-choices .opt::before {
+  content: none;
+}
+.dlg-choices .opt:active,
+.dlg-choices .opt.picked {
+  border-bottom-width: 0.3cqw;
+  margin-top: 0.5cqw;
+}
+.dlg-choices .opt.picked {
+  background: #fff;
+  color: #10233a;
+  animation: eqPop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+/* キーボード・十字ボタンで 選ぶ ときだけ 光る 枠 */
+.dlg-choices.ring .opt.on:not(.picked) {
+  outline: 0.5cqw solid #ffe070;
+  outline-offset: 0.3cqw;
+}
+.dlg-choices.ring .opt.on:not(.picked)::before {
+  content: '▶';
+  position: absolute;
+  left: 1cqw;
+  top: 50%;
+  translate: 0 -50%;
+  color: #ffe070;
+  font-size: 0.8em;
+  animation: blink 0.8s steps(1) infinite;
+}
+@media (hover: hover) {
+  .dlg-choices .opt:hover:not(.picked) {
+    filter: brightness(1.15);
+  }
+}
+/* 現代パート（vn）の 選択肢も ボタンに なったので 見た目を 元の 文字メニューに そろえる */
+.win.choice-win .opt {
+  display: block;
+  width: 100%;
+  padding: 0 0 0 1.2em;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* スマホ */
+.phone .screen .dlg {
+  border-width: 2px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.phone .screen .dlg.named {
+  padding-top: 16px;
+  margin-top: 12px;
+}
+.phone .dlg .speaker {
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 2px 12px;
+  border-width: 2px;
+  font-size: 13px;
+}
+.phone .screen .dlg .dlg-choices {
+  right: 0;
+  bottom: calc(100% + 12px);
+  min-width: 52%;
+  max-width: 100%;
+  gap: 8px;
+  font-size: 16px;
+}
+.phone .dlg-choices .opt {
+  min-height: 50px;
+  padding: 10px 22px;
+  border-width: 2px;
+  border-bottom-width: 5px;
+  border-radius: 12px;
+  font-size: 17px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.phone .dlg-choices .opt:active,
+.phone .dlg-choices .opt.picked {
+  border-bottom-width: 2px;
+  margin-top: 3px;
+}
+.phone .dlg-choices.ring .opt.on:not(.picked) {
+  outline-width: 3px;
+  outline-offset: 2px;
+}
+.phone .dlg-choices.ring .opt.on:not(.picked)::before {
+  left: 8px;
+}
+/* 名札の ぶん 上に 余白が できたので、選択肢は 名札より 上に 出す */
+.phone .screen .dlg.named .dlg-choices {
+  bottom: calc(100% + 22px);
+}
+
+@keyframes dlgIn {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+@keyframes dlgTag {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+}
+@keyframes dlgNext {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.25em);
+  }
+}
+@keyframes dlgOpt {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dlg,
+  .dlg .speaker,
+  .dlg .next,
+  .dlg-choices .opt,
+  .dlg-choices .opt.picked {
+    animation: none;
+  }
+  .dlg-choices .opt {
+    transition: none;
+  }
+}
