@@ -490,9 +490,24 @@ const SFX = {
 export type SfxName = keyof typeof SFX
 export const SFX_NAMES = Object.keys(SFX) as SfxName[]
 
+/** sfxNow で 先に 鳴らした 音と その 時刻 */
+const early: Partial<Record<SfxName, number>> = {}
+
 export function sfx(name: SfxName) {
+  // 押した 瞬間に 先に 鳴らした 音は、すぐ あとの 同じ 音（メッセージの 自動の 音など）を 1回 だけ 省く
+  const t = early[name]
+  if (t !== undefined) {
+    delete early[name]
+    if (performance.now() - t < 1500) return
+  }
   if (!ctx || !enabled || ctx.state !== 'running') return
   SFX[name]()
+}
+
+/** 押した 瞬間に 鳴らす（見た目の 反応と 音を そろえる）。直後に 同じ 音が 来ても 2重に ならない */
+export function sfxNow(name: SfxName) {
+  sfx(name)
+  early[name] = performance.now()
 }
 
 /**
