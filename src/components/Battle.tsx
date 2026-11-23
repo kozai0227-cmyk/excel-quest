@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
-import { itemName } from '../data/items'
+import { itemDesc, itemName } from '../data/items'
 import { enemyName } from '../data/en'
 import { tr } from '../game/lang'
 import { useKeys } from '../game/keys'
@@ -17,7 +17,7 @@ import { judgeFormula } from '../game/judge'
 import { markWeak, questionKey } from '../game/weak'
 import { BossVisual } from './BossVisual'
 import { hasBossArt } from '../game/bossArt'
-import { cue, sfx, useBgm } from '../game/sound'
+import { cue, sfx, sfxNow, useBgm } from '../game/sound'
 
 interface Props {
   bossId: string
@@ -52,6 +52,12 @@ const shuffle = <T,>(a: T[]) => {
 const rand = (lo: number, hi: number) => lo + Math.floor(Math.random() * (hi - lo + 1))
 /** 制限時間のうち、最初のこの割合で答えると「即答ボーナス」 */
 const QUICK = 0.4
+/** 動きを 減らす 設定（正解・不正解の 反応を 見せる 時間を 短く） */
+const REDUCED_MOTION = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+/** コマンドの 印（スマホでは 大きな ボタンに 出す） */
+const CMD_KEYS = ['fight', 'items', 'run'] as const
+const CMD_ICONS = ['⚔️', '🎒', '🏃']
+const ITEM_ICONS: Record<ItemId, string> = { herb: '🌿', scroll: '📜', sandglass: '⏳' }
 /** 一発決裁（大ダメージ）の基本確率。ブルーライトメガネで 10% に上がる */
 const CRIT = 0.05
 /** ボス戦：敵の問題に正解したとき、ダメージがゼロになる確率 */
@@ -110,6 +116,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [cursor, setCursor] = useState(0)
   const [q, setQ] = useState<Question | null>(null)
   const [choices, setChoices] = useState<string[]>([])
+  /** 押した 選択肢（正解なら ✓で はね、まちがいなら ゆれる。少し 見せてから 結果の 文へ） */
+  const [picked, setPicked] = useState<{ i: number; ok: boolean } | null>(null)
+  /** 選択肢を 押した 時刻（即答ボーナスは 押した 瞬間で 判定する） */
+  const tapAt = useRef<number | null>(null)
   const touch = useInputMode() === 'touch'
   /** attack：こちらの攻撃の問題 ／ defense：ボスの攻撃の問題（正解でダメージ減） */
   const [mode, setMode] = useState<'attack' | 'defense'>('attack')
@@ -158,6 +168,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     setQ(nq)
     setQNo((n) => n + 1)
     answered.current = false
+    tapAt.current = null
+    setPicked(null)
     if (nq.type === 'choice') {
       let cs = shuffle(nq.choices)
       if (buff.scroll) {
@@ -177,7 +189,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const answerRef = useRef<(ok: boolean, note?: string) => void>(() => {})
   useEffect(() => {
     if (phase !== 'question') return
-    const t = setTimeout(() => answerRef.current(false, tr('時間切れ！', "Time's up!")), Math.max(0, deadline - Date.now()))
+    const t = setTimeout(() => tapAt.current === null && answerRef.current(false, tr('時間切れ！', "Time's up!")), Math.max(0, deadline - Date.now()))
     return () => clearTimeout(t)
   }, [phase, deadline])
 
@@ -242,7 +254,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     if (mode === 'defense') return defend(ok, note)
     if (ok) {
       const limit = deadline - startedAt.current
-      const quick = Date.now() - startedAt.current <= limit * QUICK
+      const quick = (tapAt.current ?? Date.now()) - startedAt.current <= limit * QUICK
       const c = combo + 1
       const lines: Msg[] = [tr('せいかい！', 'Correct!')]
       let dmg: number
@@ -314,6 +326,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
 
   const commands = [tr('たたかう', 'Fight'), tr('どうぐ', 'Items'), tr('にげる', 'Run')]
   const battleItems = (['herb', 'scroll', 'sandglass'] as ItemId[]).filter((id) => gs.items[id] > 0)
+  const itemCount = battleItems.reduce((n, id) => n + gs.items[id], 0)
 
   const useItem = (id: ItemId) => {
     setGs((g) => ({ ...g, items: { ...g.items, [id]: g.items[id] - 1 } }))
@@ -365,7 +378,15 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         setCursor(1)
         setPhase('command')
       } else useItem(battleItems[i])
-    } else if (phase === 'question' && q?.type === 'choice') answer(choices[i] === q.answer)
+    } else if (phase === 'question' && q?.type === 'choice') {
+      if (tapAt.current !== null || answered.current) return
+      const ok = choices[i] === q.answer
+      tapAt.current = Date.now()
+      setPicked({ i, ok })
+      // 音と 見た目の 反応は 押した 瞬間に。結果の 文は 反応を 見せてから
+      sfxNow(ok ? 'correct' : 'wrong')
+      setTimeout(() => answerRef.current(ok), REDUCED_MOTION() ? 120 : 460)
+    }
   }
 
   const listLen = phase === 'command' ? 3 : phase === 'items' ? battleItems.length + 1 : phase === 'question' && q?.type === 'choice' ? choices.length : 0
@@ -471,7 +492,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           {q.type === 'choice' ? (
             <div className="q-choices">
               {choices.map((c, i) => (
-                <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => choose(i)}>
+                <div key={c}
+                  className={`opt ${i === cursor && !picked ? 'on' : ''} ${picked?.i === i ? (picked.ok ? 'yes' : 'no') : picked && !picked.ok && c === q.answer ? 'reveal' : picked ? 'dim' : ''}`}
+                  onPointerEnter={() => !picked && setCursor(i)} onClick={() => choose(i)}>
                   <span className="num">{i + 1}</span> {c}
                 </div>
               ))}
@@ -491,23 +514,32 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       )}
 
       {(phase === 'command' || phase === 'items') && (
-        <div className="battle-cmds">
-          <div className="win cmd-win">
+        <div className={`battle-cmds ${phase}`}>
+          <div className="win cmd-win" role="menu">
             {commands.map((c, i) => (
-              <div key={c} className={`opt ${phase === 'command' && i === cursor ? 'on' : ''}`}
+              <div key={c} role="menuitem" className={`opt cmd-${CMD_KEYS[i]} ${phase === 'command' && i === cursor ? 'on' : ''}`}
                 onClick={() => phase === 'command' && choose(i)}>
-                {c}
+                <span className="cmd-ico" aria-hidden="true">{CMD_ICONS[i]}</span>
+                <span className="cmd-label">{c}</span>
+                {i === 1 && itemCount > 0 && <span className="cmd-badge">{itemCount}</span>}
               </div>
             ))}
           </div>
           {phase === 'items' && (
-            <div className="win item-win">
+            <div className="win item-win" role="menu">
+              <div className="item-head">{tr('どうぐを つかう', 'Use an item')}</div>
+              {battleItems.length === 0 && <div className="item-empty">{tr('つかえる どうぐが ない', 'No usable items')}</div>}
               {battleItems.map((id, i) => (
-                <div key={id} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => choose(i)}>
-                  {itemName(id)} ×{gs.items[id]}
+                <div key={id} role="menuitem" className={`opt item-opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => choose(i)}>
+                  <span className="item-ico" aria-hidden="true">{ITEM_ICONS[id]}</span>
+                  <span className="item-main">
+                    <span className="item-name">{itemName(id)}</span>
+                    <span className="item-desc">{itemDesc(id)}</span>
+                  </span>
+                  <span className="item-count">×{gs.items[id]}</span>
                 </div>
               ))}
-              <div className={`opt ${cursor === battleItems.length ? 'on' : ''}`} onClick={() => choose(battleItems.length)}>
+              <div role="menuitem" className={`opt item-back ${cursor === battleItems.length ? 'on' : ''}`} onClick={() => choose(battleItems.length)}>
                 {tr('もどる', 'Back')}
               </div>
             </div>
