@@ -7,6 +7,9 @@ import { DocView } from './DocView'
 import { isNative } from '../game/native'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import { EN_CHAPTERS } from '../data/en'
+import { CHAPTERS as CHAPTER_DEFS, chapterOpen, chapterTag, totalPercent } from '../data/chapters'
+import { mapName } from '../data/maps'
+import type { GameState } from '../game/types'
 
 type TitleOpt = 'continue' | 'new' | 'study'
 const TITLE_LABEL: Record<TitleOpt, () => string> = {
@@ -15,9 +18,19 @@ const TITLE_LABEL: Record<TitleOpt, () => string> = {
   study: () => tr('ふくしゅう', 'Review'),
 }
 
-export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolean; onNew(): void; onContinue(): void; onStudy(): void }) {
+/** つづきからの カードに 出す セーブの まとめ（今いる 章・場所・達成率） */
+function saveSummary(g: GameState) {
+  const ch = [...CHAPTER_DEFS].reverse().find((c) => chapterOpen(c, g)) ?? CHAPTER_DEFS[0]
+  return { chapter: chapterTag(ch), place: mapName(g.mapId), pct: totalPercent(g) }
+}
+
+export function Title({ save, onNew, onContinue, onStudy }: { save: GameState | null; onNew(): void; onContinue(): void; onStudy(): void }) {
+  const hasSave = !!save
+  const sum = save ? saveSummary(save) : null
   const opts: TitleOpt[] = hasSave ? ['continue', 'new', 'study'] : ['new', 'study']
   const [cursor, setCursor] = useState(0)
+  /** 十字ボタン・キーで カーソルを 動かしたか（スマホは そのときだけ 選択中の 枠を 出す） */
+  const [keyNav, setKeyNav] = useState(false)
   /** セーブが あるのに「はじめから」を 選んだ：上書きの 確認（0：やめる 1：はじめから） */
   const [confirm, setConfirm] = useState<number | null>(null)
   /** プライバシーポリシーを 開いているか */
@@ -58,6 +71,7 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
     }
     if (k === 'up' || k === 'down') {
       sfx('cursor')
+      setKeyNav(true)
       setCursor((c) => (c + (k === 'up' ? opts.length - 1 : 1)) % opts.length)
     } else if (k === 'ok') {
       sfx('select')
@@ -87,11 +101,48 @@ export function Title({ hasSave, onNew, onContinue, onStudy }: { hasSave: boolea
         <i className="logo-spark s3" />
       </div>
       <div className="title-bottom">
-        <div className="win title-menu" ref={menuRef}>
+        <div className={`title-menu ${keyNav ? 'key-nav' : ''}`} ref={menuRef} role="menu">
           {opts.map((o, i) => (
-            <div key={o} className={`opt ${i === cursor ? 'on' : ''}`} onPointerEnter={() => setCursor(i)} onClick={() => pick(i)}>
-              {TITLE_LABEL[o]()}
-            </div>
+            <button
+              type="button"
+              role="menuitem"
+              key={o}
+              className={`tm-btn ${i === 0 ? 'tm-primary' : 'tm-sub'} ${i === cursor ? 'on' : ''}`}
+              style={{ animationDelay: `${120 + i * 70}ms` }}
+              onPointerEnter={(e) => {
+                if (e.pointerType === 'mouse') setCursor(i)
+              }}
+              onClick={() => {
+                sfx('select')
+                setKeyNav(false)
+                setCursor(i)
+                pick(i)
+              }}
+            >
+              <span className="tm-label">
+                <span className="tm-icon" aria-hidden="true">
+                  {o === 'continue' ? '▶' : o === 'new' ? '✦' : '📖'}
+                </span>
+                {TITLE_LABEL[o]()}
+              </span>
+              {o === 'continue' && save && sum && (
+                <span className="tm-save">
+                  <span className="tm-save-row">
+                    <span className="tm-lv">Lv {save.level}</span>
+                    <span className="tm-name">{save.name}</span>
+                    <span className="tm-place">{sum.place}</span>
+                  </span>
+                  <span className="tm-prog">
+                    <span className="tm-ch">{sum.chapter}</span>
+                    <span className="tm-bar">
+                      <i style={{ width: `${Math.max(4, sum.pct)}%` }} />
+                    </span>
+                    <span className="tm-pct">{tr(`達成率 ${sum.pct}%`, `${sum.pct}% complete`)}</span>
+                  </span>
+                </span>
+              )}
+              {o === 'new' && !hasSave && <span className="tm-hint">{tr('表計算の 冒険を 始めよう', 'Begin your spreadsheet adventure')}</span>}
+            </button>
           ))}
         </div>
         <div className="title-help">

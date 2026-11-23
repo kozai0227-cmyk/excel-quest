@@ -1146,7 +1146,7 @@ export default function App() {
   return (
     <div className={`app ${phone ? 'phone' : ''}`}>
       <div className="screen">
-        {scene === 'title' && <Title hasSave={!!loadGame()} onNew={() => setScene('name')} onContinue={continueGame} onStudy={() => setScene('study')} />}
+        {scene === 'title' && <Title save={loadGame()} onNew={() => setScene('name')} onContinue={continueGame} onStudy={() => setScene('study')} />}
         {scene === 'study' && <Study gs={loadGame()} fromTitle onClose={() => setScene('title')} />}
         {scene === 'name' && <NameEntry onDone={(name) => startGame(newGame(name), 'prologue')} />}
         {scene === 'prologue' && (
