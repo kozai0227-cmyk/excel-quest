@@ -1290,7 +1290,8 @@ const calculet: MapDef = {
     {
       id: 'gate2', x: 32, y: 12, name: '国境の兵士', look: C.gate2, kind: 'guard', dir: 'left',
       lines: [tr('この先は 鏡の町 サンショウへ 続く 海峡だ。', 'Beyond here is the strait that leads to Refton, the Town of Mirrors.'), tr('だが 橋が 工事中でな。北の塔の ゴーレムが 石材を 独り占めしているらしい。', 'But the bridge is still under construction. The golem in the northern tower is hoarding all the stone.')],
-      hideIf: (s) => s.bosses.includes('golem'),
+      // 町は 旅の地図で どこへでも 行けるので、門は 通せんぼ しない
+      hideIf: () => true,
     },
     {
       id: 'gate2_open', x: 31, y: 11, name: '国境の兵士', look: C.gate2, kind: 'talk', dir: 'down',
@@ -1311,8 +1312,9 @@ const forestMap: MapDef = {
   kind: 'field',
   tiles: forestTiles(),
   spawn: { x: 5, y: 9, dir: 'right' },
-  exits: [{ x: 21, y: 9, to: 'world', tx: 8, ty: 24, dir: 'right' }],
-  signs: [{ x: 18, y: 8, lines: [tr('→ 森の出口', '→ Forest exit'), tr('この先、北東に「はじまりの村 セルノ」', 'Ahead, to the northeast: Cellno, Village of Beginnings')] }],
+  // 森を 抜けると すぐ セルノ（ワールドマップは なくした）
+  exits: [{ x: 21, y: 9, to: 'celuno', tx: 28, ty: 13, dir: 'left' }],
+  signs: [{ x: 18, y: 8, lines: [tr('→ 森の出口', '→ Forest exit'), tr('この先「はじまりの村 セルノ」', 'Ahead: Cellno, Village of Beginnings')] }],
   npcs: [{ id: 'celime_npc', x: 10, y: 9, name: 'セルイム', creature: 'celime', kind: 'boss', bossId: 'celime_tutorial', hideIf: (s) => !!s.flags.tutorial }],
 }
 

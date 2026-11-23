@@ -21,7 +21,7 @@ const TITLE_LABEL: Record<TitleOpt, () => string> = {
 /** つづきからの カードに 出す セーブの まとめ（今いる 章・場所・達成率） */
 function saveSummary(g: GameState) {
   const ch = [...CHAPTER_DEFS].reverse().find((c) => chapterOpen(c, g)) ?? CHAPTER_DEFS[0]
-  return { chapter: chapterTag(ch), place: mapName(g.mapId), pct: totalPercent(g) }
+  return { chapter: chapterTag(ch), place: mapName(g.mapId === 'world' ? (g.lastTown ?? 'celuno') : g.mapId), pct: totalPercent(g) }
 }
 
 export function Title({ save, onNew, onContinue, onStudy }: { save: GameState | null; onNew(): void; onContinue(): void; onStudy(): void }) {

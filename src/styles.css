@@ -5933,3 +5933,98 @@ html:lang(en) .fpad-label {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------- 旅の地図（町を 選ぶ） */
+.travel-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 3%;
+}
+.win.travel {
+  position: relative;
+  width: min(100%, 720px);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: 2.2cqw;
+}
+.phone .win.travel {
+  font-size: 15px;
+  padding: 12px 12px;
+}
+.travel h3 {
+  margin: 0;
+  color: #ffd76a;
+  font-size: 1.3em;
+}
+.travel-note {
+  margin: 0.2em 0 0.5em;
+  color: #c8cfdb;
+  font-size: 0.85em;
+}
+.travel-list {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding-right: 2px;
+}
+.travel-town {
+  border: 2px solid #3a4560;
+  border-radius: 0.6em;
+  padding: 0.45em 0.7em;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, background 0.12s;
+}
+.travel-town.on {
+  border-color: #ffd76a;
+  background: rgba(255, 215, 106, 0.08);
+}
+.travel-town:active {
+  transform: scale(0.98);
+}
+.travel-town.locked {
+  opacity: 0.6;
+}
+.travel-town.cleared .tt-name {
+  color: #7ee2b8;
+}
+.tt-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.tt-name {
+  font-weight: 700;
+  flex: 1;
+}
+.tt-here,
+.tt-clear {
+  font-size: 0.7em;
+  padding: 0.05em 0.45em;
+  border-radius: 0.4em;
+  white-space: nowrap;
+}
+.tt-here {
+  background: #2f6fd6;
+}
+.tt-clear {
+  background: #1f7a5a;
+}
+.tt-skills {
+  font-size: 0.8em;
+  color: #ffd76a;
+}
+.tt-sub {
+  font-size: 0.75em;
+  color: #aab3c5;
+}
+.travel-close {
+  text-align: center;
+}

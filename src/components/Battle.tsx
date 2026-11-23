@@ -8,6 +8,7 @@ import { useKeys } from '../game/keys'
 import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
 import { maxHp } from '../game/progress'
+import { scaleEnemy } from '../game/scaling'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { useInputMode } from '../game/inputMode'
@@ -86,7 +87,8 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
 }
 
 export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
-  const boss = ENEMIES[bossId]
+  // 町は どの 順でも 回れるので、敵の 強さは レベルに 合わせる
+  const [boss] = useState(() => scaleEnemy(ENEMIES[bossId], gs.level))
   const bossName = enemyName(boss)
   useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
   /** 山札（boss.questions の 番号） */

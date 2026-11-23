@@ -11,6 +11,7 @@ import { Gallery, SoundTest } from './components/Gallery'
 import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
+import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
 import { FieldStatus, QuestProgress } from './components/FieldHud'
 import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
@@ -43,6 +44,9 @@ const bossScene = (id: string): BattleReq['scene'] =>
 
 const INN_PRICE = 10
 /** 開発用の URL（?quest= など）は 手元の ブラウザで だけ 使える（公開中の Web 版や アプリでは 無効） */
+/** 向きごとの 1歩 と 反対の 向き */
+const STEP: Record<Dir, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
+const BACK: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right', right: 'left' }
 const DEV_URL = !isNative && (import.meta.env.DEV || ['localhost', '127.0.0.1'].includes(location.hostname))
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -60,6 +64,8 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
+  /** 旅の地図（町を 選ぶ）を 開いているか */
+  const [travel, setTravel] = useState(false)
   const [busy, setBusy] = useState(false)
   const [questId, setQuestId] = useState<string | null>(null)
   const [battle, setBattle] = useState<BattleReq | null>(null)
@@ -167,6 +173,10 @@ export default function App() {
     // 旧バージョンのセーブ（森の導入がない）にも対応
     if (loaded.flags.intro) Object.assign(loaded.flags, { forest_intro: true, tutorial: true, visit_celuno: true })
     // マップ改修前のセーブで壁の中にいる場合は、町の入口に戻す
+    if (loaded.mapId === 'world') {
+      const t = MAPS[loaded.lastTown ?? 'celuno'] ?? MAPS.celuno
+      Object.assign(loaded, { mapId: t.id, x: t.spawn.x, y: t.spawn.y, dir: t.spawn.dir })
+    }
     const m = MAPS[loaded.mapId] ?? MAPS.forest
     const ok = WALKABLE.has(m.tiles[loaded.y]?.[loaded.x] ?? '#')
     const g = ok && MAPS[loaded.mapId] ? loaded : { ...loaded, mapId: m.id, x: m.spawn.x, y: m.spawn.y, dir: m.spawn.dir }
@@ -363,20 +373,9 @@ export default function App() {
           break
         }
         case 'ferry': {
-          const f = npc.ferry!
-          if (f.closed?.(g)) {
-            await say(f.closedLines ?? [tr('すまんが、いまは 出せないんだ。', "Sorry, we can't depart right now.")])
-            break
-          }
-          await say(npc.lines ?? [])
-          const i = await say([tr(`${f.place}へ ${f.verb ?? '渡る'}かい？`, `${f.verb ? 'Head' : 'Cross over'} to ${mapName(f.to)}?`)], [tr('乗る', 'Board'), tr('やめる', 'Not now')])
-          if (i !== 0) break
-          sfx('door')
-          setFade(true)
-          await sleep(600)
-          onWarp({ x: npc.x, y: npc.y, to: f.to, tx: f.x, ty: f.y, dir: f.dir })
-          await sleep(700)
-          setFade(false)
+          // 町と 町の 行き来は 旅の地図で（どの 町へも 行ける）
+          await say(npc.lines ?? [tr('どこへでも 連れていくぜ。', "I'll take you anywhere.")])
+          setTravel(true)
           break
         }
         case 'heal': {
@@ -429,6 +428,14 @@ export default function App() {
     })
 
   const onWarp = (ex: Exit) => {
+    // ワールドマップは なくした。町の 外へ 出ようとしたら、1歩 もどして 旅の地図を 開く
+    if (ex.to === 'world') {
+      const p = pos.current
+      const [dx, dy] = STEP[p.dir]
+      moveTo(gsRef.current.mapId, p.x - dx, p.y - dy, BACK[p.dir])
+      setTravel(true)
+      return
+    }
     const firstVisit = !gsRef.current.flags[`visit_${ex.to}`]
     // 建物・ダンジョンの 出入りは 扉の 音（町の 外へ 歩いて 出るときは 鳴らさない）
     const inside = (id: string) => MAPS[id]?.kind === 'interior' || MAPS[id]?.kind === 'dungeon'
@@ -985,41 +992,45 @@ export default function App() {
         setFade(false)
         await me([tr('はぁ、はぁ……なんとか 外に 出られた……。', 'Huff, huff... Made it out somehow...')])
       }
-      if (b.id === 'slime') await talk(undefined, [tr('東の橋の 見張りに 知らせが 届いた！', 'Word reached the guard at the east bridge!'), tr('（ワールドマップの 東の橋を 渡って、計算の町 カルキュレへ 行けるように なった）', '(You can now cross the east bridge on the world map to Calcule, the Town of Calculation.)')])
+      if (b.id === 'slime') await talk(undefined, [tr('村の 人たちが 喜んでいる！', 'The villagers are overjoyed!')])
       if (b.id === 'golem')
-        await talk(undefined, [tr('ゴーレムが 独り占めしていた 石材が、海峡の 工事現場へ 運ばれていった！', 'The stone the golem had hoarded was carried off to the construction site at the strait!'), tr('（カルキュレの 東から、鏡の町 サンショウへ 行けるように なった）', '(You can now travel east from Calcule to Refton, the Town of Mirrors.)')])
+        await talk(undefined, [tr('ゴーレムが 独り占めしていた 石材が、海峡の 工事現場へ 運ばれていった！', 'The stone the golem had hoarded was carried off to the construction site at the strait!')])
       if (b.id === 'mirage')
-        await talk(undefined, [tr('大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', 'The moment the great mirror shattered, the "mirror fog" covering the southern pass began to clear...!'), tr('（サンショウの 南の 峠を 越えて、港町 イフポートへ 行けるように なった）', '(You can now cross the pass south of Refton to the harbor town of Ifport.)')])
+        await talk(undefined, [tr('大鏡が 割れた 瞬間、南の 峠を おおっていた「鏡の霧」が 晴れていく……！', 'The moment the great mirror shattered, the "mirror fog" covering the southern pass began to clear...!')])
       if (b.id === 'captain')
         await talk(undefined, [
           tr('幽霊船の 帆が 朝日を 浴びて、ただの 古い 帆船に もどっていく……。', "Bathed in the morning sun, the ghost ship's sails turn back into those of an ordinary old sailing ship..."),
           tr('港の あちこちから、船の 汽笛と 人々の 歓声が 聞こえてきた！', 'Ship whistles and cheers ring out all over the harbor!'),
-          tr('（止まっていた 定期船が 動き出した。桟橋の 船乗りに 話せば、海の 向こうへ 渡れるらしい）', '(The ferry that had stopped is running again. Talk to the sailor on the pier to cross the sea.)'),
         ])
       if (b.id === 'mitsukaranu')
         await talk(undefined, [
           tr('大書庫の 本たちが ひとりでに 棚へ 戻り、目録が 淡く 光りはじめた……。', "The Great Library's books return to their shelves on their own, and the catalogs begin to glow softly..."),
           tr('城下の あちこちで「あった！」「見つかった！」という 声が 上がっている！', 'All over town, people are shouting "Here it is!" and "Found it!"'),
-          tr('（東門の 街道が 通れるように なった。東門の 馬車の 御者に 話せば、王都へ 向かえるらしい）', '(The road from the east gate is open. Talk to the carriage driver at the east gate to head for the capital.)'),
         ])
       if (b.id === 'barabaran')
         await talk(undefined, [
           tr('散らばっていた 伝票が 1枚 残らず 綴じられ、宝物庫の 奥に 巨大な 帳簿が 現れた……。', 'Every last scattered receipt is bound together, and a giant ledger appears at the back of the treasury...'),
           tr('王都の 鐘が 鳴り響き、役所の あちこちから「集計 終わり！」という 歓声が 聞こえてきた！', 'The capital\'s bells ring out, and cheers of "Totals done!" come from every corner of the government office!'),
-          tr('（東の 宿場町への 馬車が 動き出した。王都の 東門の 御者に 話せば 向かえるらしい）', "(The carriage to the post town in the east is running. Talk to the driver at the capital's east gate to go there.)"),
         ])
       if (b.id === 'mojibake')
         await talk(undefined, [
           tr('化けていた 活字が 1つずつ 元の 形に 戻り、印刷機が ふたたび 動き出した……。', 'One by one, the garbled type returns to its true shape, and the printing press starts up again...'),
           tr('宿場の あちこちで、手紙を 読み上げる 声と 笑い声が 聞こえてきた！', 'All over the post town, you hear people reading letters aloud and laughing!'),
-          tr('（東の 里への 馬車が 動き出した。宿場の 東の 木戸の 御者に 話せば 向かえるらしい）', "(The carriage to the village in the east is running. Talk to the driver at the town's east gate to go there.)"),
         ])
       if (b.id === 'shimekiris')
         await talk(undefined, [
           tr('時計塔の 鐘が ゴーン……ゴーン……と 正しい 時を 打ちはじめた。', 'The clock tower bell begins to toll the correct time... Bong... bong...'),
           tr('里の あちこちで、カレンダーを めくる 音と「今日は 何日！」という 明るい 声が 響いている！', "All over the village, you hear calendar pages turning and cheerful voices calling out today's date!"),
-          tr('（北の 果ての 砦への 馬車が 動き出した。里の 北東の 峠道の 御者に 話せば 向かえるらしい）', '(The carriage to the fort at the northern edge of the world is running. Talk to the driver on the mountain road northeast of the village to go there.)'),
         ])
+      // つぎの 行き先の 案内（どの 町からでも 進める）
+      if (b.id !== 'refera') {
+        const left = hopeLeft(gsRef.current)
+        await talk(undefined, [
+          left > 0
+            ? tr('（メニューの「たび」や 町の 出口から、旅の地図で 好きな 町へ 行ける）', '(Use "Travel" in the menu, or a town exit, to pick any town on the Travel Map.)')
+            : tr('（すべての 町を 救った！ 旅の地図から「最果ての砦 ホープ」へ 行けるように なった）', '(You saved every town! You can now go to Hope, the Fort at the Edge, from the Travel Map.)'),
+        ])
+      }
       save()
       if (b.id === 'golem') {
         setChapter(1)
@@ -1056,12 +1067,39 @@ export default function App() {
     })
   }
 
+  /** 旅の地図で 町を 選んだ */
+  const travelTo = (id: string) =>
+    run(async () => {
+      const lock = travelLock(id, gsRef.current)
+      if (lock === 'paid') {
+        setTravel(false)
+        return offerUnlock()
+      }
+      if (lock === 'hope') {
+        await talk(undefined, [
+          tr('最果ての砦は、魔王の 結界に 閉ざされている……。', 'The fort at the edge of the world is sealed by the Demon Lord\'s barrier...'),
+          tr(`ほかの 町を 救って、ボスを あと ${hopeLeft(gsRef.current)}体 倒そう。`, `Save the other towns and defeat ${hopeLeft(gsRef.current)} more boss${hopeLeft(gsRef.current) > 1 ? 'es' : ''}.`),
+        ])
+        return
+      }
+      setTravel(false)
+      const here = MAPS[gsRef.current.mapId]?.town ?? gsRef.current.mapId
+      if (id === here && MAPS[gsRef.current.mapId]?.kind === 'town') return
+      const m = MAPS[id]
+      sfx('door')
+      setFade(true)
+      await sleep(600)
+      onWarp({ x: 0, y: 0, to: id, tx: m.spawn.x, ty: m.spawn.y, dir: m.spawn.dir })
+      await sleep(700)
+      setFade(false)
+    })
+
   /** 第3章から 先を 遊ぶには 全章解放が 要る、と 伝えて 購入画面へ */
   const offerUnlock = async () => {
     const i = await talk(
       undefined,
       [
-        tr('無料で 遊べるのは ここ（第2章）まで です。', 'The free part of the game ends here (Chapter 2).'),
+        tr('無料で 遊べるのは 第2章（セルノ・カルキュレ・サンショウ）まで です。', 'The free part of the game covers Chapters 1–2 (Cellno, Calcule and Refton).'),
         isNative
           ? tr(
               '「全章解放」を 購入すると、第3章から 最終章までの 冒険と、ふくしゅうの書の すべての 章が 遊べます。',
@@ -1136,7 +1174,7 @@ export default function App() {
                 ? 'dungeon'
                 : 'field'
   useBgm(/gallery|soundtest|mapview/.test(location.search) ? null : music)
-  const paused = scene !== 'field' || !!dialog || menu || review || busy || flash || unlockOpen || !!guide
+  const paused = scene !== 'field' || !!dialog || menu || review || travel || busy || flash || unlockOpen || !!guide
 
   if (DEV_URL && location.search.includes('gallery')) return <Gallery />
   if (DEV_URL && location.search.includes('soundtest')) return <SoundTest />
@@ -1241,6 +1279,10 @@ export default function App() {
                   setMenu(false)
                   setReview(true)
                 }}
+                onTravel={() => {
+                  setMenu(false)
+                  setTravel(true)
+                }}
                 onTitle={() => {
                   setMenu(false)
                   setReview(false)
@@ -1249,6 +1291,7 @@ export default function App() {
               />
             )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
+            {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
                 key={`${battle.id}-${spawn.key}`}

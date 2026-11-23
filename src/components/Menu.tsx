@@ -21,7 +21,7 @@ const VOL_ROWS: [keyof Volume, () => string][] = [
   ['sfx', () => tr('効果音', 'SFX')],
 ]
 
-const ALL_CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'タイトルへ', 'とじる'] as const
+const ALL_CMDS = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'たび', 'ふくしゅう', 'にゅうりょく', '設定', 'セーブ', 'タイトルへ', 'とじる'] as const
 type Cmd = (typeof ALL_CMDS)[number]
 /** コマンドの 表示名（今の 言語） */
 const CMD_LABEL: Record<Cmd, string> = {
@@ -29,6 +29,7 @@ const CMD_LABEL: Record<Cmd, string> = {
   そうび: 'Equip',
   スキル: 'Skills',
   どうぐ: 'Items',
+  たび: 'Travel',
   ふくしゅう: 'Review',
   にゅうりょく: 'Input',
   設定: 'Settings',
@@ -52,11 +53,13 @@ interface Props {
   onClose(): void
   /** ふくしゅうの書を ひらく */
   onReview(): void
+  /** 旅の地図を ひらく */
+  onTravel(): void
   /** タイトル画面へ もどる */
   onTitle(): void
 }
 
-export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
+export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }: Props) {
   const [cursor, setCursor] = useState(0)
   const [open, setOpen] = useState<Cmd | null>(null)
   const [icur, setIcur] = useState(0)
@@ -127,6 +130,10 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTitle }: Props) {
     setNote('')
     if (c === 'とじる') return onClose()
     if (c === 'ふくしゅう') return onReview()
+    if (c === 'たび') {
+      if (!gs.flags.visit_celuno) return setNote(tr('まずは 森を 抜けて、人の いる 村を 目指そう。', "First, get through the forest and find a village."))
+      return onTravel()
+    }
     if (c === 'にゅうりょく') {
       const m = inputMode === 'touch' ? 'keyboard' : 'touch'
       setInputMode(m)
