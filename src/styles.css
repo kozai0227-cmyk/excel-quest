@@ -5527,3 +5527,409 @@ html:lang(en) .fpad-label {
     transition: none;
   }
 }
+
+/* ---------------------------------------------------------------- 依頼クリアの 達成画面 */
+.qc-modal {
+  background: radial-gradient(circle at 50% 40%, rgba(20, 40, 90, 0.72), rgba(0, 0, 0, 0.78));
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  overflow-y: auto;
+  padding: calc(env(safe-area-inset-top) + 46px) 16px max(16px, env(safe-area-inset-bottom));
+  animation: qcFade 0.25s ease both;
+}
+.qc-card {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  width: min(420px, 100%);
+  margin: auto;
+  padding: 64px 22px 20px;
+  text-align: center;
+  color: #fff;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #17244a 0%, #0c1430 100%);
+  box-shadow:
+    0 8px 0 #050a1c,
+    0 20px 50px rgba(0, 0, 0, 0.55);
+  animation: qcCard 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.qc-medal {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 96px;
+  height: 96px;
+  translate: -50% -50%;
+}
+.qc-rays {
+  position: absolute;
+  inset: -46px;
+  animation: qcSpin 12s linear infinite;
+}
+.qc-rays i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 94px;
+  margin: -94px 0 0 -9px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(rgba(255, 220, 110, 0), rgba(255, 220, 110, 0.55));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  opacity: 0;
+  animation: qcFade 0.4s 0.3s ease both;
+}
+.qc-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font: 900 52px/1 system-ui, sans-serif;
+  color: #fff;
+  text-shadow: 0 3px 0 #1f7a4a;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6be3a2, #23a86a 70%);
+  box-shadow:
+    0 6px 0 #146b42,
+    0 0 0 6px rgba(52, 181, 120, 0.3),
+    0 10px 30px rgba(0, 0, 0, 0.45);
+  animation: qcBadge 0.65s 0.15s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.qc-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.25;
+  color: #ffe070;
+  text-shadow: 0 2px 0 #6a4300;
+  animation: qcUp 0.4s 0.3s ease-out both;
+}
+.qc-sub {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #c9d4f2;
+  animation: qcUp 0.4s 0.38s ease-out both;
+}
+.qc-nohint {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #3a2200;
+  border-radius: 999px;
+  background: linear-gradient(#ffe27a, #ffb52e);
+  box-shadow: 0 2px 0 #a5560a;
+  animation: qcPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.qc-tiles {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.qc-tile {
+  flex: 1;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 6px 9px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  animation: qcPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.qc-tile.exp {
+  border-color: rgba(120, 200, 255, 0.55);
+  background: rgba(70, 150, 255, 0.14);
+}
+.qc-tile.gold {
+  border-color: rgba(255, 210, 90, 0.6);
+  background: rgba(150, 100, 15, 0.42);
+}
+.qc-ico {
+  font-size: 22px;
+  line-height: 1;
+}
+.qc-val {
+  font-size: 26px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.qc-tile.exp .qc-val {
+  color: #9fd8ff;
+}
+.qc-tile.gold .qc-val {
+  color: #ffd76a;
+}
+.qc-lbl {
+  font-size: 12px;
+  color: #aab6d8;
+}
+.qc-level {
+  margin-top: 12px;
+  padding: 10px 12px 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.28);
+  animation: qcUp 0.4s ease-out both;
+}
+.qc-level-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+.qc-lv {
+  padding: 2px 8px;
+  color: #3a2200;
+  border-radius: 6px;
+  background: #ffd76a;
+}
+.qc-next {
+  color: #aab6d8;
+}
+.qc-lvup {
+  color: #ffe070;
+  font-size: 15px;
+  text-shadow: 0 0 10px rgba(255, 210, 90, 0.8);
+  animation: qcPop 0.5s cubic-bezier(0.2, 1.8, 0.4, 1) both;
+}
+.qc-level.up {
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 215, 106, 0.75),
+    0 0 18px rgba(255, 200, 80, 0.35);
+}
+.qc-level.up .qc-lv {
+  animation: qcPop 0.5s cubic-bezier(0.2, 1.8, 0.4, 1) both;
+}
+.qc-bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.qc-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4aa8ff, #8fe0ff);
+  box-shadow: 0 0 10px rgba(120, 210, 255, 0.7);
+  transition: width 0.7s cubic-bezier(0.3, 0.9, 0.4, 1);
+}
+.qc-get {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  animation: qcPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.qc-get.skill {
+  border-color: rgba(120, 230, 150, 0.65);
+  background: rgba(60, 190, 110, 0.15);
+}
+.qc-get-ico {
+  font-size: 26px;
+  line-height: 1;
+}
+.qc-get-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.qc-get-body b {
+  font-weight: normal;
+  font-size: 15px;
+  color: #fff;
+}
+.qc-get.skill .qc-get-body b {
+  color: #a8f0b8;
+}
+.qc-get-body small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #c0cbe6;
+}
+.qc-new {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  color: #fff;
+  border-radius: 6px;
+  background: #e8486a;
+  box-shadow: 0 2px 0 #8a1f36;
+}
+.qc-go {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  margin-top: 18px;
+  font: inherit;
+  font-size: 19px;
+  color: #3a2200;
+  cursor: pointer;
+  border: 3px solid #fff6d2;
+  border-radius: 14px;
+  background: linear-gradient(#ffe27a, #ffb52e);
+  box-shadow:
+    0 6px 0 #a5560a,
+    0 10px 20px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s ease-out,
+    box-shadow 0.08s ease-out;
+  animation: qcUp 0.4s ease-out both;
+}
+.qc-go:focus-visible {
+  outline: 3px solid rgba(120, 230, 255, 0.95);
+  outline-offset: 3px;
+}
+.qc-go:active {
+  transform: translateY(5px);
+  box-shadow:
+    0 1px 0 #a5560a,
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.qc-confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+.qc-confetti i {
+  position: absolute;
+  top: -14px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: qcFall 2s cubic-bezier(0.25, 0.6, 0.5, 1) both;
+}
+/* 背の 低い 画面：つめて 1画面に おさめる（入りきらなければ スクロール） */
+@media (max-height: 760px) {
+  .qc-card {
+    padding: 54px 18px 16px;
+  }
+  .qc-medal {
+    width: 80px;
+    height: 80px;
+  }
+  .qc-badge {
+    font-size: 42px;
+  }
+  .qc-title {
+    font-size: 22px;
+  }
+  .qc-tiles {
+    margin-top: 12px;
+  }
+  .qc-tile {
+    padding: 7px 6px 6px;
+  }
+  .qc-ico {
+    font-size: 18px;
+  }
+  .qc-val {
+    font-size: 22px;
+  }
+  .qc-level {
+    margin-top: 10px;
+    padding: 8px 10px 10px;
+  }
+  .qc-get {
+    padding: 8px 10px;
+  }
+  .qc-go {
+    min-height: 48px;
+    margin-top: 14px;
+  }
+}
+@keyframes qcFall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(540deg);
+  }
+}
+@keyframes qcFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes qcCard {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.92);
+  }
+}
+@keyframes qcBadge {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-25deg);
+  }
+}
+@keyframes qcPop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes qcUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes qcSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qc-modal,
+  .qc-card,
+  .qc-rays,
+  .qc-rays i,
+  .qc-badge,
+  .qc-title,
+  .qc-sub,
+  .qc-nohint,
+  .qc-tile,
+  .qc-level,
+  .qc-lvup,
+  .qc-level.up .qc-lv,
+  .qc-get,
+  .qc-go {
+    animation: none;
+  }
+  .qc-rays i {
+    opacity: 1;
+  }
+  .qc-bar > div {
+    transition: none;
+  }
+  .qc-confetti {
+    display: none;
+  }
+}

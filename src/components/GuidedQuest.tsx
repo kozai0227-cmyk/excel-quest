@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { makeCtx, type QuestDef } from '../data/quests'
-import { SKILLS } from '../data/skills'
-import { itemName } from '../data/items'
 import { tr } from '../game/lang'
 import { npcName } from '../data/en'
 import { addr, colName, evaluate, formatValue, parseAddr, type Grid, type Value } from '../game/formula'
@@ -10,11 +8,13 @@ import { FormulaPad } from './FormulaPad'
 import { useCellPick } from './useCellPick'
 import { useFitWidths } from './useFitWidths'
 import { jingle, sfx } from '../game/sound'
+import { QuestClear } from './QuestClear'
 
 interface Props {
   quest: QuestDef
   steps: GuideStep[]
   onClear(hintsUsed: number): void
+  exp?: number
   onClose(): void
 }
 
@@ -31,7 +31,7 @@ function diffCells(a: Grid, b: Grid): string[] {
  * スマホ用の 依頼画面（ステップ式）。
  * 表は タップで 数式を のぞける。答えは 選択肢か、数式ボタン（または 表の タップ・長押しドラッグ）で 組み立てる。
  */
-export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
+export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
   const history = useMemo(() => quest.history?.() ?? [], [quest])
   const [grid, setGrid] = useState<Grid>(() => quest.grid())
   const actions = useRef(new Set<string>())
@@ -154,7 +154,6 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
   const fillArea = new Set(step.kind === 'formula' && step.fill ? rangeCells(step.fill) : [])
   const wrong = new Set(trial?.wrong ?? [])
 
-  const reward = quest.reward
   const fillEnd = step.kind === 'formula' && step.fill ? step.fill.split(':')[1] : null
 
   const feedback = (
@@ -300,23 +299,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose }: Props) {
         </div>
       </div>
 
-      {cleared && (
-        <div className="clear-modal">
-          <div className="win clear-win">
-            <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
-            <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${npcName(quest.npc)}`)}</p>
-            <p>
-              {tr('けいけんち', 'EXP')} +{reward.exp}
-              {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}
-            </p>
-            {reward.skill && <p className="learn">{tr(`スキル「${SKILLS[reward.skill].name}」を おぼえた！`, `Learned the skill "${SKILLS[reward.skill].name}"!`)}</p>}
-            {reward.item && <p>{tr(`${itemName(reward.item)}を てにいれた！`, `Obtained ${itemName(reward.item)}!`)}</p>}
-            <button className="btn primary" autoFocus onClick={() => onClear(hints)}>
-              {tr('つづける', 'Continue')}
-            </button>
-          </div>
-        </div>
-      )}
+      {cleared && <QuestClear quest={quest} hints={hints} exp={exp} onContinue={() => onClear(hints)} />}
     </div>
   )
 }

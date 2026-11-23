@@ -1,8 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { MiniExcel } from './MiniExcel'
 import { makeCtx, type QuestDef } from '../data/quests'
-import { SKILLS } from '../data/skills'
-import { itemName } from '../data/items'
 import { tr } from '../game/lang'
 import { npcName } from '../data/en'
 import type { Grid, Value } from '../game/formula'
@@ -11,14 +9,17 @@ import { isPhoneLayout } from '../game/layout'
 import { GUIDES } from '../data/guides'
 import { GuidedQuest } from './GuidedQuest'
 import { jingle, sfx } from '../game/sound'
+import { QuestClear } from './QuestClear'
 
 interface Props {
   quest: QuestDef
   onClear(hintsUsed: number): void
   onClose(): void
+  /** 依頼を 始める前の 経験値（クリア画面の 経験値バー用） */
+  exp?: number
 }
 
-export function QuestScreen({ quest, onClear, onClose }: Props) {
+export function QuestScreen({ quest, onClear, onClose, exp }: Props) {
   const initial = useMemo(() => quest.grid(), [quest])
   const history = useMemo(() => quest.history?.(), [quest])
   const [hints, setHints] = useState(0)
@@ -51,28 +52,11 @@ export function QuestScreen({ quest, onClear, onClose }: Props) {
     }
   }
 
-  const reward = quest.reward
   const puzzle = quest.kind === 'puzzle'
   const excel = <MiniExcel initial={initial} initialHistory={history} colWidths={quest.colWidths} onChange={onChange} />
-  const clearModal = cleared && (
-    <div className="clear-modal">
-      <div className="win clear-win">
-        <div className="clear-title">{puzzle ? tr('★ 謎を 解いた！ ★', '★ Puzzle solved! ★') : tr('★ 悩みを 解決した！ ★', '★ Request complete! ★')}</div>
-        <p>{puzzle ? tr(`「${quest.title}」の 石版が 光った`, `The tablet "${quest.title}" began to glow`) : tr(`${quest.npc}の「${quest.title}」`, `"${quest.title}" for ${npcName(quest.npc)}`)}</p>
-        <p>
-          {tr('けいけんち', 'EXP')} +{reward.exp}
-          {reward.gold > 0 && tr(`　／　${reward.gold} ゴールド`, `  /  ${reward.gold} gold`)}
-        </p>
-        {reward.skill && <p className="learn">{tr(`スキル「${SKILLS[reward.skill].name}」を おぼえた！`, `Learned the skill "${SKILLS[reward.skill].name}"!`)}</p>}
-        {reward.item && <p>{tr(`${itemName(reward.item)}を てにいれた！`, `Obtained ${itemName(reward.item)}!`)}</p>}
-        <button className="btn primary" autoFocus onClick={() => onClear(hints)}>
-          {tr('つづける', 'Continue')}
-        </button>
-      </div>
-    </div>
-  )
+  const clearModal = cleared && <QuestClear quest={quest} hints={hints} exp={exp} onContinue={() => onClear(hints)} />
 
-  if (guided) return <GuidedQuest quest={quest} steps={GUIDES[quest.id]} onClear={onClear} onClose={onClose} />
+  if (guided) return <GuidedQuest quest={quest} steps={GUIDES[quest.id]} onClear={onClear} onClose={onClose} exp={exp} />
 
   // スマホの 縦画面：上に「やること」、まん中に 表、下に 判定ボタン。画面の 高さに ぴったり おさめる
   if (phone)
