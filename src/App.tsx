@@ -11,6 +11,7 @@ import { Gallery, SoundTest } from './components/Gallery'
 import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
+import { FieldStatus, QuestProgress } from './components/FieldHud'
 import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
@@ -1215,21 +1216,15 @@ export default function App() {
             />
             {scene === 'field' && !menu && !review && (
               <>
-                <div className="win hud">
-                  <div className="hud-name">{gs.name}</div>
-                  <div>H {gs.hp}/{maxHp(gs.level)}</div>
-                  <div>Lv {gs.level}</div>
-                  <div>G {gs.gold}</div>
-                </div>
-                {quests.length > 0 && (
-                  <div className="win hud-quest">
-                    {townBoss && gs.bosses.includes(townBoss)
-                      ? tr('★ この町は 平和になった', '★ Peace has returned')
-                      : barrierOpen
-                        ? tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')
-                        : tr(`悩み解決 ${solvedHere}/${quests.length}`, `Requests ${solvedHere}/${quests.length}`)}
-                  </div>
-                )}
+                <FieldStatus gs={gs} />
+                {quests.length > 0 &&
+                  (townBoss && gs.bosses.includes(townBoss) ? (
+                    <div className="win hud-quest">{tr('★ この町は 平和になった', '★ Peace has returned')}</div>
+                  ) : barrierOpen ? (
+                    <div className="win hud-quest">{tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')}</div>
+                  ) : (
+                    <QuestProgress town={map.town ?? map.id} solved={solvedHere} total={quests.length} />
+                  ))}
               </>
             )}
             {banner && scene === 'field' && <div className="banner">{banner}</div>}
