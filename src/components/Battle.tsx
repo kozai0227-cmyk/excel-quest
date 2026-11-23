@@ -413,13 +413,19 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
 
   return (
     <div className={`battle bg-${scene} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
-      <div className="win status-win">
-        <div>{gs.name}</div>
-        <div className="st-hp">
-          <span>H</span> <b key={gs.hp}>{gs.hp}</b>/{mhp}
+      <div className="win status-win" aria-label={`${gs.name} Lv ${gs.level} HP ${gs.hp}/${mhp}`}>
+        <div className="hud-head">
+          <span className="hud-name">{gs.name}</span>
+          <span className="hud-lv">Lv {gs.level}</span>
         </div>
-        <HpBar value={gs.hp} max={mhp} kind="me" />
-        <div>Lv {gs.level}</div>
+        <div className="st-row">
+          <span className="hud-key">HP</span>
+          <HpBar value={gs.hp} max={mhp} kind="me" />
+          <span className="st-hp">
+            <b key={gs.hp}>{gs.hp}</b>
+            <small>/{mhp}</small>
+          </span>
+        </div>
         {pops.filter((x) => x.on === 'me').map((x) => <div key={x.id} className={`dmg-pop ${x.kind}`}>{x.text}</div>)}
         {(buff.scroll || buff.sand) && (
           <div className="buffs">
@@ -429,8 +435,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         )}
       </div>
       <div className="boss-area">
-        <div className="boss-hp">
-          <span>{bossName}</span>
+        <div className={`boss-hp${boss.boss ? ' is-boss' : ''}`}>
+          <div className="boss-plate">
+            {boss.boss && <span className="boss-tag">BOSS</span>}
+            <span className="boss-name">{bossName}</span>
+          </div>
           <HpBar value={bossHp} max={boss.hp} kind="boss" />
         </div>
         {bossHp <= 0 ? (
