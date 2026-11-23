@@ -4368,3 +4368,173 @@ html:lang(en) .fpad-label {
 .to-title .item-list {
   margin-top: 0.6em;
 }
+
+/* ふくしゅうの 連続日数（コース選びの 上の カードと、けっか画面の バナー） */
+.streak-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6em 1.2em;
+  margin: 0.9em 0 0;
+  padding: 0.7em 1em;
+  border-radius: 0.9em;
+  border: 2px solid rgba(255, 154, 74, 0.45);
+  border-bottom-width: 4px;
+  background: linear-gradient(135deg, rgba(255, 140, 60, 0.16), rgba(255, 215, 106, 0.06));
+  animation: eqRise 0.4s ease both;
+}
+.streak-card.zero {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+.streak-main {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  min-width: 0;
+  flex: 1 1 16em;
+}
+.streak-fire {
+  font-size: 2.1em;
+  line-height: 1;
+  filter: drop-shadow(0 0 0.35em rgba(255, 140, 40, 0.7));
+  animation: streakFlicker 1.6s ease-in-out infinite;
+}
+.streak-card.zero .streak-fire {
+  filter: grayscale(1) opacity(0.55);
+  animation: none;
+}
+.streak-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+.streak-num b {
+  font-size: 1.9em;
+  color: #ffb45a;
+  font-variant-numeric: tabular-nums;
+}
+.streak-card.zero .streak-num b {
+  color: #c9cfdb;
+}
+.streak-num span {
+  font-size: 0.72em;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.streak-msg {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.9em;
+  line-height: 1.35;
+}
+.streak-msg small {
+  margin-top: 0.15em;
+  font-size: 0.85em;
+  opacity: 0.65;
+}
+.streak-week {
+  display: flex;
+  gap: 0.4em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.streak-week li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  font-size: 0.75em;
+}
+.streak-week li > span {
+  opacity: 0.6;
+}
+.streak-week li.today > span {
+  opacity: 1;
+  color: #ffd76a;
+  font-weight: bold;
+}
+.streak-week i {
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-style: normal;
+  font-weight: bold;
+  color: #3a1a00;
+}
+.streak-week li.today i {
+  border-color: #ffd76a;
+  border-style: dashed;
+}
+.streak-week li.done i {
+  border: none;
+  background: linear-gradient(180deg, #ffc46b, #ff8a3d);
+  box-shadow: 0 2px 0 #b9541a;
+}
+.streak-week li.today.done i {
+  animation: eqPop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.2s both;
+}
+@keyframes streakFlicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(-3deg);
+  }
+  50% {
+    transform: scale(1.08) rotate(3deg);
+  }
+}
+.rs-streak {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin: -0.4em 0 1.2em;
+  padding: 0.65em 1em;
+  border-radius: 0.9em;
+  border: 2px solid rgba(255, 154, 74, 0.55);
+  border-bottom-width: 4px;
+  background: linear-gradient(135deg, rgba(255, 140, 60, 0.22), rgba(255, 215, 106, 0.08));
+  animation: eqPop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 1.2s both;
+}
+.rs-streak > div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+.rs-streak b {
+  font-size: 1.2em;
+  color: #ffb45a;
+}
+.rs-streak > div > span {
+  font-size: 0.88em;
+  opacity: 0.85;
+}
+.rs-streak-fire {
+  font-size: 2em;
+  line-height: 1;
+  filter: drop-shadow(0 0 0.35em rgba(255, 140, 40, 0.7));
+  animation: streakFlicker 1.6s ease-in-out 1.6s infinite;
+}
+.phone .streak-week {
+  width: 100%;
+  justify-content: space-between;
+}
+.phone .streak-week i {
+  width: 2.1em;
+  height: 2.1em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .streak-card,
+  .streak-fire,
+  .streak-week li.today.done i,
+  .rs-streak,
+  .rs-streak-fire {
+    animation: none;
+  }
+}

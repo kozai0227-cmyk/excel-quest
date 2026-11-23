@@ -6,6 +6,7 @@ import type { GameState } from '../game/types'
 import { useInputMode } from '../game/inputMode'
 import { judgeFormula } from '../game/judge'
 import { getWeak, markWeak } from '../game/weak'
+import { getStreak, recordStudy, type StreakInfo } from '../game/streak'
 import { chapterAllowed, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { FormulaQuestion } from './FormulaQuestion'
 import { isNative } from '../game/native'
@@ -70,6 +71,8 @@ export function Study({ gs, fromTitle, onClose }: Props) {
   /** コースを はじめた 時刻と、かかった 時間（けっか画面の タイム） */
   const startAt = useRef(0)
   const [elapsed, setElapsed] = useState(0)
+  /** コースを 終えて 連続日数が どうなったか（けっか画面の バナー） */
+  const [streak, setStreak] = useState<(StreakInfo & { grew: boolean }) | null>(null)
 
   const start = (c: Course, list = c.make()) => {
     if (!list.length) return
@@ -87,12 +90,19 @@ export function Study({ gs, fromTitle, onClose }: Props) {
     setResults(res)
     setWeakState(getWeak())
     setElapsed(Date.now() - startAt.current)
+    setStreak(recordStudy())
     setView('result')
     if (res.every((r) => r.ok)) jingle('clear')
   }
 
+  // 画面が 切りかわったら いちばん上から（けっか画面の スクロール位置を 持ちこさない）
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    root.current?.scrollTo(0, 0)
+  }, [view])
+
   return (
-    <div className="study">
+    <div className="study" ref={root}>
       {view === 'menu' && (
         <CourseMenu
           gs={gs}
@@ -126,6 +136,7 @@ export function Study({ gs, fromTitle, onClose }: Props) {
           title={course.title}
           results={results}
           elapsed={elapsed}
+          streak={streak}
           onRetry={() => start(course)}
           onSimilar={() => {
             const wrong = results.filter((r) => !r.ok).map((r) => r.item.key)
@@ -164,6 +175,7 @@ function CourseMenu({
   }))
   const openChs = rows.filter((r) => r.open && !r.locked).map((r) => r.ch)
   const total = gs ? percent(rows.map((r) => r.p!)) : null
+  const streakInfo = useMemo(() => getStreak(), [])
 
   type Opt = { id: string; course?: Course; disabled?: boolean; unlock?: boolean }
   const opts: Opt[] = [
@@ -227,6 +239,7 @@ function CourseMenu({
           </div>
         )}
       </header>
+      <StreakCard info={streakInfo} />
       <p className="study-help">
         {tr(
           '時間制限は ない。じっくり 考えて 答えよう。まちがえた 問題は「苦手」に 記録され、正解すると 消える。',
@@ -467,6 +480,7 @@ function ResultView({
   title,
   results,
   elapsed,
+  streak,
   onRetry,
   onSimilar,
   onMenu,
@@ -475,6 +489,7 @@ function ResultView({
   title: string
   results: Result[]
   elapsed: number
+  streak: (StreakInfo & { grew: boolean }) | null
   onRetry(): void
   onSimilar(): void
   onMenu(): void
@@ -567,7 +582,7 @@ function ResultView({
         <div className="rs-stat streak">
           <span className="rs-ico">🔥</span>
           <b>{best}</b>
-          <span>{tr('最高 連続正解', 'Best streak')}</span>
+          <span>{tr('最高 連続正解', 'Best run')}</span>
         </div>
         <div className="rs-stat time">
           <span className="rs-ico">⏱️</span>
@@ -575,6 +590,23 @@ function ResultView({
           <span>{tr('タイム', 'Time')}</span>
         </div>
       </div>
+      {streak?.grew && (
+        <div className="rs-streak" role="status">
+          <span className="rs-streak-fire" aria-hidden="true">
+            🔥
+          </span>
+          <div>
+            <b>{tr(`${streak.count}日 連続！`, `${streak.count}-day streak!`)}</b>
+            <span>
+              {streak.count === 1
+                ? tr('連続記録 スタート。あしたも 1コースで のびる！', 'Streak started. One course tomorrow keeps it going!')
+                : streak.count >= streak.best
+                  ? tr('自己ベスト 更新中！ あしたも 待ってるぞ。', "That's your best yet! See you tomorrow.")
+                  : tr(`自己ベストは ${streak.best}日。あしたも 続けよう！`, `Your best is ${streak.best} days. Keep it up tomorrow!`)}
+            </span>
+          </div>
+        </div>
+      )}
       <h3 className="rs-sub">{tr('ふりかえり', 'Review')}</h3>
       <ol className="result-list">
         {results.map((r, i) => (
@@ -598,6 +630,45 @@ function ResultView({
         ))}
       </div>
     </div>
+  )
+}
+
+// ================================================================ 連続日数
+const WEEKDAYS = () => tr('日月火水木金土', 'SMTWTFS').split('')
+
+/** コース選びの 上：連続日数と 直近 7日の しるし（Duolingo の 連続記録の ような もの） */
+function StreakCard({ info }: { info: StreakInfo }) {
+  const wd = WEEKDAYS()
+  const { count, today, best } = info
+  const msg = today
+    ? tr('今日の ふくしゅうは 完了！ また あした。', "Today's review is done! See you tomorrow.")
+    : count > 0
+      ? tr(`今日 1コース 終えると ${count + 1}日 連続に！`, `Finish 1 course today to reach ${count + 1} days!`)
+      : tr('1日 1コースで 連続記録を のばそう', 'Do 1 course a day to build a streak')
+  return (
+    <section className={`streak-card ${today ? 'done' : count > 0 ? 'risk' : 'zero'}`} aria-label={tr(`連続 ${count}日`, `${count}-day streak`)}>
+      <div className="streak-main">
+        <span className="streak-fire" aria-hidden="true">
+          🔥
+        </span>
+        <div className="streak-num">
+          <b>{count}</b>
+          <span>{tr('日 連続', 'day streak')}</span>
+        </div>
+        <div className="streak-msg">
+          <span>{msg}</span>
+          {best > 1 && <small>{tr(`自己ベスト ${best}日`, `Best: ${best} days`)}</small>}
+        </div>
+      </div>
+      <ol className="streak-week">
+        {info.week.map((d) => (
+          <li key={d.date.getTime()} className={`${d.done ? 'done' : ''} ${d.isToday ? 'today' : ''}`}>
+            <span>{wd[d.date.getDay()]}</span>
+            <i aria-label={d.done ? tr('達成', 'done') : tr('未', 'not yet')}>{d.done ? '✓' : ''}</i>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
