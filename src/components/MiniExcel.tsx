@@ -52,11 +52,13 @@ interface Props {
   initialHistory?: Grid[]
   colWidths?: number[]
   onChange?(grid: Grid, values: Value[][], actions: Set<string>): void
+  /** 判定で まちがえた セル：n が 変わるたびに そこへ カーソルを 動かし、赤い 枠で 知らせる */
+  spot?: { r: number; c: number; n: number } | null
 }
 
 const ARROWS: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }
 
-export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Props) {
+export function MiniExcel({ initial, initialHistory, colWidths, onChange, spot }: Props) {
   const rows = initial.length
   const cols = initial[0].length
 
@@ -100,6 +102,22 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
 
   const focus = () => inputRef.current?.focus({ preventScroll: true })
   useEffect(focus, [])
+
+  // 判定で まちがえた セルへ 案内する（入力中なら カーソルは 動かさず 枠だけ 出す）
+  const [spotOn, setSpotOn] = useState<{ r: number; c: number; n: number } | null>(null)
+  useEffect(() => {
+    if (!spot || spot.r >= rows || spot.c >= cols) return
+    setSpotOn(spot)
+    if (!edit) {
+      moveTo(spot.r, spot.c)
+      focus()
+      requestAnimationFrame(() => sheetRef.current?.querySelector('.xl-spot')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }))
+    }
+    const t = setTimeout(() => setSpotOn(null), 2600)
+    return () => clearTimeout(t)
+  }, [spot?.n]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 表を 書きかえたら 枠は 消す
+  useEffect(() => setSpotOn(null), [grid])
 
   const apply = (next: Grid, action: string) => {
     setPast((p) => [...p, grid])
@@ -637,6 +655,7 @@ export function MiniExcel({ initial, initialHistory, colWidths, onChange }: Prop
           ))}
           {clipRange && <div className={`xl-ants ${clip?.cut ? 'cut' : ''}`} style={box(clipRange)} />}
           {fillTo && <div className="xl-fillprev" style={box(fillTo)} />}
+          {spotOn && <div key={spotOn.n} className="xl-spot" aria-hidden="true" style={box({ r1: spotOn.r, c1: spotOn.c, r2: spotOn.r, c2: spotOn.c })} />}
           <div className="xl-selbox" style={selBox} />
           {!edit && <div className="xl-handle" style={{ left: selBox.left + selBox.width - 4, top: selBox.top + selBox.height - 4 }} />}
           <input
