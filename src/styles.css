@@ -7321,6 +7321,7 @@ html:lang(en) .fpad-label {
   .shop-minus {
     animation-duration: 0.01s;
   }
+}
 /* ---------------------------------------------------------------- フィールド：タップ操作（十字キーの かわり） */
 .field {
   touch-action: none;
