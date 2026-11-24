@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Question } from '../data/bosses'
 import { useKeys } from '../game/keys'
 import { jingle, sfx } from '../game/sound'
@@ -7,6 +7,7 @@ import { useInputMode } from '../game/inputMode'
 import { judgeFormula } from '../game/judge'
 import { getWeak, markWeak } from '../game/weak'
 import { getStreak, recordStudy, type StreakInfo } from '../game/streak'
+import { getBests, recordBest } from '../game/studyBest'
 import { chapterAllowed, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { FormulaQuestion } from './FormulaQuestion'
 import { isNative } from '../game/native'
@@ -38,6 +39,8 @@ interface Props {
 }
 
 interface Course {
+  /** 自己ベストを 記録する コース（類題などの その場の コースは なし） */
+  id?: string
   title: string
   /** 同じ コースを もう一度（新しい 問題で） */
   make(): PracticeItem[]
@@ -91,6 +94,7 @@ export function Study({ gs, fromTitle, onClose }: Props) {
     setWeakState(getWeak())
     setElapsed(Date.now() - startAt.current)
     setStreak(recordStudy())
+    if (course?.id) recordBest(course.id, res.filter((r) => r.ok).length, res.length)
     setView('result')
     if (res.every((r) => r.ok)) jingle('clear')
   }
@@ -152,6 +156,9 @@ export function Study({ gs, fromTitle, onClose }: Props) {
 }
 
 // ================================================================ コースを 選ぶ
+/** 章ごとの 色（丸い 番号札と 進み具合の 輪） */
+const CH_HUES = [140, 200, 190, 265, 40, 320, 25, 0]
+
 function CourseMenu({
   gs,
   fromTitle,
@@ -177,165 +184,210 @@ function CourseMenu({
   const openChs = rows.filter((r) => r.open && !r.locked).map((r) => r.ch)
   const total = gs ? percent(rows.map((r) => r.p!)) : null
   const streakInfo = useMemo(() => getStreak(), [])
+  const bests = useMemo(() => getBests(), [])
 
   type Opt = { id: string; course?: Course; disabled?: boolean; unlock?: boolean }
   const opts: Opt[] = [
     { id: 'weak', course: { title: tr('苦手克服コース', 'Weak Spot Course'), make: () => weakCourse(getWeak()) }, disabled: !weak.length },
-    { id: 'all', course: { title: tr('全章まとめコース', 'All-Chapter Course'), make: () => allCourse(openChs) } },
+    { id: 'all', course: { id: 'all', title: tr('全章まとめコース', 'All-Chapter Course'), make: () => allCourse(openChs) } },
     ...rows
       .filter((r) => r.open)
-      .map((r) => (r.locked ? { id: `ch${r.ch.no}`, unlock: true } : { id: `ch${r.ch.no}`, course: { title: chapterTitle(r.ch), make: () => chapterCourse(r.ch) } })),
+      .map((r) =>
+        r.locked
+          ? { id: `ch${r.ch.no}`, unlock: true }
+          : { id: `ch${r.ch.no}`, course: { id: `ch${r.ch.no}`, title: chapterTitle(r.ch), make: () => chapterCourse(r.ch) } },
+      ),
     { id: 'close' },
   ]
   const live = opts.filter((o) => !o.disabled)
   const [cursor, setCursor] = useState(live[0].id)
+  /** キー操作で 動かした ときだけ カーソル枠を 出す（指や マウスでは 出さない） */
+  const [keyNav, setKeyNav] = useState(false)
+  /** 押した カード（沈んで 光ってから 始める） */
+  const [pressed, setPressed] = useState<string | null>(null)
+  const timer = useRef(0)
+  useEffect(() => () => clearTimeout(timer.current), [])
+
   const pick = (o: Opt) => {
-    if (o.disabled) return
+    if (o.disabled || pressed) return
     if (o.unlock) {
       sfx('select')
       return openUnlock()
     }
-    if (!o.course) return onClose()
-    onStart(o.course)
+    if (!o.course) {
+      sfx('cancel')
+      return onClose()
+    }
+    const c = o.course
+    setPressed(o.id)
+    sfx('cursor')
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    timer.current = window.setTimeout(() => onStart(c), reduce ? 0 : 200)
   }
 
   useKeys((k) => {
     const i = live.findIndex((o) => o.id === cursor)
-    if (k === 'up' || k === 'down') {
+    if (k === 'up' || k === 'down' || k === 'left' || k === 'right') {
       sfx('cursor')
-      setCursor(live[(i + (k === 'up' ? live.length - 1 : 1)) % live.length].id)
+      setKeyNav(true)
+      const back = k === 'up' || k === 'left'
+      setCursor(live[(i + (back ? live.length - 1 : 1)) % live.length].id)
     } else if (k === 'ok') pick(live[i])
     else if (k === 'cancel') {
       sfx('cancel')
       onClose()
     }
-  }, !unlockOpen)
+  }, !unlockOpen && !pressed)
 
-  // 選んだ 行が 見えるように
+  // 選んだ カードが 見えるように（上の 見出しに 隠れない）
   useEffect(() => {
-    document.querySelector('.study .course.on')?.scrollIntoView({ block: 'nearest' })
-  }, [cursor])
+    if (keyNav) document.querySelector('.study .sc-card.on')?.scrollIntoView({ block: 'nearest' })
+  }, [cursor, keyNav])
 
-  const row = (o: Opt, body: ReactNode, cls = '') => (
-    <div
-      key={o.id}
-      className={`course ${cls} ${cursor === o.id ? 'on' : ''} ${o.disabled ? 'disabled' : ''}`}
-      onPointerEnter={() => !o.disabled && setCursor(o.id)}
-      onClick={() => pick(o)}
-    >
-      {body}
-    </div>
-  )
+  const props = (o: Opt, cls: string, i: number) => ({
+    type: 'button' as const,
+    className: `sc-card ${cls} ${cursor === o.id ? 'on' : ''} ${pressed === o.id ? 'press' : ''}`,
+    style: { '--i': i } as CSSProperties,
+    disabled: o.disabled,
+    onPointerDown: () => setKeyNav(false),
+    onPointerEnter: (e: React.PointerEvent) => e.pointerType === 'mouse' && !o.disabled && setCursor(o.id),
+    onClick: () => pick(o),
+  })
 
+  const bestPill = (id: string) => {
+    const b = bests[id]
+    if (!b) return <span className="sc-best none">{tr('未挑戦', 'New')}</span>
+    const perfect = b.score === b.total
+    return (
+      <span className={`sc-best ${perfect ? 'perfect' : ''}`} title={tr('自己ベスト', 'Personal best')}>
+        {perfect ? '👑' : '★'} {b.score}/{b.total}
+      </span>
+    )
+  }
+
+  let n = 0
   return (
-    <div className="study-page">
-      <header className="study-head">
+    <div className={`study-page sc-page ${keyNav ? 'keynav' : ''}`}>
+      <header className="sc-top">
+        <button type="button" className="quiz-quit sc-x" onClick={() => (sfx('cancel'), onClose())} aria-label={tr('とじる', 'Close')}>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+        </button>
         <h2>📖 {tr('ふくしゅうの書', 'Book of Review')}</h2>
         {total !== null && (
-          <div className="study-total">
-            {tr('冒険の 達成率', 'Adventure completion')} <b>{total}%</b>
-            <div className="pbar">
-              <span style={{ width: `${total}%` }} />
-            </div>
+          <div className="sc-total" aria-label={tr(`冒険の 達成率 ${total}%`, `Adventure completion ${total}%`)}>
+            <i style={{ '--p': total } as CSSProperties} />
+            <b>{total}%</b>
           </div>
         )}
       </header>
       <StreakCard info={streakInfo} />
+
+      <div className="sc-feature">
+        <button key={opts[0].id} {...props(opts[0], 'feat weak', n++)}>
+          <span className="sc-icon">🎯</span>
+          <span className="sc-body">
+            <b>{tr('苦手克服', 'Weak Spots')}</b>
+            <small>
+              {weak.length
+                ? tr(`まちがえた ${weak.length}問と 類題で 10問`, `${weak.length} missed + similar, 10 Qs`)
+                : tr('まちがえた 問題は まだ ない', 'No missed questions yet')}
+            </small>
+          </span>
+          {weak.length > 0 && <span className="sc-count">{weak.length}</span>}
+        </button>
+        <button key={opts[1].id} {...props(opts[1], 'feat all', n++)}>
+          <span className="sc-icon">📚</span>
+          <span className="sc-body">
+            <b>{tr('全章まとめ', 'All Chapters')}</b>
+            <small>
+              {openChs.length > 1
+                ? tr(`${chapterTag(openChs[0])}〜${chapterTag(openChs[openChs.length - 1])}から 10問`, `10 Qs from ${chapterTag(openChs[0])}–${openChs[openChs.length - 1].no}`)
+                : tr('第1章から 10問', '10 Qs from Chapter 1')}
+            </small>
+          </span>
+          {bestPill('all')}
+        </button>
+      </div>
       <p className="study-help">
         {tr(
-          '時間制限は ない。じっくり 考えて 答えよう。まちがえた 問題は「苦手」に 記録され、正解すると 消える。',
-          'No time limit here, so take your time. Questions you miss are saved as weak spots and cleared when you get them right.',
+          '時間制限は ない。まちがえた 問題は「苦手」に 記録され、正解すると 消える。',
+          'No time limit. Missed questions are saved as weak spots and cleared when you get them right.',
         )}
       </p>
-      <div className="course-list">
-        {row(
-          opts[0],
-          <>
-            <b>🔥 {tr('苦手克服コース', 'Weak Spot Course')}</b>
-            <span>
-              {weak.length
-                ? tr(`まちがえた 問題（${weak.length}問）と その類題を 中心に 10問`, `10 questions focused on the ${weak.length} you missed and similar ones`)
-                : tr('まだ まちがえた 問題は ない', "You haven't missed any questions yet")}
-            </span>
-          </>,
-          'weak',
-        )}
-        {row(
-          opts[1],
-          <>
-            <b>📚 {tr('全章まとめコース', 'All-Chapter Course')}</b>
-            <span>
-              {openChs.length > 1
-                ? tr(
-                    `${chapterTag(openChs[0])}〜${chapterTag(openChs[openChs.length - 1])}から まんべんなく 10問`,
-                    `10 questions spread across ${chapterTag(openChs[0])} to ${chapterTag(openChs[openChs.length - 1])}`,
-                  )
-                : tr('第1章から 10問', '10 questions from Chapter 1')}
-            </span>
-          </>,
-          'all',
-        )}
-        <div className="course-sep">{tr('章を えらんで 復習（5問）', 'Review by chapter (5 questions)')}</div>
+
+      <h3 className="sc-sep">
+        {tr('章を えらんで 復習', 'Review by chapter')}
+        <small>{tr('各5問', '5 Qs each')}</small>
+      </h3>
+      <div className="sc-list">
         {rows.map(({ ch, open, locked, p }) => {
+          const style = { '--h': CH_HUES[ch.no - 1], '--i': n } as CSSProperties
+          const badge = ch.no === 8 ? '⚑' : ch.no
           if (!open)
             return (
-              <div key={ch.no} className="course locked">
-                <b>
-                  {chapterTag(ch)}
-                  {tr('　？？？', ': ???')}
-                </b>
-                <span>{tr('まだ たどりついていない', "You haven't reached this yet")}</span>
+              <div key={ch.no} className="sc-card ch unknown" style={style} aria-disabled="true">
+                <span className="sc-badge">？</span>
+                <span className="sc-body">
+                  <b>
+                    {chapterTag(ch)}
+                    {tr('　？？？', ': ???')}
+                  </b>
+                  <small>{tr('まだ たどりついていない', "You haven't reached this yet")}</small>
+                </span>
               </div>
             )
           const o = opts.find((x) => x.id === `ch${ch.no}`)!
           if (locked)
-            return row(
-              o,
-              <>
-                <b>
-                  🔒 {chapterTag(ch)}
-                  {tr('　', ': ')}
-                  {chapterShort(ch)}
-                </b>
-                <span className="course-topic">{chapterTopic(ch)}</span>
-                <span className="course-unlock">
-                  {isNative ? tr('全章解放で 遊べる', 'Play with Unlock All Chapters') : tr('iPhone アプリ版で 遊べる', 'Play in the iPhone app')}
+            return (
+              <button key={o.id} {...props(o, 'ch paywall', n++)} style={style}>
+                <span className="sc-badge">🔒</span>
+                <span className="sc-body">
+                  <b>
+                    {chapterTag(ch)}
+                    {tr('　', ': ')}
+                    {chapterShort(ch)}
+                  </b>
+                  <small>{chapterTopic(ch)}</small>
+                  <span className="sc-unlock">
+                    {isNative ? tr('全章解放で 遊べる', 'Play with Unlock All Chapters') : tr('iPhone アプリ版で 遊べる', 'Play in the iPhone app')}
+                  </span>
                 </span>
-              </>,
-              'chapter paywall',
+              </button>
             )
-          return row(
-            o,
-            <>
-              <div className="course-title">
+          const pct = p ? percent([p]) : null
+          return (
+            <button key={o.id} {...props(o, `ch ${pct === 100 ? 'done' : ''}`, n++)} style={style}>
+              <span className="sc-badge" style={pct !== null ? ({ '--p': pct } as CSSProperties) : undefined}>
+                <em>{badge}</em>
+              </span>
+              <span className="sc-body">
                 <b>
                   {chapterTag(ch)}
                   {tr('　', ': ')}
                   {chapterShort(ch)}
                 </b>
-                {p && <span className="course-pct">{percent([p])}%</span>}
-              </div>
-              <span className="course-topic">{chapterTopic(ch)}</span>
-              {p && (
-                <>
-                  <div className="pbar">
-                    <span style={{ width: `${percent([p])}%` }} />
-                  </div>
-                  <div className="course-counts">
+                <small>{chapterTopic(ch)}</small>
+                {p && (
+                  <span className="sc-counts">
                     {LABELS.map(([k, label]) => (
                       <span key={k} className={p[k][0] === p[k][1] ? 'full' : ''}>
                         {label()} {p[k][0]}/{p[k][1]}
                       </span>
                     ))}
-                  </div>
-                </>
-              )}
-            </>,
-            'chapter',
+                  </span>
+                )}
+              </span>
+              <span className="sc-side">
+                {bestPill(o.id)}
+                {pct !== null && <span className="sc-pct">{pct}%</span>}
+              </span>
+            </button>
           )
         })}
-        {row(opts[opts.length - 1], <b>{fromTitle ? tr('タイトルに もどる', 'Back to title') : tr('とじる', 'Close')}</b>, 'close')}
       </div>
+      <button key={opts[opts.length - 1].id} {...props(opts[opts.length - 1], 'close', n++)}>{fromTitle ? tr('タイトルに もどる', 'Back to title') : tr('とじる', 'Close')}</button>
     </div>
   )
 }
