@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Field, type FieldHandle } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
+import { ShopSheet, type ShopReq } from './components/ShopSheet'
 import { Menu } from './components/Menu'
 import { Study } from './components/Study'
 import { QuestScreen } from './components/QuestScreen'
@@ -18,9 +19,9 @@ import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
-import { ITEMS, ITEM_IDS, itemDesc, itemName } from './data/items'
-import { EQUIP, effectText, equipDesc, equipName, slotName } from './data/equipment'
-import { enemyName } from './data/en'
+import { ITEM_IDS, itemName } from './data/items'
+import { EQUIP, equipName } from './data/equipment'
+import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
 import type { Dir, Exit, GameState, NpcDef } from './game/types'
@@ -62,6 +63,7 @@ export default function App() {
   const pos = useRef<{ x: number; y: number; dir: Dir }>({ x: gs.x, y: gs.y, dir: gs.dir })
   const [spawn, setSpawn] = useState({ x: gs.x, y: gs.y, dir: gs.dir as Dir, key: 0 })
   const [dialog, setDialog] = useState<DialogReq | null>(null)
+  const [shop, setShop] = useState<ShopReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
   /** 旅の地図（町を 選ぶ）を 開いているか */
@@ -278,71 +280,26 @@ export default function App() {
           await say([tr('窓から 朝の 光が さしこんで、目が さめた。', 'Morning light streams through the window, and you wake up.'), tr('体が 軽い！ HPが まんたんに なった！', 'You feel light! HP was fully restored!')])
           break
         }
-        case 'shop': {
-          let first = true
-          for (;;) {
-            const cur = gsRef.current
-            const opts = [...ITEM_IDS.map((id) => `${itemName(id)}　${ITEMS[id].price}G`), tr('やめる', 'Leave')]
-            const i = await say([tr(`${first ? 'へい、らっしゃい！ ' : ''}何に しやしょう？（所持金 ${cur.gold}G）`, `${first ? 'Hey, welcome! ' : ''}What can I get you? (You have ${cur.gold}G)`)], opts)
-            first = false
-            if (i < 0 || i >= ITEM_IDS.length) {
-              await say([tr('まいど！ また きてくれよ。', 'Thanks! Come again.')])
-              break
-            }
-            const id = ITEM_IDS[i]
-            if (cur.gold < ITEMS[id].price) {
-              await say([tr('おっと、ゴールドが 足りないみたいだ。', "Whoops, looks like you're short on gold.")])
-              continue
-            }
-            setGs((s) => ({ ...s, gold: s.gold - ITEMS[id].price, items: { ...s.items, [id]: s.items[id] + 1 } }))
-            await say([tr(`${itemName(id)}だね。まいど あり！`, `One ${itemName(id)}. Thank you kindly!`), tr(`（${itemDesc(id)}）`, `(${itemDesc(id)})`)])
-          }
-          break
-        }
+        case 'shop':
         case 'gear': {
-          let first = true
-          for (;;) {
-            const cur = gsRef.current
-            const stock = npc.stock ?? []
-            const opts = [...stock.map((id) => `${equipName(id)}${tr("　", "  ")}${EQUIP[id].price}G`), tr('やめる', 'Leave')]
-            const greet = first ? [...(npc.lines ?? [])] : []
-            const i = await say([...greet, tr(`どれに するかね？（所持金 ${cur.gold}G）`, `Which one will it be? (You have ${cur.gold}G)`)], opts)
-            first = false
-            if (i < 0 || i >= stock.length) {
-              await say([tr('また 来てくれよな！', 'Come back anytime!')])
-              break
-            }
-            const id = stock[i]
-            const e = EQUIP[id]
-            const nowId = cur.equip[e.slot]
-            const now = nowId ? tr(`${equipName(nowId)}（${effectText(EQUIP[nowId])}）`, `${equipName(nowId)} (${effectText(EQUIP[nowId])})`) : tr('なし', 'none')
-            const j = await say(
-              [
-                tr(`${equipName(id)}：${equipDesc(id)}`, `${equipName(id)}: ${equipDesc(id)}`),
-                tr(`効果：${effectText(e)}　／　いまの${slotName(e.slot)}：${now}`, `Effect: ${effectText(e)}  /  Current ${slotName(e.slot).toLowerCase()}: ${now}`),
-                tr(`${e.price}ゴールドだが、かうかい？`, `That's ${e.price} gold. Want it?`),
-              ],
-              [tr('はい', 'Yes'), tr('いいえ', 'No')],
-            )
-            if (j !== 0) continue
-            if (cur.gear.includes(id)) {
-              await say([tr('おや、それは もう 持っているようだね。', 'Oh, looks like you already have that one.')])
-              continue
-            }
-            if (cur.gold < e.price) {
-              await say([tr('おっと、ゴールドが 足りないみたいだ。', "Whoops, looks like you're short on gold.")])
-              continue
-            }
-            setGs((g) => ({ ...g, gold: g.gold - e.price, gear: [...g.gear, id] }))
-            const k = await say(
-              [tr(`まいど あり！ ${equipName(id)}を てにいれた！`, `Thank you kindly! Obtained ${equipName(id)}!`), tr('せっかくだ、いま 身に つけて 帰るかい？', 'Want to put it on right now?')],
-              [tr('はい', 'Yes'), tr('いいえ', 'No')],
-            )
-            if (k === 0) {
-              setGs((g) => ({ ...g, equip: { ...g.equip, [e.slot]: id } }))
-              await talk(undefined, [tr(`${gsRef.current.name}は ${equipName(id)}を そうびした！`, `${gsRef.current.name} equipped the ${equipName(id)}!`)])
-            } else await say([tr('メニューの「そうび」から いつでも 装備できるぜ。', 'You can equip it anytime from "Equip" in the menu.')])
-          }
+          // お店は 絵と 値段つきの カードの シートで 買う（会話の 選択肢では 何に 効くか わからなかった）
+          const isGear = npc.kind === 'gear'
+          const greet = isGear && npc.lines?.length ? npc.lines.join(' ') : tr('へい、らっしゃい！ 何に しやしょう？', 'Hey, welcome! What can I get you?')
+          await new Promise<void>((resolve) =>
+            setShop({
+              kind: isGear ? 'gear' : 'item',
+              title: mapName(g.mapId) || npcName(npc.name),
+              keeper: npcName(npc.name),
+              portrait: face,
+              greet,
+              stock: isGear ? (npc.stock ?? []) : ITEM_IDS,
+              close: () => {
+                setShop(null)
+                resolve()
+              },
+            }),
+          )
+          await say([isGear ? tr('また 来てくれよな！', 'Come back anytime!') : tr('まいど！ また きてくれよ。', 'Thanks! Come again.')])
           break
         }
         case 'chest': {
@@ -1291,6 +1248,7 @@ export default function App() {
               />
             )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
+            {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
