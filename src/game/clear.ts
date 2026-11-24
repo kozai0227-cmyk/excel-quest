@@ -21,3 +21,9 @@ export function clearStars(r: { misses: number; usedItem: boolean; flinches: num
   const stars = [noMiss, noItem, flinched].filter(Boolean).length
   return { stars, noMiss, noItem, flinched, mult: 1 + STAR_BONUS * stars }
 }
+
+/** 再挑戦の 報酬の 割合 */
+export const REMATCH_RATE = 0.5
+
+/** 勝ったときの けいけんち・ゴールド（★の 倍率・再挑戦は 半分） */
+export const winReward = (base: number, c?: { mult: number }, rematch?: boolean) => Math.round(base * (c?.mult ?? 1) * (rematch ? REMATCH_RATE : 1))

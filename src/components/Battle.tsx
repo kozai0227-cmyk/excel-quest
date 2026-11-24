@@ -9,7 +9,7 @@ import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
 import { maxHp } from '../game/progress'
 import { scaleEnemy } from '../game/scaling'
-import { clearStars, type ClearStars } from '../game/clear'
+import { clearStars, winReward, type ClearStars } from '../game/clear'
 import { FLINCH_STREAK, GARBLE_MS, RAGE_HEAL, RAGE_QUICK, RAGE_RULE, garble, rageAtk, rageRuleText, rageTime } from '../game/rage'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
@@ -27,12 +27,14 @@ interface Props {
   bossId: string
   /** 最初の戦闘（操作説明つき・逃げられない） */
   tutorial?: boolean
+  /** 倒した ボスへの 再挑戦（報酬 半分・負けても 罰なし） */
+  rematch?: boolean
   /** 背景（森・草原・ボス） */
   scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
   /** stars：ボス戦の 評価（★の 数 0〜3）。ボス戦 以外は なし */
-  onWin(r?: { stars: number }): void
+  onWin(r?: { stars: number; retry?: boolean }): void
   onLose(): void
   onFlee(): void
 }
@@ -90,7 +92,7 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
   return <canvas ref={ref} width={16} height={16} className={`boss-sprite ${hit ? 'hit' : ''}`} />
 }
 
-export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
+export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
   // 町は どの 順でも 回れるので、敵の 強さは レベルに 合わせる
   const [boss] = useState(() => scaleEnemy(ENEMIES[bossId], gs.level))
   const bossName = enemyName(boss)
@@ -118,6 +120,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             ? tr('（答えは タップで 選べるぞ）', '(Tap an answer to choose it.)')
             : tr('（答えは クリック、または 数字キー 1〜4 でも 選べるぞ）', '(Click an answer, or press the number keys 1-4.)'),
         ]
+      : []),
+    ...(rematch
+      ? [tr('（再挑戦：報酬は 半分。負けても お金は 減らない）', "(Rematch: half rewards, and you won't lose gold if you fall.)")]
       : []),
     ...(ENEMIES[bossId].boss && !ENEMIES[bossId].hits
       ? [tr(`（${FLINCH_STREAK}れんぞく 正解で ボスが ひるみ、反撃を ふせげる！）`, `(Get ${FLINCH_STREAK} right in a row to make the boss flinch and skip its attack!)`)]
@@ -498,6 +503,14 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     sfx('select')
     onWin(clear ? { stars: clear.stars } : undefined)
   }
+  const retryWin = () => {
+    if (winDone.current || !clear) return
+    winDone.current = true
+    sfx('select')
+    onWin({ stars: clear.stars, retry: true })
+  }
+  /** ボスメダルを まだ 持っていない（今回も 取れなかった）なら、その場で もう一度 挑戦できる */
+  const canRetry = !!clear && clear.stars < 3 && !(gs.medals ?? []).includes(boss.id)
   useKeys(
     (k) => {
       if (phase === 'win') {
@@ -669,8 +682,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           enemy={bossName}
           boss={!!boss.boss}
           exp={gs.exp}
-          gainExp={Math.round(ENEMIES[bossId].exp * (clear?.mult ?? 1))}
-          gainGold={Math.round(ENEMIES[bossId].gold * (clear?.mult ?? 1))}
+          gainExp={winReward(ENEMIES[bossId].exp, clear, rematch)}
+          gainGold={winReward(ENEMIES[bossId].gold, clear, rematch)}
+          rematch={rematch}
+          onRetry={canRetry ? retryWin : undefined}
           clear={clear}
           medal={!!clear && clear.stars === 3 && !(gs.medals ?? []).includes(boss.id)}
           correct={stats.current.correct}

@@ -21,7 +21,7 @@ import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
 import { ITEM_IDS, itemName } from './data/items'
 import { EQUIP, equipName } from './data/equipment'
-import { STAR_BONUS } from './game/clear'
+import { STAR_BONUS, winReward } from './game/clear'
 import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
@@ -37,6 +37,8 @@ type Scene = 'title' | 'name' | 'prologue' | 'field' | 'quest' | 'battle' | 'epi
 interface BattleReq {
   id: string
   tutorial?: boolean
+  /** 倒した ボスへの 再挑戦 */
+  rematch?: boolean
   scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
 }
 
@@ -921,24 +923,44 @@ export default function App() {
     })
   }
 
-  const onWin = (r?: { stars: number }) => {
+  /** 倒した ボスに もう一度 挑む（HPは 満タンから。旅の地図・リザルト画面から） */
+  const startRematch = (id: string) => {
+    setTravel(false)
+    setGs((g) => ({ ...g, hp: maxHp(g.level) }))
+    startBattle({ id, scene: bossScene(id), rematch: true })
+  }
+
+  const onWin = (r?: { stars: number; retry?: boolean }) => {
     const req = battle!
     const b = ENEMIES[req.id]
-    // ボス戦は クリア評価の ★で 報酬が 増える。★3つなら 初回だけ ボスメダル
-    const mult = r ? 1 + STAR_BONUS * r.stars : 1
-    const exp = Math.round(b.exp * mult)
-    const gold = Math.round(b.gold * mult)
+    // ボス戦は クリア評価の ★で 報酬が 増える（再挑戦は 半分）。★3つなら 初回だけ ボスメダル
+    const st = r ? { mult: 1 + STAR_BONUS * r.stars } : undefined
+    const exp = winReward(b.exp, st, req.rematch)
+    const gold = winReward(b.gold, st, req.rematch)
     const medal = r?.stars === 3 && !(gsRef.current.medals ?? []).includes(b.id)
     // 経験値・ゴールド・★・メダルは 戦闘の リザルト画面（BattleWin）で 見せた
     const { gs: g1 } = gainExp(gsRef.current, exp)
     setGs(() => ({
       ...g1,
       gold: g1.gold + gold,
-      bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses,
+      bosses: b.boss && !g1.bosses.includes(b.id) ? [...g1.bosses, b.id] : g1.bosses,
       ...(medal ? { medals: [...(g1.medals ?? []), b.id], items: { ...g1.items, sandglass: g1.items.sandglass + 1 } } : {}),
     }))
     setBattle(null)
     setScene('field')
+    // 再挑戦：上がった けいけんちは そのままで、すぐ もう一度
+    if (r?.retry) {
+      setTimeout(() => {
+        save()
+        startRematch(b.id)
+      }, 0)
+      return
+    }
+    // 再挑戦の 勝利は お話（正気に もどる・外へ 出る など）を くり返さない
+    if (req.rematch) {
+      setTimeout(save, 0)
+      return
+    }
     run(async () => {
       if (req.tutorial) {
         setFlag('tutorial')
@@ -1092,6 +1114,15 @@ export default function App() {
     const req = battle!
     setBattle(null)
     setScene('field')
+    // 再挑戦で 負けても 罰なし（HPを もどして その場に）
+    if (req.rematch) {
+      setGs((g) => ({ ...g, hp: maxHp(g.level) }))
+      run(async () => {
+        await talk(undefined, [tr('……ボスの 前から 押し戻されてしまった。', '...You were pushed back from the boss.'), tr('（再挑戦なので、お金は 減らなかった）', "(It was a rematch, so you didn't lose any gold.)")])
+        save()
+      })
+      return
+    }
     if (req.tutorial) {
       setGs((g) => ({ ...g, hp: maxHp(g.level) }))
       run(async () => {
@@ -1302,12 +1333,13 @@ export default function App() {
             )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
-            {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onClose={() => setTravel(false)} />}
+            {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onRematch={startRematch} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
                 key={`${battle.id}-${spawn.key}`}
                 bossId={battle.id}
                 tutorial={battle.tutorial}
+                rematch={battle.rematch}
                 scene={battle.scene}
                 gs={gs}
                 setGs={setGs}

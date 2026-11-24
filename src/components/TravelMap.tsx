@@ -45,6 +45,8 @@ const skillsOf = (id: string) => {
 interface Props {
   gs: GameState
   onPick(id: string): void
+  /** 倒した ボスに もう一度 挑む（ボスメダル ねらい） */
+  onRematch(bossId: string): void
   onClose(): void
 }
 
@@ -55,7 +57,7 @@ export const nextTown = (g: GameState) => TOWNS.find((t) => !travelLock(t.id, g)
  * 旅の地図：行きたい 町を 選ぶ（ワールドマップの かわり）。
  * 町を 物語の 順に 1本の 道で つなぎ、章の 丸・悩み解決の バー・おすすめの 町を 見せる
  */
-export function TravelMap({ gs, onPick, onClose }: Props) {
+export function TravelMap({ gs, onPick, onRematch, onClose }: Props) {
   useUnlocked()
   const here = MAPS[gs.mapId]?.town ?? gs.mapId
   const rec = nextTown(gs)
@@ -189,6 +191,21 @@ export function TravelMap({ gs, onPick, onClose }: Props) {
                       )}
                       <span className={`tt-boss ${cleared ? 'won' : ''}`}>{cleared ? tr('★ 町を 救った', '★ Saved') : tr('ボス 未撃破', 'Boss ahead')}</span>
                       {(gs.medals ?? []).includes(t.boss) && <span className="tt-medal" title={tr('ボスメダル', 'Boss Medal')}>🏅</span>}
+                      {cleared && (
+                        <button
+                          type="button"
+                          className="tt-rematch"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (pickedRef.current) return
+                            pickedRef.current = true
+                            sfx('select')
+                            onRematch(t.boss)
+                          }}
+                        >
+                          {(gs.medals ?? []).includes(t.boss) ? tr('⚔ 再戦', '⚔ Rematch') : tr('⚔ 再挑戦 🏅ねらい', '⚔ Rematch for 🏅')}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

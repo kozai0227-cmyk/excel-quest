@@ -23,10 +23,14 @@ interface Props {
   clear?: ClearStars
   /** ★3つで 初めて ボスメダルを もらう */
   medal?: boolean
+  /** 再挑戦の 戦い（報酬は 半分） */
+  rematch?: boolean
+  /** もう一度 挑戦する（ボスメダルを まだ 持っていない ときだけ 出す） */
+  onRetry?: () => void
   onContinue(): void
 }
 
-export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCombo, hurt, clear, medal, onContinue }: Props) {
+export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCombo, hurt, clear, medal, rematch, onRetry, onContinue }: Props) {
   // ざこ戦は テンポ よく（ボスは 少し ためて 見せる）
   const t0 = boss ? 0.45 : 0.25
   const expShown = useCountUp(gainExp, t0 * 1000 + 150)
@@ -143,7 +147,10 @@ export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCo
                 </li>
               ))}
             </ul>
-            <div className="bw-mult">{tr(`報酬 ×${clear.mult}`, `Rewards ×${clear.mult}`)}</div>
+            <div className="bw-mult">
+              {tr(`報酬 ×${clear.mult}`, `Rewards ×${clear.mult}`)}
+              {rematch && <small>{tr('（再挑戦は 報酬 半分）', ' (half rewards on rematch)')}</small>}
+            </div>
             {medal ? (
               <div className="bw-medal-get">
                 {tr('🏅 ボスメダル 獲得！', '🏅 Boss Medal earned!')}
@@ -196,6 +203,11 @@ export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCo
         <button className="qc-go" onClick={onContinue} style={{ animationDelay: nextDelay() }}>
           {tr('つづける', 'Continue')}
         </button>
+        {onRetry && (
+          <button className="bw-retry" onClick={onRetry} style={{ animationDelay: nextDelay() }}>
+            {tr('🔁 もう一度 挑戦する（★3つで メダル）', '🔁 Try again (3 stars = Medal)')}
+          </button>
+        )}
       </div>
     </div>
   )
