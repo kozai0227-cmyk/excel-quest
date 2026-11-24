@@ -6865,3 +6865,460 @@ html:lang(en) .fpad-label {
     transform: scale(1.1);
   }
 }
+
+/* ================================================================ お店（カード式の シート） */
+.shop-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 8, 18, 0.62);
+  backdrop-filter: blur(2px);
+  padding: 3%;
+  animation: travelFade 0.2s ease both;
+}
+.win.shop {
+  position: relative;
+  width: min(100%, 700px);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: 2.1cqw;
+  background: linear-gradient(180deg, #121a2e 0%, #0b1020 100%);
+  border-radius: 1em;
+  animation: travelUp 0.32s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+/* スマホ：下から せり上がる シート（親指の 届く 位置に ボタン） */
+.phone .shop-layer {
+  align-items: flex-end;
+  padding: 0;
+}
+.phone .win.shop {
+  width: 100%;
+  max-height: 92%;
+  font-size: 15px;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
+  border-bottom: none;
+  animation: shopSheet 0.34s cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+.shop-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.shop-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: #ffd76a;
+  font-size: 1.3em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shop-gold {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.2em 0.7em 0.2em 0.3em;
+  border-radius: 1em;
+  background: rgba(255, 215, 106, 0.12);
+  border: 1px solid rgba(255, 215, 106, 0.45);
+  color: #ffe08a;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.shop-gold i {
+  display: grid;
+  place-items: center;
+  width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 0.8em;
+  color: #6b4100;
+  background: radial-gradient(circle at 35% 30%, #fff1b0, #f0b429 60%, #b77d00);
+  box-shadow: 0 0.1em 0 #7a5200;
+}
+.shop-gold.spent {
+  animation: shopGold 0.45s ease;
+}
+.shop-minus {
+  position: absolute;
+  right: 0.4em;
+  top: 100%;
+  font-size: 0.85em;
+  color: #ff9a9a;
+  pointer-events: none;
+  animation: shopFloatDown 0.9s ease-out both;
+}
+.shop-x {
+  flex: none;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+.shop-x:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.2);
+}
+/* 店主の 顔と ふきだし */
+.shop-keeper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6em;
+  margin: 0.6em 0 0.55em;
+}
+.portrait.shop-face {
+  width: 3.4em;
+  height: 3em;
+  border-width: 2px;
+  border-radius: 0.5em;
+}
+.shop-say {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 0.45em 0.75em 0.5em;
+  border-radius: 0.8em;
+  background: #f4f1e8;
+  color: #1c2236;
+  font-size: 0.86em;
+  line-height: 1.45;
+  animation: shopSay 0.26s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.shop-say::before {
+  content: '';
+  position: absolute;
+  left: -0.45em;
+  bottom: 0.7em;
+  border: 0.3em solid transparent;
+  border-right: 0.5em solid #f4f1e8;
+  border-left: 0;
+}
+.shop-keeper-name {
+  display: block;
+  font-size: 0.82em;
+  font-weight: 800;
+  color: var(--brand);
+}
+.shop-list {
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.3em 0.25em 0.5em;
+  scrollbar-width: thin;
+}
+/* 売り物の カード：押すと 沈み、選んだ ものは 色の 縁 */
+.shop-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0.75em;
+  border: 2px solid #3a4560;
+  border-bottom-width: 0.3em;
+  border-bottom-color: #252e48;
+  border-radius: 0.85em;
+  background: linear-gradient(#1c2640, #151d33);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+  animation: shopIn 0.32s cubic-bezier(0.25, 1.3, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 40ms + 60ms);
+}
+.shop-card:active {
+  border-bottom-width: 2px;
+  margin-top: calc(0.3em - 2px);
+}
+.shop-card.on {
+  border-color: #2fbfae;
+  border-bottom-color: #17766c;
+  background: linear-gradient(#1d3446, #152536);
+  box-shadow: 0 0 0 1px rgba(47, 191, 174, 0.3), 0 0.4em 1.2em rgba(47, 191, 174, 0.12);
+}
+.shop.ring .shop-card.on {
+  outline: 0.18em solid #ffe070;
+  outline-offset: 0.12em;
+}
+@media (hover: hover) {
+  .shop-card:hover {
+    filter: brightness(1.12);
+  }
+}
+.shop-ico {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 0.65em;
+  font-size: 1.15em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.shop-card.on .shop-ico {
+  background: rgba(47, 191, 174, 0.18);
+}
+.shop-plus {
+  position: absolute;
+  left: 50%;
+  top: -0.2em;
+  font-size: 0.75em;
+  font-weight: 800;
+  color: #7ee2b8;
+  text-shadow: 0 0.1em 0 #0b0f1a;
+  pointer-events: none;
+  animation: shopFloatUp 0.8s ease-out both;
+}
+.shop-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12em;
+}
+.shop-name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.1em 0.45em;
+}
+.shop-slot {
+  font-size: 0.68em;
+  font-weight: 700;
+  padding: 0.05em 0.5em;
+  border-radius: 1em;
+  color: #c9d3e6;
+  background: rgba(255, 255, 255, 0.1);
+}
+.shop-desc {
+  font-size: 0.76em;
+  color: #c3cbdb;
+  line-height: 1.4;
+}
+.shop-fx {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin-top: 0.15em;
+}
+.shop-eff,
+.shop-diff {
+  font-size: 0.72em;
+  font-weight: 700;
+  padding: 0.08em 0.5em;
+  border-radius: 1em;
+  white-space: nowrap;
+}
+.shop-eff {
+  color: #ffe08a;
+  background: rgba(255, 215, 106, 0.12);
+}
+.shop-diff {
+  color: #aab3c5;
+  background: rgba(255, 255, 255, 0.08);
+}
+.shop-diff.up {
+  color: #7ee2b8;
+  background: rgba(47, 191, 138, 0.16);
+}
+.shop-diff.down {
+  color: #ff9a9a;
+  background: rgba(255, 90, 90, 0.14);
+}
+.shop-side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25em;
+}
+.shop-price {
+  font-weight: 800;
+  color: #ffe08a;
+  font-variant-numeric: tabular-nums;
+}
+.shop-card.cant .shop-price {
+  color: #8790a3;
+}
+.shop-card.cant .shop-ico,
+.shop-card.cant .shop-name {
+  opacity: 0.65;
+}
+.shop-tag {
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 0.12em 0.55em;
+  border-radius: 1em;
+  white-space: nowrap;
+  color: #c9d3e6;
+  background: rgba(255, 255, 255, 0.12);
+}
+.shop-tag.on {
+  color: #4a3200;
+  background: #ffd76a;
+}
+.shop-own {
+  font-size: 0.72em;
+  color: #aab3c5;
+  white-space: nowrap;
+}
+/* 下の ボタン：とじる ＋ 買う（いつも 同じ 位置） */
+.shop-actions {
+  flex: none;
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.4em;
+}
+.shop-leave,
+.shop-act {
+  min-height: 2.8em;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-bottom-width: 0.3em;
+  border-bottom-color: #0b0f1a;
+  border-radius: 0.85em;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-bottom-width 0.08s ease, margin-top 0.08s ease, filter 0.12s ease;
+}
+.shop-leave:active,
+.shop-act:not([aria-disabled='true']):active {
+  border-bottom-width: 2px;
+  margin-top: calc(0.3em - 2px);
+}
+.shop-leave {
+  flex: 0 0 auto;
+  padding: 0 1.1em;
+  background: linear-gradient(#2c3a5c, #1a2340);
+  color: #fff;
+}
+.shop-act {
+  flex: 1;
+  min-width: 0;
+  padding: 0 0.8em;
+  animation: eqPop 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.shop-act.buy {
+  background: linear-gradient(#ffe48a, #f0b429);
+  border-color: #fff4c7;
+  border-bottom-color: #8a5a00;
+  color: #4a3200;
+}
+.shop-act.equip {
+  background: linear-gradient(#3fd6a0, #1f9c72);
+  border-color: #c8ffe9;
+  border-bottom-color: #0c4f39;
+  color: #fff;
+}
+.shop-act.short,
+.shop-act.done {
+  background: #1a2034;
+  border-color: #3a4560;
+  border-bottom-color: #0b0f1a;
+  color: #8790a3;
+  cursor: default;
+  font-size: 0.9em;
+}
+.shop-act.shake {
+  animation: shopShake 0.36s ease;
+}
+@keyframes shopSheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes shopIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+  }
+}
+@keyframes shopSay {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes shopGold {
+  40% {
+    transform: scale(1.12);
+    background: rgba(255, 215, 106, 0.3);
+  }
+}
+@keyframes shopFloatUp {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  30% {
+    transform: translate(-50%, -0.6em) scale(1.15);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -1.6em);
+  }
+}
+@keyframes shopFloatDown {
+  from {
+    opacity: 1;
+    transform: translateY(-0.4em);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+}
+@keyframes shopShake {
+  20%,
+  60% {
+    transform: translateX(-0.35em);
+  }
+  40%,
+  80% {
+    transform: translateX(0.35em);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-layer,
+  .win.shop,
+  .phone .win.shop,
+  .shop-card,
+  .shop-say,
+  .shop-gold.spent,
+  .shop-act,
+  .shop-act.shake {
+    animation: none;
+  }
+  .shop-plus,
+  .shop-minus {
+    animation-duration: 0.01s;
+  }
+}

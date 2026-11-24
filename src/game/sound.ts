@@ -415,6 +415,8 @@ const SFX = {
   /** 会話を 送る */
   blip: () => tone({ f: 780, dur: 0.05, vol: 0.09, wave: 'pulse25' }),
   cancel: () => tone({ f: 520, to: 300, dur: 0.08, vol: 0.07, wave: 'pulse25' }),
+  /** お店で 買った（チャリン） */
+  coin: () => notes([[88, 0.05], [95, 0.16]], { wave: 'pulse25', vol: 0.08 }),
   /** 出入り口・階段 */
   door: () => {
     notes([[67, 0.05], [62, 0.05], [55, 0.08]], { wave: 'square', vol: 0.08 })
