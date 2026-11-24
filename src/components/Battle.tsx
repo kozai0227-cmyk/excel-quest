@@ -17,6 +17,7 @@ import { FormulaQuestion } from './FormulaQuestion'
 import { judgeFormula } from '../game/judge'
 import { markWeak, questionKey } from '../game/weak'
 import { BossVisual } from './BossVisual'
+import { BattleWin } from './BattleWin'
 import { hasBossArt } from '../game/bossArt'
 import { cue, sfx, sfxNow, useBgm } from '../game/sound'
 
@@ -33,7 +34,7 @@ interface Props {
   onFlee(): void
 }
 
-type Phase = 'msg' | 'command' | 'items' | 'question'
+type Phase = 'msg' | 'command' | 'items' | 'question' | 'win'
 /** 表示された瞬間に fx を実行するメッセージ（ダメージ反映など） */
 type Msg = string | { text: string; fx: () => void }
 const runFx = (m?: Msg) => {
@@ -128,6 +129,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const guardHinted = useRef(false)
   const [deadline, setDeadline] = useState(0)
   const [combo, setCombo] = useState(0)
+  /** リザルト画面用：正解した 数・最高 連続正解・うけた ダメージの 合計 */
+  const stats = useRef({ correct: 0, best: 0, hurt: 0 })
+  const winDone = useRef(false)
   const [buff, setBuff] = useState<{ scroll: boolean; sand: boolean }>({ scroll: false, sand: false })
   const [hit, setHit] = useState(0)
   const [shake, setShake] = useState(0)
@@ -237,6 +241,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       lines.push({
         text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
         fx: () => {
+          stats.current.hurt += dmg
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
           pop('me', 'hurt', `-${dmg}`)
@@ -290,7 +295,14 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         },
       })
       setCombo(c)
-      if (hp <= 0) say([...lines, tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`)], onWin)
+      stats.current.correct++
+      stats.current.best = Math.max(stats.current.best, c)
+      // 倒したら（✨ を 見せた あと）リザルト画面へ。勝利の 音は 画面が 出た 瞬間に
+      if (hp <= 0)
+        say(lines, () => {
+          cue(tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`))
+          setPhase('win')
+        })
       else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))
     } else {
@@ -309,6 +321,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       lines.push(tr(`${bossName}の こうげき！`, `${bossName} attacks!`), {
         text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
         fx: () => {
+          stats.current.hurt += dmg
           setShake((s) => s + 1)
           setGs((g) => ({ ...g, hp }))
           pop('me', 'hurt', `-${dmg}`)
@@ -365,6 +378,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             {
               text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
               fx: () => {
+                stats.current.hurt += dmg
                 setShake((sh) => sh + 1)
                 setGs((g) => ({ ...g, hp }))
                 pop('me', 'hurt', `-${dmg}`)
@@ -392,8 +406,18 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   }
 
   const listLen = phase === 'command' ? 3 : phase === 'items' ? battleItems.length + 1 : phase === 'question' && q?.type === 'choice' ? choices.length : 0
+  const finishWin = () => {
+    if (winDone.current) return
+    winDone.current = true
+    sfx('select')
+    onWin()
+  }
   useKeys(
     (k) => {
+      if (phase === 'win') {
+        if (k === 'ok') finishWin()
+        return
+      }
       if (phase === 'msg') {
         if (k === 'ok' || k === 'cancel') {
           if (msgs.length > 1) sfx('blip')
@@ -548,6 +572,20 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           )}
           <div className="win combo-win">{combo >= 2 ? tr(`🔥 ${combo}れんぞく`, `🔥 ${combo} streak`) : '　'}</div>
         </div>
+      )}
+
+      {phase === 'win' && (
+        <BattleWin
+          enemy={bossName}
+          boss={!!boss.boss}
+          exp={gs.exp}
+          gainExp={ENEMIES[bossId].exp}
+          gainGold={ENEMIES[bossId].gold}
+          correct={stats.current.correct}
+          bestCombo={stats.current.best}
+          hurt={stats.current.hurt}
+          onContinue={finishWin}
+        />
       )}
 
       {phase === 'msg' && (

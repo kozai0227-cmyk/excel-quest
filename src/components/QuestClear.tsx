@@ -15,10 +15,10 @@ interface Props {
   onContinue(): void
 }
 
-const reduceMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+export const reduceMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /** 0 から target まで 数え上げる（delay ミリ秒 待ってから 約0.8秒） */
-function useCountUp(target: number, delay: number) {
+export function useCountUp(target: number, delay: number) {
   const [v, setV] = useState(() => (reduceMotion() ? target : 0))
   useEffect(() => {
     if (reduceMotion()) return setV(target)
@@ -36,7 +36,7 @@ function useCountUp(target: number, delay: number) {
 }
 
 /** レベル内の 進み具合（0〜1） */
-function levelRate(exp: number) {
+export function levelRate(exp: number) {
   const lv = levelFor(exp)
   const base = LEVEL_EXP[lv] ?? 0
   const next = LEVEL_EXP[lv + 1]

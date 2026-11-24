@@ -923,12 +923,12 @@ export default function App() {
   const onWin = () => {
     const req = battle!
     const b = ENEMIES[req.id]
-    const { gs: g1, msgs: lv } = gainExp(gsRef.current, b.exp)
+    // 経験値・ゴールド・レベルアップは 戦闘の リザルト画面（BattleWin）で 見せた
+    const { gs: g1 } = gainExp(gsRef.current, b.exp)
     setGs(() => ({ ...g1, gold: g1.gold + b.gold, bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses }))
     setBattle(null)
     setScene('field')
     run(async () => {
-      await talk(undefined, [tr(`${b.exp}ポイントの けいけんちを かくとく！`, `Gained ${b.exp} EXP!`), tr(`${b.gold}ゴールドを てにいれた！`, `Got ${b.gold} gold!`), ...lv])
       if (req.tutorial) {
         setFlag('tutorial')
         await talk(undefined, [tr('セルイムは ぷるぷると ふるえながら、森の奥へ 逃げていった……。', 'The Cellime wobbled and fled deeper into the forest...')])
