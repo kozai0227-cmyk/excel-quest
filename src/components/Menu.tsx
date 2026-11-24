@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
 import { ITEM_IDS, itemDesc, itemName } from '../data/items'
-import { SKILLS } from '../data/skills'
 import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
 import { PLAYER_SPEC } from '../data/maps'
 import { Portrait } from './Portrait'
@@ -12,6 +11,7 @@ import { setInputMode, useInputMode } from '../game/inputMode'
 import { isTouchDevice, usePhoneLayout } from '../game/layout'
 import { isNative } from '../game/native'
 import { DocView } from './DocView'
+import { SkillBook } from './SkillBook'
 import { totalPercent } from '../data/chapters'
 import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
@@ -256,6 +256,11 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
       else if (k === 'cancel') setOpen(null)
       return
     }
+    if (open === 'スキル' && (k === 'up' || k === 'down')) {
+      // 図鑑は 長いので 上下で スクロール
+      document.querySelector('.menu-panel.is-book')?.scrollBy({ top: k === 'down' ? 120 : -120, behavior: 'smooth' })
+      return
+    }
     if (open) {
       if (k === 'cancel' || k === 'ok') setOpen(null)
       return
@@ -316,7 +321,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         </div>
       </div>
       {open && (
-        <div className="win menu-panel">
+        <div className={`win menu-panel ${open === 'スキル' ? 'is-book' : ''}`}>
           {open === 'つよさ' && (
             <div className="stats-wrap">
             <Portrait src={{ spec: PLAYER_SPEC }} className="portrait big" />
@@ -461,19 +466,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
               </ul>
             </div>
           )}
-          {open === 'スキル' &&
-            (gs.skills.length ? (
-              <ul className="skill-list">
-                {gs.skills.map((id) => (
-                  <li key={id}>
-                    <b>{SKILLS[id].name}</b>
-                    <span>{SKILLS[id].desc}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>{tr('まだ なにも おぼえていない。', "You haven't learned anything yet.")}</p>
-            ))}
+          {open === 'スキル' && <SkillBook gs={gs} onClose={() => setOpen(null)} />}
           {open === 'どうぐ' &&
             (items.length ? (
               <ul className="item-list">

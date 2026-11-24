@@ -1,0 +1,274 @@
+/* ---------------------------------------------------------------- メニュー：スキル図鑑 */
+.sb {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  line-height: 1.35;
+}
+/* 見出し：本の 絵・題名・全体の 集めた 数（スクロールしても 上に 残る） */
+.sb-head {
+  position: sticky;
+  top: -0.6em;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: -0.6em -0.6em 0;
+  padding: 0.6em;
+  background: linear-gradient(rgba(10, 14, 28, 0.98) 80%, rgba(10, 14, 28, 0));
+}
+.sb-book {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 0.55em;
+  background: linear-gradient(#4a7dff, #2b4fc0);
+  box-shadow:
+    inset 0 -0.14em 0 rgba(0, 0, 0, 0.28),
+    0 0.12em 0.3em rgba(0, 0, 0, 0.4);
+  font-size: 1.1em;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+.sb-title {
+  flex: 1;
+  min-width: 0;
+}
+.sb-title > b {
+  display: block;
+  font-weight: normal;
+  color: #ffe070;
+}
+.sb-total {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.8em;
+}
+.sb-total small {
+  opacity: 0.6;
+}
+.sb-bar,
+.sb-tbar {
+  position: relative;
+  flex: 1;
+  height: 0.5em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.sb-bar > div,
+.sb-tbar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(#ffe68a, #f0b400);
+  box-shadow: inset 0 0.1em 0 rgba(255, 255, 255, 0.45);
+  transform-origin: left;
+  animation: sb-grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+@keyframes sb-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.sb-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.sb-x:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.22);
+}
+.sb-empty {
+  margin: 0;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+/* 町ごとの まとまり */
+.sb-town {
+  padding: 0.55em 0.6em 0.6em;
+  border: 0.1em solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.7em;
+  background: rgba(255, 255, 255, 0.05);
+  animation: sb-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.sb-town.done {
+  border-color: rgba(255, 210, 90, 0.55);
+  background: linear-gradient(rgba(255, 210, 90, 0.1), rgba(255, 210, 90, 0.03));
+}
+@keyframes sb-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+}
+.sb-town-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.sb-ticon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  background: var(--tc);
+  box-shadow: inset 0 -0.12em 0 rgba(0, 0, 0, 0.25);
+  font-size: 0.95em;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+.sb-town.none .sb-ticon {
+  filter: grayscale(0.85) brightness(0.75);
+}
+.sb-tname {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sb-tname small {
+  font-size: 0.72em;
+  opacity: 0.65;
+}
+.sb-count {
+  flex: none;
+  padding: 0.12em 0.6em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.78em;
+}
+.sb-count.gold {
+  background: linear-gradient(#ffe68a, #f0b400);
+  color: #3a2600;
+}
+.sb-tbar {
+  flex: none;
+  height: 0.32em;
+  margin: 0.45em 0 0.5em;
+}
+.sb-tbar > div {
+  background: var(--tc);
+}
+.sb-town.done .sb-tbar > div {
+  background: linear-gradient(#ffe68a, #f0b400);
+}
+/* スキルの カード */
+.sb-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11em, 1fr));
+  gap: 0.4em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding: 0.45em 0.55em 0.5em;
+  border-left: 0.22em solid var(--tc);
+  border-radius: 0.45em;
+  background: rgba(255, 255, 255, 0.07);
+}
+.sb-card b {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  font-weight: normal;
+  color: #ffe070;
+}
+.sb-card span {
+  font-size: 0.8em;
+  opacity: 0.88;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.sb-card.unknown {
+  border-left-color: rgba(255, 255, 255, 0.2);
+  border: 0.08em dashed rgba(255, 255, 255, 0.22);
+  border-left-width: 0.22em;
+  background: transparent;
+}
+.sb-card.unknown b {
+  color: rgba(255, 255, 255, 0.45);
+}
+.sb-card.unknown span {
+  opacity: 0.5;
+}
+.sb-new {
+  padding: 0 0.45em;
+  border-radius: 999px;
+  background: #ff5a5a;
+  color: #fff;
+  font-size: 0.68em;
+  line-height: 1.55;
+  animation: sb-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 0.4s both;
+}
+@keyframes sb-pop {
+  from {
+    transform: scale(0);
+  }
+}
+/* まだ 1つも おぼえていない 町：？の 粒を 並べて 小さく */
+.sb-locked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  font-size: 0.78em;
+  opacity: 0.7;
+}
+.sb-dots {
+  display: flex;
+  gap: 0.25em;
+}
+.sb-dots i {
+  display: grid;
+  place-items: center;
+  width: 1.45em;
+  height: 1.45em;
+  border: 0.1em dashed rgba(255, 255, 255, 0.35);
+  border-radius: 0.35em;
+  font-style: normal;
+  font-size: 0.9em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-town,
+  .sb-bar > div,
+  .sb-tbar > div,
+  .sb-new {
+    animation: none;
+  }
+}
+/* 図鑑を 開いている ときの パネル：余白を em で そろえ（見出しの はりつきに 合わせる）、PC は 縦に 長く */
+.menu-panel.is-book {
+  padding: 0.6em;
+  max-height: 94%;
+}
+.menu-panel.is-book {
+  background: rgba(10, 14, 28, 0.97);
+}
+.app:not(.phone) .menu-panel.is-book {
+  font-size: 2.1cqw;
+}
