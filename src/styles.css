@@ -5934,7 +5934,8 @@ html:lang(en) .fpad-label {
   }
 }
 
-/* ---------------------------------------------------------------- 旅の地図（町を 選ぶ） */
+/* ---------------------------------------------------------------- 旅の地図（町を 選ぶ）
+   町を 物語の 順に 1本の 道で つなぐ。左に 章の 丸、右に カード（悩み解決の バー・ボス） */
 .travel-layer {
   position: absolute;
   inset: 0;
@@ -5942,8 +5943,10 @@ html:lang(en) .fpad-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(4, 8, 18, 0.62);
+  backdrop-filter: blur(2px);
   padding: 3%;
+  animation: travelFade 0.2s ease both;
 }
 .win.travel {
   position: relative;
@@ -5952,79 +5955,378 @@ html:lang(en) .fpad-label {
   display: flex;
   flex-direction: column;
   font-size: 2.2cqw;
+  background: linear-gradient(180deg, #121a2e 0%, #0b1020 100%);
+  border-radius: 1em;
+  animation: travelUp 0.32s cubic-bezier(0.2, 1.2, 0.4, 1) both;
 }
 .phone .win.travel {
   font-size: 15px;
-  padding: 12px 12px;
+  padding: 12px 10px 10px;
+  border-radius: 14px;
+}
+.travel-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.travel-title {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2em 0.8em;
+  min-width: 0;
 }
 .travel h3 {
   margin: 0;
   color: #ffd76a;
-  font-size: 1.3em;
+  font-size: 1.35em;
+}
+.travel-count {
+  font-size: 0.8em;
+  color: #7ee2b8;
+  font-weight: 700;
+}
+.travel-x {
+  flex: none;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+.travel-x:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.2);
 }
 .travel-note {
-  margin: 0.2em 0 0.5em;
+  margin: 0.25em 0 0.6em;
   color: #c8cfdb;
-  font-size: 0.85em;
+  font-size: 0.82em;
 }
 .travel-list {
+  position: relative;
   overflow: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
-  padding-right: 2px;
+  padding: 0.4em 0.4em 0.4em 0.4em;
+  scrollbar-width: thin;
 }
+/* 1つの 町 = 左の 丸（道）＋ 右の カード */
 .travel-town {
-  border: 2px solid #3a4560;
-  border-radius: 0.6em;
-  padding: 0.45em 0.7em;
-  background: rgba(255, 255, 255, 0.03);
+  --node: 2.5em;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 0.6em;
+  padding-bottom: 0.55em;
   cursor: pointer;
-  transition: transform 0.12s, border-color 0.12s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  animation: travelIn 0.34s cubic-bezier(0.25, 1.3, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 35ms + 60ms);
 }
-.travel-town.on {
-  border-color: #ffd76a;
-  background: rgba(255, 215, 106, 0.08);
+.travel-town:last-child {
+  padding-bottom: 0.1em;
 }
-.travel-town:active {
-  transform: scale(0.98);
+/* 道：丸と 丸を つなぐ 線（前の 町を 救っていれば 緑） */
+.travel-town::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--node) / 2 - 0.18em);
+  top: 0;
+  height: 0.9em;
+  width: 0.36em;
+  border-radius: 0.2em;
+  background: repeating-linear-gradient(#3a4560 0 0.35em, transparent 0.35em 0.6em);
 }
-.travel-town.locked {
+.travel-town::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--node) / 2 - 0.18em);
+  top: calc(0.9em + var(--node));
+  bottom: 0;
+  width: 0.36em;
+  border-radius: 0.2em;
+  background: repeating-linear-gradient(#3a4560 0 0.35em, transparent 0.35em 0.6em);
+}
+.travel-town:first-child::before,
+.travel-town:last-child::after {
+  display: none;
+}
+.travel-town.path-done::before,
+.travel-town.cleared::after {
+  background: #2fbf8a;
+}
+.tt-node {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: var(--node);
+  height: var(--node);
+  margin-top: 0.9em;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1em;
+  color: #fff;
+  background: linear-gradient(#3b4a72, #26314f);
+  border: 0.15em solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0.2em 0 #0b0f1a;
+}
+.travel-town.cleared .tt-node {
+  background: linear-gradient(#ffe48a, #f0b429);
+  color: #6b4100;
+  border-color: #fff4c7;
+  box-shadow: 0 0.2em 0 #8a5a00;
+}
+.travel-town.locked .tt-node span {
+  font-size: 0.8em;
+}
+.travel-town.locked .tt-node {
+  background: #232a3b;
+  border-color: #4a5470;
+  box-shadow: 0 0.2em 0 #0b0f1a;
+}
+.travel-town.rec .tt-node {
+  background: linear-gradient(#1aa3a1, var(--brand));
+}
+.travel-town.rec .tt-node::after,
+.travel-town.here .tt-node::after {
+  content: '';
+  position: absolute;
+  inset: -0.35em;
+  border-radius: 50%;
+  border: 0.15em solid #ffd76a;
+  animation: travelPulse 1.6s ease-out infinite;
+}
+.travel-town.here .tt-node::after {
+  border-color: #6aa8ff;
+}
+/* カード：押すと 沈む 立体カード */
+.tt-card {
+  flex: 1;
+  min-width: 0;
+  border: 2px solid #3a4560;
+  border-bottom-width: 0.3em;
+  border-bottom-color: #0b0f1a;
+  border-radius: 0.8em;
+  padding: 0.5em 0.75em 0.55em;
+  background: linear-gradient(#1c2640, #151d33);
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+.travel-town:active .tt-card,
+.travel-town.picked .tt-card {
+  border-bottom-width: 2px;
+  margin-top: calc(0.3em - 2px);
+}
+.travel-town.picked .tt-card {
+  background: #fff;
+  border-color: #fff;
+  color: #10233a;
+  animation: eqPop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.travel-town.picked .tt-card * {
+  color: #10233a;
+}
+.travel-town.here .tt-card {
+  border-color: #3f73c9;
+}
+.travel-town.rec .tt-card {
+  border-color: #c9a440;
+  background: linear-gradient(#24304d, #1a2238);
+  box-shadow: 0 0 0 1px rgba(255, 215, 106, 0.25), 0 0.4em 1.2em rgba(255, 200, 80, 0.12);
+}
+.travel-town.locked .tt-card {
+  background: #12182a;
+  border-color: #2a3248;
+}
+.travel-town.locked .tt-name,
+.travel-town.locked .tt-skills {
   opacity: 0.6;
 }
-.travel-town.cleared .tt-name {
-  color: #7ee2b8;
+/* キーボード・十字ボタンで 選ぶ ときだけ 光る 枠 */
+.travel.ring .travel-town.on:not(.picked) .tt-card {
+  outline: 0.18em solid #ffe070;
+  outline-offset: 0.12em;
+}
+@media (hover: hover) {
+  .travel-town:hover:not(.picked) .tt-card {
+    filter: brightness(1.12);
+  }
 }
 .tt-head {
   display: flex;
   align-items: center;
-  gap: 0.5em;
+  flex-wrap: wrap;
+  gap: 0.2em 0.5em;
 }
 .tt-name {
   font-weight: 700;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
-.tt-here,
-.tt-clear {
+.travel-town.cleared .tt-name {
+  color: #ffe08a;
+}
+.tt-pill {
   font-size: 0.7em;
-  padding: 0.05em 0.45em;
-  border-radius: 0.4em;
+  font-weight: 700;
+  padding: 0.12em 0.55em;
+  border-radius: 1em;
   white-space: nowrap;
 }
 .tt-here {
   background: #2f6fd6;
+  color: #fff;
 }
-.tt-clear {
-  background: #1f7a5a;
+.tt-rec {
+  background: #ffd76a;
+  color: #4a3200;
+  animation: travelBob 1.4s ease-in-out infinite;
 }
 .tt-skills {
-  font-size: 0.8em;
-  color: #ffd76a;
+  margin-top: 0.15em;
+  font-size: 0.78em;
+  color: #c9d3e6;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tt-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-top: 0.4em;
+}
+.tt-bar {
+  flex: 1;
+  height: 0.5em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.tt-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2fbf8a, #7ee2b8);
+  transform-origin: left;
+  animation: travelBar 0.6s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 35ms + 200ms);
 }
 .tt-sub {
-  font-size: 0.75em;
+  font-size: 0.74em;
   color: #aab3c5;
+  white-space: nowrap;
+}
+.tt-locknote {
+  margin-top: 0.3em;
+  white-space: normal;
+  color: #ffd76a;
+  opacity: 0.85;
+}
+.tt-boss {
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 0.1em 0.5em;
+  border-radius: 1em;
+  white-space: nowrap;
+  color: #ff9a9a;
+  background: rgba(255, 90, 90, 0.12);
+}
+.tt-boss.won {
+  color: #6b4100;
+  background: #ffd76a;
 }
 .travel-close {
-  text-align: center;
+  margin-top: 0.5em;
+  flex: none;
+  min-height: 2.6em;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-bottom-width: 0.3em;
+  border-bottom-color: #0b0f1a;
+  border-radius: 0.8em;
+  background: linear-gradient(#2c3a5c, #1a2340);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-bottom-width 0.08s ease, margin-top 0.08s ease;
+}
+.travel-close:active {
+  border-bottom-width: 2px;
+  margin-top: calc(0.5em + 0.3em - 2px);
+}
+@keyframes travelFade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes travelUp {
+  from {
+    opacity: 0;
+    transform: translateY(1.5em) scale(0.97);
+  }
+}
+@keyframes travelIn {
+  from {
+    opacity: 0;
+    transform: translateX(-0.8em);
+  }
+}
+@keyframes travelBar {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes travelPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@keyframes travelBob {
+  50% {
+    transform: translateY(-0.15em);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .travel-layer,
+  .win.travel,
+  .travel-town,
+  .tt-bar i,
+  .tt-rec,
+  .travel-town.picked .tt-card {
+    animation: none;
+  }
+  .travel-town.rec .tt-node::after,
+  .travel-town.here .tt-node::after {
+    animation: none;
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
 }
