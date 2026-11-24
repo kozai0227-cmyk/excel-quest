@@ -118,6 +118,7 @@ export function Study({ gs, fromTitle, onClose }: Props) {
           title={course.title}
           items={items}
           idx={idx}
+          combo={results.length - 1 - results.map((r) => r.ok).lastIndexOf(false)}
           skills={gs?.skills ?? []}
           onAnswer={(r) => {
             const res = [...results, r]
@@ -344,6 +345,7 @@ function Quiz({
   title,
   items,
   idx,
+  combo,
   skills,
   onAnswer,
   onQuit,
@@ -351,6 +353,8 @@ function Quiz({
   title: string
   items: PracticeItem[]
   idx: number
+  /** ここまでの 連続正解数 */
+  combo: number
   skills: string[]
   onAnswer(r: Result): void
   onQuit(): void
@@ -361,7 +365,10 @@ function Quiz({
   const choices = useMemo(() => (q.type === 'choice' ? [...q.choices].sort(() => Math.random() - 0.5) : []), [q])
   const [cursor, setCursor] = useState(0)
   const [fb, setFb] = useState<{ ok: boolean; note?: string } | null>(null)
+  /** キー操作で カーソルを 動かした ときだけ 枠を 出す（指で 押すときは 出さない） */
+  const [keyNav, setKeyNav] = useState(false)
   const touch = useInputMode() === 'touch'
+  const run = fb?.ok ? combo + 1 : 0
   const ch = chapterOfKey(item.key)
 
   const answer = (ok: boolean, note?: string) => {
@@ -383,6 +390,7 @@ function Quiz({
     if (k === 'cancel') return onQuit()
     if (q.type !== 'choice') return
     const n = choices.length
+    setKeyNav(true)
     if (k === 'up' || k === 'left') {
       sfx('cursor')
       setCursor((c) => (c + n - 1) % n)
@@ -400,21 +408,43 @@ function Quiz({
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  // 次の 問題に なったら 上まで もどす
+  const page = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    page.current?.closest('.study')?.scrollTo({ top: 0 })
+  }, [])
+  const filled = idx + (fb ? 1 : 0)
+  const last = idx + 1 >= items.length
   return (
-    <div className="study-page quiz">
+    <div ref={page} className={`study-page quiz ${fb ? 'answered' : ''}`}>
       <header className="quiz-head">
-        <div className="quiz-title">{title}</div>
-        <div className="quiz-count">
-          {idx + 1} / {items.length}
-        </div>
-        <button className="btn ghost" onClick={onQuit}>
-          {tr('やめる', 'Quit')}
+        <button type="button" className="quiz-quit" onClick={onQuit} aria-label={tr('やめる', 'Quit')}>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
         </button>
+        <div
+          className="quiz-bar"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={items.length}
+          aria-valuenow={filled}
+          aria-label={tr(`${items.length}問中 ${filled}問`, `${filled} of ${items.length}`)}
+        >
+          <span style={{ width: `${(filled / items.length) * 100}%` }} />
+        </div>
+        <div className="quiz-count">
+          {idx + 1}
+          <small>/{items.length}</small>
+        </div>
       </header>
-      <div className="quiz-progress">
-        {items.map((_, i) => (
-          <span key={i} className={i < idx ? 'done' : i === idx ? 'now' : ''} />
-        ))}
+      <div className="quiz-sub">
+        <span className="quiz-title">{title}</span>
+        {combo >= 2 && !fb && (
+          <span className="quiz-combo" aria-label={tr(`${combo}問 連続 正解中`, `${combo} correct in a row`)}>
+            🔥 {combo}
+          </span>
+        )}
       </div>
       <div className="quiz-body">
         <div className="quiz-tags">
@@ -430,15 +460,22 @@ function Quiz({
                 key={c}
                 type="button"
                 data-nosfx
-                className={`quiz-choice ${i === cursor && !fb ? 'on' : ''} ${fb && c === q.answer ? 'right' : ''} ${fb && !fb.ok && i === cursor ? 'miss' : ''}`}
-                onPointerEnter={() => !fb && setCursor(i)}
+                disabled={!!fb}
+                style={{ '--i': i } as CSSProperties}
+                className={`quiz-choice ${i === cursor && !fb && (keyNav || !touch) ? 'on' : ''} ${fb && c === q.answer ? (fb.ok ? 'right' : 'reveal') : ''} ${fb && !fb.ok && i === cursor ? 'miss' : ''} ${fb && c !== q.answer && !(i === cursor && !fb.ok) ? 'dim' : ''}`}
+                onPointerEnter={(e) => {
+                  if (fb || e.pointerType !== 'mouse') return
+                  setKeyNav(false)
+                  setCursor(i)
+                }}
                 onClick={() => {
                   if (fb) return
                   setCursor(i)
                   answer(c === q.answer)
                 }}
               >
-                <span className="num">{i + 1}</span> {c}
+                <span className="num">{i + 1}</span>
+                <span className="txt">{c}</span>
               </button>
             ))}
           </div>
@@ -456,21 +493,33 @@ function Quiz({
             />
           )
         )}
-        {fb && (
-          <div className={`quiz-fb ${fb.ok ? 'ok' : 'ng'}`}>
-            <div className="fb-mark">{fb.ok ? tr('⭕ せいかい！', '⭕ Correct!') : tr('❌ ざんねん……', '❌ Not quite...')}</div>
-            {fb.note && <p>{fb.note}</p>}
-            <p>
-              {tr('こたえ：', 'Answer: ')}
-              <b>{q.type === 'choice' ? q.answer : q.hint}</b>
-            </p>
-            <p className="fb-explain">{q.explain}</p>
-            <button className="btn primary" autoFocus data-nosfx onClick={next}>
-              {idx + 1 < items.length ? tr('つぎへ ▶', 'Next ▶') : tr('けっかを 見る', 'See results')}
-            </button>
-          </div>
-        )}
       </div>
+      {fb && (
+        <div className={`quiz-fb ${fb.ok ? 'ok' : 'ng'}`} role="status">
+          <div className="fb-top">
+            <span className="fb-badge" aria-hidden="true">
+              {fb.ok ? '✓' : '✕'}
+            </span>
+            <div className="fb-mark">{fb.ok ? tr('せいかい！', 'Correct!') : tr('ざんねん……', 'Not quite...')}</div>
+            {run >= 2 && (
+              <span className="fb-combo">{tr(`🔥 ${run}問 連続！`, `🔥 ${run} in a row!`)}</span>
+            )}
+          </div>
+          <div className="fb-body">
+            {fb.note && <p className="fb-note">{fb.note}</p>}
+            {(!fb.ok || q.type !== 'choice') && (
+              <p className="fb-answer">
+                {tr('こたえ：', 'Answer: ')}
+                <b>{q.type === 'choice' ? q.answer : q.hint}</b>
+              </p>
+            )}
+            <p className="fb-explain">{q.explain}</p>
+          </div>
+          <button type="button" className="fb-next" autoFocus data-nosfx onClick={next}>
+            {last ? tr('けっかを 見る', 'See results') : tr('つづける', 'Continue')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

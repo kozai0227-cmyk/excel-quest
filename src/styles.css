@@ -3638,35 +3638,110 @@ html:lang(en) .fpad-label {
 }
 
 /* 問題 */
+/* 出題：Duolingo 風（つながった 進み具合バー・立体の 選択肢・下から 出る 判定シート） */
+.study-page.quiz {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
 .quiz-head {
   display: flex;
   align-items: center;
-  gap: 1em;
+  gap: 0.8em;
 }
-.quiz-title {
+.quiz-quit {
+  flex: none;
+  width: 2em;
+  height: 2em;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9d1e0;
+  font: inherit;
+  font-size: 1.15em;
+  line-height: 2em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    transform 0.08s ease;
+}
+.quiz-quit svg {
+  display: block;
+  width: 0.9em;
+  height: 0.9em;
+  margin: auto;
+}
+.quiz-quit:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.quiz-quit:active {
+  transform: scale(0.9);
+}
+.quiz-bar {
   flex: 1;
-  font-weight: bold;
-  color: #ffd76a;
+  height: 0.85em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.quiz-bar span {
+  position: relative;
+  display: block;
+  height: 100%;
+  min-width: 0.85em;
+  border-radius: inherit;
+  background: linear-gradient(#5fd68e, #34b578);
+  transition: width 0.5s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+/* バーの 上の ツヤ */
+.quiz-bar span::after {
+  content: '';
+  position: absolute;
+  left: 0.45em;
+  right: 0.45em;
+  top: 0.2em;
+  height: 0.18em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.4);
 }
 .quiz-count {
+  flex: none;
   font-variant-numeric: tabular-nums;
+  font-weight: bold;
 }
-.quiz-progress {
+.quiz-count small {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+.quiz-sub {
   display: flex;
-  gap: 0.3em;
-  margin: 0.6em 0 1em;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  min-height: 1.8em;
+  margin: 0.5em 0 0.7em;
 }
-.quiz-progress span {
-  flex: 1;
-  height: 0.4em;
+.quiz-title {
+  font-size: 0.85em;
+  color: #ffd76a;
+}
+.quiz-combo {
+  padding: 0.05em 0.7em;
   border-radius: 1em;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 140, 50, 0.18);
+  color: #ffb26a;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  animation: eqPop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
-.quiz-progress .done {
-  background: #4fbf7a;
-}
-.quiz-progress .now {
-  background: #ffd76a;
+.quiz-body {
+  flex: 1;
 }
 .quiz-tags {
   display: flex;
@@ -3686,71 +3761,292 @@ html:lang(en) .fpad-label {
   background: rgba(255, 255, 255, 0.14);
 }
 .quiz-q {
-  font-size: 1.2em;
-  margin-bottom: 0.9em;
+  font-size: 1.25em;
+  line-height: 1.6;
+  margin-bottom: 1em;
   white-space: pre-wrap;
 }
 .quiz-choices {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.6em;
+  gap: 0.7em;
+  padding-bottom: 1.2em;
 }
 .quiz-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  min-height: 3.2em;
   text-align: left;
   font: inherit;
   color: inherit;
   white-space: pre-wrap;
-  padding: 0.6em 0.9em;
-  border-radius: 0.6em;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.55em 0.9em;
+  border-radius: 0.8em;
+  border: 2px solid #3a4560;
+  border-bottom-width: 5px;
+  background: #1a2338;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.25s ease;
+  animation: quizIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.05s);
 }
 .quiz-choice .num {
-  opacity: 0.55;
-  margin-right: 0.5em;
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 0.45em;
+  border: 2px solid #3a4560;
+  color: #9aa6bf;
+  font-size: 0.8em;
+  line-height: calc(1.7em - 4px);
+  text-align: center;
+  box-sizing: border-box;
 }
+.quiz-choice .txt {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (hover: hover) {
+  .quiz-choice:hover:not(:disabled) {
+    background: #222d47;
+  }
+}
+/* 押すと 沈む（下の 縁が つぶれる） */
+.quiz-choice:active:not(:disabled) {
+  background: #263252;
+  border-bottom-width: 2px;
+  margin-top: 3px;
+}
+.quiz-choice:disabled {
+  cursor: default;
+}
+/* キー操作の カーソル */
 .quiz-choice.on {
   border-color: #ffd76a;
-  background: rgba(255, 215, 106, 0.12);
+  background: #2a2d33;
+}
+.quiz-choice.on .num {
+  border-color: #ffd76a;
+  color: #ffd76a;
+}
+/* 正解：緑に なって ポンと はね、✓ */
+.quiz-choice.right,
+.quiz-choice.reveal {
+  padding-right: 2.6em;
+  border-color: #5fd68e;
+  border-bottom-color: #1f7a4a;
+  background: #174a33;
 }
 .quiz-choice.right {
-  border-color: #4fbf7a;
-  background: rgba(79, 191, 122, 0.25);
+  animation: eqPop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
+.quiz-choice.reveal {
+  animation: quizReveal 0.9s ease 0.35s both;
+}
+.quiz-choice.right .num,
+.quiz-choice.reveal .num {
+  border-color: #5fd68e;
+  color: #7ee0a6;
+}
+.quiz-choice.right::after,
+.quiz-choice.reveal::after {
+  content: '✓';
+  position: absolute;
+  right: 0.75em;
+  top: 50%;
+  translate: 0 -50%;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  background: #5fd68e;
+  color: #0d2a20;
+  font-size: 0.9em;
+  font-weight: bold;
+  line-height: 1.4em;
+  text-align: center;
+  animation: eqPop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both;
+}
+/* まちがい：赤く ゆれる */
 .quiz-choice.miss {
-  border-color: #e05a5a;
-  background: rgba(224, 90, 90, 0.25);
+  border-color: #ff7a7a;
+  border-bottom-color: #8a2b2b;
+  background: #4a1c22;
+  animation: eqShake 0.42s ease;
+}
+.quiz-choice.miss .num {
+  border-color: #ff7a7a;
+  color: #ff9a9a;
+}
+.quiz-choice.dim {
+  opacity: 0.45;
+}
+@keyframes quizIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes quizReveal {
+  0% {
+    box-shadow: 0 0 0 0 rgba(95, 214, 142, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0.6em rgba(95, 214, 142, 0);
+  }
 }
 .study .q-formula {
   color: inherit;
 }
+/* 判定シート：画面の 下に はりつき、下から すべり出る */
 .quiz-fb {
-  margin-top: 1em;
-  padding: 0.8em 1em;
-  border-radius: 0.7em;
-  border: 2px solid;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  /* ページの 幅（最大 900px）を こえて、画面の 端から 端まで 広げる */
+  margin: 0 calc((100% - 100cqw) / 2);
+  padding: 1em calc((100cqw - 100%) / 2) calc(1.1em + env(safe-area-inset-bottom, 0px));
+  border-radius: 1.2em 1.2em 0 0;
+  border-top: 2px solid;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
+  animation: quizSheet 0.34s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 .quiz-fb.ok {
-  border-color: #4fbf7a;
-  background: rgba(79, 191, 122, 0.12);
+  border-color: #3fae7a;
+  background: #0f3324;
+  color: #e6fff0;
 }
 .quiz-fb.ng {
-  border-color: #e05a5a;
-  background: rgba(224, 90, 90, 0.12);
+  border-color: #c24b4b;
+  background: #3a1519;
+  color: #ffeef0;
 }
-.quiz-fb p {
-  margin: 0.3em 0;
+.fb-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3em 0.6em;
+}
+.fb-badge {
+  flex: none;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  font-size: 1.15em;
+  font-weight: bold;
+  line-height: 1.6em;
+  text-align: center;
+  animation: eqPop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both;
+}
+.quiz-fb.ok .fb-badge {
+  background: #34b578;
+  color: #fff;
+}
+.quiz-fb.ng .fb-badge {
+  background: #e05a5a;
+  color: #fff;
 }
 .fb-mark {
   font-size: 1.3em;
   font-weight: bold;
 }
-.fb-explain {
-  opacity: 0.85;
+.quiz-fb.ok .fb-mark {
+  color: #7ee0a6;
 }
-.quiz-fb .btn {
-  margin-top: 0.5em;
+.quiz-fb.ng .fb-mark {
+  color: #ff9a9a;
+}
+.fb-combo {
+  margin-left: auto;
+  padding: 0.05em 0.7em;
+  border-radius: 1em;
+  background: rgba(255, 140, 50, 0.2);
+  color: #ffc07a;
+  font-weight: bold;
+  animation: eqPop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.25s both;
+}
+.fb-body {
+  max-height: 34vh;
+  overflow: auto;
+  margin: 0.5em 0 0.8em;
+}
+.fb-body p {
+  margin: 0.3em 0;
+}
+.fb-answer b {
+  font-size: 1.05em;
+}
+.fb-explain {
+  opacity: 0.88;
+}
+.fb-next {
+  display: block;
+  width: 100%;
+  min-height: 2.9em;
+  padding: 0.5em 1em;
+  border: 0;
+  border-radius: 0.8em;
+  font: inherit;
+  font-size: 1.05em;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    filter 0.15s ease;
+}
+.quiz-fb.ok .fb-next {
+  background: #34b578;
+  box-shadow: 0 5px 0 #1f7a4a;
+}
+.quiz-fb.ng .fb-next {
+  background: #e05a5a;
+  box-shadow: 0 5px 0 #8a2b2b;
+}
+.fb-next:hover {
+  filter: brightness(1.08);
+}
+.fb-next:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+.fb-next:focus-visible {
+  outline: 3px solid #ffd76a;
+  outline-offset: 3px;
+}
+@keyframes quizSheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiz-bar span,
+  .quiz-choice,
+  .quiz-choice.right,
+  .quiz-choice.reveal,
+  .quiz-choice.right::after,
+  .quiz-choice.reveal::after,
+  .quiz-choice.miss,
+  .quiz-combo,
+  .quiz-fb,
+  .fb-badge,
+  .fb-combo {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* けっか */
@@ -3968,8 +4264,19 @@ html:lang(en) .fpad-label {
 .phone .study-page {
   padding: 14px 14px 24px;
 }
+.phone .study-page.quiz {
+  padding-bottom: 0;
+}
 .phone .quiz-choices {
   grid-template-columns: 1fr;
+}
+.phone .quiz-fb {
+  margin: 0 -14px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.phone .quiz-choice {
+  min-height: 52px;
 }
 
 /* 設定：ライセンス表記 */
