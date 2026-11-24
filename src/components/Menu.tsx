@@ -5,13 +5,14 @@ import { SKILLS } from '../data/skills'
 import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
 import { PLAYER_SPEC } from '../data/maps'
 import { Portrait } from './Portrait'
-import { EQUIP, SLOTS, effectText, equipDesc, equipName, gearStats, slotName, type Slot } from '../data/equipment'
+import { EQUIP, SLOTS, equipName, gearStats, slotName, type Slot } from '../data/equipment'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
 import { isTouchDevice, usePhoneLayout } from '../game/layout'
 import { isNative } from '../game/native'
 import { DocView } from './DocView'
+import { EquipPanel, slotChoices } from './EquipPanel'
 import { totalPercent } from '../data/chapters'
 import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
@@ -116,17 +117,28 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     }
   }, [open])
   /** 選んだ部位に装備できるもの（最後は「はずす」） */
-  const candidates = eqSlot ? [...gs.gear.filter((id) => EQUIP[id]?.slot === eqSlot), null] : []
+  const candidates = eqSlot ? slotChoices(gs, eqSlot) : []
+  /** 最後に そうびを 変えた 部位（カードを ポンと はねさせる） */
+  const [lastEq, setLastEq] = useState<{ slot: Slot; n: number } | null>(null)
 
   /** 部位を選ぶ（カーソルは いま装備しているものに合わせる） */
   const openSlot = (slot: Slot) => {
-    const list = [...gs.gear.filter((id) => EQUIP[id]?.slot === slot), null]
+    const list = slotChoices(gs, slot)
+    if (!list.length) return setNote(tr(`${slotName(slot)}は まだ 持っていない。お店で さがそう。`, `You don't own a ${slotName(slot).toLowerCase()} yet. Check the shops.`))
     setEqSlot(slot)
     setEcur(Math.max(0, list.indexOf(gs.equip[slot] ?? null)))
     setNote('')
   }
 
   const equip = (slot: Slot, id: string | null) => {
+    if (id && gs.equip[slot] === id) {
+      // もう 着けている ものは そのまま もどる
+      sfx('cancel')
+      setNote('')
+      return setEqSlot(null)
+    }
+    sfx(id ? 'guard' : 'cancel')
+    setLastEq({ slot, n: Date.now() })
     setGs((g) => ({ ...g, equip: { ...g.equip, [slot]: id ?? undefined } }))
     setNote(id ? tr(`${EQUIP[id].name}を そうびした！`, `Equipped the ${equipName(id)}!`) : tr(`${slotName(slot)}を はずした。`, `Removed your ${slotName(slot).toLowerCase()}.`))
     setEqSlot(null)
@@ -235,6 +247,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
       return
     }
     if (open === 'そうび') {
+      if (k === 'up' || k === 'down') setKeyed(true)
       if (eqSlot) {
         const n = candidates.length
         if (k === 'up') setEcur((c) => (c + n - 1) % n)
@@ -316,7 +329,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         </div>
       </div>
       {open && (
-        <div className="win menu-panel">
+        <div className={`win menu-panel ${open === 'そうび' ? 'tall' : ''}`}>
           {open === 'つよさ' && (
             <div className="stats-wrap">
             <Portrait src={{ spec: PLAYER_SPEC }} className="portrait big" />
@@ -335,40 +348,29 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
             </dl>
             </div>
           )}
-          {open === 'そうび' &&
-            (eqSlot ? (
-              <ul className="item-list">
-                <li className="eq-head">{tr(`${slotName(eqSlot)}を えらぶ`, `Choose a ${slotName(eqSlot).toLowerCase()}`)}</li>
-                {candidates.map((id, i) => (
-                  <li key={id ?? 'none'} className={`opt ${i === ecur ? 'on' : ''}`} onClick={() => equip(eqSlot, id)}>
-                    <b>
-                      {id ? equipName(id) : tr('はずす', 'Remove')}
-                      {id && gs.equip[eqSlot] === id && tr('（そうび中）', ' (equipped)')}
-                    </b>
-                    {id && <span>{effectText(EQUIP[id])}　{equipDesc(id)}</span>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <ul className="item-list">
-                {SLOTS.map((slot, i) => {
-                  const id = gs.equip[slot]
-                  return (
-                    <li key={slot} className={`opt ${i === icur ? 'on' : ''}`} onClick={() => { setIcur(i); openSlot(slot) }}>
-                      <b>
-                        {slotName(slot)}{tr('：', ': ')}{id ? equipName(id) : tr('なし', 'none')}
-                      </b>
-                      {id && <span>{effectText(EQUIP[id])}</span>}
-                    </li>
-                  )
-                })}
-                <li className="eq-total">
-                  {tr('攻撃力', 'ATK')} +{gear.atk}　{tr('守備力', 'DEF')} +{gear.def}
-                  {gear.time > 0 && tr(`　回答時間 +${gear.time}秒`, `　Time +${gear.time}s`)}
-                  {gear.crit > 0 && tr('　一発決裁↑', '　Crit↑')}
-                </li>
-              </ul>
-            ))}
+          {open === 'そうび' && (
+            <EquipPanel
+              gs={gs}
+              slot={eqSlot}
+              cur={eqSlot ? ecur : icur}
+              ring={keyed || inputMode === 'keyboard'}
+              last={lastEq}
+              onSlot={(i) => {
+                sfx('select')
+                setKeyed(false)
+                setIcur(i)
+                openSlot(SLOTS[i])
+              }}
+              onEquip={(slot, id) => {
+                setKeyed(false)
+                equip(slot, id)
+              }}
+              onBack={() => {
+                sfx('cancel')
+                setEqSlot(null)
+              }}
+            />
+          )}
           {open === '設定' && (
             <div className="settings">
               <h4>{tr('サウンド', 'Sound')}</h4>

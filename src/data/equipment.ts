@@ -21,6 +21,8 @@ export interface EquipDef {
 
 export const SLOT_NAME: Record<Slot, string> = { weapon: 'ぶき', armor: 'よろい', shield: 'たて', head: 'かぶと' }
 export const SLOTS: Slot[] = ['weapon', 'armor', 'shield', 'head']
+/** 部位の 絵 */
+export const SLOT_ICONS: Record<Slot, string> = { weapon: '🖊️', armor: '👔', shield: '🛡️', head: '🧢' }
 /** 部位の 名前（今の 言語） */
 export const slotName = (s: Slot) => tr(SLOT_NAME[s], EN_SLOT[s])
 

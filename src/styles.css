@@ -1966,19 +1966,6 @@ kbd {
   border-style: dotted;
 }
 
-/* そうび画面 */
-.item-list .eq-head {
-  color: #8fd8d4;
-  margin-bottom: 0.4em;
-}
-.item-list .eq-total {
-  margin-top: 0.6em;
-  padding-top: 0.5em;
-  border-top: 1px dashed rgba(255, 255, 255, 0.4);
-  color: #ffe070;
-  font-size: 0.9em;
-}
-
 .battle.bg-cave {
   background:
     radial-gradient(ellipse at 50% 35%, rgba(120, 90, 60, 0.25), transparent 60%),
@@ -8001,5 +7988,359 @@ html:lang(en) .fpad-label {
   .xl-spot {
     animation: none;
     opacity: 1;
+  }
+}
+
+/* そうび：合計の 札 ＋ 部位の カード ＋ 候補の カード（▲▼ つき） */
+.eqp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+}
+.eqp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+.eqp-stat {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 0.4em;
+  padding: 0.35em 0.6em;
+  border-radius: 0.75em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.eqp-stat i {
+  grid-row: 1 / 3;
+  font-style: normal;
+  font-size: 1.05em;
+}
+.eqp-stat small {
+  font-size: 0.66em;
+  color: #aab3c5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.eqp-stat b {
+  display: block;
+  font-size: 1.02em;
+  font-weight: 800;
+  color: #ffe08a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.eqp-stat.up {
+  border-color: rgba(126, 226, 184, 0.6);
+  animation: eqpGlow 0.9s ease-out both;
+}
+.eqp-stat.down {
+  border-color: rgba(255, 154, 154, 0.5);
+}
+.eqp-stat.up b,
+.eqp-stat.down b {
+  animation: eqpBump 0.42s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.eqp-float {
+  position: absolute;
+  right: 0.5em;
+  top: 0.1em;
+  font-style: normal;
+  font-size: 0.8em;
+  font-weight: 800;
+  color: #7ee2b8;
+  text-shadow: 0 0.1em 0 #0b0f1a;
+  pointer-events: none;
+  animation: eqpFloat 1s ease-out both;
+}
+.eqp-stat.down .eqp-float {
+  color: #ff9a9a;
+}
+.eqp-crit {
+  align-self: center;
+  font-size: 0.72em;
+  font-weight: 700;
+  padding: 0.25em 0.65em;
+  border-radius: 1em;
+  color: #ffd0a0;
+  background: rgba(255, 150, 70, 0.14);
+  white-space: nowrap;
+}
+.eqp-slots,
+.eqp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+}
+.eqp-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  animation: shopIn 0.25s ease-out both;
+}
+.eqp-head b {
+  font-weight: 700;
+  color: #fff;
+}
+.eqp-head small {
+  margin-left: auto;
+  font-size: 0.72em;
+  color: #aab3c5;
+  white-space: nowrap;
+}
+.eqp-head-ico {
+  font-size: 1.05em;
+}
+.eqp-back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  padding: 0 0 0.12em;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.eqp-back:active {
+  transform: scale(0.92);
+}
+/* カード：押すと 沈む（お店の カードと 同じ 手ざわり） */
+.eqp-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  width: 100%;
+  margin: 0;
+  padding: 0.5em 0.7em;
+  border: 2px solid #3a4560;
+  border-bottom-width: 0.3em;
+  border-bottom-color: #252e48;
+  border-radius: 0.85em;
+  background: linear-gradient(#1c2640, #151d33);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+  animation: shopIn 0.3s cubic-bezier(0.25, 1.3, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 35ms + 30ms);
+}
+.eqp-card:active {
+  border-bottom-width: 2px;
+  margin-top: calc(0.3em - 2px);
+}
+.eqp.ring .eqp-card.on {
+  border-color: #2fbfae;
+  border-bottom-color: #17766c;
+  background: linear-gradient(#1d3446, #152536);
+  outline: 0.18em solid #ffe070;
+  outline-offset: 0.12em;
+}
+@media (hover: hover) {
+  .eqp-card:hover {
+    filter: brightness(1.12);
+  }
+}
+.eqp-card.wearing {
+  border-color: #b8952e;
+  border-bottom-color: #6e5414;
+  background: linear-gradient(#2c2a2a, #1d1b1f);
+}
+.eqp-card.remove {
+  border-style: dashed;
+  border-bottom-style: solid;
+  background: rgba(255, 255, 255, 0.03);
+}
+.eqp-card.remove .eqp-ico {
+  color: #ff9a9a;
+  font-weight: 800;
+}
+.eqp-card.pop-0 {
+  animation: eqpPop0 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.eqp-card.pop-1 {
+  animation: eqpPop1 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.eqp-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 0.65em;
+  font-size: 1.1em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.eqp-card.slot .eqp-ico {
+  background: rgba(138, 108, 255, 0.22);
+  border-color: rgba(170, 150, 255, 0.35);
+}
+.eqp-card.slot.empty .eqp-ico {
+  opacity: 0.55;
+}
+.eqp-card.wearing .eqp-ico {
+  background: rgba(255, 215, 106, 0.16);
+  border-color: rgba(255, 215, 106, 0.35);
+}
+.eqp-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+}
+.eqp-slot {
+  font-size: 0.66em;
+  font-weight: 700;
+  color: #b9a8ff;
+  letter-spacing: 0.04em;
+}
+.eqp-name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.1em 0.45em;
+  line-height: 1.3;
+}
+.eqp-none {
+  color: #8790a3;
+  font-weight: 400;
+}
+.eqp-desc {
+  font-size: 0.74em;
+  color: #c3cbdb;
+  line-height: 1.4;
+}
+.eqp-fx {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin-top: 0.12em;
+}
+.eqp-eff,
+.eqp-diff,
+.eqp-tag {
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 0.08em 0.5em;
+  border-radius: 1em;
+  white-space: nowrap;
+}
+.eqp-eff {
+  color: #ffe08a;
+  background: rgba(255, 215, 106, 0.12);
+}
+.eqp-diff {
+  color: #aab3c5;
+  background: rgba(255, 255, 255, 0.08);
+}
+.eqp-diff.up,
+.eqp-tag.up {
+  color: #7ee2b8;
+  background: rgba(47, 191, 138, 0.16);
+}
+.eqp-diff.down {
+  color: #ff9a9a;
+  background: rgba(255, 90, 90, 0.14);
+}
+.eqp-tag.on {
+  color: #4a3200;
+  background: #ffd76a;
+}
+.eqp-side {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  color: #8790a3;
+}
+.eqp-side small {
+  font-size: 0.7em;
+  font-weight: 700;
+  padding: 0.05em 0.45em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9d3e6;
+}
+.eqp-side i {
+  font-style: normal;
+  font-size: 1.3em;
+  line-height: 1;
+}
+/* PC：そうびは 部位 4つが 収まるよう 縦に のばして 少し つめる */
+.menu-panel.tall {
+  max-height: 94%;
+}
+.app:not(.phone) .eqp-card {
+  font-size: 0.88em;
+  padding-block: 0.4em;
+}
+@keyframes eqpBump {
+  from {
+    transform: scale(1.35);
+  }
+}
+@keyframes eqpGlow {
+  from {
+    box-shadow: 0 0 0 0.25em rgba(126, 226, 184, 0.35);
+  }
+}
+@keyframes eqpFloat {
+  from {
+    opacity: 1;
+    transform: translateY(0.3em);
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-1em);
+  }
+}
+@keyframes eqpPop0 {
+  40% {
+    transform: scale(1.04);
+  }
+}
+@keyframes eqpPop1 {
+  40% {
+    transform: scale(1.04);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eqp-card,
+  .eqp-head,
+  .eqp-stat,
+  .eqp-stat b,
+  .eqp-card.pop-0,
+  .eqp-card.pop-1 {
+    animation: none;
+  }
+  .eqp-float {
+    animation-duration: 0.01s;
   }
 }

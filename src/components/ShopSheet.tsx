@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ITEMS, itemDesc, itemName } from '../data/items'
-import { EQUIP, effectText, equipDesc, equipName, slotName, type Slot } from '../data/equipment'
+import { EQUIP, SLOT_ICONS, effectText, equipDesc, equipName, slotName } from '../data/equipment'
 import { useKeys } from '../game/keys'
 import { useInputMode } from '../game/inputMode'
 import { jingle, sfx } from '../game/sound'
@@ -24,7 +24,6 @@ export interface ShopReq {
 }
 
 const ITEM_ICONS: Record<ItemId, string> = { herb: '🌿', scroll: '📜', sandglass: '⏳' }
-const SLOT_ICONS: Record<Slot, string> = { weapon: '🖊️', armor: '👔', shield: '🛡️', head: '🧢' }
 
 /** 所持金の 表示：変わったら 前の 値から 数え上げ（下げ）る */
 function useTween(value: number) {
