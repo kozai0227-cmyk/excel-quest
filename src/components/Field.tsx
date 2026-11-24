@@ -102,6 +102,10 @@ export function Field(props: FieldProps) {
   /** イベントで一時的に出しているキャラ */
   const extras = useRef<Actor[]>([])
   const input = useRef({ held: [] as Dir[], tap: null as Dir | null, ok: false, menu: false, dash: false })
+  /** タップで 決めた 行き先（残りの 道のり、着いたら 話しかける 向き） */
+  const goal = useRef<{ path: [number, number][]; x: number; y: number; face?: Dir; at: number } | null>(null)
+  /** いまの カメラの 位置（タップした マスを 求める ため） */
+  const cam = useRef({ x: 0, y: 0 })
   /** 表示する範囲（ドット単位）。短い辺が 11マスで、長い辺は 画面の形に 合わせて のびる */
   const view = useRef({ w: VW * TS, h: VH * TS })
   const safeSteps = useRef(4)
@@ -231,6 +235,7 @@ export function Field(props: FieldProps) {
       }
       if (P.current.paused) return
       e.preventDefault()
+      goal.current = null
       if (!inp.held.includes(k)) inp.held.push(k)
       if (!e.repeat) inp.tap = k
     }
@@ -250,6 +255,64 @@ export function Field(props: FieldProps) {
       window.removeEventListener('blur', blur)
     }
   }, [])
+
+  /**
+   * 画面を タップ（クリック）した マスへ 歩く。人・看板・扉を タップしたら、となりまで 歩いて 話しかける。
+   * 押したまま 指を 動かすと、行き先が 指に ついてくる
+   */
+  const tapTile = (clientX: number, clientY: number) => {
+    const cv = canvasRef.current
+    if (!cv || P.current.paused) return
+    const r = cv.getBoundingClientRect()
+    const tx = Math.floor((((clientX - r.left) / r.width) * view.current.w + cam.current.x) / TS)
+    const ty = Math.floor((((clientY - r.top) / r.height) * view.current.h + cam.current.y) / TS)
+    const p = player.current
+    const npcAt = (ax: number, ay: number) => all().find((a) => !a.scripted && a.def && ((a.x === ax && a.y === ay) || (a.tx === ax && a.ty === ay)))
+    const target = npcAt(tx, ty)
+    const sign = P.current.map.signs.some((sg) => sg.x === tx && sg.y === ty)
+    const gate = tileAt(tx, ty) === '('
+    const from = p.moving ? [p.tx, p.ty] : [p.x, p.y]
+    if (target || sign || gate) {
+      // となり（カウンター越しなら 2マス先）の 立てる マスの うち、いちばん 近い ところへ
+      let best: { path: [number, number][]; face: Dir; x: number; y: number } | null = null
+      for (const d of Object.keys(D) as Dir[]) {
+        const [dx, dy] = D[d]
+        const spots: [number, number][] = [[tx - dx, ty - dy]]
+        if (target && COUNTER.has(tileAt(tx - dx, ty - dy))) spots.push([tx - dx * 2, ty - dy * 2])
+        for (const [sx, sy] of spots) {
+          if (sx === from[0] && sy === from[1]) {
+            best = { path: [], face: d, x: sx, y: sy }
+            break
+          }
+          if (!WALKABLE.has(tileAt(sx, sy))) continue
+          const path = route(from[0], from[1], sx, sy, p)
+          if (path.length && (!best || path.length < best.path.length)) best = { path, face: d, x: sx, y: sy }
+        }
+        if (best && !best.path.length) break
+      }
+      if (best) goal.current = { path: best.path, x: best.x, y: best.y, face: best.face, at: performance.now() }
+      return
+    }
+    if (!WALKABLE.has(tileAt(tx, ty))) return
+    if (tx === from[0] && ty === from[1]) return
+    const path = route(from[0], from[1], tx, ty, p)
+    if (path.length) goal.current = { path, x: tx, y: ty, at: performance.now() }
+  }
+  const drag = useRef<{ x: number; y: number } | null>(null)
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (P.current.paused) return
+    e.preventDefault()
+    drag.current = { x: e.clientX, y: e.clientY }
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    tapTile(e.clientX, e.clientY)
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current
+    if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) < 24) return
+    drag.current = { x: e.clientX, y: e.clientY }
+    tapTile(e.clientX, e.clientY)
+  }
+  const onPointerUp = () => (drag.current = null)
 
   // 画面の形に 合わせて キャンバスの 大きさを 変える（スマホの 縦画面なら 縦長に なる）
   useEffect(() => {
@@ -307,6 +370,7 @@ export function Field(props: FieldProps) {
               const alt = found.from?.[p.dir]
               const ex = alt ? { ...found, ...alt } : found
               inp.held = []
+              goal.current = null
               safeSteps.current = 4
               P.current.onWarp(ex)
               return
@@ -318,6 +382,7 @@ export function Field(props: FieldProps) {
               else if (Math.random() < (P.current.map.encounterRate ?? ENCOUNTER_RATE[tileAt(p.x, p.y)] ?? 0)) {
                 inp.held = []
                 inp.tap = null
+                goal.current = null
                 safeSteps.current = 5
                 P.current.onEncounter(table[Math.floor(Math.random() * table.length)])
                 return
@@ -386,6 +451,39 @@ export function Field(props: FieldProps) {
             const sign = P.current.map.signs.find((s) => s.x === fx && s.y === fy)
             if (sign) P.current.onSign(sign.lines)
           }
+        } else if (goal.current && !inp.held.length && !inp.tap) {
+          const gl = goal.current
+          if (!gl.path.length) {
+            // 着いた：話しかける 相手が いれば そちらを 向いて 話す
+            goal.current = null
+            if (gl.face) {
+              p.dir = gl.face
+              inp.ok = true
+            }
+            P.current.onMove(p.x, p.y, p.dir)
+          } else {
+            let [nx, ny] = gl.path[0]
+            if (!free(nx, ny)) {
+              // 村人が 道に 入ってきた：よけ道を さがす
+              const end = gl.path[gl.path.length - 1]
+              const again = route(p.x, p.y, end[0], end[1], p)
+              if (!again.length || !free(again[0][0], again[0][1])) {
+                if (now - gl.at > 1500) goal.current = null
+                return
+              }
+              gl.path = again
+              ;[nx, ny] = again[0]
+            }
+            gl.path.shift()
+            gl.at = now
+            p.dir = dirTo(p.x, p.y, nx, ny)
+            p.tx = nx
+            p.ty = ny
+            p.moving = true
+            p.t = 0
+            // 遠くへは 走る
+            p.stepMs = gl.path.length >= 3 ? DASH_MS : STEP_MS
+          }
         } else if (inp.held.length || inp.tap) {
           const dir = inp.held[inp.held.length - 1] ?? inp.tap!
           inp.tap = null
@@ -436,6 +534,7 @@ export function Field(props: FieldProps) {
       // 画面より小さいマップ（室内）は中央に表示
       const camX = W * TS <= vw ? -Math.floor((vw - W * TS) / 2) : Math.round(Math.max(0, Math.min(W * TS - vw, ppx + TS / 2 - vw / 2)))
       const camY = H * TS <= vh ? -Math.floor((vh - H * TS) / 2) : Math.round(Math.max(0, Math.min(H * TS - vh, ppy + TS / 2 - vh / 2)))
+      cam.current = { x: camX, y: camY }
       ctx.fillStyle = '#000'
       ctx.fillRect(0, 0, vw, vh)
       const frame = Math.floor(now / 450)
@@ -447,6 +546,17 @@ export function Field(props: FieldProps) {
           drawTile(ctx, tileAt, x, y, frame, x * TS - camX, y * TS - camY, map.theme)
         }
 
+      // タップした 行き先の 印（足もとに 広がる 輪）
+      if (goal.current) {
+        const gx = goal.current.x * TS - camX + TS / 2
+        const gy = goal.current.y * TS - camY + TS / 2
+        const k = (now % 900) / 900
+        ctx.strokeStyle = `rgba(255,255,255,${0.85 - k * 0.6})`
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.ellipse(gx, gy + 4, 3 + k * 4, 1.5 + k * 2, 0, 0, Math.PI * 2)
+        ctx.stroke()
+      }
       const step = (Math.floor(now / 260) % 2) + 1
       const actors = [player.current, ...all()].sort((a, b) => pos(a)[1] - pos(b)[1])
       // 吹き出しはキャラの上に重ならないよう最後にまとめて描く
@@ -509,6 +619,7 @@ export function Field(props: FieldProps) {
         if (a.emote && now < a.emote.until) k += 'e'
         if (a.def && (now + a.phase) % 6000 < 1400) k += 'b'
       }
+      if (goal.current) k += `|g${goal.current.x},${goal.current.y},${Math.floor(now / 60)}`
       return k
     }
     let drawnAt = 0
@@ -531,5 +642,16 @@ export function Field(props: FieldProps) {
     return () => cancelAnimationFrame(raf)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <canvas ref={canvasRef} className="field" width={VW * TS} height={VH * TS} />
+  return (
+    <canvas
+      ref={canvasRef}
+      className="field"
+      width={VW * TS}
+      height={VH * TS}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    />
+  )
 }
