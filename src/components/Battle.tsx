@@ -9,6 +9,7 @@ import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
 import { maxHp } from '../game/progress'
 import { scaleEnemy } from '../game/scaling'
+import { clearStars, type ClearStars } from '../game/clear'
 import { FLINCH_STREAK, GARBLE_MS, RAGE_HEAL, RAGE_QUICK, RAGE_RULE, garble, rageAtk, rageRuleText, rageTime } from '../game/rage'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
@@ -29,12 +30,13 @@ interface Props {
   scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
-  onWin(): void
+  /** stars：ボス戦の 評価（★の 数 0〜3）。ボス戦 以外は なし */
+  onWin(r?: { stars: number }): void
   onLose(): void
   onFlee(): void
 }
 
-type Phase = 'msg' | 'command' | 'items' | 'question'
+type Phase = 'msg' | 'command' | 'items' | 'question' | 'result'
 /** 表示された瞬間に fx を実行するメッセージ（ダメージ反映など） */
 type Msg = string | { text: string; fx: () => void }
 const runFx = (m?: Msg) => {
@@ -140,6 +142,11 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const [devRage] = useState(() => !!rule && location.hostname === 'localhost' && new URLSearchParams(location.search).has('rage'))
   const raged = useRef(devRage)
   const [rage, setRage] = useState(devRage)
+  /** クリア評価の ための 記録（まちがえた 数・どうぐを 使ったか・ひるませた 数） */
+  const misses = useRef(0)
+  const usedItem = useRef(false)
+  const flinches = useRef(0)
+  const [result, setResult] = useState<ClearStars | null>(null)
   /** 本気モードの 選択肢の 動き（消える・入れかわる・文字化け）を 進める 時計 */
   const [tick, setTick] = useState(0)
   const [buff, setBuff] = useState<{ scroll: boolean; sand: boolean }>({ scroll: false, sand: false })
@@ -267,6 +274,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     if (usedScroll) setBuff((b) => ({ ...b, scroll: false }))
     // まちがえた 問題は 苦手リストへ（正解したら 外す）
     if (!tutorial) markWeak(curKey.current, ok)
+    if (!ok) misses.current++
     if (mode === 'defense') return defend(ok, note)
     if (ok) {
       const limit = deadline - startedAt.current
@@ -304,7 +312,17 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         },
       })
       setCombo(c)
-      if (hp <= 0) return say([...lines, tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`)], onWin)
+      if (hp <= 0) {
+        const done = [...lines, tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`)]
+        // ボス戦は クリア評価を 見せてから
+        if (rule) return say(done, () => {
+          const r = clearStars({ misses: misses.current, usedItem: usedItem.current, flinches: flinches.current })
+          setResult(r)
+          setPhase('result')
+          sfx(r.stars === 3 ? 'chest' : 'coin')
+        })
+        return say(done, () => onWin())
+      }
       // HPが 半分を 切ったら 本気モード
       if (rule && !raged.current && hp <= boss.hp / 2) {
         raged.current = true
@@ -323,7 +341,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         )
       }
       // れんぞく正解で ボスが ひるむ：反撃なしで こちらの 番
-      if (boss.boss && c % FLINCH_STREAK === 0)
+      if (boss.boss && c % FLINCH_STREAK === 0) {
+        flinches.current++
         say(
           [
             ...lines,
@@ -332,7 +351,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           ],
           () => setPhase('command'),
         )
-      else if (boss.boss) enemyTurn(lines)
+      } else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))
     } else {
       sfx('wrong')
@@ -386,6 +405,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const itemCount = battleItems.reduce((n, id) => n + gs.items[id], 0)
 
   const useItem = (id: ItemId) => {
+    usedItem.current = true
     setGs((g) => ({ ...g, items: { ...g.items, [id]: g.items[id] - 1 } }))
     if (id === 'herb') {
       const heal = Math.min(30, mhp - gs.hp)
@@ -466,9 +486,19 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const textBlink = choiceFx && !isChoice && rule === 'blink' && tick % 6 >= 4
   const garbled = choiceFx && rule === 'garble' && tick * 250 < GARBLE_MS
 
+  const finishResult = () => {
+    if (!result) return
+    sfx('select')
+    onWin({ stars: result.stars })
+  }
+
   const listLen = phase === 'command' ? 3 : phase === 'items' ? battleItems.length + 1 : phase === 'question' && q?.type === 'choice' ? choices.length : 0
   useKeys(
     (k) => {
+      if (phase === 'result') {
+        if (k === 'ok' || k === 'cancel') finishResult()
+        return
+      }
       if (phase === 'msg') {
         if (k === 'ok' || k === 'cancel') {
           if (msgs.length > 1) sfx('blip')
@@ -629,6 +659,8 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         </div>
       )}
 
+      {phase === 'result' && result && <ClearResult r={result} first={result.stars === 3 && !(gs.medals ?? []).includes(boss.id)} onClose={finishResult} />}
+
       {phase === 'msg' && (
         <div
           className="win dialog-win"
@@ -643,6 +675,38 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/** ボス戦の クリア評価：3つの 目標と ★、もらえる 報酬の 倍率 */
+function ClearResult({ r, first, onClose }: { r: ClearStars; first: boolean; onClose(): void }) {
+  const goals = [
+    { ok: r.noMiss, label: tr('ノーミス', 'No mistakes') },
+    { ok: r.noItem, label: tr('どうぐを 使わない', 'No items used') },
+    { ok: r.flinched, label: tr('ボスを ひるませる', 'Made the boss flinch') },
+  ]
+  return (
+    <div className="clear-layer" onClick={onClose}>
+      <div className={`win clear-win stars-${r.stars}`} role="dialog" aria-label={tr('クリア評価', 'Clear rating')}>
+        <div className="clear-title">{tr('ボス撃破！', 'Boss defeated!')}</div>
+        <div className="clear-stars" aria-label={`${r.stars}/3`}>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={i < r.stars ? 'on' : ''} style={{ animationDelay: `${0.25 + i * 0.3}s` }}>★</span>
+          ))}
+        </div>
+        <ul className="clear-goals">
+          {goals.map((g) => (
+            <li key={g.label} className={g.ok ? 'ok' : ''}>
+              <span aria-hidden>{g.ok ? '★' : '☆'}</span> {g.label}
+            </li>
+          ))}
+        </ul>
+        <div className="clear-bonus">{tr(`けいけんち・ゴールド ×${r.mult}`, `EXP & Gold ×${r.mult}`)}</div>
+        {first && <div className="clear-medal">{tr('🏅 ボスメダル 獲得！ 攻撃力 +2', '🏅 Boss Medal earned! ATK +2')}</div>}
+        {r.stars < 3 && <div className="clear-tip">{tr('★3つで ボスメダルが もらえる', 'Get all 3 stars to earn a Boss Medal')}</div>}
+        <button type="button" className="clear-ok">{tr('つぎへ', 'Next')} ▶</button>
+      </div>
     </div>
   )
 }

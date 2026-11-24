@@ -98,6 +98,9 @@ export function effectText(e: EquipDef) {
 }
 
 /** 装備の合計値 */
+/** ボスメダル 1枚ごとの 攻撃力 */
+export const MEDAL_ATK = 2
+
 export function gearStats(gs: GameState) {
   const s = { atk: 0, def: 0, time: 0, crit: 0 }
   for (const id of Object.values(gs.equip ?? {})) {
@@ -108,5 +111,7 @@ export function gearStats(gs: GameState) {
     s.time += e.time ?? 0
     s.crit += e.crit ?? 0
   }
+  // ボスメダル：1枚ごとに 攻撃力 +2
+  s.atk += (gs.medals?.length ?? 0) * MEDAL_ATK
   return s
 }

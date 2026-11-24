@@ -26,6 +26,8 @@ export interface GameState {
   equip: Partial<Record<'weapon' | 'armor' | 'shield' | 'head', string>>
   /** 持っている装備 */
   gear: string[]
+  /** ★3つで 倒した ボス（ボスメダル。1枚ごとに 攻撃力 +2） */
+  medals?: string[]
 }
 
 export interface NpcDef {

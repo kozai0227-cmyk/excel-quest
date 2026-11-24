@@ -20,7 +20,8 @@ import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
 import { ITEM_IDS, itemName } from './data/items'
-import { EQUIP, equipName } from './data/equipment'
+import { EQUIP, MEDAL_ATK, equipName } from './data/equipment'
+import { STAR_BONUS } from './game/clear'
 import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
@@ -920,15 +921,36 @@ export default function App() {
     })
   }
 
-  const onWin = () => {
+  const onWin = (r?: { stars: number }) => {
     const req = battle!
     const b = ENEMIES[req.id]
-    const { gs: g1, msgs: lv } = gainExp(gsRef.current, b.exp)
-    setGs(() => ({ ...g1, gold: g1.gold + b.gold, bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses }))
+    // ボス戦は クリア評価の ★で 報酬が 増える。★3つなら 初回だけ ボスメダル
+    const mult = r ? 1 + STAR_BONUS * r.stars : 1
+    const exp = Math.round(b.exp * mult)
+    const gold = Math.round(b.gold * mult)
+    const medal = r?.stars === 3 && !(gsRef.current.medals ?? []).includes(b.id)
+    const { gs: g1, msgs: lv } = gainExp(gsRef.current, exp)
+    setGs(() => ({
+      ...g1,
+      gold: g1.gold + gold,
+      bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses,
+      ...(medal ? { medals: [...(g1.medals ?? []), b.id], items: { ...g1.items, sandglass: g1.items.sandglass + 1 } } : {}),
+    }))
     setBattle(null)
     setScene('field')
     run(async () => {
-      await talk(undefined, [tr(`${b.exp}ポイントの けいけんちを かくとく！`, `Gained ${b.exp} EXP!`), tr(`${b.gold}ゴールドを てにいれた！`, `Got ${b.gold} gold!`), ...lv])
+      await talk(undefined, [
+        ...(r && r.stars > 0 ? [tr(`★${r.stars}つの 評価で、報酬が ${mult}倍に なった！`, `${r.stars}-star rating: rewards ×${mult}!`)] : []),
+        tr(`${exp}ポイントの けいけんちを かくとく！`, `Gained ${exp} EXP!`),
+        tr(`${gold}ゴールドを てにいれた！`, `Got ${gold} gold!`),
+        ...(medal
+          ? [
+              tr(`${enemyName(b)}の ボスメダルを てにいれた！（攻撃力 +${MEDAL_ATK}）`, `Got the ${enemyName(b)} Boss Medal! (ATK +${MEDAL_ATK})`),
+              tr('ごほうびに すなどけいも もらった！', 'You also received an Hourglass as a prize!'),
+            ]
+          : []),
+        ...lv,
+      ])
       if (req.tutorial) {
         setFlag('tutorial')
         await talk(undefined, [tr('セルイムは ぷるぷると ふるえながら、森の奥へ 逃げていった……。', 'The Cellime wobbled and fled deeper into the forest...')])

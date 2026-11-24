@@ -7444,3 +7444,118 @@ html:lang(en) .fpad-label {
   opacity: 0.04;
   transition: opacity 0.12s;
 }
+/* ---------------------------------------------------------------- ボス戦の クリア評価 */
+.clear-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  animation: clearFade 0.25s ease-out;
+}
+.clear-win {
+  position: relative;
+  width: min(78%, 30em);
+  padding: 1.1em 1.4em 1em;
+  text-align: center;
+  font-size: 2.4cqw;
+  animation: clearPop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.clear-title {
+  font-size: 1.3em;
+  color: #ffe070;
+  letter-spacing: 0.06em;
+}
+.clear-stars {
+  margin: 0.25em 0 0.35em;
+  font-size: 2.6em;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+.clear-stars span {
+  color: #3a3f55;
+}
+.clear-stars span.on {
+  color: #ffd23a;
+  text-shadow: 0 0 0.35em rgba(255, 200, 40, 0.8);
+  animation: clearStar 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.clear-goals {
+  list-style: none;
+  margin: 0 auto 0.5em;
+  padding: 0;
+  display: inline-block;
+  text-align: left;
+}
+.clear-goals li {
+  color: #8a90a8;
+  line-height: 1.6;
+}
+.clear-goals li.ok {
+  color: #fff;
+}
+.clear-goals li.ok span {
+  color: #ffd23a;
+}
+.clear-bonus {
+  color: #7ee2b8;
+  font-weight: 700;
+}
+.clear-medal {
+  margin-top: 0.4em;
+  color: #ffd23a;
+  font-weight: 700;
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+.clear-tip {
+  margin-top: 0.3em;
+  font-size: 0.85em;
+  color: #a8aec4;
+}
+.clear-ok {
+  margin-top: 0.7em;
+  padding: 0.35em 1.6em;
+  font: inherit;
+  color: #fff;
+  background: #16857c;
+  border: 2px solid #7ee2d0;
+  border-radius: 0.5em;
+  cursor: pointer;
+}
+.phone .clear-win {
+  width: calc(100% - 32px);
+  font-size: 16px;
+}
+.travel-medals {
+  margin-left: 0.6em;
+  color: #ffd23a;
+}
+.tt-medal {
+  margin-left: 0.3em;
+}
+@keyframes clearFade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes clearPop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes clearStar {
+  from {
+    transform: scale(2.2) rotate(-30deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clear-layer,
+  .clear-win,
+  .clear-stars span.on,
+  .clear-medal {
+    animation: none;
+  }
+}
