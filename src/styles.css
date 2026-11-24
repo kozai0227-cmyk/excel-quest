@@ -325,12 +325,14 @@ button {
 .menu-cmds {
   top: 3%;
   left: 3%;
-  width: 24%;
+  width: 27%;
+  max-height: 94%;
+  overflow: auto;
   font-size: 2.8cqw;
 }
 .menu-panel {
   top: 3%;
-  left: 29%;
+  left: 32%;
   right: 3%;
   max-height: 70%;
   overflow: auto;
@@ -2210,12 +2212,6 @@ html:lang(en) .fpad-label {
 .touch-q .q-text {
   font-size: 14px;
 }
-.menu-cmds small {
-  display: block;
-  margin-top: -0.25em;
-  font-size: 0.62em;
-  opacity: 0.7;
-}
 /* メニュー上部の 状態カード（Lv・HP・経験値バー・G・達成率） */
 .menu-status {
   margin: 0.2em 0 0.55em;
@@ -2310,6 +2306,249 @@ html:lang(en) .fpad-label {
   .ms-bar div {
     animation: none;
   }
+}
+
+
+/* メニューの コマンド：アイコン付きの 立体タイル（押すと 沈む・開いている ものは 金色の 縁） */
+.menu-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32em;
+}
+.mg-row {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 0.32em;
+  animation: mgIn 0.3s cubic-bezier(0.25, 1.4, 0.5, 1) both;
+}
+.mg-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12em;
+  min-width: 0;
+  padding: 0.38em 0.2em 0.32em;
+  border: 0.12em solid rgba(255, 255, 255, 0.22);
+  border-bottom: 0.26em solid #070a14;
+  border-radius: 0.5em;
+  background: linear-gradient(#2c3a5c, #1a2340);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.62em;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: 0 0.15em 0.4em rgba(0, 0, 0, 0.35);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    filter 0.12s ease;
+}
+.mg-tile:active {
+  border-bottom-width: 0.12em;
+  margin-top: 0.14em;
+}
+.mg-icon {
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 -0.12em 0 rgba(0, 0, 0, 0.25);
+  font-size: 1.15em;
+  line-height: 1;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+}
+/* タイルごとの 色（丸の 地の色） */
+.mg-tile.t-0 .mg-icon { background: #3a8dff; }
+.mg-tile.t-1 .mg-icon { background: #8a6cff; }
+.mg-tile.t-2 .mg-icon { background: #ffb02e; }
+.mg-tile.t-3 .mg-icon { background: #2fbf5a; }
+.mg-tile.t-4 .mg-icon { background: #1aa3a1; }
+.mg-tile.t-5 .mg-icon { background: #ff6b6b; }
+.mg-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.mg-sub {
+  max-width: 100%;
+  margin-top: -0.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78em;
+  opacity: 0.7;
+}
+.mg-badge {
+  position: absolute;
+  top: 0.25em;
+  right: 0.3em;
+  min-width: 1.4em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: #ffd84a;
+  color: #2a1d00;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.4;
+}
+/* 小さな タイル（入力・設定・セーブ・タイトルへ）は 丸なしで 低く */
+.mg-row.sub .mg-tile {
+  font-size: 0.56em;
+  gap: 0.05em;
+  padding: 0.3em 0.2em 0.26em;
+  background: linear-gradient(#232c44, #161c30);
+}
+.mg-row.sub .mg-icon {
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  font-size: 1.05em;
+}
+/* とじる：いちばん下の 横長ボタン */
+.mg-row.close .mg-tile {
+  flex-direction: row;
+  gap: 0.4em;
+  padding: 0.32em;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.28);
+  border-bottom-color: rgba(255, 255, 255, 0.28);
+  border-bottom-width: 0.12em;
+  box-shadow: none;
+}
+.mg-row.close .mg-tile:active {
+  margin-top: 0;
+  transform: scale(0.97);
+}
+.mg-row.close .mg-icon {
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+/* いま 開いている コマンド */
+.mg-tile.open {
+  border-color: #ffd84a;
+  background: linear-gradient(#3b4c78, #24305a);
+}
+/* 押した 瞬間 白く 光って ポンと はねる（続けて 押しても 毎回 動くよう 2つを 交互に） */
+.mg-tile.flash-0 {
+  animation: mgFlash0 0.32s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.mg-tile.flash-1 {
+  animation: mgFlash1 0.32s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+/* キーボード・十字ボタンで 選ぶ ときだけ 光る 枠 */
+.menu-grid.ring .mg-tile.on {
+  outline: 0.16em solid #ffe070;
+  outline-offset: 0.08em;
+  filter: brightness(1.18);
+}
+@media (hover: hover) {
+  .mg-tile:hover {
+    filter: brightness(1.15);
+  }
+}
+@keyframes mgIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em) scale(0.92);
+  }
+}
+@keyframes mgFlash0 {
+  0% {
+    transform: scale(0.94);
+    box-shadow: 0 0 0 0.2em rgba(255, 255, 255, 0.75);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes mgFlash1 {
+  0% {
+    transform: scale(0.94);
+    box-shadow: 0 0 0 0.2em rgba(255, 255, 255, 0.75);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-row,
+  .mg-tile {
+    animation: none !important;
+  }
+}
+/* スマホ：親指で 押しやすい 大きさに */
+.phone .screen .menu-cmds {
+  display: block;
+  font-size: 16px;
+}
+.phone .menu-grid {
+  gap: 8px;
+}
+.phone .mg-row {
+  gap: 8px;
+}
+.phone .mg-tile {
+  min-height: 74px;
+  padding: 8px 4px 6px;
+  border-width: 1.5px;
+  border-bottom-width: 4px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+.phone .mg-tile:active {
+  border-bottom-width: 1.5px;
+  margin-top: 2.5px;
+}
+.phone .mg-icon {
+  width: 36px;
+  height: 36px;
+  font-size: 19px;
+}
+.phone .mg-row.sub .mg-tile {
+  min-height: 50px;
+  gap: 2px;
+  padding: 6px 2px 4px;
+  font-size: 11.5px;
+}
+.phone .mg-row.sub .mg-icon {
+  font-size: 17px;
+}
+.phone .mg-row.sub .mg-sub {
+  display: none;
+}
+.phone .mg-row.close .mg-tile {
+  min-height: 44px;
+  font-size: 15px;
+}
+.phone .mg-badge {
+  top: 5px;
+  right: 6px;
+  font-size: 11px;
+}
+.phone .menu-grid.ring .mg-tile.on {
+  outline-width: 3px;
+  outline-offset: 1px;
 }
 
 /* ================= スマホの 縦画面：画面いっぱいに 表示する ================= */
@@ -2447,22 +2686,11 @@ html:lang(en) .fpad-label {
   width: auto;
   max-height: none;
 }
-.phone .screen .menu-cmds {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 12px;
-  font-size: 16px;
-}
 .phone .screen .menu-status {
   grid-column: 1 / -1;
   margin: 2px 0 8px;
   padding: 9px 12px 8px;
   font-size: 13px;
-}
-.phone .screen .menu-cmds small {
-  display: inline;
-  margin: 0 0 0 0.4em;
-  font-size: 0.75em;
 }
 .phone .screen .menu-panel {
   flex: 0 1 auto;
