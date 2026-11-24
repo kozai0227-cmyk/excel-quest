@@ -147,10 +147,7 @@ export function Title({ save, onNew, onContinue, onStudy }: { save: GameState | 
         </div>
         <div className="title-help">
           {isTouchDevice ? (
-            <>
-              <DpadIcon />
-              {tr('十字ボタン：移動　A：決定　B：メニュー・もどる', 'D-pad: Move　A: OK　B: Menu / Back')}
-            </>
+            tr('タップで 移動・話しかける　右下の ボタンで メニュー', 'Tap to move and talk　Menu button at the bottom right')
           ) : (
             tr('矢印キー / WASD：移動　Shift：走る　Enter / Z：決定　Esc / X：メニュー', 'Arrows / WASD: Move　Shift: Run　Enter / Z: OK　Esc / X: Menu')
           )}
@@ -182,16 +179,6 @@ export function Title({ save, onNew, onContinue, onStudy }: { save: GameState | 
       </div>
       {privacy && <DocView src={tr('/privacy.html', '/privacy.html#en')} title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
     </div>
-  )
-}
-
-/** 操作説明の 十字ボタンの しるし */
-function DpadIcon() {
-  return (
-    <svg className="dpad-icon" viewBox="0 0 12 12" aria-hidden>
-      <path d="M4 0h4v4h4v4H8v4H4V8H0V4h4z" fill="currentColor" />
-      <rect x="5" y="5" width="2" height="2" fill="#0b1430" />
-    </svg>
   )
 }
 

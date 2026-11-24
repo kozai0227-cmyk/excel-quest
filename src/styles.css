@@ -6865,3 +6865,65 @@ html:lang(en) .fpad-label {
     transform: scale(1.1);
   }
 }
+
+/* ---------------------------------------------------------------- フィールド：タップ操作（十字キーの かわり） */
+.field {
+  touch-action: none;
+}
+.field-menu-btn {
+  position: absolute;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(14, 18, 34, 0.86);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45), 0 8px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.field-menu-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.fm-bars {
+  display: grid;
+  gap: 3px;
+}
+.fm-bars i {
+  display: block;
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+}
+.tap-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 14;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(14, 18, 34, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: tap-hint-bob 1.6s ease-in-out infinite;
+}
+@keyframes tap-hint-bob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tap-hint { animation: none; }
+}

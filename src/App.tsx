@@ -64,6 +64,14 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
+  /** はじめて フィールドに 出たときの「タップで 歩く」案内（数歩 歩くと 消える） */
+  const [tapHint, setTapHint] = useState(() => {
+    try {
+      return !localStorage.getItem('excel-quest-tap-hint')
+    } catch {
+      return false
+    }
+  })
   /** 旅の地図（町を 選ぶ）を 開いているか */
   const [travel, setTravel] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -496,7 +504,7 @@ export default function App() {
           void f.walkTo('elder_event', 5, 8, 200).then(() => f.remove('elder_event'))
           await sleep(1400)
         }
-        await talk(undefined, [tr('（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で 関数の ことを 相談したり できるぞ。セーブは メニューから）', '(You can enter buildings through their doors. Rest at the inn, or ask about functions at the church. Save from the menu.)'), isTouchDevice ? tr('（十字ボタン：移動　A：話す・決定　B：メニュー）', '(D-pad: Move　A: Talk / OK　B: Menu)') : tr('（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）', '(Enter / Z: Talk / OK　Esc / X: Menu　Shift: Run)')])
+        await talk(undefined, [tr('（建物の ドアから 中に 入れる。宿屋で 休んだり、教会で 関数の ことを 相談したり できるぞ。セーブは メニューから）', '(You can enter buildings through their doors. Rest at the inn, or ask about functions at the church. Save from the menu.)'), isTouchDevice ? tr('（行きたい 場所を タップすると 歩く。人や 看板を タップすると 話しかける。メニューは 右下の ボタン）', '(Tap where you want to go to walk there. Tap a person or sign to talk. The menu button is at the bottom right.)') : tr('（Enter / Z：話す・決定　Esc / X：メニュー　Shift：走る）', '(Enter / Z: Talk / OK　Esc / X: Menu　Shift: Run)')])
         save()
       })
     if (ex.to === 'cave')
@@ -504,7 +512,7 @@ export default function App() {
         await sleep(900)
         await talk(undefined, [tr('ひんやりとした 空気が ただよっている……。', 'A chilly breeze drifts through the air...'), tr('洞窟の奥から、ぷるぷると 何かが ふるえる音が 聞こえる。', 'From deep in the cave comes the sound of something wobbling.')])
         await me([tr('（奥へ進むには、石版の扉の 謎を 解かないと いけないみたいだ）', '(Looks like I have to solve the stone tablet doors to go deeper.)')])
-        await talk(undefined, [tr('（扉の前で 話すボタンを押すと 謎解きが 始まる。洞窟の中でも モンスターが 出るぞ）', '(Press the talk button in front of a door to start its puzzle. Monsters appear in caves, too.)')])
+        await talk(undefined, [isTouchDevice ? tr('（石版の扉を タップすると 謎解きが 始まる。洞窟の中でも モンスターが 出るぞ）', '(Tap a stone door to start its puzzle. Monsters appear in caves, too.)') : tr('（扉の前で 話すボタンを押すと 謎解きが 始まる。洞窟の中でも モンスターが 出るぞ）', '(Press the talk button in front of a door to start its puzzle. Monsters appear in caves, too.)')])
       })
     if (ex.to === 'tower1')
       run(async () => {
@@ -1238,7 +1246,17 @@ export default function App() {
               onInteract={interact}
               onSign={(lines) => run(async () => void (await talk(undefined, lines)))}
               onWarp={onWarp}
-              onMove={(x, y, dir) => (pos.current = { x, y, dir })}
+              onMove={(x, y, dir) => {
+                pos.current = { x, y, dir }
+                if (tapHint) {
+                  setTapHint(false)
+                  try {
+                    localStorage.setItem('excel-quest-tap-hint', '1')
+                  } catch {
+                    /* 保存できなくても 動く */
+                  }
+                }
+              }}
               onMenu={() => {
                 sfx('select')
                 setMenu(true)
@@ -1290,6 +1308,30 @@ export default function App() {
                 }}
               />
             )}
+            {isTouchDevice && scene === 'field' && !menu && !review && !travel && !dialog && (
+              <button
+                type="button"
+                className="field-menu-btn"
+                aria-label={tr('メニュー', 'Menu')}
+                onClick={() => {
+                  if (paused) return
+                  sfx('select')
+                  setMenu(true)
+                }}
+              >
+                <span className="fm-bars" aria-hidden>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                {tr('メニュー', 'Menu')}
+              </button>
+            )}
+            {isTouchDevice && scene === 'field' && tapHint && !paused && (
+              <div className="tap-hint" aria-hidden>
+                {tr('👆 行きたい 場所や 人を タップ', '👆 Tap a place or person to go there')}
+              </div>
+            )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
@@ -1321,7 +1363,8 @@ export default function App() {
         {unlockOpen && <Unlock />}
       </div>
       {/* スマホの 縦画面では、戦闘中は ボタンを しまって 画面を 広く使う（コマンドは タップで 選べる） */}
-      {isTouchDevice && inWorld && scene !== 'quest' && !review && !(phone && scene === 'battle') && <TouchPad />}
+      {/* フィールドは 画面を タップして 歩く（十字キーは 出さない）。タブレットの 戦闘だけ ボタンを 残す */}
+      {isTouchDevice && scene === 'battle' && !phone && <TouchPad />}
       {scene === 'quest' && questId && <QuestScreen quest={QUESTS[questId]} exp={gs.exp} onClear={onQuestClear} onClose={onQuestClose} />}
     </div>
   )
