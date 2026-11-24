@@ -7383,3 +7383,64 @@ html:lang(en) .fpad-label {
 @media (prefers-reduced-motion: reduce) {
   .tap-hint { animation: none; }
 }
+/* ---------------------------------------------------------------- ボスの 本気モード・ひるみ */
+.battle.rage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 0 6cqw rgba(255, 40, 30, 0.55);
+  animation: ragePulse 1.6s ease-in-out infinite;
+}
+@keyframes ragePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.battle.rage .boss-area canvas,
+.battle.rage .boss-area svg,
+.battle.rage .boss-area img {
+  filter: drop-shadow(0 0 0.5em rgba(255, 60, 40, 0.85));
+}
+.boss-tag.enraged {
+  background: linear-gradient(#ff3a2a, #8a0a0a);
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+@keyframes rageTag {
+  50% {
+    transform: scale(1.12);
+  }
+}
+.q-rage {
+  margin-left: 0.6em;
+  color: #ff7a5a;
+  font-weight: 700;
+}
+.q-choices .opt.blinked {
+  opacity: 0.04;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.flinch-next {
+  display: block;
+  margin-top: 0.2em;
+  font-size: 0.8em;
+  color: #ffe070;
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle.rage::after,
+  .boss-tag.enraged,
+  .flinch-next {
+    animation: none;
+  }
+}
+.q-text.blinked {
+  opacity: 0.04;
+  transition: opacity 0.12s;
+}
