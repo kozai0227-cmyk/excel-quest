@@ -3736,107 +3736,10 @@ html:lang(en) .fpad-label {
   color: #ffd76a;
   font-size: 1.5em;
 }
-.study-total {
-  display: flex;
-  align-items: center;
-  gap: 0.6em;
-  white-space: nowrap;
-}
-.study-total b {
-  color: #ffd76a;
-  font-size: 1.3em;
-}
-.study-total .pbar {
-  width: 8em;
-}
 .study-help {
-  margin: 0.6em 0 1em;
-  opacity: 0.75;
-  font-size: 0.9em;
-}
-.course-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55em;
-}
-.course {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 0.55em 0.9em 0.6em 1.6em;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 0.6em;
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-}
-.course span {
-  font-size: 0.88em;
-  opacity: 0.85;
-}
-.course.on {
-  border-color: #ffd76a;
-  background: rgba(255, 215, 106, 0.1);
-}
-.course.on::before {
-  content: '▶';
-  position: absolute;
-  left: 0.4em;
-  top: 0.55em;
-  font-size: 0.8em;
-  color: #ffd76a;
-  animation: blink 0.8s steps(1) infinite;
-}
-.course.weak {
-  border-color: rgba(255, 154, 106, 0.7);
-}
-.course.weak b {
-  color: #ffb08a;
-}
-.course.all b {
-  color: #9fd2ff;
-}
-.course.disabled,
-.course.locked {
-  opacity: 0.45;
-  cursor: default;
-}
-.course.close {
-  align-items: center;
-  padding-left: 0.9em;
-}
-.course.paywall b {
-  color: #c9cfdb;
-}
-.course .course-unlock {
-  color: #ffd76a;
-  opacity: 1;
-}
-.course-sep {
-  margin: 0.6em 0 0;
+  margin: 0.8em 0 0;
+  opacity: 0.7;
   font-size: 0.85em;
-  color: #ffd76a;
-  opacity: 0.9;
-}
-.course-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 1em;
-}
-.course-pct {
-  color: #ffd76a;
-  opacity: 1 !important;
-}
-.course-counts {
-  font-size: 0.88em;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2em 1em;
-}
-.course-counts span {
-  font-size: 1em;
-}
-.course-counts .full {
-  color: #8fe3a8;
 }
 .pbar {
   height: 0.5em;
@@ -8342,5 +8245,350 @@ html:lang(en) .fpad-label {
   }
   .eqp-float {
     animation-duration: 0.01s;
+  }
+}
+
+/* ================= ふくしゅうの書：コース選び（立体カード・章の 番号札と 進み具合の 輪・自己ベスト） ================= */
+.sc-page {
+  padding-top: 0;
+}
+.sc-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin: 0 -3cqw;
+  padding: 0.75em 3cqw 0.6em;
+  background: #121b30;
+  /* ページの 幅より 外まで 帯を のばす（PC で 左右に 段差を 出さない） */
+  box-shadow: 0 0 0 100vmax #121b30;
+  clip-path: inset(0 -100vmax);
+}
+.sc-top h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: #ffd76a;
+  font-size: 1.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-total {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.7em 0.2em 0.3em;
+  border-radius: 2em;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.95em;
+}
+.sc-total i {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, #1b2640 62%, transparent 64%),
+    conic-gradient(#ffd76a calc(var(--p) * 1%), rgba(255, 255, 255, 0.15) 0);
+}
+.sc-total b {
+  color: #ffd76a;
+}
+.sc-page .streak-card {
+  margin-top: 0.3em;
+}
+
+.sc-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  width: 100%;
+  padding: 0.7em 0.9em;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-bottom-width: 5px;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: eqRise 0.36s ease both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+  transition:
+    transform 0.08s ease,
+    border-bottom-width 0.08s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.sc-card:not(:disabled):not(.unknown):hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+.sc-card:not(:disabled):not(.unknown):active,
+.sc-card.press {
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+  margin-bottom: 3px;
+}
+.sc-card.press::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: #fff;
+  pointer-events: none;
+  animation: scFlash 0.22s ease-out both;
+}
+@keyframes scFlash {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.keynav .sc-card.on {
+  outline: 3px solid #ffd76a;
+  outline-offset: 2px;
+}
+.sc-card:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.sc-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+}
+.sc-body b {
+  font-size: 1.02em;
+}
+.sc-body small {
+  font-size: 0.82em;
+  opacity: 0.75;
+}
+
+/* 上の 2枚：苦手克服・全章まとめ */
+.sc-feature {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7em;
+  margin-top: 0.9em;
+}
+.sc-card.feat {
+  padding: 0.85em 3em 0.85em 0.9em;
+}
+.sc-card.feat.all {
+  padding-right: 4.8em;
+}
+.phone .sc-card.feat {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45em;
+  padding: 0.85em 0.9em 0.8em;
+}
+.sc-card.feat .sc-icon {
+  display: grid;
+  place-items: center;
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 50%;
+  font-size: 1.15em;
+}
+.sc-card.feat.weak {
+  border-color: rgba(255, 128, 96, 0.55);
+  background: linear-gradient(160deg, rgba(255, 110, 80, 0.2), rgba(255, 110, 80, 0.05));
+}
+.sc-card.feat.weak .sc-icon {
+  background: linear-gradient(180deg, #ff8a6a, #e2553a);
+  box-shadow: 0 3px 0 #a8341f;
+}
+.sc-card.feat.weak b {
+  color: #ffb39b;
+}
+.sc-card.feat.all {
+  border-color: rgba(110, 180, 255, 0.55);
+  background: linear-gradient(160deg, rgba(80, 150, 255, 0.2), rgba(80, 150, 255, 0.05));
+}
+.sc-card.feat.all .sc-icon {
+  background: linear-gradient(180deg, #6fb2ff, #3a7fe0);
+  box-shadow: 0 3px 0 #23529a;
+}
+.sc-card.feat.all b {
+  color: #a9d3ff;
+}
+.sc-card.feat .sc-best,
+.sc-count {
+  position: absolute;
+  top: 0.65em;
+  right: 0.7em;
+}
+.sc-count {
+  min-width: 1.6em;
+  padding: 0 0.45em;
+  border-radius: 1em;
+  background: #ff6a4a;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.85em;
+  line-height: 1.6em;
+  text-align: center;
+  box-shadow: 0 2px 0 #a8341f;
+}
+
+/* 自己ベスト */
+.sc-best {
+  flex: none;
+  padding: 0.1em 0.55em;
+  border-radius: 1em;
+  background: rgba(255, 215, 106, 0.16);
+  color: #ffd76a;
+  font-size: 0.8em;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.sc-best.perfect {
+  background: linear-gradient(180deg, #ffe08a, #f0b43c);
+  color: #4a2e00;
+  box-shadow: 0 2px 0 #a8741c;
+}
+.sc-best.none {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c9d1e0;
+  font-weight: normal;
+}
+
+/* 章の カード */
+.sc-sep {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  margin: 1.1em 0 0.55em;
+  color: #ffd76a;
+  font-size: 0.95em;
+}
+.sc-sep small {
+  color: #c9d1e0;
+  font-weight: normal;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+.sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+.sc-badge {
+  --p: 0;
+  flex: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.9em;
+  height: 2.9em;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, transparent 78%, transparent 0),
+    conic-gradient(hsl(var(--h, 140) 70% 62%) calc(var(--p) * 1%), rgba(255, 255, 255, 0.12) 0);
+}
+.sc-badge em {
+  display: grid;
+  place-items: center;
+  width: 2.25em;
+  height: 2.25em;
+  border-radius: 50%;
+  background: linear-gradient(180deg, hsl(var(--h, 140) 62% 52%), hsl(var(--h, 140) 60% 38%));
+  box-shadow: 0 3px 0 hsl(var(--h, 140) 55% 24%);
+  color: #fff;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 1.05em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.sc-card.ch.done .sc-badge em {
+  background: linear-gradient(180deg, #ffe08a, #f0b43c);
+  box-shadow: 0 3px 0 #a8741c;
+  color: #4a2e00;
+  text-shadow: none;
+}
+.sc-card.ch.done .sc-badge {
+  background: conic-gradient(#ffd76a 100%, transparent 0);
+}
+.sc-card.ch.done {
+  border-color: rgba(255, 215, 106, 0.45);
+}
+.sc-side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35em;
+}
+.sc-pct {
+  color: hsl(var(--h, 140) 75% 72%);
+  font-size: 0.85em;
+  font-weight: bold;
+}
+.sc-card.ch.done .sc-pct {
+  color: #ffd76a;
+}
+.sc-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.8em;
+  margin-top: 0.15em;
+  font-size: 0.76em;
+  opacity: 0.7;
+}
+.sc-counts .full {
+  color: #8fe3a8;
+  opacity: 1;
+}
+.sc-card.paywall .sc-badge,
+.sc-card.unknown .sc-badge {
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.05em;
+}
+.sc-card.paywall b {
+  color: #c9cfdb;
+}
+.sc-unlock {
+  align-self: flex-start;
+  margin-top: 0.25em;
+  padding: 0.05em 0.6em;
+  border-radius: 1em;
+  background: rgba(255, 215, 106, 0.16);
+  color: #ffd76a;
+  font-size: 0.78em;
+}
+.sc-card.unknown {
+  cursor: default;
+  opacity: 0.45;
+  border-style: dashed;
+  border-bottom-width: 2px;
+}
+.sc-card.close {
+  justify-content: center;
+  margin-top: 1em;
+  font-weight: bold;
+}
+.phone .sc-top {
+  margin: 0 -14px;
+  padding: 12px 14px 10px;
+}
+.phone .sc-feature {
+  gap: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-card,
+  .sc-card.press::after {
+    animation: none;
   }
 }
