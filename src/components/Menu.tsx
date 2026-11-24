@@ -9,7 +9,7 @@ import { EQUIP, SLOTS, effectText, equipDesc, equipName, gearStats, slotName, ty
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
-import { isTouchDevice } from '../game/layout'
+import { isTouchDevice, usePhoneLayout } from '../game/layout'
 import { isNative } from '../game/native'
 import { DocView } from './DocView'
 import { totalPercent } from '../data/chapters'
@@ -38,6 +38,23 @@ const CMD_LABEL: Record<Cmd, string> = {
   とじる: 'Close',
 }
 const cmdLabel = (c: Cmd) => tr(c, CMD_LABEL[c])
+/** コマンドの 絵（タイルの 丸に 出す） */
+const CMD_ICON: Record<Cmd, string> = {
+  つよさ: '📊',
+  そうび: '🛡️',
+  スキル: '✨',
+  どうぐ: '🎒',
+  たび: '🗺️',
+  ふくしゅう: '📖',
+  にゅうりょく: '⌨️',
+  設定: '⚙️',
+  セーブ: '💾',
+  タイトルへ: '🏠',
+  とじる: '✕',
+}
+/** 大きな タイルで 出す よく使う コマンド（残りは 下の 小さな タイル、とじるは いちばん下） */
+const MAIN_CMDS: readonly Cmd[] = ['つよさ', 'そうび', 'スキル', 'どうぐ', 'たび', 'ふくしゅう']
+const chunk = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n))
 /** タイトルへ もどる ときの 選択肢 */
 const TITLE_OPTS = () => [tr('セーブして もどる', 'Save and return'), tr('セーブせずに もどる', 'Return without saving'), tr('やめる', 'Cancel')]
 /** 設定の 音量より 下の 行（言語は 切りかえを 出すときだけ） */
@@ -61,6 +78,15 @@ interface Props {
 
 export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }: Props) {
   const [cursor, setCursor] = useState(0)
+  const phone = usePhoneLayout()
+  /** タイルの 並び（行ごとの CMDS の 番号）。スマホは 3列＋小さな 列、PC は 2列 */
+  const idx = (cs: readonly Cmd[]) => cs.filter((c) => CMDS.includes(c)).map((c) => CMDS.indexOf(c))
+  const subCmds = CMDS.filter((c) => !MAIN_CMDS.includes(c) && c !== 'とじる')
+  const rows = [...chunk(idx(MAIN_CMDS), phone ? 3 : 2), ...chunk(idx(subCmds), phone ? subCmds.length : 2), idx(['とじる'])]
+  /** 押した タイルを 一瞬 光らせる（セーブなどの 手ごたえ） */
+  const [flash, setFlash] = useState<{ i: number; n: number } | null>(null)
+  // キーボード・十字ボタンで 動かした ときだけ カーソル枠を 出す（指で 押す ときは じゃまに なる）
+  const [keyed, setKeyed] = useState(false)
   const [open, setOpen] = useState<Cmd | null>(null)
   const [icur, setIcur] = useState(0)
   const [note, setNote] = useState('')
@@ -128,6 +154,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
   const select = (i: number) => {
     const c = CMDS[i]
     setNote('')
+    setFlash((f) => ({ i, n: (f?.n ?? 0) + 1 }))
     if (c === 'とじる') return onClose()
     if (c === 'ふくしゅう') return onReview()
     if (c === 'たび') {
@@ -233,9 +260,19 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
       if (k === 'cancel' || k === 'ok') setOpen(null)
       return
     }
-    if (k === 'up') setCursor((c) => (c + CMDS.length - 1) % CMDS.length)
-    else if (k === 'down') setCursor((c) => (c + 1) % CMDS.length)
-    else if (k === 'ok') select(cursor)
+    if (k !== 'ok' && k !== 'cancel') setKeyed(true)
+    if (k === 'left' || k === 'right') {
+      sfx('cursor')
+      setCursor((c) => (c + CMDS.length + (k === 'right' ? 1 : -1)) % CMDS.length)
+    } else if (k === 'up' || k === 'down') {
+      // 上下は 行を またいで、横の 位置が 近い タイルへ
+      setCursor((c) => {
+        const r = rows.findIndex((row) => row.includes(c))
+        const pos = (rows[r].indexOf(c) + 0.5) / rows[r].length
+        const to = rows[(r + rows.length + (k === 'down' ? 1 : -1)) % rows.length]
+        return to[Math.min(to.length - 1, Math.floor(pos * to.length))]
+      })
+    } else if (k === 'ok') select(cursor)
     else if (k === 'cancel') onClose()
   })
 
@@ -244,12 +281,39 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     <div className="menu-layer">
       <div className="win menu-cmds">
         <MenuStatus gs={gs} />
-        {CMDS.map((c, i) => (
-          <div key={c} className={`opt ${i === cursor ? 'on' : ''}`} onClick={() => { setCursor(i); select(i) }}>
-            {cmdLabel(c)}
-            {c === 'にゅうりょく' && <small>{inputMode === 'touch' ? tr('ボタン', 'Buttons') : tr('キーボード', 'Keyboard')}</small>}
-          </div>
-        ))}
+        <div className={`menu-grid ${keyed || inputMode === 'keyboard' ? 'ring' : ''}`} role="menu">
+          {rows.map((row, r) => (
+            <div key={r} style={{ animationDelay: `${r * 40}ms` }} className={`mg-row ${r === rows.length - 1 ? 'close' : CMDS[row[0]] && MAIN_CMDS.includes(CMDS[row[0]]) ? 'main' : 'sub'}`}>
+              {row.map((i) => {
+                const c = CMDS[i]
+                const sub = c === 'にゅうりょく' ? (inputMode === 'touch' ? tr('ボタン', 'Buttons') : tr('キーボード', 'Keyboard')) : null
+                const count = c === 'どうぐ' ? items.reduce((n, id) => n + gs.items[id], 0) : c === 'スキル' ? gs.skills.length : 0
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    role="menuitem"
+                    data-nosfx
+                    className={`mg-tile t-${i} ${i === cursor ? 'on' : ''} ${open === c ? 'open' : ''} ${flash?.i === i ? `flash-${flash.n % 2}` : ''}`}
+                    onClick={() => {
+                      sfx(c === 'とじる' ? 'cancel' : 'select')
+                      setKeyed(false)
+                      setCursor(i)
+                      select(i)
+                    }}
+                  >
+                    <span className="mg-icon" aria-hidden>
+                      {c === 'にゅうりょく' && inputMode === 'touch' ? '📱' : CMD_ICON[c]}
+                    </span>
+                    <span className="mg-label">{cmdLabel(c)}</span>
+                    {sub && <small className="mg-sub">{sub}</small>}
+                    {count > 0 && <span className="mg-badge">{count}</span>}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </div>
       {open && (
         <div className="win menu-panel">
