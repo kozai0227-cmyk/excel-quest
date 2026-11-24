@@ -121,6 +121,7 @@ export function TravelMap({ gs, onPick, onClose }: Props) {
             <span className="travel-count">
               {tr(`救った 町 ${savedCount}/${n}`, `Towns saved ${savedCount}/${n}`)}
             </span>
+            <span className="travel-count travel-medals">🏅 {(gs.medals ?? []).length}/{n}</span>
           </div>
           <button type="button" className="travel-x" aria-label={tr('とじる', 'Close')} onClick={close}>
             ×
@@ -187,6 +188,7 @@ export function TravelMap({ gs, onPick, onClose }: Props) {
                         </>
                       )}
                       <span className={`tt-boss ${cleared ? 'won' : ''}`}>{cleared ? tr('★ 町を 救った', '★ Saved') : tr('ボス 未撃破', 'Boss ahead')}</span>
+                      {(gs.medals ?? []).includes(t.boss) && <span className="tt-medal" title={tr('ボスメダル', 'Boss Medal')}>🏅</span>}
                     </div>
                   )}
                 </div>

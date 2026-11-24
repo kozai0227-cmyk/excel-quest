@@ -21,6 +21,7 @@ import { QUESTS, questLines, townQuests } from './data/quests'
 import { ENEMIES } from './data/bosses'
 import { ITEM_IDS, itemName } from './data/items'
 import { EQUIP, equipName } from './data/equipment'
+import { STAR_BONUS } from './game/clear'
 import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
@@ -920,12 +921,22 @@ export default function App() {
     })
   }
 
-  const onWin = () => {
+  const onWin = (r?: { stars: number }) => {
     const req = battle!
     const b = ENEMIES[req.id]
-    // 経験値・ゴールド・レベルアップは 戦闘の リザルト画面（BattleWin）で 見せた
-    const { gs: g1 } = gainExp(gsRef.current, b.exp)
-    setGs(() => ({ ...g1, gold: g1.gold + b.gold, bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses }))
+    // ボス戦は クリア評価の ★で 報酬が 増える。★3つなら 初回だけ ボスメダル
+    const mult = r ? 1 + STAR_BONUS * r.stars : 1
+    const exp = Math.round(b.exp * mult)
+    const gold = Math.round(b.gold * mult)
+    const medal = r?.stars === 3 && !(gsRef.current.medals ?? []).includes(b.id)
+    // 経験値・ゴールド・★・メダルは 戦闘の リザルト画面（BattleWin）で 見せた
+    const { gs: g1 } = gainExp(gsRef.current, exp)
+    setGs(() => ({
+      ...g1,
+      gold: g1.gold + gold,
+      bosses: b.boss ? [...g1.bosses, b.id] : g1.bosses,
+      ...(medal ? { medals: [...(g1.medals ?? []), b.id], items: { ...g1.items, sandglass: g1.items.sandglass + 1 } } : {}),
+    }))
     setBattle(null)
     setScene('field')
     run(async () => {

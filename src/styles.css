@@ -7383,3 +7383,142 @@ html:lang(en) .fpad-label {
 @media (prefers-reduced-motion: reduce) {
   .tap-hint { animation: none; }
 }
+/* ---------------------------------------------------------------- ボスの 本気モード・ひるみ */
+.battle.rage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 0 6cqw rgba(255, 40, 30, 0.55);
+  animation: ragePulse 1.6s ease-in-out infinite;
+}
+@keyframes ragePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.battle.rage .boss-area canvas,
+.battle.rage .boss-area svg,
+.battle.rage .boss-area img {
+  filter: drop-shadow(0 0 0.5em rgba(255, 60, 40, 0.85));
+}
+.boss-tag.enraged {
+  background: linear-gradient(#ff3a2a, #8a0a0a);
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+@keyframes rageTag {
+  50% {
+    transform: scale(1.12);
+  }
+}
+.q-rage {
+  margin-left: 0.6em;
+  color: #ff7a5a;
+  font-weight: 700;
+}
+.q-choices .opt.blinked {
+  opacity: 0.04;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.flinch-next {
+  display: block;
+  margin-top: 0.2em;
+  font-size: 0.8em;
+  color: #ffe070;
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle.rage::after,
+  .boss-tag.enraged,
+  .flinch-next {
+    animation: none;
+  }
+}
+.q-text.blinked {
+  opacity: 0.04;
+  transition: opacity 0.12s;
+}
+.travel-medals {
+  margin-left: 0.6em;
+  color: #ffd23a;
+}
+.tt-medal {
+  margin-left: 0.3em;
+}
+@keyframes bwStar {
+  from {
+    transform: scale(2.2) rotate(-30deg);
+    opacity: 0;
+  }
+}
+/* ---------------------------------------------------------------- ボス戦の クリア評価（リザルト画面の 中） */
+.bw-rate {
+  margin: 0.5em 0 0.6em;
+  text-align: center;
+  animation: qcPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.bw-stars {
+  font-size: 2.2em;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+.bw-stars span {
+  color: #c9cbd6;
+}
+.bw-stars span.on {
+  color: #ffc21a;
+  text-shadow: 0 0 0.3em rgba(255, 190, 30, 0.7);
+  animation: bwStar 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.bw-goals {
+  list-style: none;
+  display: inline-block;
+  margin: 0.3em auto 0.2em;
+  padding: 0;
+  text-align: left;
+  font-size: 0.9em;
+}
+.bw-goals li {
+  opacity: 0.5;
+  line-height: 1.55;
+}
+.bw-goals li.ok {
+  opacity: 1;
+  font-weight: 700;
+}
+.bw-goals li.ok span {
+  color: #f0a800;
+}
+.bw-mult {
+  font-weight: 700;
+  color: #5fe0a8;
+}
+.bw-medal-get {
+  margin-top: 0.3em;
+  font-weight: 700;
+  color: #ffc84a;
+  animation: rageTag 0.9s ease-in-out infinite;
+}
+.bw-medal-get small {
+  display: block;
+  font-size: 0.75em;
+  font-weight: 400;
+  opacity: 0.85;
+}
+.bw-rate-tip {
+  margin-top: 0.2em;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-stars span.on,
+  .bw-medal-get {
+    animation: none;
+  }
+}

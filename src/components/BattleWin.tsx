@@ -3,6 +3,8 @@ import { tr } from '../game/lang'
 import { maxHp } from '../game/progress'
 import { jingle, sfx } from '../game/sound'
 import { levelRate, reduceMotion, useCountUp } from './QuestClear'
+import type { ClearStars } from '../game/clear'
+import { MEDAL_ATK } from '../data/equipment'
 import './BattleWin.css'
 
 /** 戦闘に 勝ったときの リザルト画面（スマホ・PC 共通） */
@@ -17,10 +19,14 @@ interface Props {
   correct: number
   bestCombo: number
   hurt: number
+  /** ボス戦の クリア評価（★の 数で 報酬の 倍率が 変わる。gainExp・gainGold は 倍率 込み） */
+  clear?: ClearStars
+  /** ★3つで 初めて ボスメダルを もらう */
+  medal?: boolean
   onContinue(): void
 }
 
-export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCombo, hurt, onContinue }: Props) {
+export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCombo, hurt, clear, medal, onContinue }: Props) {
   // ざこ戦は テンポ よく（ボスは 少し ためて 見せる）
   const t0 = boss ? 0.45 : 0.25
   const expShown = useCountUp(gainExp, t0 * 1000 + 150)
@@ -37,6 +43,8 @@ export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCo
     const ts: number[] = []
     const at = (ms: number, f: () => void) => ts.push(window.setTimeout(f, ms))
     if (gainGold > 0) at(t0 * 1000 + 450, () => sfx('coin'))
+    if (clear) for (let i = 0; i < clear.stars; i++) at(t0 * 1000 + 250 + i * 300, () => sfx('blip'))
+    if (medal) at(t0 * 1000 + 1300, () => sfx('chest'))
     if (reduceMotion()) {
       if (levelUp) at(200, () => jingle('levelup'))
       return () => ts.forEach(clearTimeout)
@@ -114,6 +122,38 @@ export function BattleWin({ enemy, boss, exp, gainExp, gainGold, correct, bestCo
             </span>
           ))}
         </div>
+
+        {clear && (
+          <div className="bw-rate" style={{ animationDelay: nextDelay() }}>
+            <div className="bw-stars" aria-label={tr(`評価 ★${clear.stars}/3`, `Rating ${clear.stars}/3 stars`)}>
+              {[0, 1, 2].map((i) => (
+                <span key={i} className={i < clear.stars ? 'on' : ''} style={{ animationDelay: `${(t0 + 0.25 + i * 0.3).toFixed(2)}s` }}>
+                  ★
+                </span>
+              ))}
+            </div>
+            <ul className="bw-goals">
+              {[
+                { ok: clear.noMiss, label: tr('ノーミス', 'No mistakes') },
+                { ok: clear.noItem, label: tr('どうぐを 使わない', 'No items used') },
+                { ok: clear.flinched, label: tr('ボスを ひるませる', 'Made the boss flinch') },
+              ].map((g) => (
+                <li key={g.label} className={g.ok ? 'ok' : ''}>
+                  <span aria-hidden="true">{g.ok ? '★' : '☆'}</span> {g.label}
+                </li>
+              ))}
+            </ul>
+            <div className="bw-mult">{tr(`報酬 ×${clear.mult}`, `Rewards ×${clear.mult}`)}</div>
+            {medal ? (
+              <div className="bw-medal-get">
+                {tr('🏅 ボスメダル 獲得！', '🏅 Boss Medal earned!')}
+                <small>{tr(`攻撃力 +${MEDAL_ATK}・すなどけい つき`, `ATK +${MEDAL_ATK} plus an Hourglass`)}</small>
+              </div>
+            ) : (
+              clear.stars < 3 && <div className="bw-rate-tip">{tr('★3つで ボスメダルが もらえる', 'Get all 3 stars to earn a Boss Medal')}</div>
+            )}
+          </div>
+        )}
 
         <div className="qc-tiles">
           <div className="qc-tile exp" style={{ animationDelay: nextDelay() }}>

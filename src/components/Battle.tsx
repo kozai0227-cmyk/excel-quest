@@ -9,6 +9,8 @@ import { drawRows } from '../game/sprites'
 import { CREATURES } from '../game/spriteParts'
 import { maxHp } from '../game/progress'
 import { scaleEnemy } from '../game/scaling'
+import { clearStars, type ClearStars } from '../game/clear'
+import { FLINCH_STREAK, GARBLE_MS, RAGE_HEAL, RAGE_QUICK, RAGE_RULE, garble, rageAtk, rageRuleText, rageTime } from '../game/rage'
 import { gearStats } from '../data/equipment'
 import type { GameState, ItemId } from '../game/types'
 import { useInputMode } from '../game/inputMode'
@@ -29,7 +31,8 @@ interface Props {
   scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
   gs: GameState
   setGs(f: (g: GameState) => GameState): void
-  onWin(): void
+  /** stars：ボス戦の 評価（★の 数 0〜3）。ボス戦 以外は なし */
+  onWin(r?: { stars: number }): void
   onLose(): void
   onFlee(): void
 }
@@ -98,7 +101,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const curKey = useRef('')
   /** 問題ごとに 入力欄を 作り直す */
   const [qNo, setQNo] = useState(0)
-  const [bossHp, setBossHp] = useState(boss.hp)
+  const [bossHp, setBossHp] = useState(() =>
+    boss.boss && !boss.hits && RAGE_RULE[boss.id] && location.hostname === 'localhost' && new URLSearchParams(location.search).has('rage') ? Math.round(boss.hp / 2) : boss.hp,
+  )
   const [phase, setPhase] = useState<Phase>('msg')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     tr(`${bossName}が あらわれた！`, `${bossName} appeared!`),
@@ -113,6 +118,9 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
             ? tr('（答えは タップで 選べるぞ）', '(Tap an answer to choose it.)')
             : tr('（答えは クリック、または 数字キー 1〜4 でも 選べるぞ）', '(Click an answer, or press the number keys 1-4.)'),
         ]
+      : []),
+    ...(ENEMIES[bossId].boss && !ENEMIES[bossId].hits
+      ? [tr(`（${FLINCH_STREAK}れんぞく 正解で ボスが ひるみ、反撃を ふせげる！）`, `(Get ${FLINCH_STREAK} right in a row to make the boss flinch and skip its attack!)`)]
       : []),
   ])
   const after = useRef<() => void>(() => setPhase('command'))
@@ -132,6 +140,18 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   /** リザルト画面用：正解した 数・最高 連続正解・うけた ダメージの 合計 */
   const stats = useRef({ correct: 0, best: 0, hurt: 0 })
   const winDone = useRef(false)
+  /** 本気モード（ボスの HPが 半分を 切ると 入る。チュートリアルには ない） */
+  const rule = boss.boss && !boss.hits ? RAGE_RULE[boss.id] : undefined
+  // 確かめ用（localhost で ?rage を つけると、本気モードから 始まる）
+  const [devRage] = useState(() => !!rule && location.hostname === 'localhost' && new URLSearchParams(location.search).has('rage'))
+  const raged = useRef(devRage)
+  const [rage, setRage] = useState(devRage)
+  /** クリア評価の ための 記録（まちがえた 数・どうぐを 使ったか・ひるませた 数） */
+  const misses = useRef(0)
+  const usedItem = useRef(false)
+  const flinches = useRef(0)
+  /** 本気モードの 選択肢の 動き（消える・入れかわる・文字化け）を 進める 時計 */
+  const [tick, setTick] = useState(0)
   const [buff, setBuff] = useState<{ scroll: boolean; sand: boolean }>({ scroll: false, sand: false })
   const [hit, setHit] = useState(0)
   const [shake, setShake] = useState(0)
@@ -148,7 +168,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const mhp = maxHp(gs.level)
   const gear = gearStats(gs)
   /** 敵の攻撃。守備力（よろい・たて・かぶと）の分だけ軽くなる */
-  const hurt = () => Math.max(1, rand(boss.attack[0], boss.attack[1]) - Math.floor(gear.def * 0.7))
+  const hurt = () => Math.max(1, Math.round((rand(boss.attack[0], boss.attack[1]) - Math.floor(gear.def * 0.7)) * (raged.current && rule ? rageAtk(rule) : 1)))
 
   const say = (list: Msg[], then: () => void) => {
     runFx(list[0])
@@ -185,7 +205,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       setChoices(cs)
     }
     setCursor(0)
-    const limit = (nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000
+    const limit = Math.round(((nq.type === 'choice' ? 20000 : 60000) + gear.time * 1000) * (raged.current && rule ? rageTime(rule, nq.type === 'formula') : 1))
     startedAt.current = Date.now()
     setDeadline(Date.now() + limit)
     setPhase('question')
@@ -258,6 +278,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     if (usedScroll) setBuff((b) => ({ ...b, scroll: false }))
     // まちがえた 問題は 苦手リストへ（正解したら 外す）
     if (!tutorial) markWeak(curKey.current, ok)
+    if (!ok) misses.current++
     if (mode === 'defense') return defend(ok, note)
     if (ok) {
       const limit = deadline - startedAt.current
@@ -274,7 +295,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
         const base = 10 + gs.level * 2 + gear.atk + rand(-2, 3)
         dmg = base * (1 + 0.15 * (c - 1))
         if (quick) {
-          dmg *= 1.25
+          dmg *= raged.current ? RAGE_QUICK : 1.25
           lines.push(tr('そくとう ボーナス！', 'Quick answer bonus!'))
         }
         if (Math.random() < CRIT + gear.crit) {
@@ -299,18 +320,60 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       stats.current.best = Math.max(stats.current.best, c)
       // 倒したら（✨ を 見せた あと）リザルト画面へ。勝利の 音は 画面が 出た 瞬間に
       if (hp <= 0)
-        say(lines, () => {
+        return say(lines, () => {
           cue(tr(`${bossName}を やっつけた！`, `Defeated ${bossName}!`))
           setPhase('win')
         })
-      else if (boss.boss) enemyTurn(lines)
+      // HPが 半分を 切ったら 本気モード
+      if (rule && !raged.current && hp <= boss.hp / 2) {
+        raged.current = true
+        lines.push(
+          {
+            text: tr(`${bossName}の 目の 色が 変わった……！`, `${bossName}'s eyes changed color...!`),
+            fx: () => {
+              setRage(true)
+              sfx('rumble')
+              setShake((s) => s + 1)
+            },
+          },
+          tr(`${bossName}は 本気に なった！ 攻撃が 強くなる！`, `${bossName} got serious! Its attacks grow stronger!`),
+          rageRuleText(rule),
+          tr('（そのかわり 即答ボーナスも 大きくなる！）', '(But the Quick Answer Bonus gets bigger too!)'),
+        )
+      }
+      // れんぞく正解で ボスが ひるむ：反撃なしで こちらの 番
+      if (boss.boss && c % FLINCH_STREAK === 0) {
+        flinches.current++
+        say(
+          [
+            ...lines,
+            { text: tr(`${c}れんぞく！ ${bossName}は ひるんでいる！`, `${c} in a row! ${bossName} flinched!`), fx: () => sfx('crit') },
+            tr('反撃を うけずに すんだ！', 'It could not strike back!'),
+          ],
+          () => setPhase('command'),
+        )
+      } else if (boss.boss) enemyTurn(lines)
       else say(lines, () => setPhase('command'))
     } else {
       sfx('wrong')
       setCombo(0)
       const lines: Msg[] = [note ?? tr('ざんねん……。', 'Too bad...'), tr(`こたえ：${correctText(q)}`, `Answer: ${correctText(q)}`), `（${q.explain}）`]
       // ボス戦：まちがえると 攻撃が 空振りし、そのまま ボスの攻撃へ
-      if (boss.boss) return enemyTurn([...lines, tr('こうげきは 空振りに おわった……。', 'Your attack missed...')])
+      if (boss.boss) {
+        lines.push(tr('こうげきは 空振りに おわった……。', 'Your attack missed...'))
+        if (raged.current && rule === 'heal' && bossHp < boss.hp) {
+          const heal = Math.min(boss.hp - bossHp, Math.round(boss.hp * RAGE_HEAL))
+          lines.push({
+            text: tr(`${bossName}は 力を 取りもどした！ HPが ${heal} 回復！`, `${bossName} regained its strength! Recovered ${heal} HP!`),
+            fx: () => {
+              sfx('heal')
+              setBossHp((h) => Math.min(boss.hp, h + heal))
+              pop('boss', 'heal', `+${heal}`)
+            },
+          })
+        }
+        return enemyTurn(lines)
+      }
       if (buff.sand) {
         setBuff((b) => ({ ...b, sand: false }))
         say([...lines, tr('すなどけいが ひかった！', 'The hourglass glowed!'), tr('ミスが なかったことに なった！', 'Your mistake was undone!')], () => setPhase('command'))
@@ -344,6 +407,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const itemCount = battleItems.reduce((n, id) => n + gs.items[id], 0)
 
   const useItem = (id: ItemId) => {
+    usedItem.current = true
     setGs((g) => ({ ...g, items: { ...g.items, [id]: g.items[id] - 1 } }))
     if (id === 'herb') {
       const heal = Math.min(30, mhp - gs.hp)
@@ -405,12 +469,34 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
     }
   }
 
+  // 本気モードの 選択肢の 動き（答えを 押したら 止める）
+  const choiceFx = rage && phase === 'question' && !!q && !picked && (rule === 'blink' || rule === 'garble' || (rule === 'shuffle' && q.type === 'choice'))
+  const isChoice = q?.type === 'choice'
+  useEffect(() => {
+    if (!choiceFx) return
+    setTick(0)
+    const t = setInterval(() => {
+      setTick((n) => n + 1)
+    }, 250)
+    return () => clearInterval(t)
+  }, [choiceFx, qNo])
+  useEffect(() => {
+    if (choiceFx && isChoice && rule === 'shuffle' && tick > 0 && tick % 10 === 0) setChoices((cs) => shuffle(cs))
+  }, [tick]) // eslint-disable-line react-hooks/exhaustive-deps
+  /** blink：いま 消えている 選択肢（4拍の うち 3拍 消える。どれが 消えるかは 拍ごとに 変わる） */
+  const blinkIdx = choiceFx && isChoice && rule === 'blink' && tick % 4 !== 3 ? (Math.floor(tick / 4) * 7 + qNo * 3) % Math.max(1, choices.length) : -1
+  /** 数式の 問題では 問題文が 消える（6拍の うち 2拍） */
+  const textBlink = choiceFx && !isChoice && rule === 'blink' && tick % 6 >= 4
+  const garbled = choiceFx && rule === 'garble' && tick * 250 < GARBLE_MS
+
   const listLen = phase === 'command' ? 3 : phase === 'items' ? battleItems.length + 1 : phase === 'question' && q?.type === 'choice' ? choices.length : 0
+  /** ボス戦の クリア評価（★）。勝った ときだけ */
+  const clear: ClearStars | undefined = phase === 'win' && rule ? clearStars({ misses: misses.current, usedItem: usedItem.current, flinches: flinches.current }) : undefined
   const finishWin = () => {
     if (winDone.current) return
     winDone.current = true
     sfx('select')
-    onWin()
+    onWin(clear ? { stars: clear.stars } : undefined)
   }
   useKeys(
     (k) => {
@@ -459,7 +545,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
   const portal = (el: ReactElement) => (touchFormula ? createPortal(el, document.body) : el)
 
   return (
-    <div className={`battle bg-${scene} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
+    <div className={`battle bg-${scene} ${rage ? 'rage' : ''} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
       <div className="win status-win" aria-label={`${gs.name} Lv ${gs.level} HP ${gs.hp}/${mhp}`}>
         <div className="hud-head">
           <span className="hud-name">{gs.name}</span>
@@ -484,7 +570,7 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
       <div className="boss-area">
         <div className={`boss-hp${boss.boss ? ' is-boss' : ''}`}>
           <div className="boss-plate">
-            {boss.boss && <span className="boss-tag">BOSS</span>}
+            {boss.boss && <span className={`boss-tag ${rage ? 'enraged' : ''}`}>{rage ? tr('本気', 'RAGE') : 'BOSS'}</span>}
             <span className="boss-name">{bossName}</span>
           </div>
           <HpBar value={bossHp} max={boss.hp} kind="boss" />
@@ -511,17 +597,18 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
               {mode === 'defense'
                 ? tr(`🛡 ${bossName}の 攻撃！ 正解で ダメージを へらせ！`, `🛡 ${bossName} attacks! Answer correctly to reduce damage!`)
                 : tr('⚔ こちらの 攻撃！', '⚔ Your attack!')}
+              {rage && <span className="q-rage">{tr('🔥本気', '🔥Rage')}</span>}
             </div>
           )}
           <TimerBar key={deadline} start={startedAt.current} deadline={deadline} mode={mode} showQuick={showQuick} />
-          <div className="q-text">{q.q}</div>
+          <div className={`q-text ${textBlink ? 'blinked' : ''}`}>{garbled && !isChoice ? garble(q.q, qNo) : q.q}</div>
           {q.type === 'choice' ? (
             <div className="q-choices">
               {choices.map((c, i) => (
                 <div key={c}
-                  className={`opt ${i === cursor && !picked ? 'on' : ''} ${picked?.i === i ? (picked.ok ? 'yes' : 'no') : picked && !picked.ok && c === q.answer ? 'reveal' : picked ? 'dim' : ''}`}
+                  className={`opt ${i === blinkIdx ? 'blinked' : ''} ${i === cursor && !picked ? 'on' : ''} ${picked?.i === i ? (picked.ok ? 'yes' : 'no') : picked && !picked.ok && c === q.answer ? 'reveal' : picked ? 'dim' : ''}`}
                   onPointerEnter={() => !picked && setCursor(i)} onClick={() => choose(i)}>
-                  <span className="num">{i + 1}</span> {c}
+                  <span className="num">{i + 1}</span> {garbled ? garble(c, qNo + i) : c}
                 </div>
               ))}
             </div>
@@ -570,7 +657,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
               </div>
             </div>
           )}
-          <div className="win combo-win">{combo >= 2 ? tr(`🔥 ${combo}れんぞく`, `🔥 ${combo} streak`) : '　'}</div>
+          <div className="win combo-win">
+            {combo >= 2 ? tr(`🔥 ${combo}れんぞく`, `🔥 ${combo} streak`) : '　'}
+            {boss.boss && combo % FLINCH_STREAK === FLINCH_STREAK - 1 && <span className="flinch-next">{tr('あと1問で ひるむ！', '1 more to flinch!')}</span>}
+          </div>
         </div>
       )}
 
@@ -579,8 +669,10 @@ export function Battle({ bossId, tutorial, scene = 'boss', gs, setGs, onWin, onL
           enemy={bossName}
           boss={!!boss.boss}
           exp={gs.exp}
-          gainExp={ENEMIES[bossId].exp}
-          gainGold={ENEMIES[bossId].gold}
+          gainExp={Math.round(ENEMIES[bossId].exp * (clear?.mult ?? 1))}
+          gainGold={Math.round(ENEMIES[bossId].gold * (clear?.mult ?? 1))}
+          clear={clear}
+          medal={!!clear && clear.stars === 3 && !(gs.medals ?? []).includes(boss.id)}
           correct={stats.current.correct}
           bestCombo={stats.current.best}
           hurt={stats.current.hurt}
