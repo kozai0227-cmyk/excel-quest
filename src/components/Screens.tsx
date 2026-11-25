@@ -4,11 +4,13 @@ import { TitleScene } from './TitleScene'
 import { enterFullscreen, isIosBrowser, isTouchDevice, usePhoneLayout } from '../game/layout'
 import { setSoundOn, sfx, useSoundOn } from '../game/sound'
 import { DocView } from './DocView'
+import { SpriteView } from './SpriteView'
+import './NameEntry.css'
 import { isNative } from '../game/native'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import { EN_CHAPTERS } from '../data/en'
 import { CHAPTERS as CHAPTER_DEFS, chapterOpen, chapterTag, totalPercent } from '../data/chapters'
-import { mapName } from '../data/maps'
+import { mapName, PLAYER_SPEC } from '../data/maps'
 import type { GameState } from '../game/types'
 
 type TitleOpt = 'continue' | 'new' | 'study'
@@ -182,23 +184,134 @@ export function Title({ save, onNew, onContinue, onStudy }: { save: GameState | 
   )
 }
 
+/** 名前の 候補（チップと 🎲 で 使う） */
+const NAME_IDEAS_JA = ['サトウ', 'スズキ', 'タカハシ', 'タナカ', 'ユウキ', 'ハルカ', 'ソラ', 'アオイ', 'レン', 'ミオ', 'カナタ', 'ヒカリ']
+const NAME_IDEAS_EN = ['Sato', 'Alex', 'Sam', 'Riley', 'Jamie', 'Kai', 'Mia', 'Leo', 'Nova', 'Max', 'Ruby', 'Finn']
+const pickNames = (n: number, not: string[] = []) => {
+  const pool = (isEn() ? NAME_IDEAS_EN : NAME_IDEAS_JA).filter((x) => !not.includes(x))
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, n)
+}
+
+/**
+ * 主人公の 名前を 決める 画面。主人公が 吹き出しで 話しかけ、
+ * 入力欄（文字数・× で 消す）・名前の 候補チップ・🎲 おまかせ・大きな 立体ボタンで 決める
+ */
 export function NameEntry({ onDone }: { onDone(name: string): void }) {
   // 英語は 1文字が 小さいので 8文字まで
   const max = isEn() ? 8 : 6
   const [name, setName] = useState(() => tr('サトウ', 'Sato'))
+  const [ideas, setIdeas] = useState(() => pickNames(3, [tr('サトウ', 'Sato')]))
+  const inputRef = useRef<HTMLInputElement>(null)
+  const fieldRef = useRef<HTMLLabelElement>(null)
+  const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  /** 🎲 や チップで 入れた ときに 入力欄を ぽんと 弾ませる（入力欄は 作り直さない＝フォーカスを 保つ） */
+  const bounce = () => {
+    if (!still()) fieldRef.current?.animate?.([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'cubic-bezier(0.3, 1.6, 0.5, 1)' })
+  }
+  const shake = () => {
+    if (!still()) fieldRef.current?.animate?.([0, -8, 8, -6, 6, 0].map((x) => ({ transform: `translateX(${x}px)` })), { duration: 320 })
+  }
+  const len = [...name].length
+  const ok = name.trim().length > 0
+  const put = (v: string) => {
+    setName(v)
+    bounce()
+  }
+  const dice = () => {
+    sfx('cursor')
+    const [v] = pickNames(1, [name, ...ideas])
+    put(v ?? tr('サトウ', 'Sato'))
+    setIdeas(pickNames(3, [v]))
+  }
   return (
-    <div className="title-screen">
+    <div className="title-screen name-screen">
       <TitleScene cast={false} />
       <form
-        className="win name-win"
+        className="ne-card"
         onSubmit={(e) => {
           e.preventDefault()
-          if (name.trim()) onDone(name.trim().slice(0, max))
+          if (!ok) {
+            sfx('cancel')
+            shake()
+            inputRef.current?.focus()
+            return
+          }
+          sfx('select')
+          onDone(name.trim().slice(0, max))
         }}
       >
-        <p>{tr(`主人公の なまえを いれてください（${max}文字まで）`, `Enter the hero's name (up to ${max} letters)`)}</p>
-        <input autoFocus maxLength={max} value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn primary">{tr('けってい', 'OK')}</button>
+        <div className="ne-guide">
+          <div className="ne-hero" aria-hidden="true">
+            <SpriteView spec={PLAYER_SPEC} />
+          </div>
+          <p className="ne-bubble">
+            {tr('はじめまして！', 'Nice to meet you!')}
+            <br />
+            <b>{tr('なまえを おしえて！', "What's your name?")}</b>
+          </p>
+        </div>
+        <label className={`ne-field ${ok ? '' : 'empty'}`} ref={fieldRef}>
+          <input
+            ref={inputRef}
+            autoFocus
+            maxLength={max}
+            value={name}
+            enterKeyHint="done"
+            autoComplete="off"
+            spellCheck={false}
+            aria-label={tr('主人公の なまえ', "Hero's name")}
+            placeholder={tr('なまえ', 'Name')}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <span className={`ne-count ${len >= max ? 'full' : ''}`}>
+            {len}/{max}
+          </span>
+          {name && (
+            <button
+              type="button"
+              className="ne-clear"
+              aria-label={tr('消す', 'Clear')}
+              onClick={() => {
+                sfx('cancel')
+                setName('')
+                inputRef.current?.focus()
+              }}
+            >
+              ×
+            </button>
+          )}
+        </label>
+        <div className="ne-ideas">
+          {ideas.map((v) => (
+            <button
+              type="button"
+              key={v}
+              className={`ne-chip ${v === name ? 'on' : ''}`}
+              onClick={() => {
+                sfx('cursor')
+                put(v)
+              }}
+            >
+              {v}
+            </button>
+          ))}
+          <button type="button" className="ne-chip ne-dice" onClick={dice} aria-label={tr('おまかせで きめる', 'Random name')}>
+            🎲 {tr('おまかせ', 'Random')}
+          </button>
+        </div>
+        <p className={`ne-note ${ok ? '' : 'warn'}`}>
+          {ok
+            ? tr(`町の 人から「${name.trim()}」と よばれます`, `Townsfolk will call you "${name.trim()}"`)
+            : tr(`なまえを いれてね（${max}文字まで）`, `Type a name (up to ${max} letters)`)}
+        </p>
+        <button className={`ne-go ${ok ? "" : "off"}`} aria-disabled={!ok}>
+          {tr('この なまえで 冒険に でる', 'Start the adventure')}
+          <span aria-hidden="true">→</span>
+        </button>
       </form>
     </div>
   )
