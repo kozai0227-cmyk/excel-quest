@@ -7,7 +7,8 @@ import { DocView } from './DocView'
 import { isNative } from '../game/native'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import { EN_CHAPTERS } from '../data/en'
-import { CHAPTERS as CHAPTER_DEFS, chapterOpen, chapterTag, totalPercent } from '../data/chapters'
+import { CHAPTERS as CHAPTER_DEFS, chapterOpen, chapterProgress, chapterShort, chapterTag, chapterTopic, totalPercent } from '../data/chapters'
+import { reduceMotion, useCountUp } from './QuestClear'
 import { mapName } from '../data/maps'
 import type { GameState } from '../game/types'
 
@@ -447,28 +448,145 @@ const EN_ENDINGS: typeof CHAPTERS = {
   },
 }
 
-export function Ending({ chapter, name, onDone }: { chapter: number; name: string; onDone(): void }) {
+/** 章を クリアした ときの 紙ふぶき（決まった 並びで 散らす） */
+const CC_CONFETTI = Array.from({ length: 34 }, (_, i) => ({
+  left: `${(i * 29 + 3) % 100}%`,
+  delay: `${0.2 + (i % 9) * 0.09}s`,
+  dur: `${1.8 + (i % 5) * 0.3}s`,
+  color: ['#ffd76a', '#34b578', '#5ab0ff', '#ff7a8a', '#c58bff'][i % 5],
+  rot: `${(i * 47) % 360}deg`,
+}))
+const CC_RAYS = Array.from({ length: 12 }, (_, i) => i * 30)
+
+/** 章クリアの 実績札（数え上がる） */
+function CcStat({ ico, label, pair, delay }: { ico: string; label: string; pair: [number, number]; delay: number }) {
+  const v = useCountUp(pair[0], 700 + delay * 1000)
+  const full = pair[0] === pair[1]
+  return (
+    <div className={`cc-stat${full ? ' full' : ''}`} style={{ animationDelay: `${delay.toFixed(2)}s` }}>
+      <span className="cc-stat-ico" aria-hidden="true">
+        {ico}
+      </span>
+      <span className="cc-stat-val">
+        {v}
+        <small>/{pair[1]}</small>
+      </span>
+      <span className="cc-stat-lbl">{label}</span>
+      {full && (
+        <span className="cc-stat-ok" aria-label={tr('ぜんぶ', 'All')}>
+          ✓
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** 章を クリアした ときの 達成画面（物語の しめくくり・この章の 実績・学んだ 関数・次章予告） */
+export function Ending({ chapter, gs, onDone }: { chapter: number; gs: GameState; onDone(): void }) {
   // 連打で読み飛ばさないよう、少し待ってから入力を受け付ける
   const [ready, setReady] = useState(false)
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 1500)
     return () => clearTimeout(t)
   }, [])
-  useKeys((k) => ready && k === 'ok' && onDone())
+  const done = () => {
+    if (!ready) return
+    sfx('select')
+    onDone()
+  }
+  useKeys((k) => k === 'ok' && done())
   const ch = (isEn() ? EN_ENDINGS[chapter] : undefined) ?? CHAPTERS[chapter] ?? CHAPTERS[1]
+  const def = CHAPTER_DEFS[chapter - 1] ?? CHAPTER_DEFS[0]
+  const final = def.no === CHAPTER_DEFS.length
+  const prog = chapterProgress(def, gs)
+  const total = totalPercent(gs)
+  const totalShown = useCountUp(total, 1500)
+  const [bar, setBar] = useState(() => (reduceMotion() ? total : 0))
+  useEffect(() => {
+    if (reduceMotion()) return
+    const t = setTimeout(() => setBar(total), 1500)
+    return () => clearTimeout(t)
+  }, [total])
+  const learned = chapterTopic(def)
+    .split(/\s*[・、,／/]\s*/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+  const stats: { ico: string; label: string; pair: [number, number] }[] = [
+    { ico: '📜', label: tr('依頼', 'Requests'), pair: prog.quests },
+    { ico: '🔓', label: tr('石版の謎', 'Tablets'), pair: prog.puzzles },
+    { ico: '👑', label: tr('ボス', 'Bosses'), pair: prog.bosses },
+    { ico: '🎁', label: tr('宝箱', 'Chests'), pair: prog.chests },
+  ].filter((s) => s.pair[1] > 0)
+  const tag = chapterTag(def)
+
   return (
-    <div className="ending">
-      <div className="ending-inner">
-        <h2>{ch.title}</h2>
-        {ch.body(name)}
-        <div className="next-chapter">
-          <div>{ch.label ?? tr('次章予告', 'Next Chapter')}</div>
-          <strong>{ch.next[0]}</strong>
-          <p>{ch.next[1]}</p>
+    <div className="ending cc" role="dialog" aria-modal="true" aria-labelledby="cc-title">
+      <div className="qc-confetti cc-confetti" aria-hidden="true">
+        {CC_CONFETTI.map((c, i) => (
+          <i key={i} style={{ left: c.left, background: c.color, animationDelay: c.delay, animationDuration: c.dur, rotate: c.rot }} />
+        ))}
+      </div>
+      <div className="cc-card">
+        <div className="cc-head">
+          <div className="cc-medal" aria-hidden="true">
+            <div className="qc-rays">
+              {CC_RAYS.map((r) => (
+                <i key={r} style={{ rotate: `${r}deg` }} />
+              ))}
+            </div>
+            <div className="cc-badge">{final ? <span className="cc-badge-ico">🏆</span> : <span className="cc-badge-no">{def.no}</span>}</div>
+          </div>
+          <div className="cc-ribbon">{final ? tr('ぜんぶの 章を クリア！', 'Every chapter cleared!') : 'CHAPTER CLEAR'}</div>
+          <h2 id="cc-title" className="cc-title">
+            {tr(`${tag} クリア！`, `${tag} Complete!`)}
+          </h2>
+          <p className="cc-sub">{chapterShort(def)}</p>
+
+          <div className="cc-story">{ch.body(gs.name)}</div>
         </div>
-        <button className="btn primary" disabled={!ready} onClick={onDone}>
-          {tr('ぼうけんを つづける', 'Continue the adventure')}
-        </button>
+        <div className="cc-body">
+          <div className="cc-sec" style={{ animationDelay: '0.6s' }}>
+            {tr('この章の きろく', 'Chapter record')}
+          </div>
+          <div className={`cc-stats n${stats.length}`}>
+            {stats.map((s, i) => (
+              <CcStat key={s.label} {...s} delay={0.65 + i * 0.1} />
+            ))}
+          </div>
+
+          <div className="cc-learn" style={{ animationDelay: '1.05s' }}>
+            <div className="cc-learn-head">
+              <span aria-hidden="true">📘</span> {tr('身につけた ワザ', 'Skills you learned')}
+            </div>
+            <div className="cc-chips">
+              {learned.map((t) => (
+                <span key={t} className="cc-chip">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="cc-total" style={{ animationDelay: '1.2s' }}>
+            <div className="cc-total-head">
+              <span>{tr('冒険の 達成率', 'Adventure progress')}</span>
+              <b>{totalShown}%</b>
+            </div>
+            <div className="cc-total-bar">
+              <div style={{ width: `${bar}%` }} />
+            </div>
+          </div>
+
+          <div className={`cc-next${final ? ' end' : ''}`} style={{ animationDelay: '1.35s' }}>
+            <div className="cc-next-lbl">{ch.label ?? tr('次章予告', 'Next Chapter')}</div>
+            <strong>{ch.next[0]}</strong>
+            <p>{ch.next[1]}</p>
+          </div>
+
+          <button className={`qc-go cc-go${ready ? ' ready' : ''}`} disabled={!ready} onClick={done} style={{ animationDelay: '1.45s' }}>
+            {tr('ぼうけんを つづける', 'Continue the adventure')}
+          </button>
+        </div>
       </div>
     </div>
   )

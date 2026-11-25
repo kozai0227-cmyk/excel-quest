@@ -8911,3 +8911,374 @@ html:lang(en) .fpad-label {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- 章クリアの 達成画面 */
+.ending.cc,
+.phone .ending.cc {
+  display: flex;
+  overflow-y: auto;
+  padding: calc(env(safe-area-inset-top) + 58px) 16px max(18px, env(safe-area-inset-bottom));
+  font-size: 15px;
+  color: #fff;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 200, 80, 0.22), transparent 60%),
+    radial-gradient(circle at 50% 40%, #1d2f5c, #060a18 75%);
+  animation: qcFade 0.3s ease both;
+}
+.cc-card {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  width: min(440px, 100%);
+  margin: auto;
+  padding: 70px 20px 20px;
+  text-align: center;
+  border: 3px solid rgba(255, 230, 150, 0.95);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #1a2850 0%, #0c1430 100%);
+  box-shadow:
+    0 8px 0 #050a1c,
+    0 0 0 6px rgba(255, 210, 90, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: qcCard 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.cc-medal {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 104px;
+  height: 104px;
+  translate: -50% -50%;
+}
+.cc-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 4px solid #fff6d2;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff1a8, #ffc23a 55%, #e08a10 100%);
+  box-shadow:
+    0 6px 0 #9a5208,
+    0 0 0 7px rgba(255, 200, 70, 0.28),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: qcBadge 0.7s 0.15s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.cc-badge::after {
+  /* ツヤが 横切る */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%) -120% 0 / 250% 100% no-repeat;
+  animation: ccShine 2.6s 0.9s ease-in-out infinite;
+}
+.cc-badge-no {
+  font: 900 58px/1 system-ui, sans-serif;
+  color: #fff;
+  text-shadow:
+    0 3px 0 #a5560a,
+    0 0 10px rgba(160, 80, 0, 0.4);
+}
+.cc-badge-ico {
+  font-size: 54px;
+  line-height: 1;
+}
+.cc-ribbon {
+  display: inline-block;
+  padding: 4px 14px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: #3a2200;
+  border-radius: 999px;
+  background: linear-gradient(#ffe27a, #ffb52e);
+  box-shadow: 0 2px 0 #a5560a;
+  animation: qcPop 0.45s 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.cc-title {
+  margin: 10px 0 0;
+  font-size: 28px;
+  line-height: 1.25;
+  color: #ffe070;
+  text-shadow: 0 2px 0 #6a4300;
+  animation: qcUp 0.4s 0.42s ease-out both;
+}
+.cc-sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #c9d4f2;
+  animation: qcUp 0.4s 0.48s ease-out both;
+}
+.cc-story {
+  margin-top: 14px;
+  padding: 4px 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #eef3ff;
+  border-left: 3px solid rgba(255, 224, 112, 0.7);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+  animation: qcUp 0.4s 0.55s ease-out both;
+}
+.cc-story p {
+  margin: 8px 0;
+}
+.cc-sec {
+  margin: 18px 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #9fb0d8;
+  animation: qcUp 0.4s ease-out both;
+}
+.cc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.cc-stats.n3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.cc-stats.n2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.cc-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 9px 4px 7px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  animation: qcPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.cc-stat.full {
+  border-color: rgba(255, 210, 90, 0.75);
+  background: linear-gradient(180deg, rgba(255, 210, 90, 0.2), rgba(255, 210, 90, 0.06));
+}
+.cc-stat-ico {
+  font-size: 20px;
+  line-height: 1.1;
+}
+.cc-stat-val {
+  font-size: 21px;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.cc-stat-val small {
+  font-size: 12px;
+  color: #9fb0d8;
+}
+.cc-stat-lbl {
+  font-size: 11px;
+  color: #c9d4f2;
+  white-space: nowrap;
+}
+.cc-stat-ok {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  font: 900 12px/1 system-ui, sans-serif;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #23a86a;
+}
+.cc-learn,
+.cc-total,
+.cc-next {
+  margin-top: 12px;
+  padding: 11px 12px;
+  text-align: left;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: qcUp 0.4s ease-out both;
+}
+.cc-learn-head,
+.cc-total-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #c9d4f2;
+}
+.cc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.cc-chip {
+  padding: 4px 10px;
+  font-size: 13px;
+  color: #dff7ec;
+  border: 1.5px solid rgba(80, 210, 150, 0.6);
+  border-radius: 999px;
+  background: rgba(52, 181, 120, 0.18);
+}
+.cc-total-head {
+  justify-content: space-between;
+}
+.cc-total-head b {
+  font-size: 18px;
+  color: #ffe070;
+  font-variant-numeric: tabular-nums;
+}
+.cc-total-bar {
+  height: 12px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.cc-total-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(#ffe68a, #ffb52e);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);
+  transition: width 0.9s cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+.cc-next {
+  border: 2px dashed rgba(143, 216, 212, 0.7);
+  background: rgba(143, 216, 212, 0.07);
+}
+.cc-next-lbl {
+  display: inline-block;
+  padding: 2px 9px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #0c2a2a;
+  border-radius: 999px;
+  background: #8fd8d4;
+}
+.cc-next strong {
+  display: block;
+  margin: 6px 0 2px;
+  font-size: 17px;
+  color: #8fd8d4;
+}
+.cc-next p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #dbe4f7;
+}
+.cc-next.end {
+  text-align: center;
+  border-color: rgba(255, 224, 112, 0.7);
+  background: rgba(255, 224, 112, 0.07);
+}
+.cc-next.end .cc-next-lbl {
+  background: #ffe070;
+  color: #3a2200;
+}
+.cc-next.end strong {
+  color: #ffe070;
+  font-size: 22px;
+}
+.cc-go:disabled {
+  cursor: default;
+  filter: saturate(0.4) brightness(0.75);
+}
+.cc-go.ready {
+  animation: ccReady 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+  animation-delay: 0s !important;
+}
+.cc-confetti i {
+  animation-iteration-count: 2;
+}
+@keyframes ccShine {
+  0%,
+  55% {
+    background-position: -120% 0;
+  }
+  100% {
+    background-position: 220% 0;
+  }
+}
+@keyframes ccReady {
+  50% {
+    transform: scale(1.04);
+  }
+}
+@media (max-height: 760px) {
+  .cc-card {
+    padding: 60px 16px 16px;
+  }
+  .cc-medal {
+    width: 88px;
+    height: 88px;
+  }
+  .cc-badge-no {
+    font-size: 48px;
+  }
+  .cc-title {
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ending.cc,
+  .cc-card,
+  .cc-badge,
+  .cc-badge::after,
+  .cc-ribbon,
+  .cc-title,
+  .cc-sub,
+  .cc-story,
+  .cc-sec,
+  .cc-stat,
+  .cc-learn,
+  .cc-total,
+  .cc-next,
+  .cc-go,
+  .cc-go.ready {
+    animation: none;
+  }
+  .cc-total-bar > div {
+    transition: none;
+  }
+  .cc-confetti {
+    display: none;
+  }
+}
+.cc-confetti {
+  position: absolute;
+}
+/* PC：横長の 画面では 左に メダルと 物語、右に きろく */
+.app:not(.phone) .ending.cc {
+  padding: 3cqw;
+}
+.app:not(.phone) .cc-card {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  align-items: center;
+  gap: 26px;
+  width: min(880px, 100%);
+  padding: 26px 26px 22px;
+}
+.app:not(.phone) .cc-medal {
+  position: relative;
+  translate: none;
+  left: auto;
+  margin: 34px auto 34px;
+}
+.app:not(.phone) .cc-sec {
+  margin-top: 0;
+}
+/* スマホ：「つづける」は 親指の 届く 画面下に いつも 見えるように */
+.phone .cc-go {
+  position: sticky;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 3;
+}

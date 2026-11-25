@@ -18,6 +18,7 @@ import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
+import { CHAPTERS } from './data/chapters'
 import { ENEMIES } from './data/bosses'
 import { ITEM_IDS, itemName } from './data/items'
 import { EQUIP, equipName } from './data/equipment'
@@ -209,8 +210,13 @@ export default function App() {
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
     const end = Number(p.get('ending'))
     if (end) {
+      // その章までを 解き終えた 状態で 見せる
+      const done = CHAPTERS.filter((c) => c.no <= end)
+      const solved = Object.values(QUESTS)
+        .filter((q) => done.some((c) => c.towns.includes(q.town) || c.dungeons.includes(q.town)))
+        .map((q) => q.id)
       setChapter(end)
-      return startGame(test, 'ending')
+      return startGame({ ...test, solved, bosses: done.flatMap((c) => c.bosses) }, 'ending')
     }
     const qid = p.get('quest')
     const bid = p.get('boss')
@@ -1218,7 +1224,7 @@ export default function App() {
         {scene === 'ending' && (
           <Ending
             chapter={chapter}
-            name={gs.name}
+            gs={gs}
             onDone={() => {
               setScene('field')
               // 無料で 遊べるのは 第2章まで。続きの 案内を 出す
