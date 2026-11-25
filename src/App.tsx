@@ -198,7 +198,7 @@ export default function App() {
     showBanner(mapName(g.mapId))
   }
 
-  // 開発用：?quest=ID / ?boss=ID / ?prologue / ?at=マップ,x,y / ?ending=章
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -225,7 +225,8 @@ export default function App() {
       setQuestId(qid)
     } else if (bid && ENEMIES[bid]) {
       startGame(test, 'battle')
-      setBattle({ id: bid, scene: ENEMIES[bid].boss ? 'boss' : 'field', tutorial: bid === 'celime_tutorial' })
+      const sc = p.get('scene') as BattleReq['scene'] | null
+      setBattle({ id: bid, scene: sc ?? (ENEMIES[bid].boss ? 'boss' : 'field'), tutorial: bid === 'celime_tutorial' })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
