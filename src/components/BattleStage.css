@@ -1,0 +1,209 @@
+/* 戦闘の 背景の 奥行き（BattleStage.tsx）。場面ごとの 色は 下の 変数で 変える */
+.battle {
+  --st-horizon: 48%;
+  --st-far: rgba(40, 80, 110, 0.85);
+  --st-near: rgba(28, 60, 60, 0.95);
+  --st-line: rgba(255, 255, 255, 0.07);
+  --st-glow: rgba(255, 240, 200, 0.16);
+  --st-haze: rgba(220, 240, 255, 0.16);
+  --st-mote: rgba(255, 255, 255, 0.75);
+}
+.battle.bg-field {
+  --st-far: #2c5a78;
+  --st-near: #2f6a46;
+  --st-glow: rgba(255, 236, 170, 0.22);
+  --st-haze: rgba(200, 240, 255, 0.2);
+  --st-line: rgba(0, 0, 0, 0.12);
+  --st-mote: rgba(255, 255, 220, 0.8);
+}
+.battle.bg-forest {
+  --st-far: #2a5a34;
+  --st-near: #0a2212;
+  --st-glow: rgba(180, 255, 170, 0.14);
+  --st-haze: rgba(150, 230, 160, 0.14);
+  --st-line: rgba(0, 0, 0, 0.16);
+  --st-mote: rgba(200, 255, 140, 0.85);
+}
+.battle.bg-cave {
+  --st-far: #2a221c;
+  --st-near: #1a1511;
+  --st-glow: rgba(255, 180, 110, 0.12);
+  --st-haze: rgba(255, 200, 150, 0.1);
+  --st-line: rgba(0, 0, 0, 0.2);
+  --st-mote: rgba(255, 190, 120, 0.7);
+}
+.battle.bg-boss {
+  --st-horizon: 55%;
+  --st-glow: rgba(140, 200, 255, 0.1);
+  --st-haze: rgba(120, 200, 230, 0.12);
+  --st-line: rgba(120, 200, 230, 0.07);
+  --st-mote: rgba(150, 220, 255, 0.6);
+}
+.battle.bg-temple {
+  --st-haze: rgba(200, 230, 255, 0.18);
+  --st-line: rgba(255, 255, 255, 0.09);
+  --st-mote: rgba(220, 240, 255, 0.85);
+}
+.battle.bg-library,
+.battle.bg-treasury,
+.battle.bg-clock {
+  --st-glow: rgba(255, 210, 130, 0.14);
+  --st-haze: rgba(255, 220, 160, 0.12);
+  --st-line: rgba(0, 0, 0, 0.18);
+  --st-mote: rgba(255, 220, 140, 0.8);
+}
+.battle.bg-printing,
+.battle.bg-ship {
+  --st-glow: rgba(140, 255, 180, 0.1);
+  --st-haze: rgba(160, 255, 200, 0.1);
+  --st-line: rgba(0, 0, 0, 0.18);
+  --st-mote: rgba(170, 255, 200, 0.7);
+}
+.battle.bg-castle {
+  --st-horizon: 55%;
+  --st-glow: rgba(255, 60, 110, 0.14);
+  --st-haze: rgba(255, 80, 130, 0.12);
+  --st-line: rgba(255, 80, 130, 0.08);
+  --st-mote: rgba(255, 120, 160, 0.75);
+}
+
+.bstage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* 戦闘が 始まると カメラが 少し 引いて 落ちつく */
+  animation: bstageIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes bstageIn {
+  from {
+    transform: scale(1.12);
+    opacity: 0.4;
+  }
+}
+/* 空の 光（敵の うしろを ほんのり 明るく） */
+.bstage-glow {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--st-horizon) - 34%);
+  width: 120%;
+  aspect-ratio: 2 / 1;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--st-glow), transparent);
+}
+/* 遠くの 山なみ・森・岩場 */
+.bstage-sky {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 13%;
+  top: calc(var(--st-horizon) - 13% + 1px);
+}
+.bstage-sky .far {
+  fill: var(--st-far);
+  opacity: 0.75;
+}
+.bstage-sky .near {
+  fill: var(--st-near);
+}
+/* 奥へ すぼまる 床（下ほど 手前に 見える） */
+.bstage-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--st-horizon);
+  bottom: 0;
+  perspective: 220px;
+  perspective-origin: 50% 0;
+  overflow: hidden;
+  /* 地平線の 近くは うすく、手前は 少し 暗く */
+  background: linear-gradient(rgba(255, 255, 255, 0.05), transparent 30%, rgba(0, 0, 0, 0.28));
+}
+.bstage-grid {
+  position: absolute;
+  left: -100%;
+  right: -100%;
+  top: 0;
+  height: 300%;
+  transform-origin: 50% 0;
+  transform: rotateX(72deg);
+  background:
+    repeating-linear-gradient(90deg, var(--st-line) 0 2px, transparent 2px 44px),
+    repeating-linear-gradient(0deg, var(--st-line) 0 2px, transparent 2px 52px);
+  -webkit-mask-image: linear-gradient(transparent, #000 12%);
+  mask-image: linear-gradient(transparent, #000 12%);
+}
+/* 地平線の もや */
+.bstage-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--st-horizon) - 6%);
+  height: 12%;
+  background: linear-gradient(transparent, var(--st-haze) 50%, transparent);
+}
+/* ただよう 光の 粒 */
+.bstage-motes i {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--st-mote);
+  box-shadow: 0 0 6px var(--st-mote);
+  opacity: 0;
+  animation: bstageMote 9s ease-in-out infinite;
+}
+@keyframes bstageMote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 12px);
+  }
+  30%,
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(14px, -40px);
+  }
+}
+/* 画面の ふちを 少し 暗く して、真ん中の 敵に 目が いくように */
+.bstage-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 42%, transparent 55%, rgba(0, 0, 0, 0.42));
+}
+
+/* 敵の 足もとの 影（ふわふわ 浮くのに 合わせて 伸び縮み） */
+.foe-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: 22cqw;
+  height: 3.6cqw;
+  margin-left: -11cqw;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.18) 70%, transparent);
+  z-index: -1;
+  animation: foeShadow 1.2s ease-in-out infinite;
+}
+.phone .foe-shadow {
+  width: 50cqw;
+  height: 8cqw;
+  margin-left: -25cqw;
+}
+@keyframes foeShadow {
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bstage,
+  .bstage-motes i,
+  .foe-shadow {
+    animation: none;
+  }
+  .bstage-motes {
+    display: none;
+  }
+}

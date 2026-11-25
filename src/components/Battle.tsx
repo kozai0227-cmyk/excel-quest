@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { BattleStage } from './BattleStage'
 import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
 import { itemDesc, itemName } from '../data/items'
@@ -559,6 +560,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
 
   return (
     <div className={`battle bg-${scene} ${rage ? 'rage' : ''} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
+      <BattleStage scene={scene} />
       <div className="win status-win" aria-label={`${gs.name} Lv ${gs.level} HP ${gs.hp}/${mhp}`}>
         <div className="hud-head">
           <span className="hud-name">{gs.name}</span>
@@ -588,6 +590,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
           </div>
           <HpBar value={bossHp} max={boss.hp} kind="boss" />
         </div>
+        {bossHp > 0 && <div className="foe-shadow" />}
         {bossHp <= 0 ? (
           <div className="boss-gone">✨</div>
         ) : boss.boss && hasBossArt(boss.sprite) ? (
