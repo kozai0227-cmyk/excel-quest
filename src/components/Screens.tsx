@@ -10,7 +10,7 @@ import { isNative } from '../game/native'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import { EN_CHAPTERS } from '../data/en'
 import { CHAPTERS as CHAPTER_DEFS, chapterOpen, chapterTag, totalPercent } from '../data/chapters'
-import { mapName, PLAYER_SPEC } from '../data/maps'
+import { mapName } from '../data/maps'
 import type { GameState } from '../game/types'
 
 type TitleOpt = 'continue' | 'new' | 'study'
@@ -197,7 +197,7 @@ const pickNames = (n: number, not: string[] = []) => {
 }
 
 /**
- * 主人公の 名前を 決める 画面。主人公が 吹き出しで 話しかけ、
+ * 主人公の 名前を 決める 画面。セルイムが 吹き出しで 話しかけ、
  * 入力欄（文字数・× で 消す）・名前の 候補チップ・🎲 おまかせ・大きな 立体ボタンで 決める
  */
 export function NameEntry({ onDone }: { onDone(name: string): void }) {
@@ -246,12 +246,14 @@ export function NameEntry({ onDone }: { onDone(name: string): void }) {
       >
         <div className="ne-guide">
           <div className="ne-hero" aria-hidden="true">
-            <SpriteView spec={PLAYER_SPEC} />
+            <SpriteView creature="celime" />
           </div>
           <p className="ne-bubble">
-            {tr('はじめまして！', 'Nice to meet you!')}
+            {tr('はじめまして！', 'Hi there!')}
             <br />
-            <b>{tr('なまえを おしえて！', "What's your name?")}</b>
+            {tr('ぼく、セルイム。', "I'm Cellime.")}
+            <br />
+            <b>{tr('きみの なまえは？', "What's your name?")}</b>
           </p>
         </div>
         <label className={`ne-field ${ok ? '' : 'empty'}`} ref={fieldRef}>

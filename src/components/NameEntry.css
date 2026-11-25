@@ -44,7 +44,7 @@
   width: 4.4em;
   height: 4.4em;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, #6fb6ff 0%, #2a5fc4 75%);
+  background: radial-gradient(circle at 50% 40%, #fff7d6 0%, #9fd88a 80%);
   border: 2px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 0.2em 0 rgba(0, 0, 0, 0.4);
   overflow: hidden;
