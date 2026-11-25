@@ -1,0 +1,427 @@
+/* ---------------------------------------------------------------- メニュー：つよさ（プロフィール） */
+.stp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65em;
+  line-height: 1.35;
+}
+
+/* 顔・名前・称号・経験値バー */
+.stp-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.85em;
+  padding: 0.7em 0.8em;
+  border-radius: 1em;
+  background: linear-gradient(135deg, rgba(74, 132, 255, 0.24), rgba(140, 92, 255, 0.14));
+  border: 1px solid rgba(160, 190, 255, 0.3);
+  animation: stpIn 0.4s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+.stp-face {
+  position: relative;
+  flex: none;
+}
+.stp .stp-portrait {
+  display: block;
+  width: 4.4em;
+  height: 3.85em;
+  border-radius: 0.8em;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0.2em 0 rgba(0, 0, 0, 0.35);
+  background: #2a3550;
+}
+.stp-lv {
+  position: absolute;
+  left: 50%;
+  bottom: -0.65em;
+  transform: translateX(-50%);
+  padding: 0.05em 0.55em;
+  border-radius: 1em;
+  background: linear-gradient(#ffe27a, #f0b429);
+  color: #3a2600;
+  font-size: 0.72em;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 0.15em 0 #a8740c;
+  animation: stpPop 0.5s 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.stp-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25em;
+}
+.stp-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.2em;
+  font-weight: 800;
+  color: #fff;
+}
+.stp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.1em 0.65em 0.1em 0.45em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.8em;
+  font-weight: 700;
+  color: #dfe7ff;
+}
+.stp-title i {
+  font-style: normal;
+}
+.stp-exp {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  margin-top: 0.1em;
+}
+.stp-bar {
+  height: 0.55em;
+  border-radius: 1em;
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+.stp-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(#ffe27a, #f0b429);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.45);
+  transition: width 0.9s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.stp-exp small {
+  font-size: 0.68em;
+  color: #c3cbe0;
+}
+
+/* 称号の 道のり：3つの 丸を 線で つなぐ（いまの 称号は 光る） */
+.stp-road {
+  display: flex;
+  margin-top: 0.15em;
+}
+.stp-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  text-align: center;
+  animation: stpIn 0.4s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+.stp-link {
+  position: absolute;
+  top: 1.05em;
+  right: 50%;
+  width: 100%;
+  height: 0.28em;
+  margin-right: 1.1em;
+  transform: translateY(-50%);
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.14);
+  z-index: 0;
+}
+.stp-step.past .stp-link,
+.stp-step.now .stp-link {
+  background: linear-gradient(90deg, #f0b429, #ffe27a);
+}
+.stp-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  font-size: 1em;
+}
+.stp-step.past .stp-dot {
+  background: rgba(240, 180, 41, 0.25);
+  border: 2px solid #f0b429;
+}
+.stp-step.now .stp-dot {
+  background: linear-gradient(#ffe27a, #f0b429);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 0 rgba(255, 210, 90, 0.6);
+  animation: stpPulse 1.8s 0.6s ease-out infinite;
+}
+.stp-step-name {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #c3cbe0;
+  line-height: 1.2;
+}
+.stp-step.now .stp-step-name {
+  color: #ffe27a;
+}
+.stp-step.next .stp-step-name {
+  color: #8790a6;
+}
+.stp-step small {
+  font-size: 0.62em;
+  color: #8790a6;
+}
+.stp-road-note {
+  margin: 0;
+  padding: 0.35em 0.7em;
+  border-radius: 0.7em;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.76em;
+  color: #e6ebf7;
+  text-align: center;
+  animation: stpIn 0.4s 0.3s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+
+/* 記録の タイル：2列、押せる ものは 立体で 押すと 沈む */
+.stp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5em;
+}
+.stp-tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'ico val'
+    'ico label'
+    'sub sub';
+  align-items: center;
+  column-gap: 0.55em;
+  row-gap: 0.05em;
+  min-height: 3.6em;
+  padding: 0.55em 0.7em;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0.2em 0 rgba(0, 0, 0, 0.3);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  animation: stpIn 0.4s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+.stp-tile.tap {
+  cursor: pointer;
+  padding-right: 1.4em;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s,
+    background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.stp-tile.tap:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.stp-tile.tap:active {
+  transform: translateY(0.15em);
+  box-shadow: 0 0.05em 0 rgba(0, 0, 0, 0.3);
+}
+.stp-tile.tap:focus-visible {
+  outline: 2px solid #ffd75a;
+  outline-offset: 1px;
+}
+.stp-ico {
+  grid-area: ico;
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  font-size: 1em;
+  background: rgba(255, 255, 255, 0.1);
+}
+.stp-ico.tone-fire {
+  background: linear-gradient(#ffb36b, #ff6a3d);
+}
+.stp-ico.tone-bolt {
+  background: linear-gradient(#ffe27a, #f0b429);
+}
+.stp-ico.tone-scroll {
+  background: linear-gradient(#8fd4ff, #3a8dff);
+}
+.stp-ico.tone-spark {
+  background: linear-gradient(#c9a8ff, #8a5cff);
+}
+.stp-ico.tone-crown {
+  background: linear-gradient(#ffd27a, #e0902a);
+}
+.stp-ico.tone-blade {
+  background: linear-gradient(#ff9a9a, #e0504a);
+}
+.stp-tile.tone-fire:not(.hot) .stp-ico {
+  filter: saturate(0.35) brightness(0.85);
+}
+.stp-tile.hot {
+  background: linear-gradient(rgba(255, 122, 61, 0.22), rgba(255, 122, 61, 0.06));
+  border-color: rgba(255, 170, 110, 0.45);
+}
+.stp-tile.hot .stp-ico {
+  animation: stpFlame 1.6s ease-in-out infinite;
+}
+.stp-val {
+  grid-area: val;
+  display: flex;
+  align-items: baseline;
+  gap: 0.1em;
+  min-width: 0;
+}
+.stp-val b {
+  font-size: 1.25em;
+  font-weight: 900;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.stp-val small {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #aab3c5;
+}
+.stp-label {
+  grid-area: label;
+  min-width: 0;
+  font-size: 0.7em;
+  color: #c3cbe0;
+  line-height: 1.2;
+}
+.stp-sub {
+  grid-area: sub;
+  margin-top: 0.3em;
+  font-size: 0.66em;
+  font-weight: 700;
+  color: #ffd27a;
+  line-height: 1.2;
+}
+.stp-tile.hot .stp-sub {
+  color: #ffb07a;
+}
+.stp-go {
+  position: absolute;
+  right: 0.5em;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 達成率の 輪 */
+.stp-done {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.6em 0.8em;
+  border-radius: 0.9em;
+  background: rgba(47, 191, 138, 0.1);
+  border: 1px solid rgba(126, 226, 184, 0.28);
+  animation: stpIn 0.4s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+.stp-ring {
+  --p: 0;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3.3em;
+  height: 3.3em;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, #1b2236 74%, transparent 75% 100%),
+    conic-gradient(#3ed598 calc(var(--p) * 1%), rgba(255, 255, 255, 0.12) 0);
+  transition: --p 1s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.stp-done.full .stp-ring {
+  background:
+    radial-gradient(closest-side, #1b2236 74%, transparent 75% 100%),
+    conic-gradient(#ffd27a calc(var(--p) * 1%), rgba(255, 255, 255, 0.12) 0);
+}
+.stp-ring span {
+  font-size: 0.8em;
+  font-weight: 900;
+  color: #fff;
+}
+.stp-done-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+.stp-done-text b {
+  font-weight: 800;
+  color: #fff;
+}
+.stp-done-text small {
+  font-size: 0.68em;
+  color: #aab3c5;
+}
+@property --p {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/* PC：パネルに 収まるよう 少し つめ、タイルは 3列 */
+.app:not(.phone) .stp {
+  font-size: 0.92em;
+  gap: 0.55em;
+}
+.app:not(.phone) .stp-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* スマホ：コマンドの 窓（とじる まで）は 縮めず、つよさの 中だけ スクロール */
+.phone .menu-layer:has(.stp) > .menu-cmds {
+  flex-shrink: 0;
+}
+.phone .stp {
+  font-size: 14px;
+  gap: 8px;
+}
+
+@keyframes stpIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+}
+@keyframes stpPop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.4);
+  }
+}
+@keyframes stpPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 210, 90, 0.6);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.6em rgba(255, 210, 90, 0);
+  }
+}
+@keyframes stpFlame {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  50% {
+    transform: scale(1.1) rotate(-4deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stp *,
+  .stp-hero,
+  .stp-tile,
+  .stp-done {
+    animation: none !important;
+    transition: none !important;
+  }
+}

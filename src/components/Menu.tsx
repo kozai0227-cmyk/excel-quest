@@ -3,9 +3,7 @@ import { useKeys } from '../game/keys'
 import { ITEM_IDS, itemName } from '../data/items'
 import { ItemPanel, type ItemFx } from './ItemPanel'
 import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
-import { PLAYER_SPEC } from '../data/maps'
-import { Portrait } from './Portrait'
-import { EQUIP, SLOTS, equipName, gearStats, slotName, type Slot } from '../data/equipment'
+import { EQUIP, SLOTS, equipName, slotName, type Slot } from '../data/equipment'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
@@ -14,6 +12,7 @@ import { isNative } from '../game/native'
 import { DocView } from './DocView'
 import { EquipPanel, slotChoices } from './EquipPanel'
 import { SkillBook } from './SkillBook'
+import { StatusPanel } from './StatusPanel'
 import { totalPercent } from '../data/chapters'
 import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
@@ -95,7 +94,6 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
   const items = ITEM_IDS.filter((id) => gs.items[id] > 0)
   const [eqSlot, setEqSlot] = useState<Slot | null>(null)
   const [ecur, setEcur] = useState(0)
-  const gear = gearStats(gs)
   const inputMode = useInputMode()
   const volume = useVolume()
   /** 設定：ライセンス表記を 開いているか（中身は public/licenses.txt） */
@@ -318,7 +316,6 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     else if (k === 'cancel') onClose()
   })
 
-  const next = expToNext(gs)
   return (
     <div className="menu-layer">
       <div className="win menu-cmds">
@@ -358,24 +355,15 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         </div>
       </div>
       {open && (
-        <div className={`win menu-panel ${open === 'そうび' || open === 'どうぐ' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
+        <div className={`win menu-panel ${open === 'そうび' || open === 'どうぐ' || open === 'つよさ' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
           {open === 'つよさ' && (
-            <div className="stats-wrap">
-            <Portrait src={{ spec: PLAYER_SPEC }} className="portrait big" />
-            <dl className="stats">
-              <dt>{tr('なまえ', 'Name')}</dt><dd>{gs.name}</dd>
-              <dt>{tr('しょくぎょう', 'Job')}</dt>
-              <dd>{gs.level >= 7 ? tr('関数つかい', 'Function Wielder') : gs.level >= 4 ? tr('セル見習い', 'Cell Apprentice') : tr('新入社員', 'New Hire')}</dd>
-              <dt>{tr('レベル', 'Level')}</dt><dd>{gs.level}</dd>
-              <dt>HP</dt><dd>{gs.hp} / {maxHp(gs.level)}</dd>
-              <dt>{tr('けいけんち', 'EXP')}</dt><dd>{gs.exp}{next !== null && tr(`（次まで ${next}）`, ` (${next} to next)`)}</dd>
-              <dt>{tr('ゴールド', 'Gold')}</dt><dd>{gs.gold} G</dd>
-              <dt>{tr('攻撃力', 'Attack')}</dt><dd>+{gear.atk}</dd>
-              <dt>{tr('守備力', 'Defense')}</dt><dd>+{gear.def}{gear.time > 0 && tr(`（回答時間 +${gear.time}秒）`, ` (answer time +${gear.time}s)`)}</dd>
-              <dt>{tr('解決した悩み', 'Requests')}</dt><dd>{tr(`${gs.solved.length} 件`, `${gs.solved.length} solved`)}</dd>
-              <dt>{tr('達成率', 'Completion')}</dt><dd>{totalPercent(gs)}%</dd>
-            </dl>
-            </div>
+            <StatusPanel
+              gs={gs}
+              onJump={(to) => {
+                sfx('select')
+                select(CMDS.indexOf(to))
+              }}
+            />
           )}
           {open === 'そうび' && (
             <EquipPanel
