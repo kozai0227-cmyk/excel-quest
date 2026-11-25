@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { makeCtx, type QuestDef } from '../data/quests'
 import { tr } from '../game/lang'
 import { npcName } from '../data/en'
@@ -55,6 +55,14 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
   // 答えた 手ごたえ：まちがえた ボタン（や 数式）を ゆらす。key を 変えて アニメを 毎回 やり直す
   const [shake, setShake] = useState<{ target: string; key: number }>({ target: '', key: 0 })
   const nudge = (target: string) => setShake((s) => ({ target, key: s.key + 1 }))
+  // この ステップで まちがえた 回数（2回で ヒントを すすめる。0回で 正解なら「一発正解」）
+  const [tries, setTries] = useState(0)
+  const miss = (target: string, m: string) => {
+    sfx('wrong')
+    nudge(target)
+    setTries((t) => t + 1)
+    setMsg(m)
+  }
 
   const focusOf = (s: GuideStep) => (s.kind === 'formula' ? s.target : s.focus?.split(':')[0]) ?? null
   const [inspect, setInspect] = useState<string | null>(() => focusOf(steps[0]))
@@ -73,10 +81,8 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
   const choose = (c: string) => {
     if (step.kind !== 'choice' || solved || picked.includes(c)) return
     if (c !== step.answer) {
-      sfx('wrong')
-      nudge(c)
       setPicked([...picked, c])
-      setMsg(puzzle ? tr('……石版は 反応しない。', '...The tablet does not respond.') : tr('ちがうようだ……。もう一度 考えてみよう。', "That doesn't seem right... Think it over again."))
+      miss(c, puzzle ? tr('……石版は 反応しない。', '...The tablet does not respond.') : tr('ちがうようだ……。もう一度 考えてみよう。', "That doesn't seem right... Think it over again."))
       return
     }
     sfx('correct')
@@ -98,10 +104,8 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
     if (step.kind !== 'formula' || !chips.length) return
     const r = tryFormula(grid, step, '=' + chips.join(''), puzzle)
     if (r.msg) {
-      sfx('wrong')
-      nudge('formula')
       setTrial(r)
-      setMsg(r.msg)
+      miss('formula', r.msg)
       if (r.wrong[0]) setInspect(r.wrong[0])
       return
     }
@@ -137,6 +141,7 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
     setTrial(null)
     setMsg(null)
     setHintOpen(false)
+    setTries(0)
     setShake({ target: '', key: 0 })
     setInspect(focusOf(s))
     card.current?.scrollTo({ top: 0 })
@@ -156,39 +161,91 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
 
   const fillEnd = step.kind === 'formula' && step.fill ? step.fill.split(':')[1] : null
 
-  const feedback = (
-    <div key={shake.key} className="feedback guide-wrong" role="alert">
-      {msg}
+  // 正解したら、緑に なった 答え（や 数式）が 判定シートの 上に 見えるように 送る
+  useEffect(() => {
+    if (!solved) return
+    const id = requestAnimationFrame(() => card.current?.querySelector('.guide-choice.yes, .fpad-formula')?.scrollIntoView({ block: 'nearest' }))
+    return () => cancelAnimationFrame(id)
+  }, [solved, i])
+
+  const canHint = !puzzle && !!step.hint
+  const openHint = () => {
+    if (!hintOpen) setHints((h) => h + 1)
+    setHintOpen(!hintOpen)
+  }
+
+  /** まちがいの 知らせ（まちがえる たびに ポンと 出直す。2回 まちがえたら ヒントを すすめる） */
+  const feedback = msg && (
+    <div key={shake.key} className="qs-fb guide-fb" role="alert">
+      <span className="qs-fb-badge" aria-hidden="true">
+        ✕
+      </span>
+      <div className="qs-fb-body">
+        {!solved && (
+          <b className="qs-fb-title">{puzzle ? tr('反応が ない……', 'No response...') : tries >= 3 ? tr('あきらめないで！', "Don't give up!") : tries === 2 ? tr('もう一息！', 'Almost there!') : tr('おしい！', 'Not quite!')}</b>
+        )}
+        <p>{msg}</p>
+        {!solved && tries >= 2 && canHint && !hintOpen && (
+          <button className="qs-fb-hint" onClick={openHint}>
+            💡 {tr('ヒントを 見てみる？', 'Want a hint?')}
+          </button>
+        )}
+      </div>
     </div>
   )
+
+  const filled = i + (solved ? 1 : 0)
+  // 選択肢が どれも 短いときは 2列に 並べて、親指の 届く 範囲に まとめる
+  const twoCols = step.kind === 'choice' && order.length === 4 && order.every((c) => c.length <= 9)
 
   return (
     <div className="quest-overlay guided">
       <div className="quest">
-        <header className="quest-head">
-          <div className="quest-title">
-            <span className="tag">{puzzle ? tr('謎解き', 'Puzzle') : tr('依頼', 'Request')}</span> {quest.title}
+        <header className="gq-head">
+          <button className="gq-x" onClick={onClose} aria-label={tr('あきらめる', 'Give up')} title={tr('あきらめる', 'Give up')}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+            </svg>
+          </button>
+          {/* 進み具合：1本の バー。正解すると のびる */}
+          <div
+            className="gq-bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={steps.length}
+            aria-valuenow={filled}
+            aria-label={tr(`${steps.length}ステップ中 ${filled}`, `${filled} of ${steps.length} steps`)}
+          >
+            <span style={{ width: `${(filled / steps.length) * 100}%` }} />
           </div>
-          <button className="btn ghost" onClick={onClose}>
-            {tr('あきらめる', 'Give up')}
-          </button>
+          <div className="gq-count">
+            {i + 1}
+            <small>/{steps.length}</small>
+          </div>
         </header>
-        <div className="quest-brief">
-          <button className="brief-toggle" onClick={() => setBrief(!brief)}>
-            <span>{puzzle ? tr('石版の 謎', 'Tablet Puzzle') : tr(`${quest.npc}の 依頼`, `Request from ${npcName(quest.npc)}`)}</span>
-            <span className="muted">{brief ? tr('▲ とじる', '▲ Hide') : tr('▼ やることを 見る', '▼ Show the task')}</span>
+        <div className="gq-sub">
+          <span className={`gq-tag ${puzzle ? 'puzzle' : ''}`}>{puzzle ? tr('🧩 謎解き', '🧩 Puzzle') : tr('📜 依頼', '📜 Request')}</span>
+          <span className="gq-title">
+            {quest.title}
+            {!puzzle && <small>{tr(`${quest.npc}より`, `from ${npcName(quest.npc)}`)}</small>}
+          </span>
+          <button className={`gq-brief-btn ${brief ? 'on' : ''}`} aria-expanded={brief} onClick={() => setBrief(!brief)}>
+            {brief ? tr('▲ とじる', '▲ Hide') : tr('📋 やること', '📋 Task')}
           </button>
-          {brief && (
-            <>
-              <ol>
-                {quest.task.map((t) => (
-                  <li key={t}>{t}</li>
-                ))}
-              </ol>
-              <p className="muted brief-note">{tr('※ 表計算ソフトでの やり方。ここでは 下の 質問に 答えて 進めよう', '* These are the steps in a spreadsheet app. Here, answer the questions below to move ahead.')}</p>
-            </>
-          )}
         </div>
+        {brief && (
+          <div className="gq-brief">
+            <ol>
+              {quest.task.map((t, k) => (
+                <li key={t} style={{ '--i': k } as CSSProperties}>
+                  <span className="gq-brief-no">{k + 1}</span>
+                  {t}
+                </li>
+              ))}
+            </ol>
+            <p className="brief-note">{tr('※ 表計算ソフトでの やり方。ここでは 下の 質問に 答えて 進めよう', '* These are the steps in a spreadsheet app. Here, answer the questions below to move ahead.')}</p>
+          </div>
+        )}
 
         <Sheet
           grid={shown}
@@ -204,99 +261,85 @@ export function GuidedQuest({ quest, steps, onClear, onClose, exp }: Props) {
         />
 
         <div ref={card} className={`guide-card ${solved ? 'solved' : ''}`}>
-          <div className="guide-head">
-            {/* 進み具合：正解すると その ステップの 区切りが 満ちる */}
-            <div
-              className="guide-progress"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={steps.length}
-              aria-valuenow={i + (solved ? 1 : 0)}
-              aria-label={tr('進み具合', 'Progress')}
-            >
-              {steps.map((_, k) => (
-                <span key={k} className={`gp-seg ${k < i || (k === i && solved) ? 'done' : ''} ${k === i ? 'now' : ''}`} />
-              ))}
+          <div key={i} className="guide-step">
+            <div className="guide-head">
+              <span className="guide-kind">{step.kind === 'choice' ? tr('えらぶ', 'Choose') : tr('数式を 作る', 'Build a formula')}</span>
+              {canHint && !solved && (
+                <button className={`guide-hint-btn ${hintOpen ? 'on' : ''}`} aria-expanded={hintOpen} onClick={openHint}>
+                  💡 {hintOpen ? tr('ヒントを とじる', 'Hide hint') : tr('ヒント', 'Hint')}
+                </button>
+              )}
             </div>
-            <span className="guide-no">
-              {puzzle ? tr('謎', 'Puzzle') : tr('ステップ', 'Step')} {i + 1} / {steps.length}
-            </span>
-            {!puzzle && step.hint && !solved && (
-              <button
-                className="guide-hint-btn"
-                onClick={() => {
-                  if (!hintOpen) setHints((h) => h + 1)
-                  setHintOpen(!hintOpen)
-                }}
-              >
-                💡 {tr('ヒント', 'Hint')}
-              </button>
+            <p className="guide-q">{step.q}</p>
+            {hintOpen && !solved && <p className="hint guide-hint">💡 {step.hint}</p>}
+            {!solved && step.kind !== 'choice' && feedback}
+
+            {step.kind === 'choice' ? (
+              <div className={`guide-choices ${twoCols ? 'two' : ''}`}>
+                {order.map((c, k) => (
+                  <button
+                    key={shake.target === c ? `${c}-${shake.key}` : c}
+                    style={{ '--i': k } as CSSProperties}
+                    className={`guide-choice ${picked.includes(c) ? 'no' : ''} ${solved && c === step.answer ? 'yes' : ''} ${solved && c !== step.answer ? 'dim' : ''} ${shake.target === c ? 'shake' : ''}`}
+                    disabled={solved || picked.includes(c)}
+                    onClick={() => choose(c)}
+                  >
+                    <span className="num" aria-hidden="true">
+                      {k + 1}
+                    </span>
+                    <span className="txt">{c}</span>
+                  </button>
+                ))}
+                {/* まちがいの 知らせは 選択肢の 下に 出す（ボタンが 指の 下で ずれないように） */}
+                {!solved && feedback}
+              </div>
+            ) : (
+              <>
+                <div key={shake.target === 'formula' ? shake.key : 0} className={`fpad-formula ${shake.target === 'formula' ? 'shake' : ''} ${solved ? 'ok' : ''}`}>
+                  <span className="fpad-target">{step.target}</span>
+                  <span className="fpad-text">
+                    ={chips.join('')}
+                    {!chips.length && !solved && <span className="fpad-ph">{tr('ボタンか、表を タップ（長押しで 範囲）', 'Tap a button or the sheet (hold for a range)')}</span>}
+                  </span>
+                </div>
+                {!solved && (
+                  <>
+                    <FormulaPad
+                      groups={groups}
+                      onChip={(t) => editChips([...chips, t])}
+                      actions={[
+                        { label: 'F4 ($)', onClick: () => editChips(toggleLastRef(chips)) },
+                        { label: '⌫', onClick: () => editChips(chips.slice(0, -1)) },
+                        { label: tr('クリア', 'Clear'), onClick: () => editChips([]) },
+                      ]}
+                    />
+                    <button className="guide-go gq-go" disabled={!chips.length || !!trial} onClick={submit}>
+                      {fillEnd ? tr(`${step.target} に 入れて、${fillEnd} まで オートフィル`, `Enter in ${step.target} and AutoFill to ${fillEnd}`) : tr(`${step.target} に 入れる`, `Enter in ${step.target}`)}
+                    </button>
+                  </>
+                )}
+              </>
             )}
           </div>
-          <p className="guide-q">{step.q}</p>
-          {hintOpen && !solved && <p className="hint">💡 {step.hint}</p>}
-          {msg && step.kind !== 'choice' && feedback}
-
-          {step.kind === 'choice' ? (
-            <div className="guide-choices">
-              {order.map((c) => (
-                <button
-                  key={shake.target === c ? `${c}-${shake.key}` : c}
-                  className={`guide-choice ${picked.includes(c) ? 'no' : ''} ${solved && c === step.answer ? 'yes' : ''} ${shake.target === c ? 'shake' : ''}`}
-                  disabled={solved || picked.includes(c)}
-                  onClick={() => choose(c)}
-                >
-                  {c}
-                </button>
-              ))}
-              {/* まちがいの 知らせは 選択肢の 下に 出す（ボタンが 指の 下で ずれないように） */}
-              {msg && feedback}
-            </div>
-          ) : (
-            <>
-              <div key={shake.target === 'formula' ? shake.key : 0} className={`fpad-formula ${shake.target === 'formula' ? 'shake' : ''} ${solved ? 'ok' : ''}`}>
-                <span className="fpad-target">{step.target}</span>
-                <span className="fpad-text">
-                  ={chips.join('')}
-                  {!chips.length && !solved && <span className="fpad-ph">{tr('ボタンか、表を タップ（長押しで 範囲）', 'Tap a button or the sheet (hold for a range)')}</span>}
-                </span>
-              </div>
-              {!solved && (
-                <>
-                  <FormulaPad
-                    groups={groups}
-                    onChip={(t) => editChips([...chips, t])}
-                    actions={[
-                      { label: 'F4 ($)', onClick: () => editChips(toggleLastRef(chips)) },
-                      { label: '⌫', onClick: () => editChips(chips.slice(0, -1)) },
-                      { label: tr('クリア', 'Clear'), onClick: () => editChips([]) },
-                    ]}
-                  />
-                  <button className="btn primary guide-go" disabled={!chips.length || !!trial} onClick={submit}>
-                    {fillEnd ? tr(`${step.target} に 入れて、${fillEnd} まで オートフィル`, `Enter in ${step.target} and AutoFill to ${fillEnd}`) : tr(`${step.target} に 入れる`, `Enter in ${step.target}`)}
-                  </button>
-                </>
-              )}
-            </>
-          )}
-
-          {solved && (
-            <>
-              <div className="guide-explain" role="status">
-                <span className="ge-badge" aria-hidden="true">
-                  ✓
-                </span>
-                <span className="ge-body">
-                  <b className="ge-title">{puzzle ? tr('石版が 光った！', 'The tablet glows!') : tr('せいかい！', 'Correct!')}</b>
-                  {step.explain}
-                </span>
-              </div>
-              <button className="btn primary guide-go" onClick={next}>
-                {last ? tr('これで どうだ！', 'How about this!') : tr('つぎへ ▶', 'Next ▶')}
-              </button>
-            </>
-          )}
         </div>
+
+        {/* 判定シート：正解すると 画面の 下から すべり出る。説明と 大きな「つづける」 */}
+        {solved && (
+          <div key={i} className="gq-sheet" role="status">
+            <div className="gq-sheet-top">
+              <span className="gq-badge" aria-hidden="true">
+                ✓
+              </span>
+              <b className="gq-mark">{puzzle ? tr('石版が 光った！', 'The tablet glows!') : tr('せいかい！', 'Correct!')}</b>
+              {tries === 0 && !puzzle && <span className="gq-perfect">{tr('⚡ 一発正解', '⚡ First try')}</span>}
+            </div>
+            <p className="gq-explain">{step.explain}</p>
+            {feedback}
+            <button className="guide-go gq-next" onClick={next}>
+              {last ? tr('これで どうだ！', 'How about this!') : tr('つづける', 'Continue')}
+            </button>
+          </div>
+        )}
       </div>
 
       {cleared && <QuestClear quest={quest} hints={hints} exp={exp} onContinue={() => onClear(hints)} />}
