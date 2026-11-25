@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useKeys } from '../game/keys'
-import { ITEM_IDS, itemDesc, itemName } from '../data/items'
+import { ITEM_IDS, itemName } from '../data/items'
+import { ItemPanel, type ItemFx } from './ItemPanel'
 import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
 import { PLAYER_SPEC } from '../data/maps'
 import { Portrait } from './Portrait'
@@ -144,11 +145,31 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     setEqSlot(null)
   }
 
+  /** どうぐを 使った ときの 手ごたえ（HP カードが 光る・カードが ゆれる） */
+  const [itemFx, setItemFx] = useState<ItemFx | null>(null)
   const useItem = (id: ItemId) => {
-    if (id !== 'herb') return setNote(tr('それは 戦闘中に つかう どうぐだ。', 'That item is for use in battle.'))
-    if (gs.hp >= maxHp(gs.level)) return setNote(tr('HPは まんたんだ。', 'HP is already full.'))
+    const fx = (kind: ItemFx['kind'], heal?: number) => setItemFx({ id, kind, heal, n: Date.now() })
+    if (!gs.items[id]) {
+      sfx('cancel')
+      fx('none')
+      return setNote(tr(`${itemName(id)}は 持っていない。町の 道具屋で 買えるよ。`, `You don't have any ${itemName(id)}. Item shops in town sell them.`))
+    }
+    if (id !== 'herb') {
+      sfx('cancel')
+      fx('battle')
+      return setNote(tr('それは 戦闘中に つかう どうぐだ。戦闘で「どうぐ」を えらぼう。', 'That item is for use in battle. Choose "Items" during a fight.'))
+    }
+    const hpMax = maxHp(gs.level)
+    if (gs.hp >= hpMax) {
+      sfx('cancel')
+      fx('full')
+      return setNote(tr('HPは まんたんだ。', 'HP is already full.'))
+    }
+    const heal = Math.min(30, hpMax - gs.hp)
+    sfx('heal')
+    fx('heal', heal)
     setGs((g) => ({ ...g, hp: Math.min(maxHp(g.level), g.hp + 30), items: { ...g.items, herb: g.items.herb - 1 } }))
-    setNote(tr('やくそうを つかった！ HPが かいふくした。', 'Used a Herb! HP was restored.'))
+    setNote(tr(`やくそうを つかった！ HPが ${heal} かいふくした。`, `Used a Herb! Recovered ${heal} HP.`))
   }
 
   /** 言語を 切りかえる（ページを 読みなおすので、先に セーブする） */
@@ -202,6 +223,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     }
     setOpen(c)
     setIcur(0)
+    setItemFx(null)
   }
 
   /** タイトルへ：0 セーブして もどる　1 セーブせずに もどる　2 やめる */
@@ -262,10 +284,12 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
       else if (k === 'cancel') setOpen(null)
       return
     }
-    if (open === 'どうぐ' && items.length) {
-      if (k === 'up') setIcur((c) => (c + items.length - 1) % items.length)
-      else if (k === 'down') setIcur((c) => (c + 1) % items.length)
-      else if (k === 'ok') useItem(items[icur])
+    if (open === 'どうぐ') {
+      const n = ITEM_IDS.length
+      if (k === 'up' || k === 'down') setKeyed(true)
+      if (k === 'up') setIcur((c) => (c + n - 1) % n)
+      else if (k === 'down') setIcur((c) => (c + 1) % n)
+      else if (k === 'ok') useItem(ITEM_IDS[icur])
       else if (k === 'cancel') setOpen(null)
       return
     }
@@ -334,7 +358,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         </div>
       </div>
       {open && (
-        <div className={`win menu-panel ${open === 'そうび' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
+        <div className={`win menu-panel ${open === 'そうび' || open === 'どうぐ' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
           {open === 'つよさ' && (
             <div className="stats-wrap">
             <Portrait src={{ spec: PLAYER_SPEC }} className="portrait big" />
@@ -469,19 +493,19 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
             </div>
           )}
           {open === 'スキル' && <SkillBook gs={gs} onClose={() => setOpen(null)} />}
-          {open === 'どうぐ' &&
-            (items.length ? (
-              <ul className="item-list">
-                {items.map((id, i) => (
-                  <li key={id} className={`opt ${i === icur ? 'on' : ''}`} onClick={() => { setIcur(i); useItem(id) }}>
-                    <b>{itemName(id)} ×{gs.items[id]}</b>
-                    <span>{itemDesc(id)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>{tr('どうぐを もっていない。', 'You have no items.')}</p>
-            ))}
+          {open === 'どうぐ' && (
+            <ItemPanel
+              gs={gs}
+              cur={icur}
+              ring={keyed || inputMode === 'keyboard'}
+              fx={itemFx}
+              onUse={(i) => {
+                setKeyed(false)
+                setIcur(i)
+                useItem(ITEM_IDS[i])
+              }}
+            />
+          )}
           {note && <p className="note">{note}</p>}
         </div>
       )}

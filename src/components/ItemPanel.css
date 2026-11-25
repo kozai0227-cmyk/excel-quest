@@ -1,0 +1,372 @@
+/* ---------------------------------------------------------------- メニュー：どうぐ */
+.itp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  line-height: 1.35;
+}
+/* HP カード：やくそうを 使うと バーが のびて 光り、「+30」が 浮かぶ */
+.itp-hp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0.8em;
+  border-radius: 0.9em;
+  background: linear-gradient(rgba(47, 191, 138, 0.12), rgba(47, 191, 138, 0.04));
+  border: 1px solid rgba(126, 226, 184, 0.28);
+}
+.itp-hp.low {
+  background: linear-gradient(rgba(255, 90, 90, 0.14), rgba(255, 90, 90, 0.04));
+  border-color: rgba(255, 154, 154, 0.35);
+}
+.itp-hp.glow-0 {
+  animation: itpGlow0 1s ease-out both;
+}
+.itp-hp.glow-1 {
+  animation: itpGlow1 1s ease-out both;
+}
+.itp-hp-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.05em;
+}
+.itp-hp.glow-0 .itp-hp-ico,
+.itp-hp.glow-1 .itp-hp-ico {
+  animation: itpBeat 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.itp-hp-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+.itp-hp-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.itp-hp-top small {
+  font-size: 0.72em;
+  font-weight: 800;
+  color: #7ee2b8;
+  letter-spacing: 0.06em;
+}
+.itp-hp.low .itp-hp-top small {
+  color: #ff9a9a;
+}
+.itp-hp-top b {
+  display: inline-block;
+  font-size: 1.15em;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  transform-origin: left center;
+}
+.itp-hp-top b span {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #aab3c5;
+}
+.itp-hp-top b.bump {
+  animation: eqpBump 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  color: #a6f5d2;
+}
+.itp-bar {
+  height: 0.55em;
+  border-radius: 1em;
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+.itp-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(#7ef0b2, #2fbf8a);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.35);
+  transition: width 0.7s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.itp-hp.low .itp-bar > div {
+  background: linear-gradient(#ff9a8a, #e0504a);
+}
+.itp-hp-note {
+  font-size: 0.68em;
+  color: #aab3c5;
+}
+.itp-float {
+  position: absolute;
+  right: 0.8em;
+  top: 0.2em;
+  font-style: normal;
+  font-size: 1.1em;
+  font-weight: 800;
+  color: #7ee2b8;
+  text-shadow: 0 0.1em 0 #0b0f1a;
+  pointer-events: none;
+  animation: eqpFloat 1.1s ease-out both;
+}
+
+.itp-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.itp-head b {
+  font-weight: 700;
+  color: #fff;
+}
+.itp-head small {
+  margin-left: auto;
+  font-size: 0.72em;
+  color: #aab3c5;
+  white-space: nowrap;
+}
+.itp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+}
+/* どうぐの カード：押すと 沈む（お店・そうびの カードと 同じ 手ざわり） */
+.itp-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 0.7em;
+  border: 2px solid #3a4560;
+  border-bottom-width: 0.3em;
+  border-bottom-color: #252e48;
+  border-radius: 0.85em;
+  background: linear-gradient(#1c2640, #151d33);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    border-bottom-width 0.08s ease,
+    margin-top 0.08s ease,
+    border-color 0.12s ease;
+  animation: shopIn 0.3s cubic-bezier(0.25, 1.3, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 40ms + 40ms);
+}
+.itp-card:active {
+  border-bottom-width: 2px;
+  margin-top: calc(0.3em - 2px);
+}
+@media (hover: hover) {
+  .itp-card:hover {
+    filter: brightness(1.12);
+  }
+}
+.itp.ring .itp-card.on {
+  border-color: #2fbfae;
+  border-bottom-color: #17766c;
+  background: linear-gradient(#1d3446, #152536);
+  outline: 0.18em solid #ffe070;
+  outline-offset: 0.12em;
+}
+.itp-card.empty {
+  border-style: dashed;
+  border-bottom-style: solid;
+  background: rgba(255, 255, 255, 0.03);
+}
+.itp-card.empty .itp-ico {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.itp-card.empty .itp-name,
+.itp-card.empty .itp-desc {
+  opacity: 0.6;
+}
+.itp-card.pop-0 {
+  animation: eqpPop0 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.itp-card.pop-1 {
+  animation: eqpPop1 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.itp-card.shake-0 {
+  animation: itpShake0 0.38s ease both;
+}
+.itp-card.shake-1 {
+  animation: itpShake1 0.38s ease both;
+}
+.itp-ico {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 0.7em;
+  font-size: 1.15em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.itp-minus {
+  position: absolute;
+  top: -0.3em;
+  right: -0.4em;
+  font-style: normal;
+  font-size: 0.62em;
+  font-weight: 800;
+  color: #ffd76a;
+  text-shadow: 0 0.1em 0 #0b0f1a;
+  pointer-events: none;
+  animation: eqpFloat 0.9s ease-out both;
+}
+.itp-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+}
+.itp-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.1em 0.45em;
+  font-weight: 700;
+}
+.itp-count {
+  display: inline-block;
+  font-size: 0.78em;
+  font-weight: 800;
+  padding: 0 0.45em;
+  border-radius: 1em;
+  color: #4a3200;
+  background: #ffd76a;
+  font-variant-numeric: tabular-nums;
+  animation: eqpBump 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.itp-count.zero {
+  color: #aab3c5;
+  background: rgba(255, 255, 255, 0.1);
+  animation: none;
+}
+.itp-desc {
+  font-size: 0.74em;
+  color: #c3cbdb;
+  line-height: 1.4;
+}
+.itp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin-top: 0.15em;
+}
+.itp-tag {
+  font-size: 0.68em;
+  font-weight: 700;
+  padding: 0.08em 0.5em;
+  border-radius: 1em;
+  white-space: nowrap;
+}
+.itp-tag.t-field {
+  color: #7ee2b8;
+  background: rgba(47, 191, 138, 0.16);
+}
+.itp-tag.t-battle {
+  color: #ffc2a0;
+  background: rgba(255, 140, 80, 0.14);
+}
+.itp-tag.t-shop {
+  color: #aab3c5;
+  background: rgba(255, 255, 255, 0.08);
+}
+/* 「つかう」：緑の 立体ボタン。まんたんの ときは 灰色 */
+.itp-use {
+  flex: none;
+  min-width: 4.2em;
+  min-height: 2.4em;
+  padding: 0.2em 0.8em;
+  border: none;
+  border-bottom: 0.25em solid #17805c;
+  border-radius: 0.75em;
+  background: linear-gradient(#45d79e, #2fbf8a);
+  color: #06281b;
+  font: inherit;
+  font-size: 0.85em;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    border-bottom-width 0.08s ease,
+    transform 0.08s ease;
+}
+.itp-use:active {
+  border-bottom-width: 0.05em;
+  transform: translateY(0.2em);
+}
+.itp-use.off {
+  border-bottom-color: #2a3248;
+  background: #3a4560;
+  color: #aab3c5;
+}
+/* PC：少し つめる */
+.app:not(.phone) .itp-card {
+  font-size: 0.9em;
+  padding-block: 0.4em;
+}
+@keyframes itpGlow0 {
+  from {
+    box-shadow: 0 0 0 0.3em rgba(126, 226, 184, 0.4);
+    border-color: rgba(126, 226, 184, 0.9);
+  }
+}
+@keyframes itpGlow1 {
+  from {
+    box-shadow: 0 0 0 0.3em rgba(126, 226, 184, 0.4);
+    border-color: rgba(126, 226, 184, 0.9);
+  }
+}
+@keyframes itpBeat {
+  40% {
+    transform: scale(1.3);
+  }
+}
+@keyframes itpShake0 {
+  25% {
+    transform: translateX(-0.3em);
+  }
+  50% {
+    transform: translateX(0.3em);
+  }
+  75% {
+    transform: translateX(-0.15em);
+  }
+}
+@keyframes itpShake1 {
+  25% {
+    transform: translateX(-0.3em);
+  }
+  50% {
+    transform: translateX(0.3em);
+  }
+  75% {
+    transform: translateX(-0.15em);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .itp-card,
+  .itp-hp,
+  .itp-hp-ico,
+  .itp-hp-top b.bump,
+  .itp-count {
+    animation: none !important;
+  }
+  .itp-float,
+  .itp-minus {
+    display: none;
+  }
+  .itp-bar > div {
+    transition: none;
+  }
+}
