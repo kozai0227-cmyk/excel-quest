@@ -22,6 +22,7 @@ import { judgeFormula } from '../game/judge'
 import { markWeak, questionKey } from '../game/weak'
 import { BossVisual } from './BossVisual'
 import { BattleWin } from './BattleWin'
+import { BattleLose, type Missed } from './BattleLose'
 import { hasBossArt } from '../game/bossArt'
 import { cue, sfx, sfxNow, useBgm } from '../game/sound'
 
@@ -41,7 +42,7 @@ interface Props {
   onFlee(): void
 }
 
-type Phase = 'msg' | 'command' | 'items' | 'question' | 'win'
+type Phase = 'msg' | 'command' | 'items' | 'question' | 'win' | 'lose'
 /** 答え合わせカード：正解・不正解・正しい 答え・自分の 答え・解説を 1枚に まとめて 見せる */
 interface Verdict {
   ok: boolean
@@ -160,6 +161,10 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   /** リザルト画面用：正解した 数・最高 連続正解・うけた ダメージの 合計 */
   const stats = useRef({ correct: 0, best: 0, hurt: 0 })
   const winDone = useRef(false)
+  /** 負けたときの ふりかえり用：まちがえた 問題（新しい 順・同じ 問題は 1つに） */
+  const missed = useRef<Missed[]>([])
+  /** 力つきたら ふりかえり画面へ（閉じたら onLose） */
+  const toLose = () => setPhase('lose')
   /** 本気モード（ボスの HPが 半分を 切ると 入る。チュートリアルには ない） */
   const rule = boss.boss && !boss.hits ? RAGE_RULE[boss.id] : undefined
   // 確かめ用（localhost で ?rage を つけると、本気モードから 始まる）
@@ -297,7 +302,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
           pop('me', 'hurt', `-${dmg}`)
         },
       })
-    if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
+    if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], toLose)
     else say(lines, () => setPhase('command'))
   }
 
@@ -308,7 +313,10 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     if (usedScroll) setBuff((b) => ({ ...b, scroll: false }))
     // まちがえた 問題は 苦手リストへ（正解したら 外す）
     if (!tutorial) markWeak(curKey.current, ok)
-    if (!ok) misses.current++
+    if (!ok) {
+      misses.current++
+      missed.current = [{ q: q.q, answer: correctText(q), explain: q.explain }, ...missed.current.filter((m) => m.q !== q.q)]
+    }
     if (mode === 'defense') return defend(ok, note, mine)
     if (ok) {
       const limit = deadline - startedAt.current
@@ -422,7 +430,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
           pop('me', 'hurt', `-${dmg}`)
         },
       })
-      if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], onLose)
+      if (hp <= 0) say([...lines, tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)], toLose)
       else say(lines, () => setPhase('command'))
     }
   }
@@ -482,7 +490,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
             },
             ...(hp <= 0 ? [tr(`${gs.name}は ちからつきた……。`, `${gs.name} collapsed...`)] : []),
           ],
-          hp <= 0 ? onLose : () => setPhase('command'),
+          hp <= 0 ? toLose : () => setPhase('command'),
         )
       }
     } else if (phase === 'items') {
@@ -536,12 +544,22 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     sfx('select')
     onWin({ stars: clear.stars, retry: true })
   }
+  const finishLose = () => {
+    if (winDone.current) return
+    winDone.current = true
+    sfx('select')
+    onLose()
+  }
   /** ボスメダルを まだ 持っていない（今回も 取れなかった）なら、その場で もう一度 挑戦できる */
   const canRetry = !!clear && clear.stars < 3 && !(gs.medals ?? []).includes(boss.id)
   useKeys(
     (k) => {
       if (phase === 'win') {
         if (k === 'ok') finishWin()
+        return
+      }
+      if (phase === 'lose') {
+        if (k === 'ok') finishLose()
         return
       }
       if (phase === 'msg') {
@@ -723,6 +741,21 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
           bestCombo={stats.current.best}
           hurt={stats.current.hurt}
           onContinue={finishWin}
+        />
+      )}
+
+      {phase === 'lose' && (
+        <BattleLose
+          enemy={bossName}
+          boss={!!boss.boss}
+          enemyLeft={bossHp / boss.hp}
+          correct={stats.current.correct}
+          bestCombo={stats.current.best}
+          missed={missed.current}
+          after={tutorial ? 'tutorial' : rematch ? 'rematch' : gs.lastTown ? 'church' : 'wake'}
+          goldLost={gs.gold - Math.floor(gs.gold / 2)}
+          savedWeak={!tutorial}
+          onContinue={finishLose}
         />
       )}
 
