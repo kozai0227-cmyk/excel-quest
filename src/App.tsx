@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Field, type FieldHandle } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
 import { ShopSheet, type ShopReq } from './components/ShopSheet'
@@ -13,7 +13,7 @@ import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
 import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
-import { FieldStatus, QuestProgress } from './components/FieldHud'
+import { FieldStatus, QuestProgress, type QuestNav } from './components/FieldHud'
 import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
@@ -1165,6 +1165,37 @@ export default function App() {
     return dest?.kind === 'interior' && dest.npcs.some((n) => n.kind === 'quest' && !gsRef.current.solved.includes(n.questId!))
   }
 
+  // 次に 話す 依頼人：この マップに いれば その人、家の 中なら いちばん 近い「！」の ドア
+  const unsolvedNpc = (n: NpcDef) => n.kind === 'quest' && !!n.questId && !gs.solved.includes(n.questId) && !n.hideIf?.(gs)
+  const navKey = scene === 'field' && quests.length && !barrierOpen ? `${map.id}|${gs.solved.join(',')}|${spawn.key}` : ''
+  const questNav = useMemo<QuestNav | undefined>(() => {
+    if (!navKey) return undefined
+    const here = fieldRef.current?.player() ?? pos.current ?? { x: gs.x, y: gs.y }
+    const dist = (x: number, y: number) => Math.abs(x - here.x) + Math.abs(y - here.y)
+    const near = <T extends { x: number; y: number }>(list: T[]) => list.sort((a, b) => dist(a.x, a.y) - dist(b.x, b.y))[0]
+    const npc = near(map.npcs.filter(unsolvedNpc))
+    const door = npc ? undefined : near(map.exits.filter((ex) => MAPS[ex.to]?.kind === 'interior' && MAPS[ex.to].npcs.some(unsolvedNpc)))
+    const who = npc ?? (door && MAPS[door.to].npcs.find(unsolvedNpc))
+    if (!who) return undefined
+    const target = () => (npc ? (fieldRef.current?.pos(npc.id) ?? npc) : door!)
+    return {
+      name: npcName(who.name),
+      inside: !npc,
+      where() {
+        const p = fieldRef.current?.player()
+        if (!p) return null
+        const t = target()
+        return { px: p.x, py: p.y, tx: t.x, ty: t.y }
+      },
+      onGo() {
+        if (pausedRef.current) return
+        sfx('select')
+        const t = target()
+        fieldRef.current?.goTo(t.x, t.y)
+      },
+    }
+  }, [navKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---------------------------------------------------------------- 描画
   const inWorld = scene === 'field' || scene === 'quest' || scene === 'battle'
 
@@ -1189,6 +1220,8 @@ export default function App() {
                 : 'field'
   useBgm(/gallery|soundtest|mapview/.test(location.search) ? null : music)
   const paused = scene !== 'field' || !!dialog || menu || review || travel || busy || flash || unlockOpen || !!guide
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
 
   if (DEV_URL && location.search.includes('gallery')) return <Gallery />
   if (DEV_URL && location.search.includes('soundtest')) return <SoundTest />
@@ -1285,7 +1318,7 @@ export default function App() {
                   ) : barrierOpen ? (
                     <div className="win hud-quest">{tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')}</div>
                   ) : (
-                    <QuestProgress town={map.town ?? map.id} solved={solvedHere} total={quests.length} />
+                    <QuestProgress town={map.town ?? map.id} solved={solvedHere} total={quests.length} nav={questNav} />
                   ))}
               </>
             )}

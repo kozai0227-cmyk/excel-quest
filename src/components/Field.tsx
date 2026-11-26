@@ -48,6 +48,10 @@ export interface FieldHandle {
   face(id: string, dir: Dir): void
   emote(id: string, name: string, ms?: number): void
   player(): { x: number; y: number; dir: Dir }
+  /** キャラの いまの マス（いなければ null） */
+  pos(id: string): { x: number; y: number } | null
+  /** そのマスへ 歩く（人が いれば となりまで 行って 話しかける）。タップと 同じ 動き */
+  goTo(x: number, y: number): void
 }
 
 export interface FieldProps {
@@ -202,6 +206,13 @@ export function Field(props: FieldProps) {
       const p = player.current
       return { x: p.x, y: p.y, dir: p.dir }
     },
+    pos(id) {
+      const a = find(id)
+      return a ? { x: a.moving ? a.tx : a.x, y: a.moving ? a.ty : a.y } : null
+    },
+    goTo(x, y) {
+      goTile(x, y)
+    },
   }))
 
   // マップ切替・ワープ時に位置をリセット
@@ -266,6 +277,11 @@ export function Field(props: FieldProps) {
     const r = cv.getBoundingClientRect()
     const tx = Math.floor((((clientX - r.left) / r.width) * view.current.w + cam.current.x) / TS)
     const ty = Math.floor((((clientY - r.top) / r.height) * view.current.h + cam.current.y) / TS)
+    goTile(tx, ty)
+  }
+  /** マス（tx, ty）へ 歩く。人・看板・扉なら となりまで 歩いて 話しかける */
+  const goTile = (tx: number, ty: number) => {
+    if (P.current.paused) return
     const p = player.current
     const npcAt = (ax: number, ay: number) => all().find((a) => !a.scripted && a.def && ((a.x === ax && a.y === ay) || (a.tx === ax && a.ty === ay)))
     const target = npcAt(tx, ty)
