@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { BattleStage } from './BattleStage'
+import './Verdict.css'
 import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
 import { itemDesc, itemName } from '../data/items'
@@ -41,12 +42,25 @@ interface Props {
 }
 
 type Phase = 'msg' | 'command' | 'items' | 'question' | 'win'
-/** 表示された瞬間に fx を実行するメッセージ（ダメージ反映など） */
-type Msg = string | { text: string; fx: () => void }
+/** 答え合わせカード：正解・不正解・正しい 答え・自分の 答え・解説を 1枚に まとめて 見せる */
+interface Verdict {
+  ok: boolean
+  /** 見出し（せいかい！／ざんねん……。／時間切れ！ など） */
+  title: string
+  /** 正しい 答え（まちがえた ときだけ 出す） */
+  answer?: string
+  /** 自分が 選んだ・入れた 答え */
+  mine?: string
+  explain: string
+  /** 正解の ごほうびの 札（即答・れんぞく） */
+  tags?: string[]
+}
+/** 表示された瞬間に fx を実行するメッセージ（ダメージ反映など）。verdict つきは 答え合わせカードで 見せる */
+type Msg = string | { text: string; fx?: () => void; verdict?: Verdict }
 const runFx = (m?: Msg) => {
   if (!m) return
   cue(typeof m === 'string' ? m : m.text)
-  if (typeof m === 'object') m.fx()
+  if (typeof m === 'object') m.fx?.()
 }
 
 const shuffle = <T,>(a: T[]) => {
@@ -218,7 +232,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   }
 
   // 時間切れ（バーの 動きは TimerBar が CSS で 描くので、ここでは 1回だけ 時計を かける）
-  const answerRef = useRef<(ok: boolean, note?: string) => void>(() => {})
+  const answerRef = useRef<(ok: boolean, note?: string, mine?: string) => void>(() => {})
   useEffect(() => {
     if (phase !== 'question') return
     const t = setTimeout(() => tapAt.current === null && answerRef.current(false, tr('時間切れ！', "Time's up!")), Math.max(0, deadline - Date.now()))
@@ -226,6 +240,16 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   }, [phase, deadline])
 
   const correctText = (x: Question) => (x.type === 'choice' ? x.answer : x.hint)
+  /** 答え合わせカードの メッセージ。text は 効果音（cue）用 */
+  const verdictMsg = (ok: boolean, x: Question, o: { note?: string; mine?: string; tags?: string[]; quick?: boolean } = {}): Msg => {
+    const title = ok ? tr('せいかい！', 'Correct!') : (o.note ?? tr('ざんねん……。', 'Too bad...'))
+    return {
+      text: title,
+      // 即答の 音は 正解の 音の すぐ あとに
+      fx: o.quick ? () => setTimeout(() => sfx('quick'), 260) : undefined,
+      verdict: { ok, title, answer: ok ? undefined : correctText(x), mine: ok ? undefined : o.mine?.trim() || undefined, explain: x.explain, tags: o.tags },
+    }
+  }
 
   /** ボス戦：こちらの攻撃のあと、ボスが問題を出して攻撃してくる */
   const enemyTurn = (pre: Msg[]) => {
@@ -239,13 +263,13 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   }
 
   /** ボスの攻撃の問題に答えた */
-  const defend = (ok: boolean, note?: string) => {
+  const defend = (ok: boolean, note?: string, mine?: string) => {
     if (!q) return
     const full = hurt()
     const lines: Msg[] = []
     let dmg = full
     if (ok) {
-      lines.push(tr('せいかい！', 'Correct!'))
+      lines.push(verdictMsg(true, q))
       if (Math.random() < PERFECT_GUARD) {
         dmg = 0
         lines.push(pick(GUARD_LINES()), { text: tr(`${gs.name}は ダメージを うけなかった！`, `${gs.name} took no damage!`), fx: () => pop('me', 'guard', tr('ノーダメージ', 'No damage')) })
@@ -255,7 +279,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
       }
     } else {
       sfx('wrong')
-      lines.push(note ?? tr('ざんねん……。', 'Too bad...'), tr(`こたえ：${correctText(q)}`, `Answer: ${correctText(q)}`), `（${q.explain}）`)
+      lines.push(verdictMsg(false, q, { note, mine }))
       if (buff.sand) {
         setBuff((b) => ({ ...b, sand: false }))
         dmg = 0
@@ -277,7 +301,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     else say(lines, () => setPhase('command'))
   }
 
-  const answer = (ok: boolean, note?: string) => {
+  const answer = (ok: boolean, note?: string, mine?: string) => {
     if (!q || answered.current) return
     answered.current = true
     const usedScroll = buff.scroll
@@ -285,12 +309,13 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     // まちがえた 問題は 苦手リストへ（正解したら 外す）
     if (!tutorial) markWeak(curKey.current, ok)
     if (!ok) misses.current++
-    if (mode === 'defense') return defend(ok, note)
+    if (mode === 'defense') return defend(ok, note, mine)
     if (ok) {
       const limit = deadline - startedAt.current
       const quick = (tapAt.current ?? Date.now()) - startedAt.current <= limit * QUICK
       const c = combo + 1
-      const lines: Msg[] = [tr('せいかい！', 'Correct!')]
+      const tags: string[] = []
+      const lines: Msg[] = []
       let dmg: number
       let crit = false
       if (boss.hits) {
@@ -302,7 +327,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
         dmg = base * (1 + 0.15 * (c - 1))
         if (quick) {
           dmg *= raged.current ? RAGE_QUICK : 1.25
-          lines.push(tr('そくとう ボーナス！', 'Quick answer bonus!'))
+          tags.push(tr('⚡ そくとう ボーナス', '⚡ Quick bonus'))
         }
         if (Math.random() < CRIT + gear.crit) {
           dmg *= 1.6
@@ -310,8 +335,9 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
           lines.push(tr(`一発決裁！ ${pick(CRIT_LINES())}`, `Instant Approval! ${pick(CRIT_LINES())}`))
         }
         dmg = Math.round(dmg)
-        if (c >= 2) lines.push(tr(`${c}れんぞく せいかい！`, `${c} correct in a row!`))
+        if (c >= 2) tags.push(tr(`🔥 ${c}れんぞく`, `🔥 ${c} in a row`))
       }
+      lines.unshift(verdictMsg(true, q, { tags, quick }))
       const hp = Math.max(0, bossHp - dmg)
       lines.push({
         text: tr(`${bossName}に ${dmg}の ダメージ！`, `${bossName} takes ${dmg} damage!`),
@@ -363,7 +389,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     } else {
       sfx('wrong')
       setCombo(0)
-      const lines: Msg[] = [note ?? tr('ざんねん……。', 'Too bad...'), tr(`こたえ：${correctText(q)}`, `Answer: ${correctText(q)}`), `（${q.explain}）`]
+      const lines: Msg[] = [verdictMsg(false, q, { note, mine })]
       // ボス戦：まちがえると 攻撃が 空振りし、そのまま ボスの攻撃へ
       if (boss.boss) {
         lines.push(tr('こうげきは 空振りに おわった……。', 'Your attack missed...'))
@@ -405,7 +431,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   const submitFormula = (input: string) => {
     if (!q || q.type !== 'formula') return
     const r = judgeFormula(q, input)
-    answer(r.ok, r.note)
+    answer(r.ok, r.note, input)
   }
 
   const commands = [tr('たたかう', 'Fight'), tr('どうぐ', 'Items'), tr('にげる', 'Run')]
@@ -471,7 +497,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
       setPicked({ i, ok })
       // 音と 見た目の 反応は 押した 瞬間に。結果の 文は 反応を 見せてから
       sfxNow(ok ? 'correct' : 'wrong')
-      setTimeout(() => answerRef.current(ok), REDUCED_MOTION() ? 120 : 460)
+      setTimeout(() => answerRef.current(ok, undefined, choices[i]), REDUCED_MOTION() ? 120 : 460)
     }
   }
 
@@ -549,6 +575,8 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
+
+  const verdict = phase === 'msg' && typeof msgs[0] === 'object' ? msgs[0].verdict : undefined
 
   // 即答ボーナスは こちらの攻撃のときだけ（チュートリアルは固定ダメージなので出さない）
   const showQuick = mode === 'attack' && !boss.hits
@@ -698,7 +726,9 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
         />
       )}
 
-      {phase === 'msg' && (
+      {phase === 'msg' && verdict && <VerdictCard key={msgs.length} v={verdict} last={msgs.length <= 1} onNext={() => nextMsg()} />}
+
+      {phase === 'msg' && !verdict && (
         <div
           className="win dialog-win"
           onClick={() => {
@@ -755,6 +785,62 @@ function HpBar({ value, max, kind }: { value: number; max: number; kind: 'me' | 
     <div className={`bar hpbar ${kind} ${level}`}>
       <div className="ghost" style={{ width: `${pct}%` }} />
       <div className="fill" style={{ width: `${pct}%` }} />
+    </div>
+  )
+}
+
+/**
+ * 答え合わせカード（Duolingo の 判定シートの ように）。正解は 緑、まちがいは 赤。
+ * まちがえた ときは 正しい 答えと 自分の 答えを 並べ、解説と 大きな「つづける」を 1枚に まとめる
+ */
+function VerdictCard({ v, last, onNext }: { v: Verdict; last: boolean; onNext(): void }) {
+  return (
+    <div
+      className={`win verdict-win ${v.ok ? 'ok' : 'ng'}`}
+      role="status"
+      aria-live="polite"
+      onClick={() => {
+        if (!last) sfx('blip')
+        onNext()
+      }}
+    >
+      <div className="vd-top">
+        <span className="vd-badge" aria-hidden="true">
+          {v.ok ? '✓' : '✕'}
+        </span>
+        <b className="vd-title">{v.title}</b>
+      </div>
+      {!!v.tags?.length && (
+        <div className="vd-tags">
+          {v.tags.map((t, i) => (
+            <span key={t} className="vd-tag" style={{ animationDelay: `${0.25 + i * 0.12}s` }}>
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+      {v.answer && (
+        <div className="vd-answers">
+          <div className="vd-row">
+            <span className="vd-label">{tr('こたえ', 'Answer')}</span>
+            <span className="vd-chip good">{v.answer}</span>
+          </div>
+          {v.mine && v.mine !== v.answer && (
+            <div className="vd-row">
+              <span className="vd-label">{tr('あなた', 'You')}</span>
+              <span className="vd-chip bad">{v.mine}</span>
+            </div>
+          )}
+        </div>
+      )}
+      <p className="vd-explain">
+        <span aria-hidden="true">💡 </span>
+        {v.explain}
+      </p>
+      {/* 押すと カード全体の onClick で 次へ */}
+      <button className="vd-next">
+        {tr('つづける', 'Continue')}
+      </button>
     </div>
   )
 }

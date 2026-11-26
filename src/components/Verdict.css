@@ -1,0 +1,228 @@
+/* 戦闘の 答え合わせカード（正解は 緑、まちがいは 赤）。下から すべり出て 解説と「つづける」を 見せる */
+.verdict-win {
+  left: 3%;
+  right: 3%;
+  bottom: 3%;
+  z-index: 20;
+  max-height: 62%;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 1.8cqw 2.4cqw 2cqw;
+  border: 0.3cqw solid var(--vd-line);
+  outline: none;
+  border-radius: 2cqw;
+  background: var(--vd-bg);
+  color: var(--vd-fg);
+  font-size: 2.4cqw;
+  line-height: 1.55;
+  cursor: pointer;
+  box-shadow: 0 1.2cqw 3cqw rgba(0, 0, 0, 0.5);
+  animation: vdIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.verdict-win.ok {
+  --vd-bg: #0f3324;
+  --vd-fg: #e6fff0;
+  --vd-line: #3fae7a;
+  --vd-accent: #34b578;
+  --vd-accent-dark: #1f7a4a;
+  --vd-title: #7ee0a6;
+}
+.verdict-win.ng {
+  --vd-bg: #3a1418;
+  --vd-fg: #ffeef0;
+  --vd-line: #d9525e;
+  --vd-accent: #e0505e;
+  --vd-accent-dark: #9a2a35;
+  --vd-title: #ff9aa4;
+}
+.vd-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6cqw 1.2cqw;
+}
+.vd-badge {
+  flex: none;
+  width: 4.2cqw;
+  height: 4.2cqw;
+  border-radius: 50%;
+  background: var(--vd-accent);
+  color: #fff;
+  font-size: 2.4cqw;
+  font-weight: bold;
+  line-height: 4.2cqw;
+  text-align: center;
+  animation: eqPop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both;
+}
+.verdict-win.ng .vd-badge {
+  animation: eqPop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both, eqShake 0.4s ease 0.5s;
+}
+.vd-title {
+  font-size: 3cqw;
+  font-weight: normal;
+  color: var(--vd-title);
+}
+.vd-tag {
+  padding: 0.2cqw 1.2cqw;
+  border-radius: 999px;
+  background: rgba(255, 215, 106, 0.18);
+  color: #ffd76a;
+  font-size: 1.9cqw;
+  white-space: nowrap;
+  animation: eqPop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.vd-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8cqw;
+  margin-top: 1cqw;
+}
+.vd-answers {
+  display: grid;
+  gap: 0.8cqw;
+  margin-top: 1.4cqw;
+}
+.vd-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  min-width: 0;
+  animation: eqRise 0.3s ease both 0.15s;
+}
+.vd-row + .vd-row {
+  animation-delay: 0.25s;
+}
+.vd-label {
+  flex: none;
+  min-width: 7.5cqw;
+  font-size: 1.8cqw;
+  opacity: 0.75;
+}
+.vd-chip {
+  min-width: 0;
+  padding: 0.5cqw 1.4cqw;
+  border-radius: 1cqw;
+  overflow-wrap: anywhere;
+}
+.vd-chip.good {
+  background: #e6fff0;
+  color: #0f5a35;
+  box-shadow: 0 0.4cqw 0 #3fae7a;
+  font-weight: bold;
+}
+.vd-chip.bad {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffb3ba;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 120, 130, 0.8);
+}
+.vd-explain {
+  margin: 1.2cqw 0 0;
+  font-size: 2.1cqw;
+  line-height: 1.6;
+  opacity: 0.92;
+}
+.vd-next {
+  display: block;
+  width: 100%;
+  margin-top: 1.6cqw;
+  padding: 1.2cqw;
+  border: none;
+  border-radius: 1.4cqw;
+  background: var(--vd-accent);
+  box-shadow: 0 0.6cqw 0 var(--vd-accent-dark);
+  color: #fff;
+  font: inherit;
+  font-size: 2.4cqw;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.verdict-win:active .vd-next,
+.vd-next:active {
+  transform: translateY(0.5cqw);
+  box-shadow: 0 0.1cqw 0 var(--vd-accent-dark);
+}
+@keyframes vdIn {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+}
+
+/* スマホ */
+.phone .screen .verdict-win {
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  max-height: 66%;
+  padding: 14px 16px 14px;
+  border-width: 2px;
+  border-radius: 20px;
+  font-size: 16px;
+  box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.45);
+}
+.phone .vd-top {
+  gap: 4px 10px;
+}
+.phone .vd-badge {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  line-height: 32px;
+}
+.phone .vd-title {
+  font-size: 21px;
+}
+.phone .vd-tags {
+  gap: 6px;
+  margin-top: 8px;
+}
+.phone .vd-tag {
+  padding: 2px 10px;
+  font-size: 13px;
+}
+.phone .vd-answers {
+  gap: 8px;
+  margin-top: 12px;
+}
+.phone .vd-row {
+  gap: 10px;
+}
+.phone .vd-label {
+  min-width: 52px;
+  font-size: 13px;
+}
+.phone .vd-chip {
+  padding: 5px 12px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+.phone .vd-chip.good {
+  box-shadow: 0 3px 0 #3fae7a;
+}
+.phone .vd-explain {
+  margin-top: 10px;
+  font-size: 14px;
+}
+.phone .vd-next {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 14px;
+  box-shadow: 0 5px 0 var(--vd-accent-dark);
+  font-size: 18px;
+}
+.phone .verdict-win:active .vd-next,
+.phone .vd-next:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--vd-accent-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict-win,
+  .vd-badge,
+  .verdict-win.ng .vd-badge,
+  .vd-tag,
+  .vd-row {
+    animation: none;
+  }
+}
