@@ -1,0 +1,224 @@
+/* ---------------------------------------------------------------- 戦闘で 力つきたときの ふりかえり（依頼クリアの qc- 部品を 使い回す） */
+.bl-modal {
+  z-index: 120;
+  background: radial-gradient(circle at 50% 40%, rgba(40, 24, 70, 0.74), rgba(0, 0, 0, 0.82));
+}
+.bl-card {
+  padding-top: 60px;
+  border-color: rgba(214, 200, 255, 0.85);
+  background: linear-gradient(180deg, #221a46 0%, #110c2a 100%);
+  box-shadow:
+    0 8px 0 #07041a,
+    0 20px 50px rgba(0, 0, 0, 0.6);
+}
+/* 目を 回した メダル：紫（勝ちの 青・金と 区別） */
+.bl-badge {
+  font-size: 44px;
+  text-shadow: none;
+  background: radial-gradient(circle at 35% 30%, #b9a2ff, #6a4fd0 70%);
+  box-shadow:
+    0 6px 0 #3a2a85,
+    0 0 0 6px rgba(150, 120, 255, 0.28),
+    0 10px 30px rgba(0, 0, 0, 0.45);
+  animation: qcBadge 0.65s 0.15s cubic-bezier(0.2, 1.6, 0.4, 1) both, blWobble 2.6s 0.9s ease-in-out infinite;
+}
+.bl-ribbon {
+  display: inline-block;
+  margin: 0 0 4px;
+  padding: 2px 14px;
+  font: 800 12px/1.6 system-ui, sans-serif;
+  letter-spacing: 0.22em;
+  color: #ddd2ff;
+  border-radius: 999px;
+  background: rgba(150, 120, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(190, 170, 255, 0.45);
+  animation: qcUp 0.35s 0.2s ease-out both;
+}
+.bl-title {
+  font-size: 28px;
+  color: #e9e2ff;
+  text-shadow: 0 2px 0 #3a2a85;
+}
+
+/* 敵の 残りHP：満タンから 今の 残りまで 減っていく */
+.bl-foe {
+  margin-top: 14px;
+  padding: 10px 12px 12px;
+  text-align: left;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  animation: qcUp 0.4s ease-out both;
+}
+.bl-foe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.bl-foe-head b {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: #fff;
+}
+.bl-foe.close .bl-foe-head b {
+  color: #ffd76a;
+}
+.bl-foe-head span {
+  flex: none;
+  font-size: 12px;
+  color: #b9b2d8;
+  white-space: nowrap;
+}
+.bl-foe-bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.bl-foe-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(#ff8a8a, #e23c4e);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
+  transition: width 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.bl-chips {
+  margin-top: 10px;
+}
+.bw-chip.miss {
+  color: #ffc9d2;
+  background: rgba(255, 80, 110, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 120, 140, 0.4);
+}
+
+/* まちがえた 問題の おさらい */
+.bl-review {
+  margin-top: 14px;
+  text-align: left;
+  animation: qcUp 0.4s ease-out both;
+}
+.bl-review h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #ffe070;
+}
+.bl-review ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bl-review li {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border-left: 4px solid #34b578;
+}
+.bl-q {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #d7d2ee;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bl-a {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 5px 0 0;
+  font-size: 15px;
+  color: #7ee2a8;
+}
+.bl-a code {
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  word-break: break-all;
+}
+.bl-ex {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #a9a3c8;
+}
+.bl-more {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #a9a3c8;
+  text-align: right;
+}
+
+/* このあと どうなるか・つぎの 一手 */
+.bl-notes {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  animation: qcUp 0.4s ease-out both;
+}
+.bl-notes:empty {
+  display: none;
+}
+.bl-notes li {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #d0cae8;
+}
+.bl-notes li > span {
+  flex: none;
+}
+
+@keyframes blWobble {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 8deg;
+  }
+}
+@media (max-height: 860px) {
+  .bl-card .qc-sub {
+    display: none;
+  }
+}
+@media (max-height: 760px) {
+  .bl-card {
+    padding-top: 52px;
+  }
+  .bl-review li {
+    padding: 8px 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bl-badge,
+  .bl-ribbon,
+  .bl-foe,
+  .bl-review,
+  .bl-notes {
+    animation: none;
+  }
+  .bl-foe-bar > div {
+    transition: none;
+  }
+}
