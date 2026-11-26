@@ -81,13 +81,8 @@ export function SettingsPanel({ volume, volRows, rows, cur, ring, unlocked, free
     onPick(i)
     f()
   }
-  const unlockNote = !isNative
-    ? unlocked
-      ? [tr('Web版は 全章 遊べます', 'All open on the web'), 'ok']
-      : [tr('アプリ版で 遊べます', 'In the iPhone app'), 'mute']
-    : unlocked
-      ? [tr('購入ずみ', 'Purchased'), 'ok']
-      : [tr(`第${freeChapters + 1}章〜`, `Ch. ${freeChapters + 1}+`), 'gold']
+  // 全章解放の 札は アプリ版だけ（購入ずみ／第◯章〜）
+  const unlockNote = !isNative ? null : unlocked ? [tr('購入ずみ', 'Purchased'), 'ok'] : [tr(`第${freeChapters + 1}章〜`, `Ch. ${freeChapters + 1}+`), 'gold']
   const other = rows.filter((r) => r !== 'lang')
   const langI = rows.indexOf('lang')
 
@@ -169,7 +164,7 @@ export function SettingsPanel({ volume, volRows, rows, cur, ring, unlocked, free
                   {ico}
                 </span>
                 <span className="stg-label">{label}</span>
-                {row === 'unlock' && <span className={`stg-pill p-${unlockNote[1]}`}>{unlockNote[0]}</span>}
+                {row === 'unlock' && unlockNote && <span className={`stg-pill p-${unlockNote[1]}`}>{unlockNote[0]}</span>}
                 <span className="stg-chev" aria-hidden>
                   ›
                 </span>

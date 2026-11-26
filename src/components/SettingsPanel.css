@@ -313,10 +313,6 @@
   background: rgba(255, 216, 74, 0.16);
   color: #ffd84a;
 }
-.stg-pill.p-mute {
-  background: rgba(255, 255, 255, 0.08);
-  color: #aab4c8;
-}
 
 /* スマホ：指で 押しやすく */
 .phone .stg {
