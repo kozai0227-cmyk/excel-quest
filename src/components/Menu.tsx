@@ -7,15 +7,16 @@ import { EQUIP, SLOTS, equipName, slotName, type Slot } from '../data/equipment'
 import { isEn, langSwitchVisible, setLang, tr } from '../game/lang'
 import type { GameState, ItemId } from '../game/types'
 import { setInputMode, useInputMode } from '../game/inputMode'
-import { isTouchDevice, usePhoneLayout } from '../game/layout'
+import { usePhoneLayout } from '../game/layout'
 import { isNative } from '../game/native'
 import { DocView } from './DocView'
 import { EquipPanel, slotChoices } from './EquipPanel'
 import { SkillBook } from './SkillBook'
 import { StatusPanel } from './StatusPanel'
+import { SettingsPanel, type SetRow } from './SettingsPanel'
 import { totalPercent } from '../data/chapters'
 import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
-import { VOLUME_MAX, jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
+import { jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
 const VOL_ROWS: [keyof Volume, () => string][] = [
   ['bgm', () => 'BGM'],
@@ -59,7 +60,6 @@ const chunk = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length
 /** タイトルへ もどる ときの 選択肢 */
 const TITLE_OPTS = () => [tr('セーブして もどる', 'Save and return'), tr('セーブせずに もどる', 'Return without saving'), tr('やめる', 'Cancel')]
 /** 設定の 音量より 下の 行（言語は 切りかえを 出すときだけ） */
-type SetRow = 'lang' | 'lic' | 'privacy' | 'unlock'
 const setRows = (): SetRow[] => (langSwitchVisible() ? ['lang', 'lic', 'privacy', 'unlock'] : ['lic', 'privacy', 'unlock'])
 /** iPhone アプリでは 入力方式の 切り替えを 出さない（ボタン入力 だけ） */
 const CMDS = ALL_CMDS.filter((c) => !(isNative && c === 'にゅうりょく'))
@@ -248,6 +248,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         }
         return
       }
+      if (k === 'up' || k === 'down' || k === 'left' || k === 'right') setKeyed(true)
       if (k === 'up') setIcur((c) => (c + rows - 1) % rows)
       else if (k === 'down') setIcur((c) => (c + 1) % rows)
       else if ((k === 'left' || k === 'right') && icur < VOL_ROWS.length) changeVolume(VOL_ROWS[icur][0], volume[VOL_ROWS[icur][0]] + (k === 'right' ? 1 : -1))
@@ -355,7 +356,7 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
         </div>
       </div>
       {open && (
-        <div className={`win menu-panel ${open === 'そうび' || open === 'どうぐ' || open === 'つよさ' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
+        <div className={`win menu-panel ${open === 'そうび' || open === 'どうぐ' || open === 'つよさ' || open === '設定' ? 'tall' : ''} ${open === 'スキル' ? 'is-book' : ''}`}>
           {open === 'つよさ' && (
             <StatusPanel
               gs={gs}
@@ -389,83 +390,28 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
             />
           )}
           {open === '設定' && (
-            <div className="settings">
-              <h4>{tr('サウンド', 'Sound')}</h4>
-              {VOL_ROWS.map(([kind, labelOf], i) => {
-                const label = labelOf()
-                return (
-                <div key={kind} className={`vol-row ${i === icur ? 'on' : ''}`} onClick={() => setIcur(i)}>
-                  <span className="vol-label">{label}</span>
-                  <button type="button" className="vol-btn" data-nosfx onClick={() => changeVolume(kind, volume[kind] - 1)} aria-label={tr(`${label}を 小さく`, `${label} down`)}>
-                    ◀
-                  </button>
-                  <div className="vol-bar">
-                    {Array.from({ length: VOLUME_MAX }, (_, n) => (
-                      <span key={n} className={n < volume[kind] ? 'lit' : ''} onClick={() => changeVolume(kind, n + 1 === volume[kind] ? n : n + 1)} />
-                    ))}
-                  </div>
-                  <button type="button" className="vol-btn" data-nosfx onClick={() => changeVolume(kind, volume[kind] + 1)} aria-label={tr(`${label}を 大きく`, `${label} up`)}>
-                    ▶
-                  </button>
-                  <span className="vol-num">{volume[kind] === 0 ? 'OFF' : volume[kind]}</span>
-                </div>
-                )
-              })}
-              <p className="muted vol-help">
-                {isTouchDevice ? tr('◀ ▶ で 調整。', 'Adjust with ◀ ▶. ') : tr('◀ ▶（← →キー）で 調整。', 'Adjust with ◀ ▶ (← → keys). ')}
-                {tr('0 に すると 消える。', '0 turns it off.')}
-              </p>
-              {setRows().map((row, j) => {
-                const i = VOL_ROWS.length + j
-                const on = icur === i ? 'on' : ''
-                const pick = (f: () => void) => () => {
+            <>
+              <SettingsPanel
+                volume={volume}
+                volRows={VOL_ROWS}
+                rows={setRows()}
+                cur={icur}
+                ring={keyed || inputMode === 'keyboard'}
+                unlocked={unlocked}
+                freeChapters={FREE_CHAPTERS}
+                onPick={(i) => {
+                  setKeyed(false)
                   setIcur(i)
-                  f()
-                }
-                if (row === 'lang')
-                  return (
-                    <div key={row}>
-                      <h4>{tr('言語', 'Language')}</h4>
-                      <div className={`opt lic-row ${on}`} onClick={pick(switchLang)}>
-                        🌐 {isEn() ? 'English' : '日本語'}
-                        <small>{tr('：選ぶと セーブして English に', ': select to save and switch to 日本語')}</small>
-                      </div>
-                    </div>
-                  )
-                if (row === 'lic')
-                  return (
-                    <div key={row}>
-                      <h4>{tr('そのほか', 'Other')}</h4>
-                      <div className={`opt lic-row ${on}`} onClick={pick(openLicenses)}>
-                        {tr('ライセンス表記', 'License Notices')}
-                      </div>
-                    </div>
-                  )
-                if (row === 'privacy')
-                  return (
-                    <div key={row} className={`opt lic-row ${on}`} onClick={pick(() => setPrivacy(true))}>
-                      {tr('プライバシーポリシー', 'Privacy Policy')}
-                    </div>
-                  )
-                return (
-                  <div key={row} className={`opt lic-row ${on}`} onClick={pick(openUnlock)}>
-                    {tr('全章解放', 'Unlock All Chapters')}
-                    <small>
-                      {tr('：', ': ')}
-                      {!isNative
-                        ? unlocked
-                          ? tr('Web版は 全章 遊べます', 'all open on the web')
-                          : tr('アプリ版で 遊べます', 'in the iPhone app')
-                        : unlocked
-                          ? tr('購入ずみ', 'purchased')
-                          : tr(`購入・復元（第${FREE_CHAPTERS + 1}章〜）`, `buy / restore (Ch. ${FREE_CHAPTERS + 1}+)`)}
-                    </small>
-                  </div>
-                )
-              })}
+                }}
+                onVolume={changeVolume}
+                onLang={switchLang}
+                onLicenses={openLicenses}
+                onPrivacy={() => setPrivacy(true)}
+                onUnlock={openUnlock}
+              />
               {privacy && <DocView src={tr('/privacy.html', '/privacy.html#en')} title={tr('プライバシーポリシー', 'Privacy Policy')} onClose={() => setPrivacy(false)} />}
               {lic !== null && <DocView text={lic} title={tr('ライセンス表記', 'License Notices')} onClose={() => setLic(null)} />}
-            </div>
+            </>
           )}
           {open === 'タイトルへ' && (
             <div className="to-title">

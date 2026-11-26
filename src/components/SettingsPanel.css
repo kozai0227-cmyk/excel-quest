@@ -1,0 +1,362 @@
+/* ---------------------------------------------------------------- メニュー：設定（iPhone の 設定アプリ風の グループ カード） */
+.stg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  line-height: 1.35;
+}
+.stg-group {
+  animation: stgIn 0.38s cubic-bezier(0.25, 1, 0.4, 1) both;
+}
+.stg-cap {
+  margin: 0 0 0.4em 0.9em;
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #9fb0d0;
+}
+.stg-foot {
+  margin: 0.45em 0.9em 0;
+  font-size: 0.72em;
+  color: #8d9bb8;
+}
+.stg-card {
+  position: relative;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* 行（あいだに 細い 区切り線。アイコンの 右から 引く） */
+.stg-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  width: 100%;
+  padding: 0.65em 0.85em;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.stg-card > .stg-row + .stg-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 3.15em;
+  right: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+.stg.ring .stg-row.on {
+  box-shadow: inset 0 0 0 2px #ffd84a;
+  border-radius: 0.9em;
+  background: rgba(255, 216, 74, 0.08);
+}
+.stg.ring .stg-row.on::before,
+.stg.ring .stg-row.on + .stg-row::before {
+  border-top-color: transparent;
+}
+
+/* 丸い 色つき アイコン */
+.stg-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75em;
+  height: 1.75em;
+  border-radius: 0.5em;
+  font-size: 1em;
+  line-height: 1;
+  box-shadow: inset 0 -0.12em 0 rgba(0, 0, 0, 0.18);
+}
+.i-bgm {
+  background: linear-gradient(#ff7aa8, #e9457e);
+}
+.i-sfx {
+  background: linear-gradient(#ffb44d, #f07f1c);
+}
+.i-lic {
+  background: linear-gradient(#8aa0bf, #5f7392);
+}
+.i-pri {
+  background: linear-gradient(#5aa8ff, #2f74e0);
+}
+.i-unl {
+  background: linear-gradient(#ffe27a, #e9a91c);
+}
+.stg-vol.off .stg-ico {
+  background: linear-gradient(#6d7790, #4c5468);
+}
+.stg-label {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+}
+
+/* 音量：アイコン・名前・− スライダー ＋・数字 を 1行に */
+.stg-vol {
+  gap: 0.55em;
+  padding-block: 0.45em;
+}
+.stg-vol .stg-label {
+  flex: 0 0 3.6em;
+  white-space: nowrap;
+}
+.stg-val {
+  flex: none;
+  min-width: 2.4em;
+  padding: 0.1em 0.55em;
+  border-radius: 1em;
+  background: rgba(111, 220, 140, 0.16);
+  color: #8ef0a8;
+  font-weight: 800;
+  font-size: 0.85em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  animation: stgPop 0.28s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.stg-vol.off .stg-val {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9aa4b8;
+}
+.stg-step {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0.14em 0 rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s,
+    opacity 0.15s;
+}
+/* − ＋ は 線で 描く（ドット文字だと 小さく 見える） */
+.stg-step::before,
+.stg-step.plus::after {
+  content: '';
+  grid-area: 1 / 1;
+  width: 0.75em;
+  height: 0.14em;
+  border-radius: 0.1em;
+  background: currentColor;
+}
+.stg-step.plus::after {
+  transform: rotate(90deg);
+}
+.stg-step:active:not(:disabled) {
+  transform: translateY(0.14em) scale(0.94);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.2);
+}
+.stg-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* スライダー（押せる 範囲は 線より 太く） */
+.stg-slider {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 2.1em;
+  display: flex;
+  align-items: center;
+  touch-action: none;
+  cursor: pointer;
+}
+.stg-track {
+  position: relative;
+  width: 100%;
+  height: 0.5em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.stg-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 1em;
+  background: linear-gradient(90deg, #4fcf7a, #8ef0a8);
+  transition: width 0.18s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.stg-track i {
+  position: absolute;
+  top: 50%;
+  width: 0.18em;
+  height: 0.18em;
+  margin: -0.09em 0 0 -0.09em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+}
+.stg-track i.lit {
+  background: rgba(20, 70, 40, 0.35);
+}
+.stg-knob {
+  position: absolute;
+  top: 50%;
+  width: 1.35em;
+  height: 1.35em;
+  margin: -0.675em 0 0 -0.675em;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0.12em 0.35em rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+  transition:
+    left 0.18s cubic-bezier(0.25, 1, 0.4, 1),
+    transform 0.12s;
+  pointer-events: none;
+}
+.stg-slider:active .stg-knob {
+  transform: scale(1.18);
+  transition:
+    left 0.05s,
+    transform 0.12s;
+}
+.stg-slider:active .stg-fill {
+  transition: width 0.05s;
+}
+
+/* 言語：切りかえ ボタン（白い 札が すべる） */
+.stg-lang.stg-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0.25em;
+  width: 100%;
+}
+.stg-seg-pill {
+  position: absolute;
+  top: 0.25em;
+  bottom: 0.25em;
+  left: 0.25em;
+  width: calc(50% - 0.25em);
+  border-radius: 0.7em;
+  background: #fff;
+  box-shadow: 0 0.12em 0.3em rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.stg-seg-pill.r {
+  transform: translateX(100%);
+}
+.stg-seg {
+  position: relative;
+  z-index: 1;
+  padding: 0.5em 0.4em;
+  border: 0;
+  background: transparent;
+  color: #c9d3e6;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 0.7em;
+  transition: color 0.2s;
+}
+.stg-seg.cur {
+  color: #1d2640;
+  cursor: default;
+}
+.stg-seg:not(.cur):active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* そのほか：› つきの 行（押すと 沈んで 明るく） */
+.stg-link {
+  cursor: pointer;
+}
+.stg-link:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+.stg-link:active .stg-ico {
+  transform: scale(0.92);
+}
+.stg-link .stg-ico {
+  transition: transform 0.1s;
+}
+.stg-chev {
+  flex: none;
+  color: #7f8ba6;
+  font-size: 1.3em;
+  font-weight: 700;
+  line-height: 1;
+}
+.stg-pill {
+  flex: none;
+  max-width: 48%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.15em 0.6em;
+  border-radius: 1em;
+  font-size: 0.72em;
+  font-weight: 800;
+}
+.stg-pill.p-ok {
+  background: rgba(111, 220, 140, 0.16);
+  color: #8ef0a8;
+}
+.stg-pill.p-gold {
+  background: rgba(255, 216, 74, 0.16);
+  color: #ffd84a;
+}
+.stg-pill.p-mute {
+  background: rgba(255, 255, 255, 0.08);
+  color: #aab4c8;
+}
+
+/* スマホ：指で 押しやすく */
+.phone .stg {
+  font-size: 14px;
+  gap: 10px;
+}
+.phone .stg-row {
+  min-height: 3.1em;
+}
+/* スマホ：コマンドの 窓（とじる まで）は 縮めず、設定の 中だけ スクロール */
+.phone .menu-layer:has(.stg) > .menu-cmds {
+  flex-shrink: 0;
+}
+.phone .stg-step {
+  width: 2.4em;
+  height: 2.4em;
+}
+.phone .stg-slider {
+  height: 2.4em;
+}
+
+@keyframes stgIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+}
+@keyframes stgPop {
+  from {
+    transform: scale(1.3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-group,
+  .stg-val {
+    animation: none !important;
+  }
+  .stg-fill,
+  .stg-knob,
+  .stg-seg-pill {
+    transition: none !important;
+  }
+}

@@ -3849,66 +3849,6 @@ html:lang(en) .fpad-label {
   gap: 8px;
 }
 
-/* メニュー：せってい（サウンド） */
-.settings h4 {
-  margin: 0 0 0.6em;
-  color: #ffe070;
-  font-weight: normal;
-}
-.vol-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.35em 0.4em;
-  border-radius: 6px;
-  margin-bottom: 0.3em;
-}
-.vol-row.on {
-  background: rgba(255, 255, 255, 0.1);
-}
-.vol-label {
-  width: 4em;
-  flex: none;
-}
-.vol-btn {
-  flex: none;
-  width: 2em;
-  height: 2em;
-  border: 2px solid #fff;
-  border-radius: 6px;
-  background: #222;
-  color: #fff;
-  font: inherit;
-  font-size: 0.85em;
-  cursor: pointer;
-}
-.vol-bar {
-  flex: 1;
-  display: flex;
-  gap: 3px;
-  min-width: 0;
-}
-.vol-bar span {
-  flex: 1;
-  height: 1.1em;
-  border: 1px solid #888;
-  border-radius: 2px;
-  cursor: pointer;
-}
-.vol-bar span.lit {
-  background: #6fdc8c;
-  border-color: #6fdc8c;
-}
-.vol-num {
-  width: 2.2em;
-  flex: none;
-  text-align: right;
-}
-.vol-help {
-  font-size: 0.8em;
-  margin: 0.6em 0 0;
-}
-
 /* ボス戦：大きな ボスと オーラ */
 .boss-stage {
   position: relative;
@@ -4679,10 +4619,6 @@ html:lang(en) .fpad-label {
   min-height: 52px;
 }
 
-/* 設定：ライセンス表記 */
-.lic-row {
-  margin-top: 0.3em;
-}
 /* タイトル：はじめから の 上書き確認 */
 .title-screen .title-confirm {
   position: fixed;
