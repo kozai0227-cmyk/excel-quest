@@ -1311,12 +1311,19 @@ export default function App() {
             />
             {scene === 'field' && !menu && !review && (
               <>
-                <FieldStatus gs={gs} />
+                <FieldStatus
+                  gs={gs}
+                  onOpen={() => {
+                    if (paused) return
+                    sfx('select')
+                    setMenu(true)
+                  }}
+                />
                 {quests.length > 0 &&
                   (townBoss && gs.bosses.includes(townBoss) ? (
-                    <div className="win hud-quest">{tr('★ この町は 平和になった', '★ Peace has returned')}</div>
+                    <div className="hud-quest hq-note peace">{tr('★ この町は 平和になった', '★ Peace has returned')}</div>
                   ) : barrierOpen ? (
-                    <div className="win hud-quest">{tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')}</div>
+                    <div className="hud-quest hq-note open">{tr('⚔ 北の結界が とけた！', '⚔ The barrier is gone!')}</div>
                   ) : (
                     <QuestProgress town={map.town ?? map.id} solved={solvedHere} total={quests.length} nav={questNav} />
                   ))}

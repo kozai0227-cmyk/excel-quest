@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { tr } from '../game/lang'
 import { LEVEL_EXP, expToNext, maxHp } from '../game/progress'
 import type { GameState } from '../game/types'
+import { PLAYER_SPEC } from '../data/maps'
+import { Portrait } from './Portrait'
+
+/** 状態カードの 顔（毎回 同じ ものを わたして 描きなおしを 防ぐ） */
+const FACE = { spec: PLAYER_SPEC }
 
 /**
  * フィールドの 状態ウインドウ・依頼の 進み具合。
@@ -38,13 +43,50 @@ function useGrow(id: string, rate: number, epoch = 0) {
 function Bar({ id, rate, kind, epoch, low }: { id: string; rate: number; kind: 'hp' | 'exp'; epoch?: number; low?: boolean }) {
   const { shown, gained } = useGrow(id, rate, epoch)
   return (
-    <div className={`hud-bar ${kind}${low ? ' low' : ''}${gained ? ' gain' : ''}`}>
-      <div style={{ width: `${shown * 100}%` }} />
-    </div>
+    <span className={`hud-bar ${kind}${low ? ' low' : ''}${gained ? ' gain' : ''}`}>
+      <span style={{ width: `${shown * 100}%` }} />
+    </span>
   )
 }
 
-export function FieldStatus({ gs }: { gs: GameState }) {
+/** 所持金：増えたら 前の 額から 数え上がり、「+12」が 浮かぶ（減ったら すぐ 変わる） */
+function useGold(gold: number) {
+  const [shown, setShown] = useState(() => (seen.gold ? seen.gold.rate : gold))
+  const [gain, setGain] = useState(0)
+  useEffect(() => {
+    const from = shown
+    seen.gold = { rate: gold, epoch: 0 }
+    if (gold === from) return
+    if (gold < from || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShown(gold)
+      return
+    }
+    let raf = 0
+    const t = setTimeout(() => {
+      setGain(gold - from)
+      const t0 = performance.now()
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / 700)
+        setShown(Math.round(from + (gold - from) * (1 - (1 - k) ** 3)))
+        if (k < 1) raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }, 320)
+    return () => {
+      clearTimeout(t)
+      cancelAnimationFrame(raf)
+    }
+  }, [gold]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!gain) return
+    const t = setTimeout(() => setGain(0), 1600)
+    return () => clearTimeout(t)
+  }, [gain])
+  return { shown, gain }
+}
+
+/** 左上の 状態カード：顔（Lv バッジ）・名前・所持金・HP／経験値バー。押すと メニューを 開く */
+export function FieldStatus({ gs, onOpen }: { gs: GameState; onOpen?: () => void }) {
   const hpMax = maxHp(gs.level)
   const hpRate = Math.min(1, Math.max(0, gs.hp / hpMax))
   const base = LEVEL_EXP[gs.level] ?? 0
@@ -52,26 +94,54 @@ export function FieldStatus({ gs }: { gs: GameState }) {
   const expRate = next === undefined ? 1 : Math.min(1, Math.max(0, (gs.exp - base) / (next - base)))
   const toNext = expToNext(gs)
   const expLabel = toNext === null ? 'EXP MAX' : tr(`次の レベルまで あと ${toNext}`, `${toNext} EXP to next level`)
+  const low = hpRate <= 0.3
+  const gold = useGold(gs.gold)
+  // レベルが 上がって もどったら バッジが ポンと はねる
+  const [lvUp] = useState(() => !!seen.lv && seen.lv.rate < gs.level)
+  useEffect(() => {
+    seen.lv = { rate: gs.level, epoch: 0 }
+  }, [gs.level])
   return (
-    <div className="win hud" aria-label={tr('いまの 状態', 'Current status')}>
-      <div className="hud-head">
-        <span className="hud-name">{gs.name}</span>
-        <span className="hud-lv">Lv {gs.level}</span>
-      </div>
-      <div className="hud-row">
-        <span className="hud-key">HP</span>
-        <Bar id="hp" kind="hp" rate={hpRate} low={hpRate <= 0.3} />
-        <span className="hud-val">
-          {gs.hp}/{hpMax}
+    <button
+      type="button"
+      className={`hud${low ? ' low' : ''}`}
+      onClick={onOpen}
+      aria-label={tr(
+        `${gs.name}、レベル ${gs.level}、HP ${gs.hp}/${hpMax}、${gs.gold} ゴールド。押すと メニュー`,
+        `${gs.name}, level ${gs.level}, HP ${gs.hp}/${hpMax}, ${gs.gold} gold. Tap for menu`,
+      )}
+    >
+      <span className="hud-face" aria-hidden>
+        <Portrait src={FACE} className="portrait hud-portrait" />
+        <span className={`hud-lv${lvUp ? ' up' : ''}`}>
+          <small>Lv</small>
+          {gs.level}
         </span>
-      </div>
-      <div className="hud-row" title={expLabel} aria-label={expLabel}>
-        <span className="hud-key">EX</span>
-        <Bar id="exp" kind="exp" rate={expRate} epoch={gs.level} />
-        <span className="hud-val">{toNext === null ? 'MAX' : tr(`あと${toNext}`, `${toNext} left`)}</span>
-      </div>
-      <div className="hud-gold">{gs.gold} G</div>
-    </div>
+      </span>
+      <span className="hud-main" aria-hidden>
+        <span className="hud-head">
+          <span className="hud-name">{gs.name}</span>
+          <span className={`hud-gold${gold.gain ? ' gain' : ''}`}>
+            <i className="hud-coin" />
+            {gold.shown}
+            {gold.gain > 0 && <b className="hud-plus">+{gold.gain}</b>}
+          </span>
+        </span>
+        <span className="hud-row">
+          <span className="hud-key">HP</span>
+          <Bar id="hp" kind="hp" rate={hpRate} low={low} />
+          <span className="hud-val">
+            {gs.hp}
+            <small>/{hpMax}</small>
+          </span>
+        </span>
+        <span className="hud-row" title={expLabel}>
+          <span className="hud-key">EX</span>
+          <Bar id="exp" kind="exp" rate={expRate} epoch={gs.level} />
+          <span className="hud-val">{toNext === null ? 'MAX' : tr(`あと${toNext}`, `${toNext} left`)}</span>
+        </span>
+      </span>
+    </button>
   )
 }
 
@@ -124,8 +194,17 @@ export function QuestProgress({ town, solved, total, nav }: { town: string; solv
   if (h) turn.current += ((((h.deg - turn.current) % 360) + 540) % 360) - 180
   const near = !!h && h.steps <= 1
   return (
-    <div className={`win hud-quest${nav ? ' has-nav' : ''}`}>
-      <div className="hq-label">{tr(`悩み解決 ${solved}/${total}`, `Requests ${solved}/${total}`)}</div>
+    <div className={`hud-quest${nav ? ' has-nav' : ''}`}>
+      <div className="hq-label">
+        <span className="hq-ico" aria-hidden>
+          📜
+        </span>
+        <span className="hq-title">{tr('悩み解決', 'Requests')}</span>
+        <span className={`hq-count${solved >= total ? ' done' : ''}`}>
+          {solved}
+          <small>/{total}</small>
+        </span>
+      </div>
       <div className="hq-pips" aria-hidden>
         {Array.from({ length: total }, (_, i) => (
           <span
