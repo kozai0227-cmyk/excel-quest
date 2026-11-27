@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Field, type FieldHandle } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
 import { ShopSheet, type ShopReq } from './components/ShopSheet'
+import { InnSheet, type InnReq } from './components/InnSheet'
 import { Menu } from './components/Menu'
 import { Study } from './components/Study'
 import { QuestScreen } from './components/QuestScreen'
@@ -30,7 +31,7 @@ import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
 import type { Dir, Exit, GameState, NpcDef } from './game/types'
 import { WALKABLE } from './game/tiles'
 import { isTouchDevice, usePhoneLayout } from './game/layout'
-import { bgm, jingle, sfx, useBgm } from './game/sound'
+import { bgm, sfx, useBgm } from './game/sound'
 import type { SongName } from './data/music'
 import { isNative } from './game/native'
 import { askReviewAfter, isUnlocked, openUnlock, useUnlockScreen, useUnlocked } from './game/store'
@@ -70,6 +71,7 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [shop, setShop] = useState<ShopReq | null>(null)
   const [chest, setChest] = useState<ChestReq | null>(null)
+  const [inn, setInn] = useState<InnReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
   /** はじめて フィールドに 出たときの「タップで 歩く」案内（数歩 歩くと 消える） */
@@ -200,7 +202,7 @@ export default function App() {
     showBanner(mapName(g.mapId))
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?inn=HP,所持金
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -210,6 +212,14 @@ export default function App() {
     const test = { ...newGame(tr('サトウ', 'Sato')), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
     const ch = p.get('chest')
+    const innHp = p.get('inn')
+    if (innHp !== null) {
+      // 宿屋の シートだけを 見る（?inn=HP、?inn=HP,所持金）
+      const [h, gd] = innHp.split(',').map(Number)
+      startGame({ ...test, mapId: 'celuno', x: 10, y: 10, hp: Number.isFinite(h) && innHp ? h : 18, gold: Number.isFinite(gd) ? gd : test.gold }, 'field')
+      setTimeout(() => setInn({ title: mapName('celuno'), keeper: npcName('宿屋'), price: INN_PRICE, close: () => setInn(null) }), 300)
+      return
+    }
     if (ch) {
       // 宝箱の ごほうび画面だけを 見る（開けた あとの 状態に して 出す）
       const it = ITEM_IDS.find((id) => id === ch)
@@ -290,24 +300,19 @@ export default function App() {
           break
         }
         case 'inn': {
-          const i = await say(
-            [tr(`いらっしゃいませ！ ふかふかの ベッドが 1泊 ${INN_PRICE}ゴールド。泊まって いかれます？`, `Welcome! A fluffy bed is ${INN_PRICE} gold a night. Will you stay?`)],
-            [tr('はい', 'Yes'), tr('いいえ', 'No')],
+          // 宿屋は 回復量と 料金が 先に 見える シートで 泊まる（会話の「はい／いいえ」では HP が どれだけ 戻るか わからなかった）
+          await new Promise<void>((resolve) =>
+            setInn({
+              title: mapName(MAPS[g.mapId]?.town ?? g.mapId) || mapName(g.mapId),
+              keeper: npcName(npc.name),
+              portrait: face,
+              price: INN_PRICE,
+              close: () => {
+                setInn(null)
+                resolve()
+              },
+            }),
           )
-          if (i !== 0) {
-            await say([tr('またの おこしを おまちしております。', 'We hope to see you again.')])
-            break
-          }
-          if (g.gold < INN_PRICE) {
-            await say([tr('おや、ゴールドが 足りないようですね……。', "Oh dear, it seems you don't have enough gold...")])
-            break
-          }
-          setGs((s) => ({ ...s, gold: s.gold - INN_PRICE, hp: maxHp(s.level) }))
-          jingle('inn')
-          setFade(true)
-          await sleep(1200)
-          setFade(false)
-          await say([tr('窓から 朝の 光が さしこんで、目が さめた。', 'Morning light streams through the window, and you wake up.'), tr('体が 軽い！ HPが まんたんに なった！', 'You feel light! HP was fully restored!')])
           break
         }
         case 'shop':
@@ -1400,6 +1405,7 @@ export default function App() {
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
             {chest && scene === 'field' && <ChestReward req={chest} gs={gs} setGs={setGs} />}
+            {inn && scene === 'field' && <InnSheet req={inn} gs={gs} setGs={setGs} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onRematch={startRematch} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
