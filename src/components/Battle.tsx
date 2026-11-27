@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import { BattleStage } from './BattleStage'
 import './Verdict.css'
+import './BattleLog.css'
+import { Portrait } from './Portrait'
+import { PLAYER_SPEC } from '../data/maps'
 import { createPortal } from 'react-dom'
 import { ENEMIES, type BossDef, type Question, type QuestionSrc } from '../data/bosses'
 import { itemDesc, itemName } from '../data/items'
@@ -195,8 +198,15 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   /** 敵の攻撃。守備力（よろい・たて・かぶと）の分だけ軽くなる */
   const hurt = () => Math.max(1, Math.round((rand(boss.attack[0], boss.attack[1]) - Math.floor(gear.def * 0.7)) * (raged.current && rule ? rageAtk(rule) : 1)))
 
+  /** メッセージの まとまりの 番号と 件数（窓の 下の 点・文字送りの 区切りに 使う） */
+  const sayNo = useRef(0)
+  const msgTotal = useRef(msgs.length)
+  /** 文字送り中なら 全部 出して true を 返す（キー操作で 1回目は 送らずに 文字を 出しきる） */
+  const logSkip = useRef<() => boolean>(() => false)
   const say = (list: Msg[], then: () => void) => {
     runFx(list[0])
+    sayNo.current++
+    msgTotal.current = list.length
     setMsgs(list)
     after.current = then
     setPhase('msg')
@@ -564,6 +574,7 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
       }
       if (phase === 'msg') {
         if (k === 'ok' || k === 'cancel') {
+          if (logSkip.current()) return
           if (msgs.length > 1) sfx('blip')
           nextMsg()
         }
@@ -607,7 +618,11 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   return (
     <div className={`battle bg-${scene} ${rage ? 'rage' : ''} ${shake % 2 ? 'shake-a' : shake ? 'shake-b' : ''}`}>
       <BattleStage scene={scene} />
-      <div className="win status-win" aria-label={`${gs.name} Lv ${gs.level} HP ${gs.hp}/${mhp}`}>
+      <div
+        className={`win status-win bl-status ${gs.hp / mhp <= 0.25 ? 'pinch' : ''} ${pops.some((x) => x.on === 'me' && x.kind === 'hurt') ? 'is-hurt' : ''} ${pops.some((x) => x.on === 'me' && x.kind === 'heal') ? 'is-heal' : ''}`}
+        aria-label={`${gs.name} Lv ${gs.level} HP ${gs.hp}/${mhp}`}
+      >
+        <Portrait src={PLAYER_SPEC_SRC} className="portrait bl-face" />
         <div className="hud-head">
           <span className="hud-name">{gs.name}</span>
           <span className="hud-lv">Lv {gs.level}</span>
@@ -762,18 +777,21 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
       {phase === 'msg' && verdict && <VerdictCard key={msgs.length} v={verdict} last={msgs.length <= 1} onNext={() => nextMsg()} />}
 
       {phase === 'msg' && !verdict && (
-        <div
-          className="win dialog-win"
-          onClick={() => {
+        <BattleLog
+          key={sayNo.current}
+          msgKey={`${sayNo.current}-${msgs.length}`}
+          text={typeof msgs[0] === 'object' ? msgs[0].text : msgs[0]}
+          me={gs.name}
+          foe={bossName}
+          foeLine={boss.attackText}
+          index={Math.max(0, msgTotal.current - msgs.length)}
+          total={msgTotal.current}
+          skip={logSkip}
+          onNext={() => {
             if (msgs.length > 1) sfx('blip')
             nextMsg()
           }}
-        >
-          <div className="dialog-text">
-            {typeof msgs[0] === 'object' ? msgs[0].text : msgs[0]}
-            <span className="next">▼</span>
-          </div>
-        </div>
+        />
       )}
     </div>
   )
@@ -804,6 +822,111 @@ function TimerBar({ start, deadline, mode, showQuick }: { start: number; deadlin
       <div className="timer-fill" style={{ animationDuration: `${limit}ms`, animationDelay: `${-elapsed}ms` }} />
       {showQuick && <div className="timer-mark" style={{ left: `${(1 - QUICK) * 100}%` }} />}
       {quickZone && <span className="timer-label">{tr('即答ボーナス！', 'Quick bonus!')}</span>}
+    </div>
+  )
+}
+
+/** 戦闘の 状態カードの 顔（毎回 同じ ものを わたして 描きなおしを 防ぐ） */
+const PLAYER_SPEC_SRC = { spec: PLAYER_SPEC }
+
+type LogTone = 'tip' | 'foe' | 'hit' | 'hurt' | 'good' | 'sys'
+const LOG_ICON: Record<LogTone, string> = { tip: '💡', foe: '💢', hit: '⚔️', hurt: '💥', good: '✨', sys: '' }
+
+/** メッセージの 中身から 色と しるしを 決める（ヒント・敵の 行動・こちらの 攻撃・被弾・よい 知らせ） */
+function logTone(raw: string, me: string, foe: string, foeLine?: string): { tone: LogTone; body: string } {
+  const t = raw.trim()
+  if (/^[（(]/.test(t) && /[）)]$/.test(t)) return { tone: 'tip', body: t.slice(1, -1) }
+  const has = (re: RegExp) => re.test(t)
+  if (t.startsWith(me) && has(/\d+の ダメージを うけた|took \d+ damage/)) return { tone: 'hurt', body: t }
+  if (has(/ちからつきた|collapsed/)) return { tone: 'hurt', body: t }
+  if (has(/\d+の ダメージ！|takes \d+ damage|一発決裁|やっつけた|^Defeated /)) return { tone: 'hit', body: t }
+  if (has(/かいふくした|^Recovered|ひかった|glowed|undone|なかったことに|うけなかった|no damage|ガード せいこう|Guard success|ひるんで|flinched|ふせげる|ヒントが 出る|get a hint|反撃を うけずに|could not strike/))
+    return { tone: 'good', body: t }
+  if (t === foeLine || t.startsWith(foe)) return { tone: 'foe', body: t }
+  return { tone: 'sys', body: t }
+}
+
+/** 数字（ダメージ・回復量）だけ 太く 色を 付ける */
+function withNums(text: string) {
+  return text.split(/(\d+)/).map((part, i) => (i % 2 ? <b key={i} className="bl-num">{part}</b> : part))
+}
+
+/**
+ * 戦闘の メッセージ窓。文字を すばやく 送り（押すと 全部 出る）、
+ * 内容に 合わせて 色の すじと しるし（ヒントは 札つき）、続きの 数を 点で 見せる
+ */
+function BattleLog(p: {
+  msgKey: string
+  text: string
+  me: string
+  foe: string
+  foeLine?: string
+  index: number
+  total: number
+  skip: { current: () => boolean }
+  onNext(): void
+}) {
+  const { tone, body } = logTone(p.text, p.me, p.foe, p.foeLine)
+  const [state, setState] = useState({ key: p.msgKey, shown: 0 })
+  // メッセージが 変わったら 最初から 送りなおす（描画中に そろえて 前の 文が 一瞬 出るのを 防ぐ）
+  const shown = state.key === p.msgKey ? state.shown : 0
+  if (state.key !== p.msgKey) setState({ key: p.msgKey, shown: 0 })
+  const typing = shown < body.length
+  const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  useEffect(() => {
+    if (!typing) return
+    if (reduce) return setState({ key: p.msgKey, shown: body.length })
+    const t = setTimeout(() => setState((v) => ({ key: p.msgKey, shown: (v.key === p.msgKey ? v.shown : 0) + 2 })), 26)
+    return () => clearTimeout(t)
+  }, [typing, shown, body.length, p.msgKey, reduce])
+  const finish = () => {
+    if (!typing) return false
+    setState({ key: p.msgKey, shown: body.length })
+    return true
+  }
+  const finishRef = useRef(finish)
+  finishRef.current = finish
+  useEffect(() => {
+    const skip = p.skip
+    skip.current = () => finishRef.current()
+    return () => {
+      skip.current = () => false
+    }
+  }, [p.skip])
+
+  const dots = Math.min(p.total, 6)
+  const at = p.total > 6 ? Math.round((p.index / (p.total - 1)) * 5) : p.index
+  return (
+    <div
+      className={`win dialog-win bl-win tone-${tone}`}
+      role="status"
+      aria-live="polite"
+      onClick={() => {
+        if (!finish()) p.onNext()
+      }}
+    >
+      {tone === 'tip' && <span className="bl-tag">{tr('💡 ヒント', '💡 Tip')}</span>}
+      <div className="bl-row">
+        {LOG_ICON[tone] && tone !== 'tip' && (
+          <span key={`i-${p.msgKey}`} className="bl-ico" aria-hidden="true">
+            {LOG_ICON[tone]}
+          </span>
+        )}
+        <p key={`t-${p.msgKey}`} className="dialog-text bl-text" aria-label={body}>
+          <span aria-hidden="true">{withNums(body.slice(0, shown))}</span>
+          <span className="bl-rest" aria-hidden="true">{body.slice(shown)}</span>
+        </p>
+      </div>
+      <div className="bl-foot" aria-hidden="true">
+        {dots > 1 && (
+          <span className="bl-dots">
+            {Array.from({ length: dots }, (_, i) => (
+              <i key={i} className={i < at ? 'done' : i === at ? 'now' : ''} />
+            ))}
+          </span>
+        )}
+        <span className={`bl-next ${typing ? 'wait' : ''}`}>▼</span>
+      </div>
     </div>
   )
 }

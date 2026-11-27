@@ -1,0 +1,369 @@
+/* ================= 戦闘の メッセージ窓・状態カード（敵の 名札と おそろいの 半透明カード） ================= */
+.battle .bl-win,
+.battle .bl-status {
+  border: none;
+  outline: none;
+  background: linear-gradient(rgba(20, 27, 46, 0.9), rgba(9, 12, 22, 0.94));
+  box-shadow:
+    0 0 0 0.15cqw rgba(255, 255, 255, 0.16),
+    0 1.2cqw 3cqw rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* ---- メッセージ窓 ---- */
+.battle .bl-win {
+  --tone: rgba(255, 255, 255, 0.4);
+  min-height: 22%;
+  padding: 2.2cqw 3cqw 2.2cqw 3.4cqw;
+  border-radius: 2cqw;
+  font-size: 2.8cqw;
+  line-height: 1.6;
+  overflow: visible;
+  transform-origin: 50% 100%;
+  animation: blIn 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  transition: transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.battle .bl-win:active {
+  transform: scale(0.992);
+}
+/* 左の 色の すじ：内容（ヒント・敵・攻撃・被弾・よい 知らせ）で 色が 変わる */
+.battle .bl-win::before {
+  content: '';
+  position: absolute;
+  left: 1.2cqw;
+  top: 1.6cqw;
+  bottom: 1.6cqw;
+  width: 0.55cqw;
+  border-radius: 99px;
+  background: var(--tone);
+  box-shadow: 0 0 1.2cqw var(--tone);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.battle .bl-win.tone-sys::before {
+  box-shadow: none;
+}
+.bl-win.tone-tip {
+  --tone: #5ab4ff;
+}
+.bl-win.tone-foe {
+  --tone: #ff8a4a;
+}
+.bl-win.tone-hit {
+  --tone: #ffd050;
+}
+.bl-win.tone-hurt {
+  --tone: #ff5a5a;
+}
+.bl-win.tone-good {
+  --tone: #5ee08a;
+}
+.battle .bl-win.tone-tip {
+  background: linear-gradient(rgba(20, 40, 72, 0.92), rgba(10, 20, 40, 0.95));
+}
+.battle .bl-win.tone-hurt {
+  background: linear-gradient(rgba(52, 18, 24, 0.92), rgba(22, 9, 14, 0.95));
+}
+
+.bl-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.4cqw;
+  padding-right: 4cqw;
+}
+.bl-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  margin-top: -0.12em;
+  border-radius: 50%;
+  font-size: 0.95em;
+  line-height: 1;
+  background: color-mix(in srgb, var(--tone) 22%, transparent);
+  box-shadow: inset 0 0 0 0.12em color-mix(in srgb, var(--tone) 55%, transparent);
+  animation: blIco 0.32s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.battle .bl-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: #f4f6fb;
+  letter-spacing: 0.02em;
+  animation: blText 0.16s ease-out;
+}
+/* まだ 送っていない 文字：場所だけ とっておき、行が がたつかない ように */
+.bl-rest {
+  visibility: hidden;
+}
+.bl-num {
+  font-weight: 700;
+  font-size: 1.12em;
+  color: var(--tone);
+  font-variant-numeric: tabular-nums;
+}
+.bl-win.tone-sys .bl-num,
+.bl-win.tone-tip .bl-num {
+  color: #ffe070;
+}
+
+/* ヒントの 札：窓の 上の 縁に のる */
+.bl-tag {
+  position: absolute;
+  top: 0;
+  left: 2.4cqw;
+  translate: 0 -55%;
+  padding: 0.25cqw 1.5cqw;
+  border-radius: 999px;
+  background: linear-gradient(#5ab4ff, #2a7ad8);
+  color: #fff;
+  font-size: 2cqw;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  box-shadow: 0 0.4cqw 1cqw rgba(0, 0, 0, 0.4);
+  animation: blTag 0.26s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+/* 右下：続きの 数の 点と ▼ */
+.bl-foot {
+  position: absolute;
+  right: 2cqw;
+  bottom: 1.6cqw;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+}
+.bl-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.6cqw;
+}
+.bl-dots i {
+  width: 0.9cqw;
+  height: 0.9cqw;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: width 0.2s ease, background 0.2s ease;
+}
+.bl-dots i.done {
+  background: rgba(255, 255, 255, 0.5);
+}
+.bl-dots i.now {
+  width: 2.2cqw;
+  background: var(--tone);
+}
+.bl-win.tone-sys .bl-dots i.now {
+  background: #ffe070;
+}
+.bl-next {
+  display: grid;
+  place-items: center;
+  width: 3.6cqw;
+  height: 3.6cqw;
+  border-radius: 50%;
+  background: #ffe070;
+  color: #1a1a1a;
+  font-size: 1.6cqw;
+  line-height: 1;
+  box-shadow: 0 0.35cqw 0 #a8861c;
+  animation: blNext 0.9s ease-in-out infinite;
+  transition: opacity 0.15s ease;
+}
+.bl-next.wait {
+  opacity: 0.25;
+  animation: none;
+}
+
+/* ---- 自分の 状態カード：顔・名前・Lv・HP ---- */
+.battle .bl-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 1.2cqw;
+  align-items: center;
+  padding: 1cqw 1.8cqw 1cqw 1.1cqw;
+  border-radius: 1.6cqw;
+  transition: box-shadow 0.25s ease;
+}
+.bl-status .bl-face {
+  grid-row: span 2;
+  width: 4.6cqw;
+  height: 4.6cqw;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #5a6c96, #232c48);
+  box-shadow: inset 0 0 0 0.2cqw rgba(255, 255, 255, 0.55);
+}
+.bl-status .bl-face canvas {
+  width: 86%;
+}
+.bl-status .hud-head,
+.bl-status .st-row {
+  grid-column: 2;
+}
+.bl-status .buffs {
+  grid-column: 1 / -1;
+}
+/* 攻撃を うけた 瞬間：赤く 光って 揺れる */
+.battle .bl-status.is-hurt {
+  animation: blHurt 0.45s ease-out;
+  box-shadow:
+    0 0 0 0.25cqw #ff5a5a,
+    0 0 2.4cqw rgba(255, 70, 70, 0.6);
+}
+.battle .bl-status.is-heal {
+  box-shadow:
+    0 0 0 0.25cqw #5ee08a,
+    0 0 2.4cqw rgba(94, 224, 138, 0.55);
+}
+/* のこり HP 25% 以下：ふちが 赤く 脈打つ */
+.battle .bl-status.pinch:not(.is-hurt) {
+  animation: blPinch 1.1s ease-in-out infinite;
+}
+
+/* ---- スマホ ---- */
+.phone .screen .battle .bl-win {
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  min-height: 124px;
+  padding: 16px 16px 16px 24px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.phone .battle .bl-win::before {
+  left: 10px;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+}
+.phone .bl-row {
+  gap: 10px;
+  padding-right: 0;
+  padding-bottom: 18px;
+}
+.phone .bl-ico {
+  font-size: 15px;
+}
+.phone .bl-tag {
+  left: 18px;
+  padding: 2px 12px;
+  font-size: 13px;
+}
+.phone .bl-foot {
+  right: 12px;
+  bottom: 10px;
+  gap: 10px;
+}
+.phone .bl-dots {
+  gap: 5px;
+}
+.phone .bl-dots i {
+  width: 6px;
+  height: 6px;
+}
+.phone .bl-dots i.now {
+  width: 16px;
+}
+.phone .bl-next {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+  box-shadow: 0 2px 0 #a8861c;
+}
+.phone .screen .battle .bl-status {
+  padding: 6px 12px 6px 6px;
+  column-gap: 8px;
+  border: none;
+  border-radius: 14px;
+}
+.phone .bl-status .bl-face {
+  width: 36px;
+  height: 36px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55);
+}
+.phone .battle .bl-status.is-hurt {
+  box-shadow:
+    0 0 0 2px #ff5a5a,
+    0 0 16px rgba(255, 70, 70, 0.6);
+}
+.phone .battle .bl-status.is-heal {
+  box-shadow:
+    0 0 0 2px #5ee08a,
+    0 0 16px rgba(94, 224, 138, 0.55);
+}
+
+@keyframes blIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+@keyframes blText {
+  from {
+    opacity: 0.3;
+  }
+}
+@keyframes blIco {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
+}
+@keyframes blTag {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+}
+@keyframes blNext {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.18em);
+  }
+}
+@keyframes blHurt {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px) rotate(-1deg);
+  }
+  45% {
+    transform: translateX(4px) rotate(1deg);
+  }
+  70% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes blPinch {
+  50% {
+    box-shadow:
+      0 0 0 0.25cqw rgba(255, 90, 90, 0.85),
+      0 0 2cqw rgba(255, 70, 70, 0.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .battle .bl-win,
+  .bl-ico,
+  .battle .bl-text,
+  .bl-tag,
+  .bl-next,
+  .battle .bl-status.is-hurt,
+  .battle .bl-status.pinch:not(.is-hurt) {
+    animation: none;
+  }
+}
