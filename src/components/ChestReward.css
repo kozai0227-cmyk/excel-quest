@@ -1,0 +1,432 @@
+/* ---------------------------------------------------------------- 宝箱の ごほうび（箱が 開いて 中身の カードが 出る） */
+.chr-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3%;
+  background: rgba(4, 8, 18, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: chrFade 0.2s ease both;
+}
+.chr-card {
+  position: relative;
+  width: 24em;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 0 1.1em 1.1em;
+  font-size: 2.1cqw;
+  line-height: 1.45;
+  color: #fff;
+  border-radius: 1.2em;
+  background: linear-gradient(180deg, #1b2440 0%, #0d1326 100%);
+  border: 2px solid rgba(255, 214, 110, 0.55);
+  box-shadow:
+    0 0.35em 0 #02050f,
+    0 1em 2.6em rgba(0, 0, 0, 0.55);
+  animation: chrIn 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+/* 箱と 光 */
+.chr-stage {
+  position: relative;
+  height: 7.6em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0 -1.1em;
+  border-radius: 1.1em 1.1em 0 0;
+  background: radial-gradient(ellipse at 50% 90%, rgba(255, 200, 80, 0.18), transparent 70%);
+}
+.chr-rays {
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  width: 22em;
+  height: 22em;
+  margin: -11em 0 0 -11em;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 220, 120, 0.22) 0deg 10deg, transparent 10deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 62%);
+  mask: radial-gradient(circle, #000 18%, transparent 62%);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.4s ease,
+    transform 0.6s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+.chr-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 1.2em;
+  width: 6em;
+  height: 6em;
+  margin-left: -3em;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 240, 180, 0.95), rgba(255, 200, 80, 0.3) 45%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.3);
+}
+.open .chr-rays {
+  opacity: 1;
+  transform: scale(1);
+  animation: chrSpin 14s linear infinite;
+}
+.open .chr-glow {
+  animation: chrFlash 0.7s ease-out both;
+}
+.chr-box {
+  position: relative;
+  margin-bottom: 0.6em;
+  filter: drop-shadow(0 0.25em 0 rgba(0, 0, 0, 0.45));
+  animation: chrShake 0.16s ease-in-out 4 alternate;
+}
+.chr-box .sprite-view {
+  display: block;
+  width: 4.6em;
+}
+.open .chr-box {
+  animation: chrBounce 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+/* 箱から 飛び出す 中身の 絵 */
+.chr-pop {
+  position: absolute;
+  left: 50%;
+  /* 自分の 文字の 大きさ（2.3倍）で はかるので、箱の 上 ≒ 4.4em ÷ 2.3 */
+  bottom: 1.9em;
+  font-size: 2.3em;
+  line-height: 1;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0.08em 0.12em rgba(0, 0, 0, 0.5));
+  animation: chrPop 0.9s cubic-bezier(0.2, 1.3, 0.4, 1) 0.05s both;
+}
+.chr-sparks {
+  position: absolute;
+  left: 50%;
+  bottom: 4.6em;
+}
+.chr-sparks i {
+  position: absolute;
+  width: 0.45em;
+  height: 0.45em;
+  margin: -0.225em;
+  border-radius: 50%;
+  background: #ffe28a;
+  box-shadow: 0 0 0.4em #ffc840;
+  opacity: 0;
+  animation: chrSpark 0.8s ease-out var(--d) both;
+}
+
+/* 見出し */
+.chr-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55em;
+  text-align: center;
+}
+.chr-tag {
+  margin-top: 0.2em;
+  padding: 0.12em 0.8em;
+  border-radius: 99px;
+  font-size: 0.72em;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: #3a2600;
+  background: linear-gradient(180deg, #ffe08a, #f2b636);
+}
+.chr-body h3 {
+  margin: 0;
+  font-size: 1.15em;
+  line-height: 1.35;
+}
+
+/* 中身の カード */
+.chr-list {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-top: 0.15em;
+}
+.chr-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.65em 0.8em;
+  text-align: left;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: chrRise 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.chr-item.equip {
+  border-color: rgba(120, 190, 255, 0.5);
+  background: linear-gradient(90deg, rgba(70, 140, 255, 0.16), rgba(255, 255, 255, 0.04));
+}
+.chr-item.equip.done {
+  border-color: rgba(255, 210, 90, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 210, 90, 0.35), 0 0 1.2em rgba(255, 200, 70, 0.25);
+  animation: chrGot 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.chr-item.item {
+  border-color: rgba(110, 220, 150, 0.45);
+  background: linear-gradient(90deg, rgba(60, 190, 110, 0.15), rgba(255, 255, 255, 0.04));
+}
+.chr-item.gold {
+  border-color: rgba(255, 210, 90, 0.5);
+  background: linear-gradient(90deg, rgba(255, 190, 60, 0.16), rgba(255, 255, 255, 0.04));
+}
+.chr-ico {
+  flex: none;
+  width: 2.2em;
+  height: 2.2em;
+  display: grid;
+  place-items: center;
+  font-size: 1.25em;
+  border-radius: 0.6em;
+  background: rgba(0, 0, 0, 0.3);
+}
+.chr-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+.chr-main b {
+  font-size: 1em;
+}
+.chr-main small {
+  font-size: 0.78em;
+  color: rgba(255, 255, 255, 0.72);
+}
+.chr-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+  margin-top: 0.15em;
+}
+.chr-tags span {
+  padding: 0.05em 0.55em;
+  border-radius: 99px;
+  font-size: 0.72em;
+  background: rgba(255, 255, 255, 0.12);
+}
+.chr-tags span.on {
+  color: #3a2600;
+  font-weight: bold;
+  background: #ffd25a;
+}
+.chr-badge {
+  flex: none;
+  align-self: flex-start;
+  padding: 0.1em 0.5em;
+  border-radius: 99px;
+  font-size: 0.72em;
+  font-style: normal;
+  font-weight: bold;
+  color: #fff;
+  background: #e0505e;
+  animation: chrBadge 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 0.45s both;
+}
+.chr-item.item .chr-badge {
+  background: #2fa866;
+}
+.chr-gold {
+  font-size: 1.5em !important;
+  line-height: 1.1;
+  color: #ffd25a;
+  font-variant-numeric: tabular-nums;
+}
+.chr-gold span {
+  margin-left: 0.15em;
+  font-size: 0.6em;
+}
+.chr-note {
+  margin: 0.1em 0 0;
+  font-size: 0.78em;
+  color: rgba(255, 255, 255, 0.7);
+  animation: chrFade 0.3s ease 0.45s both;
+}
+.chr-note.up {
+  color: #7ee0a6;
+  font-weight: bold;
+}
+
+/* ボタン（押すと 沈む 立体ボタン） */
+.chr-btns {
+  align-self: stretch;
+  display: flex;
+  gap: 0.6em;
+  margin-top: 0.4em;
+  transition: opacity 0.2s ease;
+}
+.chr-btns.wait {
+  opacity: 0.35;
+}
+.chr-btn {
+  flex: 1;
+  min-height: 2.8em;
+  padding: 0.5em 0.8em;
+  font: inherit;
+  font-weight: bold;
+  border: none;
+  border-radius: 0.8em;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+.chr-btn.main {
+  flex: 1.6;
+  color: #3a2600;
+  background: linear-gradient(180deg, #ffe08a, #f2b636);
+  box-shadow: 0 0.28em 0 #b07a12;
+}
+.chr-btn.sub {
+  color: #fff;
+  background: #2a3556;
+  box-shadow: 0 0.28em 0 #141b30;
+}
+.chr-btn:active:not(:disabled) {
+  transform: translateY(0.24em);
+  box-shadow: 0 0.04em 0 transparent;
+}
+.chr-btn:disabled {
+  cursor: default;
+}
+.chr-btns.ring .chr-btn.f {
+  outline: 0.16em solid #ffd25a;
+  outline-offset: 0.18em;
+}
+
+/* スマホ */
+.phone .chr-card {
+  font-size: 16px;
+  width: 360px;
+  padding: 0 16px 18px;
+}
+.phone .chr-stage {
+  margin: 0 -16px;
+}
+
+@keyframes chrFade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes chrIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.2em) scale(0.92);
+  }
+}
+@keyframes chrShake {
+  from {
+    transform: rotate(-6deg) translateY(0);
+  }
+  to {
+    transform: rotate(6deg) translateY(-0.1em);
+  }
+}
+@keyframes chrBounce {
+  0% {
+    transform: scale(1.25, 0.8);
+  }
+  60% {
+    transform: scale(0.92, 1.1) translateY(-0.2em);
+  }
+}
+@keyframes chrFlash {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+}
+@keyframes chrSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes chrPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 1.2em) scale(0.3);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(-50%, -0.5em) scale(1.15);
+  }
+  100% {
+    transform: translate(-50%, -0.2em) scale(1);
+  }
+}
+@keyframes chrSpark {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-4.5em) scale(0.3);
+  }
+}
+@keyframes chrRise {
+  from {
+    opacity: 0;
+    transform: translateY(0.9em);
+  }
+}
+@keyframes chrGot {
+  0% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+@keyframes chrBadge {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-20deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chr-layer,
+  .chr-card,
+  .chr-box,
+  .open .chr-box,
+  .open .chr-rays,
+  .open .chr-glow,
+  .chr-pop,
+  .chr-item,
+  .chr-item.equip.done,
+  .chr-badge,
+  .chr-note {
+    animation: none;
+  }
+  .open .chr-glow {
+    opacity: 0.35;
+    transform: none;
+  }
+  .chr-sparks {
+    display: none;
+  }
+}

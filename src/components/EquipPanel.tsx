@@ -11,7 +11,7 @@ const statUnit = (s: Stat) => (s === 'time' ? tr('秒', 's') : '')
 const shortName = (s: Stat) => (s === 'atk' ? tr('攻', 'ATK') : s === 'def' ? tr('守', 'DEF') : tr('時間', 'Time'))
 
 /** a が b より 確実に 強い（どの 値も 下回らず、どれかが 上回る） */
-function beats(a: EquipDef, b: EquipDef | undefined) {
+export function beats(a: EquipDef, b: EquipDef | undefined) {
   const v = (e: EquipDef | undefined, k: Stat | 'crit') => e?.[k] ?? 0
   const keys = [...STATS, 'crit'] as const
   return keys.every((k) => v(a, k) >= v(b, k)) && keys.some((k) => v(a, k) > v(b, k))

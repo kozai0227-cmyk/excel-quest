@@ -12,6 +12,7 @@ import { Gallery, SoundTest } from './components/Gallery'
 import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
+import { ChestReward, type ChestReq } from './components/ChestReward'
 import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
 import { FieldStatus, QuestProgress, type QuestNav } from './components/FieldHud'
 import { SKILLS } from './data/skills'
@@ -20,8 +21,8 @@ import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
 import { CHAPTERS } from './data/chapters'
 import { ENEMIES } from './data/bosses'
-import { ITEM_IDS, itemName } from './data/items'
-import { EQUIP, equipName } from './data/equipment'
+import { ITEM_IDS } from './data/items'
+import { EQUIP } from './data/equipment'
 import { STAR_BONUS, winReward } from './game/clear'
 import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
@@ -68,6 +69,7 @@ export default function App() {
   const [spawn, setSpawn] = useState({ x: gs.x, y: gs.y, dir: gs.dir as Dir, key: 0 })
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [shop, setShop] = useState<ShopReq | null>(null)
+  const [chest, setChest] = useState<ChestReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
   /** はじめて フィールドに 出たときの「タップで 歩く」案内（数歩 歩くと 消える） */
@@ -198,7 +200,7 @@ export default function App() {
     showBanner(mapName(g.mapId))
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -207,6 +209,16 @@ export default function App() {
     if (p.has('study')) return setScene('study')
     const test = { ...newGame(tr('サトウ', 'Sato')), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
     const at = p.get('at')?.split(',')
+    const ch = p.get('chest')
+    if (ch) {
+      // 宝箱の ごほうび画面だけを 見る（開けた あとの 状態に して 出す）
+      const it = ITEM_IDS.find((id) => id === ch)
+      const loot: { item?: (typeof ITEM_IDS)[number]; equip?: string; gold?: number } = it ? { item: it } : EQUIP[ch] ? { equip: ch } : { gold: Number(ch) || 60 }
+      const g = { ...test, mapId: 'cave', x: 14, y: 21, dir: 'up' as const, gear: loot.equip ? [...test.gear, loot.equip] : test.gear, gold: test.gold + (loot.gold ?? 0), items: loot.item ? { ...test.items, [loot.item]: test.items[loot.item] + 1 } : test.items }
+      startGame(g, 'field')
+      setTimeout(() => setChest({ ...loot, close: () => setChest(null) }), 300)
+      return
+    }
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
     const end = Number(p.get('ending'))
     if (end) {
@@ -321,30 +333,37 @@ export default function App() {
           break
         }
         case 'chest': {
+          // 宝箱は 箱が 開いて 中身の カードが 出る ごほうび画面で 見せる（装備は その場で そうびできる）
           const loot = npc.loot ?? {}
           setFlag(`chest_${npc.id}`)
-          const got: string[] = []
+          let dupGold: number | undefined
           if (loot.item) {
             const id = loot.item
             setGs((g) => ({ ...g, items: { ...g.items, [id]: g.items[id] + 1 } }))
-            got.push(tr(`${itemName(id)}を てにいれた！`, `Obtained ${itemName(id)}!`))
           }
           if (loot.gold) {
             const n = loot.gold
             setGs((g) => ({ ...g, gold: g.gold + n }))
-            got.push(tr(`${n}ゴールドを てにいれた！`, `Found ${n} gold!`))
           }
           if (loot.equip) {
             const id = loot.equip
             if (g.gear.includes(id)) {
-              setGs((s2) => ({ ...s2, gold: s2.gold + Math.floor(EQUIP[id].price / 2) }))
-              got.push(tr(`${EQUIP[id].name}は もう 持っていたので、${Math.floor(EQUIP[id].price / 2)}ゴールドに かえた。`, `You already had the ${equipName(id)}, so you traded it for ${Math.floor(EQUIP[id].price / 2)} gold.`))
-            } else {
-              setGs((s2) => ({ ...s2, gear: [...s2.gear, id] }))
-              got.push(tr(`${EQUIP[id].name}を てにいれた！`, `Obtained ${equipName(id)}!`), tr('（メニューの「そうび」で 装備できる）', '(Equip it from "Equip" in the menu.)'))
-            }
+              const n = Math.floor(EQUIP[id].price / 2)
+              dupGold = n
+              setGs((s2) => ({ ...s2, gold: s2.gold + n }))
+            } else setGs((s2) => ({ ...s2, gear: [...s2.gear, id] }))
           }
-          await talk(undefined, [tr(`${g.name}は 宝箱の ふたを 開けた！`, `${g.name} opened the treasure chest!`), ...got])
+          await new Promise<void>((resolve) =>
+            setChest({
+              ...loot,
+              dupGold,
+              close: () => {
+                setChest(null)
+                resolve()
+              },
+            }),
+          )
+          save()
           break
         }
         case 'ferry': {
@@ -1380,6 +1399,7 @@ export default function App() {
             )}
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
+            {chest && scene === 'field' && <ChestReward req={chest} gs={gs} setGs={setGs} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onRematch={startRematch} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
