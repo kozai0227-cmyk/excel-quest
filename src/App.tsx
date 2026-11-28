@@ -15,6 +15,7 @@ import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
 import { ChestReward, type ChestReq } from './components/ChestReward'
 import { BossGate, type BossGateReq } from './components/BossGate'
+import { PuzzleGate, type PuzzleGateReq } from './components/PuzzleGate'
 import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
 import { FieldStatus, QuestProgress, type QuestNav } from './components/FieldHud'
 import { SKILLS } from './data/skills'
@@ -81,6 +82,7 @@ export default function App() {
   const [shop, setShop] = useState<ShopReq | null>(null)
   const [chest, setChest] = useState<ChestReq | null>(null)
   const [gate, setGate] = useState<BossGateReq | null>(null)
+  const [puzzleGate, setPuzzleGate] = useState<PuzzleGateReq | null>(null)
   const [inn, setInn] = useState<InnReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
@@ -214,7 +216,7 @@ export default function App() {
     showBanner(g.mapId)
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y（&first） / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=） / ?inn=HP,所持金
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y（&first） / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=） / ?puzzle=石版ID（&solved=） / ?inn=HP,所持金
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -239,6 +241,14 @@ export default function App() {
       const g = { ...test, mapId: 'cave', x: 14, y: 21, dir: 'up' as const, gear: loot.equip ? [...test.gear, loot.equip] : test.gear, gold: test.gold + (loot.gold ?? 0), items: loot.item ? { ...test.items, [loot.item]: test.items[loot.item] + 1 } : test.items }
       startGame(g, 'field')
       setTimeout(() => setChest({ ...loot, close: () => setChest(null) }), 300)
+      return
+    }
+    const pz = p.get('puzzle')
+    if (pz && QUESTS[pz]?.kind === 'puzzle') {
+      // 石版の 扉カードだけを 見る（?puzzle=クエストID、&solved=解いた扉ID,… で 進み具合も）
+      const solved = (p.get('solved') ?? '').split(',').filter((id) => QUESTS[id])
+      startGame({ ...test, solved, mapId: QUESTS[pz].town, x: MAPS[QUESTS[pz].town]?.spawn.x ?? 1, y: MAPS[QUESTS[pz].town]?.spawn.y ?? 1, dir: 'up' }, 'field')
+      setTimeout(() => setPuzzleGate({ puzzleId: pz, close: () => setPuzzleGate(null) }), 300)
       return
     }
     const gb = p.get('gate')
@@ -970,8 +980,17 @@ export default function App() {
   const onGate = (puzzle: string) =>
     run(async () => {
       const q = QUESTS[puzzle]
-      const i = await talk(undefined, q.intro, [tr('謎を とく', 'Solve it'), tr('やめておく', 'Not yet')])
-      if (i === 0) {
+      // 扉の 石版・やること・何枚目か を カードで 見せてから 決める
+      const go = await new Promise<boolean>((resolve) =>
+        setPuzzleGate({
+          puzzleId: q.id,
+          close: (g) => {
+            setPuzzleGate(null)
+            resolve(g)
+          },
+        }),
+      )
+      if (go) {
         setQuestId(q.id)
         setScene('quest')
       }
@@ -1505,6 +1524,7 @@ export default function App() {
             {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
             {chest && scene === 'field' && <ChestReward req={chest} gs={gs} setGs={setGs} />}
             {gate && scene === 'field' && <BossGate req={gate} gs={gs} />}
+            {puzzleGate && scene === 'field' && <PuzzleGate req={puzzleGate} gs={gs} />}
             {inn && scene === 'field' && <InnSheet req={inn} gs={gs} setGs={setGs} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onRematch={startRematch} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
