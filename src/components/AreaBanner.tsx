@@ -35,7 +35,7 @@ export function splitName(name: string): { sub?: string; main: string; floor?: s
   return sp > 0 ? { sub: name.slice(0, sp), main: name.slice(sp + 1) } : { main: name }
 }
 
-const chapterOf = (id: string) => {
+export const chapterOf = (id: string) => {
   const m = MAPS[id]
   if (!m) return undefined
   if (id === 'forest') return CHAPTERS[0]

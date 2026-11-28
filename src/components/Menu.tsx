@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react'
+import './MenuSheet.css'
 import { useKeys } from '../game/keys'
 import { ITEM_IDS, itemName } from '../data/items'
 import { ItemPanel, type ItemFx } from './ItemPanel'
@@ -14,7 +15,11 @@ import { EquipPanel, slotChoices } from './EquipPanel'
 import { SkillBook } from './SkillBook'
 import { StatusPanel } from './StatusPanel'
 import { SettingsPanel, type SetRow } from './SettingsPanel'
-import { totalPercent } from '../data/chapters'
+import { chapterTag, totalPercent } from '../data/chapters'
+import { PLAYER_SPEC, mapName } from '../data/maps'
+import { Portrait } from './Portrait'
+import { chapterOf } from './AreaBanner'
+import { getStreak } from '../game/streak'
 import { FREE_CHAPTERS, openUnlock, useUnlockScreen, useUnlocked } from '../game/store'
 import { jingle, setVolume, sfx, useVolume, type Volume } from '../game/sound'
 
@@ -317,9 +322,46 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
     else if (k === 'cancel') onClose()
   })
 
+  /** スマホ：シートの 取っ手を 下へ 引くと とじる（指に ついて くる） */
+  const drag = useRef<{ y: number; id: number } | null>(null)
+  const [pull, setPull] = useState(0)
+  const onGrabDown = (e: RPointerEvent<HTMLDivElement>) => {
+    drag.current = { y: e.clientY, id: e.pointerId }
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+  }
+  const onGrabMove = (e: RPointerEvent<HTMLDivElement>) => {
+    if (drag.current?.id !== e.pointerId) return
+    setPull(Math.max(0, e.clientY - drag.current.y))
+  }
+  const onGrabUp = (e: RPointerEvent<HTMLDivElement>) => {
+    if (drag.current?.id !== e.pointerId) return
+    const dy = e.clientY - drag.current.y
+    drag.current = null
+    setPull(0)
+    if (dy > 70) {
+      sfx('cancel')
+      onClose()
+    }
+  }
+  /** シートの 外（暗い ところ）を 押す：開いている 画面を とじる か、メニューを とじる */
+  const onScrim = () => {
+    sfx('cancel')
+    if (open) {
+      setEqSlot(null)
+      setOpen(null)
+      setNote('')
+    } else onClose()
+  }
+
   return (
-    <div className="menu-layer">
-      <div className="win menu-cmds">
+    <div className={`menu-layer${open ? ' has-panel' : ''}`}>
+      <div className="menu-scrim" onClick={onScrim} aria-hidden />
+      <div className={`win menu-cmds${pull ? ' pulling' : ''}`} style={pull ? { transform: `translateY(${pull}px)` } : undefined}>
+        {phone && (
+          <div className="ms-grab" onPointerDown={onGrabDown} onPointerMove={onGrabMove} onPointerUp={onGrabUp} onPointerCancel={onGrabUp} aria-hidden>
+            <span />
+          </div>
+        )}
         <MenuStatus gs={gs} />
         <div className={`menu-grid ${keyed || inputMode === 'keyboard' ? 'ring' : ''}`} role="menu">
           {rows.map((row, r) => (
@@ -448,7 +490,10 @@ export function Menu({ gs, setGs, onSave, onClose, onReview, onTravel, onTitle }
   )
 }
 
-/** メニュー上部の 状態カード：レベル・HP・次の レベルまでの 経験値・ゴールド・達成率を ひと目で 見せる */
+/** 状態カードの 顔（毎回 同じ ものを わたして 描きなおしを 防ぐ） */
+const FACE = { spec: PLAYER_SPEC }
+
+/** メニュー上部の プロフィールカード：顔・Lv・名前・いる場所・所持金、HP と 経験値の バー、達成率の 輪と 連続日数 */
 function MenuStatus({ gs }: { gs: GameState }) {
   const hpMax = maxHp(gs.level)
   const base = LEVEL_EXP[gs.level] ?? 0
@@ -456,32 +501,70 @@ function MenuStatus({ gs }: { gs: GameState }) {
   const expRate = next === undefined ? 1 : Math.min(1, Math.max(0, (gs.exp - base) / (next - base)))
   const toNext = expToNext(gs)
   const hpRate = Math.min(1, gs.hp / hpMax)
+  const pct = totalPercent(gs)
+  const ch = chapterOf(gs.mapId)
+  const place = mapName(gs.mapId)
+  const streak = getStreak()
   return (
-    <div className="menu-status" aria-label={tr('いまの 状態', 'Current status')}>
-      <div className="ms-head">
-        <b className="ms-name">{gs.name}</b>
-        <span className="ms-lv">Lv {gs.level}</span>
-      </div>
-      <div className="ms-row">
-        <span className="ms-key">HP</span>
-        <div className={`ms-bar hp ${hpRate <= 0.3 ? 'low' : ''}`}>
-          <div style={{ width: `${hpRate * 100}%` }} />
-        </div>
-        <span className="ms-val">
-          {gs.hp}/{hpMax}
+    <div className={`menu-status${hpRate <= 0.3 ? ' low' : ''}`} aria-label={tr('いまの 状態', 'Current status')}>
+      <div className="ms-top">
+        <span className="ms-face" aria-hidden>
+          <Portrait src={FACE} className="portrait ms-portrait" />
+          <span className="ms-lv">
+            <small>Lv</small>
+            {gs.level}
+          </span>
+        </span>
+        <span className="ms-who">
+          <span className="ms-namerow">
+            <b className="ms-name">{gs.name}</b>
+            <span className="ms-gold" title={tr('所持金', 'Gold')}>
+              <i className="ms-coin" aria-hidden />
+              {gs.gold}
+              <small>G</small>
+            </span>
+          </span>
+          {place && (
+            <span className="ms-place">
+              {ch && <i>{chapterTag(ch)}</i>}
+              <span>{place}</span>
+            </span>
+          )}
         </span>
       </div>
-      <div className="ms-row">
-        <span className="ms-key">EXP</span>
-        <div className="ms-bar exp">
-          <div style={{ width: `${expRate * 100}%` }} />
+      <div className="ms-bars">
+        <div className="ms-row">
+          <span className="ms-key">HP</span>
+          <div className={`ms-bar hp ${hpRate <= 0.3 ? 'low' : ''}`}>
+            <div style={{ width: `${hpRate * 100}%` }} />
+          </div>
+          <span className="ms-val">
+            {gs.hp}
+            <small>/{hpMax}</small>
+          </span>
         </div>
-        <span className="ms-val">{toNext === null ? 'MAX' : tr(`あと${toNext}`, `${toNext} to go`)}</span>
+        <div className="ms-row">
+          <span className="ms-key">EXP</span>
+          <div className="ms-bar exp">
+            <div style={{ width: `${expRate * 100}%` }} />
+          </div>
+          <span className="ms-val">{toNext === null ? 'MAX' : tr(`あと${toNext}`, `${toNext} to go`)}</span>
+        </div>
       </div>
-      <div className="ms-foot">
-        <span>{gs.gold} G</span>
-        <span>
-          {tr('達成率', 'Done')} {totalPercent(gs)}%
+      <div className="ms-chips">
+        <span className="ms-chip pct">
+          <span className="ms-ring" style={{ ['--p' as string]: `${pct}` }} aria-hidden />
+          <span>
+            {tr('冒険の 達成率', 'Adventure')} <b>{pct}%</b>
+          </span>
+        </span>
+        <span className={`ms-chip streak${streak.today ? ' today' : streak.count ? '' : ' none'}`}>
+          <span className="ms-fire" aria-hidden>
+            🔥
+          </span>
+          <span>
+            {streak.count ? tr(`ふくしゅう ${streak.count}日 連続`, `${streak.count}-day review streak`) : tr('ふくしゅうで 連続記録', 'Start a review streak')}
+          </span>
         </span>
       </div>
     </div>
