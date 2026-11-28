@@ -1,0 +1,380 @@
+/* 町や ダンジョンに 入ったときの 場所カード */
+.area-banner {
+  --ab-gold: #ffd54a;
+  --ab-gold-soft: rgba(255, 213, 74, 0.75);
+  --ab-ink: #fff;
+  --ab-dim: rgba(225, 232, 255, 0.78);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 27%;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 6;
+  color: var(--ab-ink);
+}
+.ab-band {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7cqw;
+  min-width: 46cqw;
+  max-width: 92%;
+  box-sizing: border-box;
+  padding: 1.8cqw 9cqw 2cqw;
+  text-align: center;
+  /* 左右へ 溶ける 帯（箱に しない） */
+  background: radial-gradient(ellipse 50% 62% at 50% 50%, rgba(8, 12, 24, 0.82), rgba(8, 12, 24, 0.6) 58%, rgba(8, 12, 24, 0) 100%);
+  animation: abIn 0.6s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+}
+/* 上下の 細い 金の 線（まん中から 左右へ のびる） */
+.ab-band::before,
+.ab-band::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 0.18cqw;
+  min-height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ab-gold-soft) 30%, var(--ab-gold) 50%, var(--ab-gold-soft) 70%, transparent);
+  transform-origin: 50% 50%;
+  animation: abRule 0.7s 0.1s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+}
+.ab-band::before {
+  top: 0;
+}
+.ab-band::after {
+  bottom: 0;
+}
+.k-dungeon .ab-band::before,
+.k-dungeon .ab-band::after {
+  background: linear-gradient(90deg, transparent, rgba(190, 150, 255, 0.7) 30%, #d9c2ff 50%, rgba(190, 150, 255, 0.7) 70%, transparent);
+}
+.ab-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  font-size: 1.9cqw;
+  font-weight: bold;
+  letter-spacing: 0.14em;
+  color: var(--ab-gold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  animation: abFade 0.5s 0.15s ease both;
+}
+.k-dungeon .ab-kicker {
+  color: #d9c2ff;
+}
+.ab-dot {
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+.ab-new {
+  padding: 0.12em 0.55em;
+  border-radius: 999px;
+  background: linear-gradient(#ff6b5a, #e2382b);
+  color: #fff;
+  font-size: 0.85em;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  animation: abPop 0.45s 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.ab-sub {
+  font-size: 2.2cqw;
+  color: var(--ab-dim);
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  animation: abFade 0.5s 0.2s ease both;
+}
+.ab-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4cqw;
+  max-width: 100%;
+}
+.ab-main {
+  font-size: 5.2cqw;
+  font-weight: bold;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0.3cqw 0 rgba(0, 0, 0, 0.45),
+    0 0 2.4cqw rgba(255, 220, 120, 0.35);
+  animation: abName 0.75s 0.18s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  overflow-wrap: anywhere;
+}
+.ab-main.long {
+  font-size: 4cqw;
+  letter-spacing: 0.04em;
+}
+.k-dungeon .ab-main {
+  text-shadow:
+    0 0.3cqw 0 rgba(0, 0, 0, 0.45),
+    0 0 2.4cqw rgba(190, 150, 255, 0.45);
+}
+.ab-floor {
+  flex: none;
+  padding: 0.15em 0.6em;
+  border-radius: 0.5em;
+  font-size: 2.3cqw;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  animation: abPop 0.45s 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+/* 名前の 左右の ひし形つきの 飾り線 */
+.ab-line {
+  flex: none;
+  position: relative;
+  width: 4cqw;
+  height: 0.18cqw;
+  min-height: 1px;
+  background: var(--ab-gold-soft);
+  animation: abRule 0.6s 0.3s ease both;
+}
+.ab-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 0.9cqw;
+  height: 0.9cqw;
+  background: var(--ab-gold);
+  transform: translateY(-50%) rotate(45deg);
+}
+.ab-line.l {
+  background: linear-gradient(90deg, transparent, var(--ab-gold-soft));
+}
+.ab-line.l::after {
+  right: -0.2cqw;
+}
+.ab-line.r {
+  background: linear-gradient(90deg, var(--ab-gold-soft), transparent);
+}
+.ab-line.r::after {
+  left: -0.2cqw;
+}
+.k-dungeon .ab-line,
+.k-dungeon .ab-line::after {
+  filter: hue-rotate(215deg) saturate(0.7) brightness(1.15);
+}
+.ab-topic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2em 0.6em;
+  max-width: 62cqw;
+  font-size: 2cqw;
+  color: #eaf2ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  animation: abFade 0.5s 0.5s ease both;
+}
+.ab-topic-label {
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: #10302b;
+  background: #6fe3c9;
+}
+.ab-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8cqw;
+  margin-top: 0.4cqw;
+}
+.ab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 0.85em;
+  border-radius: 999px;
+  font-size: 1.95cqw;
+  font-weight: bold;
+  background: rgba(20, 27, 46, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  animation: abChip 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.ab-chip-ico {
+  font-size: 0.95em;
+}
+.ab-chip.gold {
+  color: #2b1d00;
+  background: linear-gradient(#ffe27a, #f2b92c);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.ab-chip.done {
+  color: #c9ffe9;
+  background: rgba(16, 70, 54, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(111, 227, 201, 0.55);
+}
+.ab-chip.red {
+  color: #ffd9d3;
+  background: rgba(90, 20, 22, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 120, 100, 0.6);
+}
+
+/* 消える ときは 少し 上へ 溶ける */
+.area-banner.out .ab-band {
+  animation: abOut 0.45s ease forwards;
+}
+
+@keyframes abIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.2cqw) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes abOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-1.2cqw);
+  }
+}
+@keyframes abRule {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes abFade {
+  from {
+    opacity: 0;
+    transform: translateY(0.6cqw);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes abName {
+  from {
+    opacity: 0;
+    letter-spacing: 0.4em;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.08em;
+    filter: none;
+  }
+}
+@keyframes abPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes abChip {
+  from {
+    opacity: 0;
+    transform: translateY(1cqw) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* スマホ */
+.phone .area-banner {
+  top: 24%;
+}
+.phone .ab-band {
+  gap: 5px;
+  min-width: 70%;
+  max-width: 100%;
+  padding: 12px 30px 14px;
+  background: radial-gradient(ellipse 52% 60% at 50% 50%, rgba(8, 12, 24, 0.85), rgba(8, 12, 24, 0.62) 60%, rgba(8, 12, 24, 0) 100%);
+}
+.phone .ab-band::before,
+.phone .ab-band::after {
+  height: 1.5px;
+  left: 8%;
+  right: 8%;
+}
+.phone .ab-kicker {
+  font-size: 12px;
+}
+.phone .ab-sub {
+  font-size: 13px;
+}
+.phone .ab-name {
+  gap: 8px;
+}
+.phone .ab-main {
+  font-size: 30px;
+}
+.phone .ab-main.long {
+  font-size: 22px;
+}
+.phone .ab-floor {
+  font-size: 14px;
+}
+.phone .ab-line {
+  width: 18px;
+  height: 1.5px;
+}
+.phone .ab-line::after {
+  width: 6px;
+  height: 6px;
+}
+.phone .ab-topic {
+  max-width: 300px;
+  font-size: 12.5px;
+}
+.phone .ab-chips {
+  gap: 6px;
+  margin-top: 2px;
+}
+.phone .ab-chip {
+  font-size: 12.5px;
+}
+
+/* 動きを 減らす：ふわっと 出て 消えるだけ */
+.area-banner.still *,
+.area-banner.still .ab-band::before,
+.area-banner.still .ab-band::after {
+  animation: none !important;
+}
+.area-banner.still .ab-band {
+  animation: abFadeOnly 0.3s ease both !important;
+}
+.area-banner.still.out .ab-band {
+  animation: abFadeOut 0.3s ease forwards !important;
+}
+@keyframes abFadeOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes abFadeOut {
+  to {
+    opacity: 0;
+  }
+}

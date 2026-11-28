@@ -18,6 +18,7 @@ import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
 import { FieldStatus, QuestProgress, type QuestNav } from './components/FieldHud'
 import { SKILLS } from './data/skills'
 import type { PortraitSrc } from './components/Portrait'
+import { AreaBanner, areaBannerMs, type AreaBannerReq } from './components/AreaBanner'
 import { MAPS, PLAYER_SPEC, SPEAKER_LOOKS, mapName } from './data/maps'
 import { QUESTS, questLines, townQuests } from './data/quests'
 import { CHAPTERS } from './data/chapters'
@@ -87,7 +88,7 @@ export default function App() {
   const [busy, setBusy] = useState(false)
   const [questId, setQuestId] = useState<string | null>(null)
   const [battle, setBattle] = useState<BattleReq | null>(null)
-  const [banner, setBanner] = useState<string | null>(null)
+  const [banner, setBanner] = useState<AreaBannerReq | null>(null)
   const [fade, setFade] = useState(false)
   const [whiteIn, setWhiteIn] = useState(false)
   const [flash, setFlash] = useState(false)
@@ -158,9 +159,11 @@ export default function App() {
     setSpawn((s) => ({ x, y, dir, key: s.key + 1 }))
   }
 
-  const showBanner = (name: string) => {
-    setBanner(name)
-    setTimeout(() => setBanner((b) => (b === name ? null : b)), 2200)
+  const showBanner = (id: string, first = false) => {
+    if (!MAPS[id] || MAPS[id].kind === 'interior') return
+    const req = { id, first, key: Date.now() }
+    setBanner(req)
+    setTimeout(() => setBanner((b) => (b === req ? null : b)), areaBannerMs(first))
   }
 
   const setFlag = (k: string) => setGs((g) => ({ ...g, flags: { ...g.flags, [k]: true } }))
@@ -199,10 +202,10 @@ export default function App() {
     const ok = WALKABLE.has(m.tiles[loaded.y]?.[loaded.x] ?? '#')
     const g = ok && MAPS[loaded.mapId] ? loaded : { ...loaded, mapId: m.id, x: m.spawn.x, y: m.spawn.y, dir: m.spawn.dir }
     startGame(g, 'field')
-    showBanner(mapName(g.mapId))
+    showBanner(g.mapId)
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=）
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y（&first） / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=）
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -229,7 +232,12 @@ export default function App() {
       setTimeout(() => setGate({ bossId: gb, close: () => setGate(null) }), 300)
       return
     }
-    if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
+    if (at && MAPS[at[0]]) {
+      startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
+      // 場所カードも 出す（&first で はじめて 来たときの 形）
+      setTimeout(() => showBanner(at[0], p.has('first')), 300)
+      return
+    }
     const end = Number(p.get('ending'))
     if (end) {
       // その章までを 解き終えた 状態で 見せる
@@ -457,7 +465,7 @@ export default function App() {
     moveTo(ex.to, ex.tx, ex.ty, ex.dir)
     setFlag(`visit_${ex.to}`)
     const dest = MAPS[ex.to]
-    if (dest.kind !== 'interior') showBanner(mapName(dest.id))
+    showBanner(dest.id, firstVisit)
     // カルキュレの東門から はじめて 出たとき（第2章の はじまり）
     if (ex.to === 'world' && ex.tx === 37 && !gsRef.current.flags.visit_east) {
       setFlag('visit_east')
@@ -1031,7 +1039,7 @@ export default function App() {
         setFade(true)
         await sleep(600)
         moveTo(out.map, out.x, out.y, out.dir)
-        showBanner(mapName(out.map))
+        showBanner(out.map)
         await sleep(700)
         setFade(false)
         await me([tr('はぁ、はぁ……なんとか 外に 出られた……。', 'Huff, huff... Made it out somehow...')])
@@ -1280,7 +1288,7 @@ export default function App() {
               setScene('field')
               setWhiteIn(true)
               setTimeout(() => setWhiteIn(false), 2000)
-              setTimeout(() => showBanner(mapName(gsRef.current.mapId)), 900)
+              setTimeout(() => showBanner(gsRef.current.mapId, true), 900)
             }}
           />
         )}
@@ -1368,7 +1376,7 @@ export default function App() {
                   ))}
               </>
             )}
-            {banner && scene === 'field' && <div className="banner">{banner}</div>}
+            {banner && scene === 'field' && <AreaBanner key={banner.key} req={banner} gs={gs} />}
             {fade && <div className="fade" />}
             {flash && <div className="encounter-flash" />}
             {whiteIn && <div className="white-in" />}

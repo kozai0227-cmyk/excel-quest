@@ -708,32 +708,6 @@ button {
     transition: none;
   }
 }
-.banner {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 1cqw 4cqw;
-  background: rgba(0, 0, 0, 0.7);
-  border-top: 0.3cqw solid #fff;
-  border-bottom: 0.3cqw solid #fff;
-  font-size: 3.6cqw;
-  white-space: nowrap;
-  animation: bannerIn 2.2s ease forwards;
-  pointer-events: none;
-}
-@keyframes bannerIn {
-  0% {
-    opacity: 0;
-  }
-  15%,
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 .fade {
   position: absolute;
   inset: 0;
@@ -3084,13 +3058,6 @@ html:lang(en) .fpad-label {
 .phone .screen .hq-nav {
   min-width: 0;
 }
-.phone .banner {
-  font-size: 20px;
-  padding: 6px 24px;
-  border-top-width: 2px;
-  border-bottom-width: 2px;
-}
-
 /* 会話 */
 .phone .screen .dialog-win {
   left: 8px;
