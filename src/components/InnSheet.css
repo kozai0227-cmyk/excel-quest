@@ -1,0 +1,347 @@
+/* ================================================================ 宿屋（休む 前に 回復量が 見える シート） */
+.inn-town {
+  margin-left: 0.5em;
+  font-size: 0.62em;
+  font-weight: 700;
+  color: #aab3c5;
+}
+
+/* 部屋：窓の 外の 空と ベッド */
+.inn-room {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 4%;
+  height: 7.2em;
+  padding: 0.7em 0.9em 0;
+  border-radius: 0.9em;
+  overflow: hidden;
+  background: linear-gradient(180deg, #4a3326 0%, #3a281e 70%, #2a1d16 70%, #23180f 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: filter 0.8s ease;
+}
+.inn.night .inn-room {
+  filter: brightness(0.62) saturate(0.8);
+}
+.inn-sky {
+  position: relative;
+  align-self: flex-start;
+  flex: 0 0 42%;
+  height: 5.4em;
+  border-radius: 0.5em 0.5em 0.2em 0.2em;
+  border: 0.32em solid #8a5c3a;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ff9f6b 0%, #ffcf8a 60%, #ffe6b0 100%);
+  transition: background 0.9s ease;
+}
+/* 窓わく（十字） */
+.inn-sky::before,
+.inn-sky::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  background: #8a5c3a;
+}
+.inn-sky::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 0.22em;
+  transform: translateX(-50%);
+}
+.inn-sky::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 0.22em;
+  transform: translateY(-50%);
+}
+.inn.night .inn-sky {
+  background: linear-gradient(180deg, #0b1236 0%, #1d2a63 100%);
+}
+.inn.morning .inn-sky {
+  background: linear-gradient(180deg, #6cc6ff 0%, #b6e6ff 70%, #e9f8ff 100%);
+}
+.inn-sun,
+.inn-moon {
+  position: absolute;
+  left: 58%;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  transition: transform 1s cubic-bezier(0.3, 1, 0.4, 1), opacity 0.6s ease;
+}
+.inn-sun {
+  top: 2.4em;
+  background: radial-gradient(circle at 40% 40%, #fff6c9, #ffc93c 65%, #ff9f1c);
+  box-shadow: 0 0 0.8em #ffd25c;
+}
+.inn-moon {
+  top: 0.5em;
+  left: 20%;
+  background: #fff7d6;
+  box-shadow: inset -0.4em -0.1em 0 #d6cfa8, 0 0 0.7em rgba(255, 247, 214, 0.6);
+  opacity: 0;
+  transform: translateY(2em);
+}
+.inn.night .inn-sun {
+  opacity: 0;
+  transform: translateY(2.5em);
+}
+.inn.night .inn-moon {
+  opacity: 1;
+  transform: none;
+}
+.inn.morning .inn-sun {
+  transform: translate(-0.6em, -1.9em);
+}
+.inn-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(circle, #fff 0 1px, transparent 1.5px) 10% 20% / 2.2em 1.6em,
+    radial-gradient(circle, #cfe0ff 0 1px, transparent 1.5px) 70% 60% / 1.7em 1.3em;
+  transition: opacity 0.8s ease;
+}
+.inn.night .inn-stars {
+  opacity: 1;
+  animation: innTwinkle 1.6s ease-in-out infinite alternate;
+}
+.inn-hill {
+  position: absolute;
+  z-index: 2;
+  left: -10%;
+  right: -10%;
+  bottom: -1.2em;
+  height: 2.2em;
+  border-radius: 50%;
+  background: #4f9d4a;
+  transition: background 0.9s ease;
+}
+.inn.night .inn-hill {
+  background: #1f3d33;
+}
+
+/* ベッド */
+.inn-bed {
+  position: relative;
+  flex: 1;
+  height: 3.1em;
+  margin-bottom: 0.6em;
+  border-radius: 0.5em 0.5em 0.3em 0.3em;
+  background: linear-gradient(180deg, #d9c2a0, #b0906a);
+  box-shadow: 0 0.35em 0 #6e4f33;
+}
+.inn-pillow {
+  position: absolute;
+  left: 6%;
+  top: -0.55em;
+  width: 28%;
+  height: 1.2em;
+  border-radius: 0.6em;
+  background: #fffaf0;
+  box-shadow: 0 0.12em 0 #d8cdb4;
+}
+.inn-blanket {
+  position: absolute;
+  left: 30%;
+  right: 0;
+  top: -0.3em;
+  bottom: 0.4em;
+  border-radius: 0.6em 0.5em 0.3em 0.6em;
+  background: repeating-linear-gradient(90deg, #4f7be0 0 0.9em, #5d89ef 0.9em 1.8em);
+  box-shadow: 0 0.15em 0 #2f4f9d;
+  transform-origin: bottom;
+}
+.inn.night .inn-blanket {
+  animation: innBreathe 1.4s ease-in-out infinite;
+}
+.inn-zzz {
+  position: absolute;
+  left: 8%;
+  bottom: 100%;
+  display: flex;
+  gap: 0.15em;
+  color: #cfe0ff;
+  font-weight: 900;
+}
+.inn-zzz b {
+  animation: innZ 1.5s ease-in-out infinite both;
+}
+.inn-zzz b:nth-child(2) {
+  font-size: 0.85em;
+  animation-delay: 0.3s;
+}
+.inn-zzz b:nth-child(3) {
+  font-size: 0.7em;
+  animation-delay: 0.6s;
+}
+
+/* HP と 所持金の 前 → 後 */
+.inn-card {
+  margin-top: 0.55em;
+  padding: 0.65em 0.8em 0.6em;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.inn-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+.inn-label {
+  flex: none;
+  font-weight: 800;
+  color: #cfd6e4;
+  font-size: 0.9em;
+}
+.inn-bar {
+  position: relative;
+  flex: 1;
+  height: 0.75em;
+  border-radius: 1em;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.inn-fill,
+.inn-ghost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 1em;
+}
+.inn-fill {
+  background: linear-gradient(180deg, #7ef0a6, #2fbf6b);
+}
+.inn-bar.low .inn-fill {
+  background: linear-gradient(180deg, #ff9a8a, #e5484d);
+}
+/* 回復する ぶん：しま模様で 光る */
+.inn-ghost {
+  border-radius: 0 1em 1em 0;
+  background: repeating-linear-gradient(-45deg, rgba(126, 240, 166, 0.55) 0 0.3em, rgba(126, 240, 166, 0.25) 0.3em 0.6em);
+  animation: innGhost 1.2s ease-in-out infinite alternate;
+}
+.inn.morning .inn-fill {
+  box-shadow: 0 0 0.6em rgba(126, 240, 166, 0.8);
+}
+.inn-num {
+  flex: none;
+  min-width: 5.2em;
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #aab3c5;
+}
+.inn-num b {
+  color: #7ef0a6;
+  font-size: 1.12em;
+}
+.inn-num em {
+  font-style: normal;
+  color: #6c7690;
+}
+.inn-plus {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  color: #7ef0a6;
+  font-weight: 900;
+  pointer-events: none;
+  animation: innPlus 1.3s ease-out both;
+}
+.inn-note {
+  margin-top: 0.45em;
+  font-size: 0.82em;
+  color: #aab3c5;
+  line-height: 1.4;
+}
+.inn-short {
+  color: #ff9a9a;
+}
+.inn-heal {
+  color: #7ef0a6;
+}
+.inn-ok {
+  color: #7ef0a6;
+  font-weight: 800;
+  animation: shopSay 0.3s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.shop-act.inn-act.go {
+  background: linear-gradient(#3fd6a0, #1f9c72);
+  border-color: #c8ffe9;
+  border-bottom-color: #0c4f39;
+  color: #fff;
+}
+.shop-x:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@keyframes innTwinkle {
+  to {
+    opacity: 0.55;
+  }
+}
+@keyframes innBreathe {
+  50% {
+    transform: scaleY(1.08);
+  }
+}
+@keyframes innZ {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0.4em);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0.4em, -0.8em);
+  }
+}
+@keyframes innGhost {
+  to {
+    opacity: 0.55;
+  }
+}
+@keyframes innPlus {
+  0% {
+    opacity: 0;
+    transform: translateY(0.4em) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-0.2em) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.2em);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inn-room,
+  .inn-sky,
+  .inn-sun,
+  .inn-moon,
+  .inn-stars,
+  .inn-hill {
+    transition: none;
+  }
+  .inn.night .inn-stars,
+  .inn.night .inn-blanket,
+  .inn-zzz b,
+  .inn-ghost,
+  .inn-ok {
+    animation: none;
+  }
+  .inn-plus {
+    animation-duration: 0.01s;
+  }
+}
