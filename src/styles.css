@@ -9629,3 +9629,37 @@ html:lang(en) .fpad-label {
   bottom: max(10px, env(safe-area-inset-bottom));
   z-index: 3;
 }
+/* ---------------------------------------------------------------- ダンジョンの ミニマップ */
+.minimap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px;
+  font: inherit;
+  font-size: 12px;
+  color: #dfe8ff;
+  background: rgba(10, 14, 30, 0.62);
+  border: 1px solid rgba(160, 190, 255, 0.35);
+  border-radius: 10px;
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+.minimap-cv {
+  display: block;
+  image-rendering: pixelated;
+}
+.minimap-pct {
+  white-space: nowrap;
+  font-weight: 700;
+}
+.minimap.done .minimap-pct {
+  color: #ffd23a;
+}
+.minimap.closed {
+  padding: 4px 8px;
+}

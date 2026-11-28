@@ -1,9 +1,12 @@
-import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { tr } from '../game/lang'
+import { exploreSet, saveExplore } from '../game/explore'
 import { toKey } from '../game/keys'
 import { charSprite, creatureSprite, emoteBubble, TS } from '../game/sprites'
 import { COUNTER, drawTile, WALKABLE } from '../game/tiles'
-import type { Dir, Exit, GameState, MapDef, NpcDef } from '../game/types'
+import type { Dir, Exit, GameState, MapDef, NpcDef, SignDef } from '../game/types'
 import { PLAYER_SPEC } from '../data/maps'
+import { ENEMIES } from '../data/bosses'
 
 export const VW = 15
 export const VH = 11
@@ -13,6 +16,21 @@ const DASH_MS = 105
 const ENCOUNTER_RATE: Record<string, number> = { '.': 1 / 20, '"': 1 / 13, '%': 1 / 10, '=': 1 / 34, ',': 1 / 20, q: 1 / 15, ':': 1 / 15 }
 const D: Record<Dir, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
 const OPP: Record<Dir, Dir> = { up: 'down', down: 'up', left: 'right', right: 'left' }
+
+/** 見える 敵（ダンジョンを 歩き回る 魔物）：気づく 距離・あきらめる 距離・追う 速さ（ふつうに 歩けば 逃げきれる） */
+const MOB_SEE = 4
+const MOB_GIVEUP = 7
+const MOB_CHASE_MS = 235
+const MOB_WALK_MS = 340
+/** 戦闘から もどった あと、敵が 追ってこない 時間 */
+const MOB_GRACE_MS = 1600
+/** 先制（敵の 背中から ふれた）・不意打ち（背中から ふれられた） */
+export type Strike = 'first' | 'ambush'
+interface Mob {
+  a: Actor
+  enemy: string
+  chase: boolean
+}
 
 interface Actor {
   x: number
@@ -61,11 +79,14 @@ export interface FieldProps {
   gs: GameState
   barrierOpen: boolean
   onInteract(npc: NpcDef): void
-  onSign(lines: string[]): void
+  onSign(lines: string[], sign: SignDef): void
   onWarp(exit: Exit): void
   onMove(x: number, y: number, dir: Dir): void
   onMenu(): void
-  onEncounter?(enemyId: string): void
+  /** strike：見える 敵に 背中から ふれた（first）／ふれられた（ambush） */
+  onEncounter?(enemyId: string, strike?: Strike): void
+  /** ダンジョンの フロアを くまなく 歩いた（探索率 100%） */
+  onExplored?(mapId: string): void
   /** 閉じた謎解きの扉を調べた */
   onGate?(puzzle: string): void
   /** ドアの上に「！」を出すか（中に困っている人がいる） */
@@ -113,6 +134,49 @@ export function Field(props: FieldProps) {
   /** 表示する範囲（ドット単位）。短い辺が 11マスで、長い辺は 画面の形に 合わせて のびる */
   const view = useRef({ w: VW * TS, h: VH * TS })
   const safeSteps = useRef(4)
+  /** ダンジョンを 歩き回る 見える 敵（倒した 敵は その フロアに いる あいだ 戻らない） */
+  const mobs = useRef<Mob[]>([])
+  /** ミニマップ（ダンジョンだけ）：小さな キャンバスと 探索率 */
+  const miniRef = useRef<HTMLCanvasElement>(null)
+  const [explorePct, setExplorePct] = useState<number | null>(null)
+  const [miniOpen, setMiniOpen] = useState(true)
+  /** 歩ける マス（主人公から 行ける ところ。謎の 扉の 先は 開くまで 数えない） */
+  const reach = useRef<{ key: string; tiles: Set<number> }>({ key: '', tiles: new Set() })
+  const miniDirty = useRef(true)
+  const graceUntil = useRef(0)
+  /** 敵が 見える フロアか（ダンジョンで 敵が 出る ところ）。ランダムエンカウントの かわり */
+  const symbolMode = () => P.current.map.kind === 'dungeon' && !!P.current.map.encounter
+  const mobAt = (x: number, y: number, self?: Mob) => mobs.current.find((m) => m !== self && ((m.a.x === x && m.a.y === y) || (m.a.tx === x && m.a.ty === y)))
+  /** 敵を 置く：主人公から 離れた、敵の 出る 床に、間を あけて */
+  const spawnMobs = (sx: number, sy: number) => {
+    mobs.current = []
+    if (!symbolMode()) return
+    const map = P.current.map
+    const spots: [number, number][] = []
+    for (let y = 0; y < map.tiles.length; y++)
+      for (let x = 0; x < map.tiles[y].length; x++) {
+        if (!WALKABLE.has(tileAt(x, y)) || !map.encounter!(x, y)) continue
+        if (Math.abs(x - sx) + Math.abs(y - sy) < 7) continue
+        if (map.exits.some((e) => e.x === x && e.y === y) || map.npcs.some((n) => n.x === x && n.y === y)) continue
+        spots.push([x, y])
+      }
+    const want = Math.max(2, Math.min(7, Math.round(spots.length / 45)))
+    for (let i = spots.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[spots[i], spots[j]] = [spots[j], spots[i]]
+    }
+    for (const [x, y] of spots) {
+      if (mobs.current.length >= want) break
+      if (mobs.current.some((m) => Math.abs(m.a.x - x) + Math.abs(m.a.y - y) < 5)) continue
+      const table = map.encounter!(x, y)!
+      const enemy = table[Math.floor(Math.random() * table.length)]
+      const sprite = ENEMIES[enemy]?.sprite
+      if (!sprite) continue
+      const def: NpcDef = { id: `mob${mobs.current.length}`, x, y, name: '', kind: 'talk', creature: sprite as NpcDef['creature'] }
+      const dirs: Dir[] = ['up', 'down', 'left', 'right']
+      mobs.current.push({ a: { ...actor(x, y, dirs[Math.floor(Math.random() * 4)], def), stepMs: MOB_WALK_MS }, enemy, chase: false })
+    }
+  }
 
   const visible = props.map.npcs.filter((n) => !n.hideIf?.(props.gs))
   const visibleKey = props.map.id + visible.map((n) => n.id).join(',')
@@ -173,6 +237,91 @@ export function Field(props: FieldProps) {
     return out
   }
 
+  /** 行ける マスを 数えなおす（地図・解いた 謎が 変わったとき） */
+  const reachable = () => {
+    const map = P.current.map
+    const key = `${map.id}|${P.current.gs.solved.length}|${P.current.barrierOpen}`
+    if (reach.current.key === key) return reach.current.tiles
+    const W = map.tiles[0].length
+    const seen = new Set<number>()
+    const q: [number, number][] = [[map.spawn.x, map.spawn.y], ...map.exits.map((e) => [e.x, e.y] as [number, number])]
+    for (const [x, y] of q) seen.add(y * W + x)
+    while (q.length) {
+      const [x, y] = q.shift()!
+      for (const [dx, dy] of Object.values(D)) {
+        const nx = x + dx
+        const ny = y + dy
+        const k = ny * W + nx
+        if (seen.has(k) || !WALKABLE.has(tileAt(nx, ny))) continue
+        seen.add(k)
+        q.push([nx, ny])
+      }
+    }
+    reach.current = { key, tiles: seen }
+    return seen
+  }
+  const lastExplore = useRef('')
+  /** 主人公の まわり（3マス）を 歩いた ことに する。100% に なったら 知らせる */
+  const explore = (px: number, py: number) => {
+    const map = P.current.map
+    const k = `${map.id}|${px},${py}|${P.current.gs.solved.length}`
+    if (lastExplore.current === k) return
+    lastExplore.current = k
+    const W = map.tiles[0].length
+    const set = exploreSet(map.id)
+    const before = set.size
+    for (let y = py - 3; y <= py + 3; y++)
+      for (let x = px - 3; x <= px + 3; x++) if (x >= 0 && y >= 0 && x < W && y < map.tiles.length) set.add(y * W + x)
+    if (set.size !== before) saveExplore()
+    const all = reachable()
+    let got = 0
+    for (const t of all) if (set.has(t)) got++
+    const pct = Math.min(100, Math.floor((got / Math.max(1, all.size)) * 100))
+    setExplorePct(pct)
+    miniDirty.current = true
+    if (pct >= 100 && !P.current.gs.flags[`explored_${map.id}`]) P.current.onExplored?.(map.id)
+  }
+  /** ミニマップを 描く：歩いた ところだけ 明るく。宝箱（金）・ボス（赤）・出口（青）・主人公（白） */
+  const drawMini = () => {
+    const cv = miniRef.current
+    if (!cv) return
+    const map = P.current.map
+    const W = map.tiles[0].length
+    const H = map.tiles.length
+    const s = Math.max(1, Math.min(3, Math.floor(48 / Math.max(W, H))))
+    if (cv.width !== W * s || cv.height !== H * s) {
+      cv.width = W * s
+      cv.height = H * s
+      // 長い 辺を 110px に（形どおりの 縦横比で）
+      cv.style.width = `${Math.round((W / Math.max(W, H)) * 110)}px`
+      cv.style.height = `${Math.round((H / Math.max(W, H)) * 110)}px`
+    }
+    const g = cv.getContext('2d')!
+    g.clearRect(0, 0, cv.width, cv.height)
+    const set = exploreSet(map.id)
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        if (!set.has(y * W + x)) continue
+        const t = tileAt(x, y)
+        g.fillStyle = WALKABLE.has(t) ? 'rgba(210,225,255,0.85)' : t === '(' ? 'rgba(255,170,60,0.9)' : 'rgba(60,70,100,0.75)'
+        g.fillRect(x * s, y * s, s, s)
+      }
+    const dot = (x: number, y: number, c: string) => {
+      g.fillStyle = c
+      g.fillRect(x * s - (s === 1 ? 0 : 0), y * s, s, s)
+      if (s === 1) g.fillRect(x - 1, y, 3, 1), g.fillRect(x, y - 1, 1, 3)
+    }
+    for (const e of map.exits) if (set.has(e.y * W + e.x)) dot(e.x, e.y, '#4aa8ff')
+    for (const a of npcs.current) {
+      const d = a.def
+      if (!d || !set.has(a.y * W + a.x)) continue
+      if (d.kind === 'chest') dot(a.x, a.y, '#ffd23a')
+      else if (d.kind === 'boss') dot(a.x, a.y, '#ff4a3a')
+    }
+    const p = player.current
+    dot(p.moving ? p.tx : p.x, p.moving ? p.ty : p.y, '#ffffff')
+  }
+
   useImperativeHandle(props.ref, () => ({
     spawn(def) {
       extras.current = [...extras.current.filter((a) => a.def?.id !== def.id), { ...actor(def.x, def.y, def.dir ?? 'down', def), scripted: true }]
@@ -220,6 +369,17 @@ export function Field(props: FieldProps) {
     player.current = actor(props.spawn.x, props.spawn.y, props.spawn.dir)
     npcs.current = []
     extras.current = []
+    spawnMobs(props.spawn.x, props.spawn.y)
+    lastExplore.current = ''
+    setExplorePct(null)
+    miniDirty.current = true
+    // 確かめ用（localhost だけ）：見える 敵と 主人公の 位置を 読む
+    if (location.hostname === 'localhost')
+      (window as unknown as { __mobs?: () => unknown }).__mobs = () => ({
+        p: { x: player.current.x, y: player.current.y, dir: player.current.dir },
+        mobs: mobs.current.map((m) => ({ x: m.a.x, y: m.a.y, dir: m.a.dir, chase: m.chase, enemy: m.enemy })),
+      })
+    graceUntil.current = performance.now() + MOB_GRACE_MS
   }, [props.spawn.key, props.map.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // NPC の表示/非表示（位置は維持）
@@ -392,7 +552,7 @@ export function Field(props: FieldProps) {
               return
             }
             // ランダムエンカウント
-            const table = P.current.map.encounter?.(p.x, p.y)
+            const table = symbolMode() ? null : P.current.map.encounter?.(p.x, p.y)
             if (table && P.current.onEncounter) {
               if (safeSteps.current > 0) safeSteps.current--
               else if (Math.random() < (P.current.map.encounterRate ?? ENCOUNTER_RATE[tileAt(p.x, p.y)] ?? 0)) {
@@ -443,7 +603,83 @@ export function Field(props: FieldProps) {
         inp.ok = false
         inp.menu = false
         inp.tap = null
+        // 戦闘・会話の あいだは 敵も 止まる。もどった 直後は 少し 追ってこない
+        graceUntil.current = now + MOB_GRACE_MS
         return
+      }
+
+      // 見える 敵に ふれたら 戦闘。背中から ふれたら 先制、背中から ふれられたら 不意打ち
+      const touch = (m: Mob, byPlayer: boolean) => {
+        const back = byPlayer ? p.dir === m.a.dir : m.a.dir === p.dir
+        mobs.current = mobs.current.filter((x) => x !== m)
+        inp.held = []
+        inp.tap = null
+        goal.current = null
+        P.current.onEncounter?.(m.enemy, back ? (byPlayer ? 'first' : 'ambush') : undefined)
+      }
+      // 歩いた まわりを ミニマップに 記す
+      if (P.current.map.kind === 'dungeon') explore(p.moving ? p.tx : p.x, p.moving ? p.ty : p.y)
+      if (P.current.map.encounter && P.current.onEncounter) {
+        const calm = now < graceUntil.current
+        for (const m of [...mobs.current]) {
+          const a = m.a
+          if (a.moving) {
+            a.t += dt / a.stepMs
+            if (a.t < 1) continue
+            a.moving = false
+            a.x = a.tx
+            a.y = a.ty
+            a.t = 0
+          }
+          const dist = Math.abs(a.x - p.x) + Math.abs(a.y - p.y)
+          if (!m.chase && !calm && dist <= MOB_SEE) {
+            m.chase = true
+            a.emote = { name: 'bang', until: now + 700 }
+            a.nextWander = now + 350
+          } else if (m.chase && (dist > MOB_GIVEUP || calm)) m.chase = false
+          if (now < a.nextWander) continue
+          const ok = (x: number, y: number) =>
+            WALKABLE.has(tileAt(x, y)) &&
+            !!P.current.map.encounter!(x, y) &&
+            !occupiedByNpc(x, y) &&
+            !mobAt(x, y, m) &&
+            !P.current.map.exits.some((e) => e.x === x && e.y === y)
+          let next: [number, number] | undefined
+          if (m.chase) {
+            a.stepMs = MOB_CHASE_MS
+            a.nextWander = now
+            const path = route(a.x, a.y, p.moving ? p.tx : p.x, p.moving ? p.ty : p.y)
+            if (path.length) next = path[0]
+          } else {
+            a.stepMs = MOB_WALK_MS
+            a.nextWander = now + 700 + Math.random() * 1100
+            const dirs: Dir[] = ['up', 'down', 'left', 'right']
+            const d = dirs[Math.floor(Math.random() * 4)]
+            a.dir = d
+            const [dx, dy] = D[d]
+            if (Math.abs(a.x + dx - a.hx) <= 3 && Math.abs(a.y + dy - a.hy) <= 3) next = [a.x + dx, a.y + dy]
+          }
+          if (!next) continue
+          a.dir = dirTo(a.x, a.y, next[0], next[1])
+          // 主人公の マスに 入ろうと したら ぶつかる
+          if ((next[0] === p.x && next[1] === p.y) || (next[0] === p.tx && next[1] === p.ty)) {
+            if (!calm && m.chase) return touch(m, false)
+            continue
+          }
+          if (!ok(next[0], next[1])) continue
+          a.tx = next[0]
+          a.ty = next[1]
+          a.moving = true
+          a.t = 0
+        }
+      }
+      /** 主人公が 敵の いる マスへ 進もうと したら ぶつかる（こちらから しかけた） */
+      const bump = (nx: number, ny: number) => {
+        const m = mobAt(nx, ny)
+        if (!m || now < graceUntil.current - MOB_GRACE_MS / 2) return false
+        p.dir = dirTo(p.x, p.y, nx, ny)
+        touch(m, true)
+        return true
       }
 
       if (!p.moving) {
@@ -465,7 +701,7 @@ export function Field(props: FieldProps) {
             if (g) P.current.onGate?.(g.puzzle)
           } else {
             const sign = P.current.map.signs.find((s) => s.x === fx && s.y === fy)
-            if (sign) P.current.onSign(sign.lines)
+            if (sign) P.current.onSign(sign.lines, sign)
           }
         } else if (goal.current && !inp.held.length && !inp.tap) {
           const gl = goal.current
@@ -490,6 +726,7 @@ export function Field(props: FieldProps) {
               gl.path = again
               ;[nx, ny] = again[0]
             }
+            if (bump(nx, ny)) return
             gl.path.shift()
             gl.at = now
             p.dir = dirTo(p.x, p.y, nx, ny)
@@ -505,6 +742,7 @@ export function Field(props: FieldProps) {
           inp.tap = null
           p.dir = dir
           const [dx, dy] = D[dir]
+          if (bump(p.x + dx, p.y + dy)) return
           if (free(p.x + dx, p.y + dy)) {
             p.tx = p.x + dx
             p.ty = p.y + dy
@@ -574,7 +812,7 @@ export function Field(props: FieldProps) {
         ctx.stroke()
       }
       const step = (Math.floor(now / 260) % 2) + 1
-      const actors = [player.current, ...all()].sort((a, b) => pos(a)[1] - pos(b)[1])
+      const actors = [player.current, ...all(), ...mobs.current.map((m) => m.a)].sort((a, b) => pos(a)[1] - pos(b)[1])
       // 吹き出しはキャラの上に重ならないよう最後にまとめて描く
       const overlays: (() => void)[] = []
       for (const a of actors) {
@@ -613,6 +851,27 @@ export function Field(props: FieldProps) {
         ctx.fillStyle = grad
         ctx.fillRect(0, 0, vw, vh)
       }
+      // 札（棚の 記号・積荷の 重さ）。仕掛けを 解いたら 札は 消す
+      for (const sg of map.signs) {
+        if (!sg.label || (sg.trick && gs.flags[`trick_${sg.trick.group}`])) continue
+        const dx = sg.x * TS - camX
+        const dy = sg.y * TS - camY
+        if (dx < -TS || dy < -TS || dx > vw || dy > vh) continue
+        overlays.push(() => {
+          ctx.font = '7px monospace'
+          const w = Math.max(9, Math.ceil(ctx.measureText(sg.label!).width) + 4)
+          const lx = dx + (TS - w) / 2
+          const ly = dy + 2
+          ctx.fillStyle = 'rgba(255,240,200,0.92)'
+          ctx.fillRect(lx, ly, w, 9)
+          ctx.fillStyle = '#4a2a10'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(sg.label!, dx + TS / 2, ly + 5)
+          ctx.textAlign = 'start'
+          ctx.textBaseline = 'alphabetic'
+        })
+      }
       // 中に困っている人がいる家は、ドアの上に「！」
       for (const ex of map.exits) {
         if (!P.current.doorHint?.(ex)) continue
@@ -630,7 +889,7 @@ export function Field(props: FieldProps) {
     let shown = ''
     const look = (now: number) => {
       let k = `${Math.floor(now / 450)}|${Math.floor(now / 260) % 2}|${Math.floor(now / 300) % 2}`
-      for (const a of [player.current, ...all()]) {
+      for (const a of [player.current, ...all(), ...mobs.current.map((m) => m.a)]) {
         k += `|${a.x},${a.y},${a.tx},${a.ty},${a.moving ? a.t : 0},${a.dir}`
         if (a.emote && now < a.emote.until) k += 'e'
         if (a.def && (now + a.phase) % 6000 < 1400) k += 'b'
@@ -643,6 +902,10 @@ export function Field(props: FieldProps) {
       const dt = Math.min(50, now - last)
       last = now
       update(dt, now)
+      if (miniDirty.current) {
+        miniDirty.current = false
+        drawMini()
+      }
       const k = look(now)
       // 主人公が 止まっている ときは 30コマ／秒まで（村人の ゆっくりした 動きは これで 十分 なめらか）
       const calm = !player.current.moving && now - drawnAt < 30
@@ -658,16 +921,41 @@ export function Field(props: FieldProps) {
     return () => cancelAnimationFrame(raf)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const dungeon = props.map.kind === 'dungeon'
   return (
-    <canvas
-      ref={canvasRef}
-      className="field"
-      width={VW * TS}
-      height={VH * TS}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className="field"
+        width={VW * TS}
+        height={VH * TS}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      />
+      {dungeon && explorePct !== null && !props.paused && (
+        <button
+          type="button"
+          className={`minimap ${miniOpen ? '' : 'closed'} ${explorePct >= 100 ? 'done' : ''}`}
+          aria-label={tr(`ミニマップ 探索 ${explorePct}%`, `Minimap: ${explorePct}% explored`)}
+          onClick={() => {
+            setMiniOpen((o) => !o)
+            miniDirty.current = true
+          }}
+        >
+          <canvas
+            ref={(el) => {
+              miniRef.current = el
+              if (el) miniDirty.current = true
+            }}
+            className="minimap-cv"
+            style={{ display: miniOpen ? undefined : 'none' }} />
+          <span className="minimap-pct">
+            {explorePct >= 100 ? tr('🗺 踏破！', '🗺 Fully explored!') : tr(`🗺 探索 ${explorePct}%`, `🗺 ${explorePct}% explored`)}
+          </span>
+        </button>
+      )}
+    </>
   )
 }

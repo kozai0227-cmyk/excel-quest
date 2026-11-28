@@ -35,6 +35,8 @@ interface Props {
   tutorial?: boolean
   /** 倒した ボスへの 再挑戦（報酬 半分・負けても 罰なし） */
   rematch?: boolean
+  /** 見える 敵に 背中から ふれた（first：先制）／ふれられた（ambush：不意打ち） */
+  strike?: 'first' | 'ambush'
   /** 背景（森・草原・ボス） */
   scene?: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
   gs: GameState
@@ -111,10 +113,27 @@ function BossSprite({ id, hit }: { id: BossDef['sprite']; hit: number }) {
   return <canvas ref={ref} width={16} height={16} className={`boss-sprite ${hit ? 'hit' : ''}`} />
 }
 
-export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
+export function Battle({ bossId, tutorial, rematch, strike, scene = 'boss', gs, setGs, onWin, onLose, onFlee }: Props) {
   // 町は どの 順でも 回れるので、敵の 強さは レベルに 合わせる
   const [boss] = useState(() => scaleEnemy(ENEMIES[bossId], gs.level))
   const bossName = enemyName(boss)
+  /** 先制：最初の こちらの 攻撃が 1.5倍 */
+  const firstHit = useRef(strike === 'first')
+  /** 不意打ち：戦いの はじめに 敵の 攻撃を うける（これで 倒れは しない） */
+  const ambushLines = (): Msg[] => {
+    const dmg = Math.max(1, Math.min(gs.hp - 1, rand(boss.attack[0], boss.attack[1]) - Math.floor(gearStats(gs).def * 0.7)))
+    return [
+      { text: tr('不意を つかれた！', 'Ambushed!'), fx: () => sfx('enemyAttack') },
+      {
+        text: tr(`${gs.name}は ${dmg}の ダメージを うけた！`, `${gs.name} took ${dmg} damage!`),
+        fx: () => {
+          setShake((s) => s + 1)
+          setGs((g) => ({ ...g, hp: Math.max(1, g.hp - dmg) }))
+          pop('me', 'hurt', `-${dmg}`)
+        },
+      },
+    ]
+  }
   useBgm(boss.id === 'refera' ? 'lastboss' : boss.boss ? 'boss' : 'battle')
   /** 山札（boss.questions の 番号） */
   const deck = useRef<number[]>([])
@@ -128,6 +147,13 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
   const [phase, setPhase] = useState<Phase>('msg')
   const [msgs, setMsgs] = useState<Msg[]>(() => [
     tr(`${bossName}が あらわれた！`, `${bossName} appeared!`),
+    ...(strike === 'first'
+      ? [
+          { text: tr('先制攻撃！ 敵は まだ こちらに 気づいていない！', "First strike! The enemy hasn't noticed you yet!"), fx: () => sfx('quick') },
+          tr('（最初の 一撃は 威力 1.5倍！）', '(Your first hit deals 1.5x damage!)'),
+        ]
+      : []),
+    ...(strike === 'ambush' ? ambushLines() : []),
     ...(tutorial
       ? [
           tr('（戦いは「表計算の問題」で 行われる！）', '(Battles are fought with spreadsheet questions!)'),
@@ -328,6 +354,9 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
       missed.current = [{ q: q.q, answer: correctText(q), explain: q.explain }, ...missed.current.filter((m) => m.q !== q.q)]
     }
     if (mode === 'defense') return defend(ok, note, mine)
+    // 先制の 一撃は 最初の 攻撃 1回だけ（外したら 終わり）
+    const usedFirst = firstHit.current
+    firstHit.current = false
     if (ok) {
       const limit = deadline - startedAt.current
       const quick = (tapAt.current ?? Date.now()) - startedAt.current <= limit * QUICK
@@ -346,6 +375,10 @@ export function Battle({ bossId, tutorial, rematch, scene = 'boss', gs, setGs, o
         if (quick) {
           dmg *= raged.current ? RAGE_QUICK : 1.25
           tags.push(tr('⚡ そくとう ボーナス', '⚡ Quick bonus'))
+        }
+        if (usedFirst) {
+          dmg *= 1.5
+          tags.push(tr('🗡 先制の 一撃', '🗡 First strike'))
         }
         if (Math.random() < CRIT + gear.crit) {
           dmg *= 1.6

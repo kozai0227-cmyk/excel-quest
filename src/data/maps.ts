@@ -1,5 +1,5 @@
 import type { CharSpec } from '../game/sprites'
-import type { MapDef, NpcDef } from '../game/types'
+import type { GameState, MapDef, NpcDef, SignDef } from '../game/types'
 import { isUnlocked } from '../game/store'
 import { EN_MAPS, loc } from './en'
 import { tr } from '../game/lang'
@@ -520,6 +520,8 @@ function ship1Tiles() {
   m[4][10] = '('
   m[1][10] = '{'
   put(m, 'x', [[2, 10], [18, 12], [2, 8], [18, 5], [6, 3]])
+  // IF の 仕分けの 仕掛け：重さの 札が ついた 積荷
+  put(m, 'x', [[5, 10], [8, 10], [14, 10]])
   put(m, 'o', [[3, 10], [17, 12], [14, 3]])
   put(m, ']', [[6, 6], [14, 6]])
   return done(m)
@@ -1062,6 +1064,66 @@ const chest = (id: string, x: number, y: number, loot: NpcDef['loot']): NpcDef[]
   { id: `${id}_open`, x, y, name: 'たからばこ', creature: 'chestOpen', kind: 'talk', lines: [tr('からっぽだ。', "It's empty.")], hideIf: (s) => !s.flags[`chest_${id}`] },
 ]
 
+/** 仕掛けを 解くと 現れる 宝箱 */
+const trickChest = (group: string, id: string, x: number, y: number, loot: NpcDef['loot']): NpcDef[] =>
+  chest(id, x, y, loot).map((n) => ({ ...n, hideIf: (st: GameState) => !st.flags[`trick_${group}`] || !!n.hideIf?.(st) }))
+
+/** 幽霊船 船倉：IF で 積荷を 仕分ける（重さ 50 以上は 右、それ以外は 左）。3つ 全部 正しく 仕分けると 隠し宝箱 */
+function shipSortSigns(): SignDef[] {
+  const rule = tr('壁の 指示書：「=IF(重さ>=50, "右の 倉庫", "左の 倉庫")」', 'A note on the wall: "=IF(weight>=50, "right hold", "left hold")"')
+  const crate = (part: number, x: number, w: number): SignDef => ({
+    x,
+    y: 10,
+    label: String(w),
+    lines: [tr(`積荷の 札に「重さ ${w}」と 書いてある。`, `The crate's tag says "weight ${w}".`), rule, tr('どちらの 倉庫へ 運ぶ？', 'Which hold does it go to?')],
+    trick: {
+      group: 'ship_sort',
+      part,
+      parts: 3,
+      choices: [tr('右の 倉庫', 'Right hold'), tr('左の 倉庫', 'Left hold'), tr('やめておく', 'Leave it')],
+      correct: [w >= 50 ? 0 : 1],
+      trap: [w >= 50 ? 1 : 0],
+      okLines: [tr('積荷を 正しい 倉庫へ 運んだ！', 'You moved the crate to the right hold!')],
+      doneLines: [tr('この 積荷は もう 仕分けて ある。', 'This crate has already been sorted.')],
+    },
+  })
+  return [crate(0, 5, 72), crate(1, 8, 30), crate(2, 14, 50)]
+}
+
+/** 大書庫：目録を VLOOKUP のように 引いて、宝の 書が ある 棚を 当てる。ちがう 棚は「#N/A」の 罠 */
+function libShelfSigns(): SignDef[] {
+  const shelves: [string, number][] = [['A', 4], ['B', 7], ['C', 13], ['D', 16]]
+  const answer = 'D'
+  const catalog: SignDef = {
+    x: 3,
+    y: 11,
+    label: '📖',
+    lines: [
+      tr('大書庫の 目録が 置いてある。', "The Great Library's catalog lies here."),
+      tr('目録：「計算の書 → 棚B」「条件の書 → 棚A」', 'Catalog: "Book of Sums → Shelf B", "Book of Ifs → Shelf A"'),
+      tr('目録：「表の魔法 → 棚D」「日付の書 → 棚C」', 'Catalog: "Table Magic → Shelf D", "Book of Dates → Shelf C"'),
+      tr('はしに 走り書き：「宝の 書 ＝ VLOOKUP("表の魔法", 目録, 2, FALSE) の 棚」', 'A scribble in the margin: "The treasure is on the shelf = VLOOKUP("Table Magic", catalog, 2, FALSE)"'),
+    ],
+  }
+  return [
+    catalog,
+    ...shelves.map(([name, x]): SignDef => ({
+      x,
+      y: 9,
+      label: name,
+      lines: [tr(`「${name}」の 札が ついた 本棚だ。`, `A bookshelf tagged "${name}".`)],
+      trick: {
+        group: 'lib_vlookup',
+        choices: [tr('本を 探す', 'Search the books'), tr('やめておく', 'Leave it')],
+        correct: name === answer ? [0] : [],
+        trap: name === answer ? [] : [0],
+        okLines: [tr('「表の魔法」の 書を 見つけた！ 本の すきまに 鍵が はさまっていた。', 'You found "Table Magic"! A key was tucked between its pages.')],
+        doneLines: [tr('本棚は 静かに 並んでいる。', 'The bookshelves stand quietly.')],
+      },
+    })),
+  ]
+}
+
 const cave: MapDef = {
   id: 'cave',
   name: '散らかりの洞窟',
@@ -1420,12 +1482,13 @@ const ship1: MapDef = {
     { x: 10, y: 13, to: 'ifport', tx: 27, ty: 28, dir: 'left' },
     { x: 10, y: 1, to: 'ship2', tx: 8, ty: 8, dir: 'up' },
   ],
-  signs: [],
   gates: [
     { x: 10, y: 9, puzzle: 'ship_if' },
     { x: 10, y: 4, puzzle: 'ship_nested' },
   ],
+  signs: shipSortSigns(),
   npcs: [
+    ...trickChest('ship_sort', 'ship_secret', 3, 12, { gold: 600 }),
     ...chest('ship_chest1', 3, 2, { item: 'herb' }),
     ...chest('ship_chest2', 17, 2, { gold: 300 }),
     ...chest('ship_chest3', 17, 10, { item: 'sandglass' }),
@@ -1615,12 +1678,13 @@ const library1: MapDef = {
     { x: 10, y: 13, to: 'lookup', tx: 16, ty: 5, dir: 'down' },
     { x: 10, y: 2, to: 'library2', tx: 8, ty: 7, dir: 'up' },
   ],
-  signs: [],
   gates: [
     { x: 10, y: 9, puzzle: 'lib_shelf' },
     { x: 10, y: 4, puzzle: 'lib_left' },
   ],
+  signs: libShelfSigns(),
   npcs: [
+    ...trickChest('lib_vlookup', 'lib_secret', 10, 11, { equip: 'bookmark_band' }),
     ...chest('lib_chest1', 3, 2, { item: 'herb' }),
     ...chest('lib_chest2', 18, 2, { gold: 400 }),
     ...chest('lib_chest3', 18, 12, { item: 'sandglass' }),

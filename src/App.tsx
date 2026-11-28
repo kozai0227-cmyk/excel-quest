@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Field, type FieldHandle } from './components/Field'
+import { Field, type FieldHandle, type Strike } from './components/Field'
 import { DialogBox, type DialogReq } from './components/DialogBox'
 import { ShopSheet, type ShopReq } from './components/ShopSheet'
 import { InnSheet, type InnReq } from './components/InnSheet'
@@ -27,10 +27,11 @@ import { ENEMIES } from './data/bosses'
 import { ITEM_IDS } from './data/items'
 import { EQUIP } from './data/equipment'
 import { STAR_BONUS, winReward } from './game/clear'
+import { clearExplore } from './game/explore'
 import { enemyName, npcName } from './data/en'
 import { tr, useLang } from './game/lang'
 import { gainExp, loadGame, maxHp, newGame, saveGame } from './game/progress'
-import type { Dir, Exit, GameState, NpcDef } from './game/types'
+import type { Dir, Exit, GameState, MapDef, NpcDef, Trick } from './game/types'
 import { WALKABLE } from './game/tiles'
 import { isTouchDevice, usePhoneLayout } from './game/layout'
 import { bgm, sfx, useBgm } from './game/sound'
@@ -44,8 +45,14 @@ interface BattleReq {
   tutorial?: boolean
   /** 倒した ボスへの 再挑戦 */
   rematch?: boolean
+  /** 見える 敵に 背中から ふれた／ふれられた */
+  strike?: Strike
   scene: 'boss' | 'field' | 'forest' | 'cave' | 'temple' | 'ship' | 'library' | 'treasury' | 'printing' | 'clock' | 'castle'
 }
+
+/** ダンジョン・野外の 戦闘の 背景 */
+const dungeonScene = (map: MapDef): BattleReq['scene'] =>
+  map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.id.startsWith('clock') ? 'clock' : map.id.startsWith('castle') ? 'castle' : map.kind === 'dungeon' ? 'cave' : 'field'
 
 /** ボスと 戦う 場所（背景） */
 const bossScene = (id: string): BattleReq['scene'] =>
@@ -266,7 +273,8 @@ export default function App() {
     } else if (bid && ENEMIES[bid]) {
       startGame(test, 'battle')
       const sc = p.get('scene') as BattleReq['scene'] | null
-      setBattle({ id: bid, scene: sc ?? (ENEMIES[bid].boss ? 'boss' : 'field'), tutorial: bid === 'celime_tutorial' })
+      const sk = p.get('strike')
+      setBattle({ id: bid, scene: sc ?? (ENEMIES[bid].boss ? 'boss' : 'field'), tutorial: bid === 'celime_tutorial', strike: sk === 'first' || sk === 'ambush' ? sk : undefined })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -905,6 +913,60 @@ export default function App() {
   }
 
   /** 閉じた石版の扉を調べた */
+  /** ダンジョンの 仕掛け：正しく 選ぶと 進み、罠を 選ぶと 魔物に 不意を つかれる */
+  const onTrick = (lines: string[], t: Trick) =>
+    run(async () => {
+      const f = gsRef.current.flags
+      const partKey = `trick_${t.group}_${t.part ?? 0}`
+      if (f[`trick_${t.group}`] || (t.parts && f[partKey])) {
+        await talk(undefined, t.doneLines ?? lines)
+        return
+      }
+      const i = await talk(undefined, lines, t.choices)
+      if (t.correct.includes(i)) {
+        sfx('correct')
+        const g2 = { ...gsRef.current.flags, [partKey]: true }
+        const solved = !t.parts || Array.from({ length: t.parts }, (_, k) => g2[`trick_${t.group}_${k}`]).every(Boolean)
+        if (solved) g2[`trick_${t.group}`] = true
+        setGs((g) => ({ ...g, flags: { ...g.flags, ...g2 } }))
+        await talk(undefined, t.okLines ?? [tr('うまく いった！', 'It worked!')])
+        if (solved) {
+          sfx('chest')
+          await talk(undefined, [tr('カチッ……！ どこかで 隠し宝箱が 現れる 音が した！', 'Click...! You hear a hidden treasure chest appear somewhere!')])
+        } else if (t.parts) {
+          const left = Array.from({ length: t.parts }, (_, k) => !g2[`trick_${t.group}_${k}`]).filter(Boolean).length
+          await talk(undefined, [tr(`（のこり ${left}つ）`, `(${left} left)`)])
+        }
+        save()
+      } else if (t.trap?.includes(i)) {
+        sfx('wrong')
+        await talk(undefined, [tr('ちがう……！ 物かげから 魔物が 飛び出してきた！', 'Wrong...! A monster leaps out from the shadows!')])
+        const m = MAPS[gsRef.current.mapId]
+        const p = fieldRef.current?.player()
+        const table = (p && m.encounter?.(p.x, p.y)) || null
+        if (table) startBattle({ id: table[Math.floor(Math.random() * table.length)], scene: dungeonScene(m), strike: 'ambush' })
+      }
+    })
+
+  /** ダンジョンの フロアを くまなく 歩いた：踏破ボーナス（1フロア 1回） */
+  const onExplored = (mapId: string) => {
+    if (gsRef.current.flags[`explored_${mapId}`]) return
+    const m = MAPS[mapId]
+    let table: string[] | null = null
+    for (let y = 0; y < m.tiles.length && !table; y++) for (let x = 0; x < m.tiles[y].length && !table; x++) table = m.encounter?.(x, y) ?? null
+    const avg = table ? table.reduce((n, id) => n + (ENEMIES[id]?.gold ?? 0), 0) / table.length : 10
+    const gold = Math.max(30, Math.round(avg * 3))
+    setGs((g) => ({ ...g, gold: g.gold + gold, items: { ...g.items, herb: g.items.herb + 1 }, flags: { ...g.flags, [`explored_${mapId}`]: true } }))
+    sfx('chest')
+    run(async () => {
+      await talk(undefined, [
+        tr('フロアを くまなく 探索した！', 'You explored every corner of this floor!'),
+        tr(`踏破ボーナス：${gold}ゴールドと やくそうを てにいれた！`, `Exploration bonus: got ${gold} gold and an Herb!`),
+      ])
+      save()
+    })
+  }
+
   const onGate = (puzzle: string) =>
     run(async () => {
       const q = QUESTS[puzzle]
@@ -1285,7 +1347,14 @@ export default function App() {
       <div className="screen">
         {scene === 'title' && <Title save={loadGame()} onNew={() => setScene('name')} onContinue={continueGame} onStudy={() => setScene('study')} />}
         {scene === 'study' && <Study gs={loadGame()} fromTitle onClose={() => setScene('title')} />}
-        {scene === 'name' && <NameEntry onDone={(name) => startGame(newGame(name), 'prologue')} />}
+        {scene === 'name' && (
+          <NameEntry
+            onDone={(name) => {
+              clearExplore()
+              startGame(newGame(name), 'prologue')
+            }}
+          />
+        )}
         {scene === 'prologue' && (
           <Prologue
             name={gs.name}
@@ -1335,7 +1404,7 @@ export default function App() {
               gs={gs}
               barrierOpen={barrierOpen}
               onInteract={interact}
-              onSign={(lines) => run(async () => void (await talk(undefined, lines)))}
+              onSign={(lines, sign) => (sign.trick ? onTrick(sign.lines, sign.trick) : run(async () => void (await talk(undefined, lines))))}
               onWarp={onWarp}
               onMove={(x, y, dir) => {
                 pos.current = { x, y, dir }
@@ -1352,13 +1421,15 @@ export default function App() {
                 sfx('select')
                 setMenu(true)
               }}
-              onEncounter={(id) =>
+              onEncounter={(id, strike) =>
                 startBattle({
                   id,
-                  scene: map.id.startsWith('temple') ? 'temple' : map.id.startsWith('ship') ? 'ship' : map.id.startsWith('library') ? 'library' : map.id.startsWith('treasury') ? 'treasury' : map.id.startsWith('print') ? 'printing' : map.id.startsWith('clock') ? 'clock' : map.id.startsWith('castle') ? 'castle' : map.kind === 'dungeon' ? 'cave' : 'field',
+                  strike,
+                  scene: dungeonScene(map),
                 })
               }
               onGate={onGate}
+              onExplored={onExplored}
               doorHint={doorHint}
             />
             {scene === 'field' && !menu && !review && (
@@ -1442,6 +1513,7 @@ export default function App() {
                 bossId={battle.id}
                 tutorial={battle.tutorial}
                 rematch={battle.rematch}
+                strike={battle.strike}
                 scene={battle.scene}
                 gs={gs}
                 setGs={setGs}

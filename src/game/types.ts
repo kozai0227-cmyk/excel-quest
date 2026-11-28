@@ -82,6 +82,26 @@ export interface SignDef {
   x: number
   y: number
   lines: string[]
+  /** マスの 上に 小さく 出す 札（棚の 記号・荷物の 重さ など） */
+  label?: string
+  /** ダンジョンの 仕掛け：関数の 考え方で 答える。正解で 進み、罠を 選ぶと 魔物に 不意を つかれる */
+  trick?: Trick
+}
+
+export interface Trick {
+  /** 仕掛けの 名前（全部 解くと flags[`trick_${group}`]） */
+  group: string
+  /** いくつかの 札を 全部 正しく すると 解ける（part：この 札の 番号、parts：札の 数） */
+  part?: number
+  parts?: number
+  choices: string[]
+  /** 正しい 選択（choices の 番号） */
+  correct: number[]
+  /** 罠（選ぶと 魔物の 不意打ち） */
+  trap?: number[]
+  /** 正しく できたとき・解いたあとに 調べたとき の ことば */
+  okLines?: string[]
+  doneLines?: string[]
 }
 
 export interface MapDef {
