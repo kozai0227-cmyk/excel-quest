@@ -104,13 +104,13 @@ export default function App() {
   const [whiteIn, setWhiteIn] = useState(false)
   const [flash, setFlash] = useState(false)
   const [chapter, setChapter] = useState(1)
-  /** 教会で 見ている 関数の 解説（閉じると guideDone で 続きへ） */
-  const [guide, setGuide] = useState<string | null>(null)
+  /** 教会で 見ている 関数の 解説（その 町の 関数・技を タブで 切りかえる。閉じると guideDone で 続きへ） */
+  const [guide, setGuide] = useState<{ ids: string[]; place: string } | null>(null)
   const guideDone = useRef<(() => void) | null>(null)
-  const showGuide = (id: string) =>
+  const showGuide = (ids: string[], place: string) =>
     new Promise<void>((resolve) => {
       guideDone.current = resolve
-      setGuide(id)
+      setGuide({ ids, place })
     })
   const phone = usePhoneLayout()
   // 言語を 切りかえたら 画面 全体を 描きなおす
@@ -216,7 +216,7 @@ export default function App() {
     showBanner(g.mapId)
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y（&first） / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=） / ?puzzle=石版ID（&solved=） / ?inn=HP,所持金
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y（&first） / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=） / ?puzzle=石版ID（&solved=） / ?inn=HP,所持金 ／ &skills=覚えた技ID,…
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -224,6 +224,9 @@ export default function App() {
     if (p.has('epilogue')) return setScene('epilogue')
     if (p.has('study')) return setScene('study')
     const test = { ...newGame(tr('サトウ', 'Sato')), level: 5, exp: 140, hp: maxHp(5), flags: { forest_intro: true, tutorial: true, visit_celuno: true, visit_world: true, intro: true } }
+    // &skills=ID,… で 覚えた 技も 決められる（教会の 習得ずみ 表示を 見る ため など）
+    const sk0 = (p.get('skills') ?? '').split(',').filter((id) => SKILLS[id])
+    if (sk0.length) test.skills = sk0
     const at = p.get('at')?.split(',')
     const ch = p.get('chest')
     const innHp = p.get('inn')
@@ -424,27 +427,12 @@ export default function App() {
           break
         }
         case 'church': {
-          // 関数の 相談：その町で 学ぶ 関数・技を 選ぶと 解説を 見せる
+          // 関数の 相談：あいさつの あと、その町で 学ぶ 関数・技を タブで 切りかえる 解説カードを 出す
           const town = MAPS[gsRef.current.mapId]?.town
           const townName = town ? MAPS[town].name : ''
           const ids = Object.keys(SKILLS).filter((id) => townName.endsWith(SKILLS[id].town))
-          let first = true
-          for (;;) {
-            const i = await say(
-              [
-                first
-                  ? tr('ようこそ、迷える 旅人よ。何か 困っている ことは ありますか？', 'Welcome, wandering traveler. Is something troubling you?')
-                  : tr('ほかにも 困っている ことは ありますか？', 'Is anything else troubling you?'),
-              ],
-              [...ids.map((id) => SKILLS[id].name), tr('いいえ、だいじょうぶです', "No, I'm fine")],
-            )
-            first = false
-            if (i < 0 || i >= ids.length) {
-              await say([tr('あなたの 旅に 光が ありますように。', 'May light shine upon your journey.')])
-              break
-            }
-            await showGuide(ids[i])
-          }
+          await say([tr('ようこそ、迷える 旅人よ。この 町で 学べる 表計算の 魔法を、ひとつずつ 教えましょう。', 'Welcome, wandering traveler. Let me teach you, one by one, the spreadsheet magic you can learn in this town.')])
+          if (ids.length) await showGuide(ids, mapName(gsRef.current.mapId))
           break
         }
         case 'boss': {
@@ -1547,8 +1535,9 @@ export default function App() {
         {dialog && scene !== 'prologue' && scene !== 'epilogue' && <DialogBox key={dialog.id} req={dialog} />}
         {guide && (
           <FuncCard
-            id={guide}
-            learned={gs.skills.includes(guide)}
+            ids={guide.ids}
+            place={guide.place}
+            learned={gs.skills}
             onClose={() => {
               setGuide(null)
               guideDone.current?.()

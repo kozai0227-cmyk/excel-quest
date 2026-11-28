@@ -1,0 +1,442 @@
+/* ---------------------------------------------------------------- 教会：関数の 相談（タブで 切りかえる 解説カード） */
+.fc-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3%;
+  background: radial-gradient(ellipse at 50% 35%, rgba(70, 50, 110, 0.4), rgba(4, 6, 12, 0.74));
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: fcFade 0.22s ease both;
+}
+.fc-layer.out {
+  animation: fcFadeOut 0.16s ease-in both;
+}
+.fc-sheet {
+  position: relative;
+  width: 38em;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.55cqw;
+  line-height: 1.45;
+  color: #f4f6fb;
+  border-radius: 1.2em;
+  background: linear-gradient(180deg, #1d1a36 0%, #141629 50%, #10131f 100%);
+  border: 2px solid rgba(190, 160, 255, 0.45);
+  box-shadow:
+    0 0.35em 0 #05060c,
+    0 0 2.4em rgba(160, 120, 255, 0.16),
+    0 1em 2.6em rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: fcIn 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.fc-layer.out .fc-sheet {
+  animation: fcOut 0.16s ease-in both;
+}
+
+/* 見出し */
+.fc-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.8em 0.8em 0.6em 1em;
+  background: linear-gradient(180deg, rgba(190, 160, 255, 0.16), transparent);
+}
+.fc-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.2em;
+  height: 2.2em;
+  font-size: 1.1em;
+  border-radius: 0.7em;
+  background: linear-gradient(180deg, #a58bff, #6c4fd6);
+  box-shadow: 0 0.18em 0 #3b2a85;
+}
+.fc-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.fc-titles h3 {
+  margin: 0;
+  font-size: 1.15em;
+  line-height: 1.2;
+  color: #fff;
+}
+.fc-place {
+  font-size: 0.78em;
+  color: #b9b3d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fc-progress {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2em;
+}
+.fc-progress-n {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #8ff0a4;
+}
+.fc-progress-bar {
+  width: 4.6em;
+  height: 0.42em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.fc-progress-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5fe08a, #a8f5b8);
+  transition: width 0.4s ease;
+}
+.fc-x {
+  flex: none;
+  width: 2.1em;
+  height: 2.1em;
+  font: inherit;
+  font-size: 0.95em;
+  color: #d8d4ee;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+.fc-x:active {
+  transform: scale(0.9);
+}
+
+/* タブ（横に スクロール） */
+.fc-tabs {
+  display: flex;
+  gap: 0.45em;
+  padding: 0.15em 1em 0.65em;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.fc-tabs::-webkit-scrollbar {
+  display: none;
+}
+.fc-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.35em 0.85em;
+  min-height: 2.2em;
+  font: inherit;
+  font-size: 0.88em;
+  color: #d9d6ec;
+  white-space: nowrap;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 2em;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease;
+}
+.fc-tab:active {
+  transform: scale(0.95);
+}
+.fc-tab.done {
+  color: #c6f5cf;
+  border-color: rgba(120, 220, 140, 0.4);
+}
+.fc-tab.on {
+  color: #1a1238;
+  font-weight: bold;
+  border-color: transparent;
+  background: linear-gradient(180deg, #ffe48a, #ffc93d);
+  box-shadow: 0 0.16em 0 #a87a10;
+}
+.fc-tab-check {
+  font-size: 0.85em;
+  color: #5fe08a;
+}
+.fc-tab.on .fc-tab-check {
+  color: #2f8a45;
+}
+
+/* 本文 */
+.fc-body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 1em;
+}
+.fc-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  padding-bottom: 0.4em;
+}
+.fc-page.next {
+  animation: fcSlideL 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.fc-page.prev {
+  animation: fcSlideR 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.fc-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3em 0.6em;
+}
+.fc-name {
+  margin: 0;
+  font-size: 1.6em;
+  line-height: 1.15;
+  color: #ffd76a;
+  text-shadow: 0 0.06em 0 rgba(0, 0, 0, 0.5);
+}
+.fc-badge {
+  font-size: 0.78em;
+  font-weight: bold;
+  padding: 0.2em 0.65em;
+  border-radius: 2em;
+  white-space: nowrap;
+  color: #ffe3a0;
+  background: rgba(255, 200, 80, 0.14);
+  border: 1px solid rgba(255, 200, 80, 0.4);
+}
+.fc-badge.on {
+  color: #b6f7c4;
+  background: rgba(90, 220, 120, 0.15);
+  border-color: rgba(90, 220, 120, 0.45);
+}
+.fc-use {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  font-size: 1.05em;
+}
+.fc-use-k,
+.fc-sec h5,
+.fc-tip-k {
+  font-size: 0.78em;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  color: #b9a8ff;
+}
+.fc-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+.fc-sec h5 {
+  margin: 0;
+}
+.fc-sheet code {
+  font-family: 'DotGothic16', ui-monospace, monospace;
+  color: #ffe9a8;
+  word-break: break-all;
+}
+.fc-form {
+  display: block;
+  padding: 0.55em 0.75em;
+  border-radius: 0.6em;
+  background: #0a0c16;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0.12em 0.3em rgba(0, 0, 0, 0.5);
+}
+.fc-ex {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+.fc-ex li {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25em 0.55em;
+  padding: 0.5em 0.7em;
+  border-radius: 0.6em;
+  background: rgba(255, 255, 255, 0.06);
+}
+.fc-ex li > :only-child {
+  grid-column: 1 / -1;
+}
+.fc-ex-l code {
+  padding: 0.05em 0.35em;
+  border-radius: 0.3em;
+  background: rgba(0, 0, 0, 0.35);
+}
+.fc-ex-arrow {
+  color: #8f86b8;
+  font-weight: bold;
+}
+.fc-ex-r {
+  color: #dff2e4;
+}
+.fc-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding: 0.6em 0.8em;
+  border-radius: 0.7em;
+  background: rgba(255, 210, 90, 0.1);
+  border-left: 0.3em solid #ffc93d;
+}
+.fc-tip-k {
+  color: #ffd76a;
+}
+.fc-tip p {
+  margin: 0;
+}
+
+/* 下の ボタン */
+.fc-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.8em 1em 0.5em;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.fc-ok {
+  flex: 1;
+  min-height: 2.8em;
+  font: inherit;
+  font-size: 1.05em;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.35);
+  border: none;
+  border-radius: 0.8em;
+  background: linear-gradient(180deg, #a58bff, #6c4fd6);
+  box-shadow: 0 0.28em 0 #3b2a85;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+.fc-nav {
+  flex: none;
+  width: 2.8em;
+  height: 2.8em;
+  font: inherit;
+  font-size: 1.05em;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: 0.8em;
+  background: #2b2f52;
+  box-shadow: 0 0.28em 0 #15182e;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    opacity 0.15s ease;
+}
+.fc-ok:active,
+.fc-nav:not(:disabled):active {
+  transform: translateY(0.24em);
+  box-shadow: 0 0.04em 0 transparent;
+}
+.fc-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.fc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.35em;
+  padding: 0.2em 0 0.7em;
+}
+.fc-dots i {
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.22);
+  transition:
+    width 0.2s ease,
+    background 0.2s ease;
+}
+.fc-dots i.on {
+  width: 1.3em;
+  background: #ffd76a;
+}
+
+/* スマホ */
+.phone .fc-sheet {
+  font-size: 15px;
+  width: 100%;
+  max-height: 92%;
+}
+.phone .fc-ex li {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+.phone .fc-ex-l {
+  grid-column: 1 / -1;
+}
+
+@keyframes fcFade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fcFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fcIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.2em) scale(0.94);
+  }
+}
+@keyframes fcOut {
+  to {
+    opacity: 0;
+    transform: translateY(0.6em) scale(0.97);
+  }
+}
+@keyframes fcSlideL {
+  from {
+    opacity: 0;
+    transform: translateX(1.6em);
+  }
+}
+@keyframes fcSlideR {
+  from {
+    opacity: 0;
+    transform: translateX(-1.6em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-layer,
+  .fc-layer.out,
+  .fc-sheet,
+  .fc-layer.out .fc-sheet,
+  .fc-page.next,
+  .fc-page.prev {
+    animation-duration: 0.01s;
+  }
+  .fc-progress-bar i,
+  .fc-dots i {
+    transition: none;
+  }
+}
