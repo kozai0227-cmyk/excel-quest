@@ -1,0 +1,463 @@
+/* ---------------------------------------------------------------- ボスの 挑戦カード（たたかう 前の 見通し） */
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3%;
+  background: radial-gradient(ellipse at 50% 40%, rgba(60, 0, 10, 0.45), rgba(4, 4, 12, 0.72));
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: bgFade 0.25s ease both;
+}
+.bg-card {
+  position: relative;
+  width: 25em;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 0 1.1em 1.1em;
+  font-size: 2cqw;
+  line-height: 1.4;
+  color: #fff;
+  border-radius: 1.2em;
+  background: linear-gradient(180deg, #2a1424 0%, #120c1e 46%, #0d1124 100%);
+  border: 2px solid rgba(255, 110, 90, 0.6);
+  box-shadow:
+    0 0.35em 0 #05030a,
+    0 0 2.4em rgba(255, 60, 60, 0.22),
+    0 1em 2.6em rgba(0, 0, 0, 0.55);
+  animation: bgIn 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.bg-layer.go .bg-card {
+  animation: bgGo 0.24s ease-in both;
+}
+
+/* ボスの 舞台 */
+.bg-stage {
+  position: relative;
+  height: 9.2em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0 -1.1em;
+  border-radius: 1.1em 1.1em 0 0;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 80, 60, 0.35), transparent 65%),
+    linear-gradient(180deg, #1a0a18, #2a1020);
+}
+.bg-rays {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  width: 26em;
+  height: 26em;
+  margin: -13em 0 0 -13em;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 90, 70, 0.16) 0deg 8deg, transparent 8deg 24deg);
+  -webkit-mask: radial-gradient(circle, #000 15%, transparent 60%);
+  mask: radial-gradient(circle, #000 15%, transparent 60%);
+  animation: bgSpin 22s linear infinite;
+}
+.bg-aura {
+  position: absolute;
+  left: 50%;
+  bottom: 0.8em;
+  width: 9em;
+  height: 7em;
+  margin-left: -4.5em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 70, 70, 0.55), rgba(140, 30, 120, 0.25) 50%, transparent 72%);
+  filter: blur(0.3em);
+  animation: bgPulse 1.6s ease-in-out infinite;
+}
+.bg-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 0.7em;
+  width: 6.5em;
+  height: 0.9em;
+  margin-left: -3.25em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6), transparent 70%);
+  animation: bgShadow 2.4s ease-in-out infinite;
+}
+.bg-foe {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1em;
+  filter: drop-shadow(0 0 0.5em rgba(255, 80, 80, 0.55));
+  animation:
+    bgRise 0.6s cubic-bezier(0.2, 1.3, 0.4, 1) 0.1s both,
+    bgFloat 2.4s ease-in-out 0.7s infinite;
+}
+.bg-foe img,
+.bg-foe .sprite-view {
+  display: block;
+  width: 7.2em;
+  height: 7.2em;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.bg-foe .sprite-view {
+  width: 5em;
+  height: auto;
+}
+
+/* 見出し */
+.bg-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  text-align: center;
+}
+.bg-tags {
+  display: flex;
+  gap: 0.4em;
+  margin-top: -0.75em;
+  position: relative;
+  z-index: 2;
+}
+.bg-tag {
+  padding: 0.14em 0.75em;
+  border-radius: 99px;
+  font-size: 0.72em;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0.15em 0 rgba(0, 0, 0, 0.4);
+}
+.bg-tag.boss {
+  color: #fff;
+  background: linear-gradient(180deg, #ff6a5a, #d42a3a);
+  animation: bgBeat 1.2s ease-in-out infinite;
+}
+.bg-tag.ch {
+  color: #3a2600;
+  background: linear-gradient(180deg, #ffe08a, #f2b636);
+}
+.bg-body h3 {
+  margin: 0;
+  font-size: 1.3em;
+  line-height: 1.3;
+  text-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.5);
+}
+
+/* 見通しの 3枚 */
+.bg-stats {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45em;
+}
+.bg-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0.55em 0.3em 0.6em;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: bgRiseIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.bg-stat .bg-ico {
+  font-size: 1.1em;
+  line-height: 1.2;
+}
+.bg-stat b {
+  font-size: 1.45em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bg-stat b small {
+  margin-left: 0.1em;
+  font-size: 0.55em;
+  font-weight: normal;
+  opacity: 0.8;
+}
+.bg-stat > span:last-child {
+  font-size: 0.68em;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+}
+.bg-stat.atk {
+  border-color: rgba(255, 210, 90, 0.5);
+  background: linear-gradient(180deg, rgba(255, 190, 60, 0.18), rgba(255, 255, 255, 0.03));
+}
+.bg-stat.atk b {
+  color: #ffd25a;
+}
+.bg-stat.hurt {
+  border-color: rgba(255, 120, 100, 0.45);
+  background: linear-gradient(180deg, rgba(255, 90, 80, 0.16), rgba(255, 255, 255, 0.03));
+}
+.bg-stat.hurt b {
+  color: #ff9a8a;
+}
+.bg-stat.life {
+  border-color: rgba(110, 220, 150, 0.45);
+  background: linear-gradient(180deg, rgba(60, 190, 110, 0.16), rgba(255, 255, 255, 0.03));
+}
+.bg-stat.life b {
+  color: #7ee0a6;
+}
+.bg-stat.life.warn {
+  border-color: rgba(255, 110, 90, 0.75);
+  background: linear-gradient(180deg, rgba(255, 70, 60, 0.22), rgba(255, 255, 255, 0.03));
+}
+.bg-stat.life.warn b {
+  color: #ff8a7a;
+}
+
+/* 出る 問題 */
+.bg-label {
+  flex: none;
+  font-size: 0.75em;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.78);
+}
+.bg-topics {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  padding: 0.55em 0.7em;
+  text-align: left;
+  border-radius: 0.9em;
+  background: rgba(120, 170, 255, 0.1);
+  border: 1px solid rgba(120, 170, 255, 0.3);
+  animation: bgRiseIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.bg-topics .bg-label {
+  padding-top: 0.15em;
+}
+.bg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em;
+}
+.bg-chips span {
+  padding: 0.08em 0.6em;
+  border-radius: 99px;
+  font-size: 0.75em;
+  font-weight: bold;
+  color: #dfe9ff;
+  background: rgba(120, 170, 255, 0.22);
+}
+
+/* 自分の HP と やくそう */
+.bg-me {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 0.5em 0.7em;
+  border-radius: 0.9em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  animation: bgRiseIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.bg-bar {
+  flex: 1;
+  height: 0.6em;
+  border-radius: 99px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.45);
+}
+.bg-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #8ef0a0, #34b25a);
+  box-shadow: inset 0 0.12em 0 rgba(255, 255, 255, 0.35);
+  transform-origin: left;
+  animation: bgGrow 0.7s cubic-bezier(0.2, 1, 0.4, 1) 0.4s both;
+}
+.bg-me.low {
+  border-color: rgba(255, 110, 90, 0.6);
+}
+.bg-me.low .bg-bar i {
+  background: linear-gradient(180deg, #ff9a7a, #e0453a);
+}
+.bg-me b {
+  font-size: 0.95em;
+  font-variant-numeric: tabular-nums;
+}
+.bg-me b small {
+  font-size: 0.75em;
+  font-weight: normal;
+  opacity: 0.7;
+}
+.bg-herb {
+  flex: none;
+  padding: 0.08em 0.5em;
+  border-radius: 99px;
+  font-size: 0.78em;
+  font-weight: bold;
+  background: rgba(60, 190, 110, 0.25);
+}
+.bg-herb.none {
+  opacity: 0.45;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ひとこと */
+.bg-tip {
+  margin: 0;
+  font-size: 0.78em;
+  color: rgba(255, 255, 255, 0.72);
+  animation: bgFade 0.3s ease both;
+}
+.bg-tip::before {
+  content: '💡 ';
+}
+.bg-tip.warn {
+  color: #ffb4a0;
+  font-weight: bold;
+}
+.bg-tip.warn::before {
+  content: '⚠️ ';
+}
+
+/* ボタン（押すと 沈む 立体ボタン） */
+.bg-btns {
+  align-self: stretch;
+  display: flex;
+  gap: 0.6em;
+  margin-top: 0.3em;
+}
+.bg-btn {
+  flex: 1;
+  min-height: 2.9em;
+  padding: 0.5em 0.8em;
+  font: inherit;
+  font-weight: bold;
+  border: none;
+  border-radius: 0.8em;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    filter 0.08s ease;
+}
+.bg-btn.main {
+  flex: 1.6;
+  font-size: 1.08em;
+  color: #fff;
+  text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #ff7a5a, #e0353f);
+  box-shadow: 0 0.28em 0 #8e1a24;
+}
+.bg-btn.sub {
+  color: #fff;
+  background: #2a3556;
+  box-shadow: 0 0.28em 0 #141b30;
+}
+.bg-btn:active,
+.bg-btn.picked {
+  transform: translateY(0.24em);
+  box-shadow: 0 0.04em 0 transparent;
+}
+.bg-btn.picked {
+  filter: brightness(1.35);
+}
+.bg-btns.ring .bg-btn.f {
+  outline: 0.16em solid #ffd25a;
+  outline-offset: 0.18em;
+}
+
+/* スマホ */
+.phone .bg-card {
+  font-size: 16px;
+  width: 370px;
+  padding: 0 16px 18px;
+}
+.phone .bg-stage {
+  margin: 0 -16px;
+}
+
+@keyframes bgFade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes bgIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.2em) scale(0.92);
+  }
+}
+@keyframes bgGo {
+  to {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+@keyframes bgSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes bgPulse {
+  50% {
+    opacity: 0.6;
+    transform: scale(1.12);
+  }
+}
+@keyframes bgRise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5em) scale(0.8);
+  }
+}
+@keyframes bgFloat {
+  50% {
+    transform: translateY(-0.35em);
+  }
+}
+@keyframes bgShadow {
+  50% {
+    transform: scaleX(0.85);
+    opacity: 0.7;
+  }
+}
+@keyframes bgBeat {
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes bgRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.8em);
+  }
+}
+@keyframes bgGrow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-layer,
+  .bg-card,
+  .bg-layer.go .bg-card,
+  .bg-rays,
+  .bg-aura,
+  .bg-floor,
+  .bg-foe,
+  .bg-tag.boss,
+  .bg-stat,
+  .bg-topics,
+  .bg-me,
+  .bg-bar i,
+  .bg-tip {
+    animation: none;
+  }
+}

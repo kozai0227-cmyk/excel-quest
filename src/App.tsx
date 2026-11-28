@@ -13,6 +13,7 @@ import { Unlock } from './components/Unlock'
 import { MapView } from './components/MapView'
 import { FuncCard } from './components/FuncCard'
 import { ChestReward, type ChestReq } from './components/ChestReward'
+import { BossGate, type BossGateReq } from './components/BossGate'
 import { TravelMap, hopeLeft, travelLock } from './components/TravelMap'
 import { FieldStatus, QuestProgress, type QuestNav } from './components/FieldHud'
 import { SKILLS } from './data/skills'
@@ -70,6 +71,7 @@ export default function App() {
   const [dialog, setDialog] = useState<DialogReq | null>(null)
   const [shop, setShop] = useState<ShopReq | null>(null)
   const [chest, setChest] = useState<ChestReq | null>(null)
+  const [gate, setGate] = useState<BossGateReq | null>(null)
   const [menu, setMenu] = useState(false)
   const [review, setReview] = useState(false)
   /** はじめて フィールドに 出たときの「タップで 歩く」案内（数歩 歩くと 消える） */
@@ -200,7 +202,7 @@ export default function App() {
     showBanner(mapName(g.mapId))
   }
 
-  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額
+  // 開発用：?quest=ID / ?boss=ID（&scene=背景） / ?prologue / ?at=マップ,x,y / ?ending=章 / ?chest=どうぐ・装備ID・金額 / ?gate=ボスID（&hp=）
   useEffect(() => {
     if (!DEV_URL) return
     const p = new URLSearchParams(location.search)
@@ -217,6 +219,14 @@ export default function App() {
       const g = { ...test, mapId: 'cave', x: 14, y: 21, dir: 'up' as const, gear: loot.equip ? [...test.gear, loot.equip] : test.gear, gold: test.gold + (loot.gold ?? 0), items: loot.item ? { ...test.items, [loot.item]: test.items[loot.item] + 1 } : test.items }
       startGame(g, 'field')
       setTimeout(() => setChest({ ...loot, close: () => setChest(null) }), 300)
+      return
+    }
+    const gb = p.get('gate')
+    if (gb && ENEMIES[gb]) {
+      // ボスの 挑戦カードだけを 見る（&hp=のこりHP で 減った ときの 見え方も）
+      const hp = Number(p.get('hp')) || test.hp
+      startGame({ ...test, hp, mapId: 'cave', x: 8, y: 5, dir: 'up' }, 'field')
+      setTimeout(() => setGate({ bossId: gb, close: () => setGate(null) }), 300)
       return
     }
     if (at && MAPS[at[0]]) return startGame({ ...test, mapId: at[0], x: Number(at[1]), y: Number(at[2]), dir: 'down' }, 'field')
@@ -409,8 +419,18 @@ export default function App() {
         case 'boss': {
           const b = ENEMIES[npc.bossId!]
           if (b.intro.length) await say(b.intro)
-          const i = await talk(undefined, [tr(`${b.name}と たたかいますか？`, `Fight ${enemyName(b)}?`)], [tr('たたかう', 'Fight'), tr('やめておく', 'Not yet')])
-          if (i === 0)
+          // 挑む 前に 挑戦カード（何回 正解で 勝てるか・何回 耐えられるか・出る 問題）で 決める
+          const fight = await new Promise<boolean>((resolve) =>
+            setGate({
+              bossId: b.id,
+              creature: npc.creature,
+              close: (f) => {
+                setGate(null)
+                resolve(f)
+              },
+            }),
+          )
+          if (fight)
             startBattle({
               id: b.id,
               scene: bossScene(b.id),
@@ -1400,6 +1420,7 @@ export default function App() {
             {review && scene === 'field' && <Study gs={gs} onClose={() => setReview(false)} />}
             {shop && scene === 'field' && <ShopSheet req={shop} gs={gs} setGs={setGs} />}
             {chest && scene === 'field' && <ChestReward req={chest} gs={gs} setGs={setGs} />}
+            {gate && scene === 'field' && <BossGate req={gate} gs={gs} />}
             {travel && scene === 'field' && !busy && <TravelMap gs={gs} onPick={travelTo} onRematch={startRematch} onClose={() => setTravel(false)} />}
             {scene === 'battle' && battle && (
               <Battle
